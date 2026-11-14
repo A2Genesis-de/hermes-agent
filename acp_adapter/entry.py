@@ -1,11 +1,11 @@
 """CLI entry point for the hermes-agent ACP adapter.
 
-Loads ``~/.hermes/.env``, routes logging to stderr (stdout is reserved for ACP
+Loads ``~/.a2assistant/.env``, routes logging to stderr (stdout is reserved for ACP
 JSON-RPC), and starts the ACP agent server.
 
 Usage::
 
-    python -m acp_adapter.entry   # or: hermes acp / hermes-acp
+    python -m acp_adapter.entry   # or: a2assistant acp / hermes-acp
 """
 
 # IMPORTANT: hermes_bootstrap must be the very first import — UTF-8 stdio
@@ -33,6 +33,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from hermes_cli.branding import CLI_COMMAND
 from hermes_constants import get_hermes_home
 
 
@@ -79,7 +80,7 @@ def _setup_logging() -> None:
 
 
 def _load_env() -> None:
-    """Load .env from HERMES_HOME (default ``~/.hermes``)."""
+    """Load .env from A2ASSISTANT_HOME (default ``~/.a2assistant``)."""
     from hermes_cli.env_loader import load_hermes_dotenv
 
     hermes_home = get_hermes_home()
@@ -92,7 +93,7 @@ def _load_env() -> None:
 
 
 def _parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(prog="hermes-acp", description="Run A2Assistant as an ACP stdio server.")
+    parser = argparse.ArgumentParser(prog=f"{CLI_COMMAND}-acp", description="Run A2Assistant as an ACP stdio server.")
     parser.add_argument("--version", action="store_true", help="Print A2Assistant version and exit")
     parser.add_argument("--check", action="store_true", help="Verify ACP dependencies and adapter imports, then exit")
     parser.add_argument("--setup", action="store_true",
@@ -122,7 +123,7 @@ def _run_setup() -> None:
 
     old_argv = sys.argv[:]
     try:
-        sys.argv = [old_argv[0] if old_argv else "hermes", "model"]
+        sys.argv = [old_argv[0] if old_argv else CLI_COMMAND, "model"]
         hermes_main()
     finally:
         sys.argv = old_argv
@@ -163,7 +164,7 @@ def _warm_memory_provider_import(logger: logging.Logger) -> None:
 def main(argv: list[str] | None = None) -> None:
     """Entry point: load env, configure logging, run the ACP agent."""
     if argv is None and "hermes_cli.main" not in sys.modules:
-        sys.argv = [sys.argv[0] if sys.argv else "hermes-acp", "acp", *sys.argv[1:]]
+        sys.argv = [sys.argv[0] if sys.argv else f"{CLI_COMMAND}-acp", "acp", *sys.argv[1:]]
         from hermes_cli.main import main as hermes_main
 
         return hermes_main()

@@ -1,13 +1,13 @@
 """Interrupted-update fleet-restart obligation (#95294 parts 1+2).
 
-A ``hermes update`` killed after git pull advanced HEAD but before the
+A ``a2assistant update`` killed after git pull advanced HEAD but before the
 fleet restart left running gateways on stale code. The next update said
 "Already up to date" and skipped restart. These tests cover:
 
 - ``fleet_restart_pending`` marker written after HEAD advances, cleared
   after a successful (or no-op) fleet restart
 - interrupt between pull and restart leaves the marker
-- next ``hermes update`` with git already up to date still runs the
+- next ``a2assistant update`` with git already up to date still runs the
   pending restart when the marker OR a skewed unfinished latest.json is
   present
 
@@ -422,7 +422,7 @@ def test_clean_update_escalates_surviving_serve_as_unaccounted(
     monkeypatch, tmp_path, capsys
 ):
     """#100479 end to end: the plan inventoried a gateway (restarted through
-    ``hermes-gateway.service``) and an unmanaged ``serve`` on the same
+    ``a2assistant-gateway.service``) and an unmanaged ``serve`` on the same
     default profile. The serve survives the update as the SAME process, so
     the update must (1) warn, (2) reconcile it as ``unaccounted`` instead of
     borrowing the gateway's restart, and (3) under contract C3 (the code is
@@ -453,7 +453,7 @@ def test_clean_update_escalates_surviving_serve_as_unaccounted(
 
     def _match(p, **kw):
         kw["restarted_services"] = list(kw.get("restarted_services") or []) + [
-            "hermes-gateway.service"
+            "a2assistant-gateway.service"
         ]
         return real_match(p, **kw)
 
@@ -529,7 +529,7 @@ def test_clean_update_defers_desktop_owned_serve_and_clears_marker(
 
     def _match(p, **kw):
         kw["restarted_services"] = list(kw.get("restarted_services") or []) + [
-            "hermes-gateway.service"
+            "a2assistant-gateway.service"
         ]
         return real_match(p, **kw)
 
@@ -587,7 +587,7 @@ def test_startup_warn_prints_when_marker_present(capsys):
     update_cmd._warn_pending_fleet_restart_on_startup()
     err = capsys.readouterr().err
     assert "did not restart running gateways" in err
-    assert "hermes gateway restart" in err
+    assert "a2assistant gateway restart" in err
 
 
 def test_startup_warn_silent_when_nothing_pending(capsys):
@@ -857,7 +857,7 @@ def test_startup_warn_silent_when_failed_receipt_already_restarted_fleet(monkeyp
     """#112604 aftermath: the update pulled ``pulled``, restarted every gateway onto it, then a
     post-restart step crashed (receipt ``failed``, empty ``fleet`` matrix). Later a manual
     ``git pull`` moved the checkout again. The startup hint must not blame that update for a
-    restart it performed; ``hermes update``'s catch-up still owes the fleet the checkout."""
+    restart it performed; ``a2assistant update``'s catch-up still owes the fleet the checkout."""
     pre, pulled, checkout = "a" * 40, "b" * 40, "c" * 40
     _patch_marker_sha(monkeypatch, checkout)
     receipt_dir = get_hermes_home() / "logs" / "update_receipts"
@@ -869,7 +869,7 @@ def test_startup_warn_silent_when_failed_receipt_already_restarted_fleet(monkeyp
                 "stop_reason": "AttributeError: module 'hermes_cli.main_dashboard' has no attribute 'x'",
                 "pre_update": {"sha": pre}, "post_update": {"sha": pulled},
                 "gateway_restart": {
-                    "restarted_services": ["hermes-gateway"], "relaunched_profiles": [],
+                    "restarted_services": ["a2assistant-gateway"], "relaunched_profiles": [],
                     "externally_supervised_profiles": [], "killed_pids": [], "failed_units": [],
                     "incomplete": False, "phase_error": "",
                 },
@@ -894,7 +894,7 @@ def test_startup_warn_silent_when_failed_receipt_already_restarted_fleet(monkeyp
 
 def test_startup_warn_silent_when_completed_update_fleet_restarted_onto_moved_checkout(monkeypatch, capsys):
     """The remedy the warning names must clear it: after a completed update, a manual ``git pull``
-    plus ``hermes gateway restart`` leaves every owed gateway on today's checkout — newer than the
+    plus ``a2assistant gateway restart`` leaves every owed gateway on today's checkout — newer than the
     update's ``post_update.sha`` — which is nothing that update still owes (#113350 steps 3–4)."""
     pre, pulled, checkout = "a" * 40, "b" * 40, "c" * 40
     _patch_marker_sha(monkeypatch, checkout)
@@ -906,7 +906,7 @@ def test_startup_warn_silent_when_completed_update_fleet_restarted_onto_moved_ch
                 "outcome": "success", "exit_code": 0,
                 "pre_update": {"sha": pre}, "post_update": {"sha": pulled},
                 "gateway_restart": {
-                    "restarted_services": ["hermes-gateway"], "relaunched_profiles": [],
+                    "restarted_services": ["a2assistant-gateway"], "relaunched_profiles": [],
                     "externally_supervised_profiles": [], "killed_pids": [], "failed_units": [],
                     "incomplete": False, "phase_error": "",
                 },
@@ -1035,7 +1035,7 @@ def _spy_fleet_restart(monkeypatch):
 
 
 def test_up_to_date_update_leaves_current_fleet_alone(monkeypatch, tmp_path, capsys):
-    """Every live gateway already serves the checkout code: `hermes update` (cron, a second
+    """Every live gateway already serves the checkout code: `a2assistant update` (cron, a second
     profile) must not drain and restart the shared multiplexer again, and must still discharge
     the obligation it armed and finish clean."""
     args = _update_args()

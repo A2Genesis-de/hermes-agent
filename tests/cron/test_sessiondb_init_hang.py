@@ -18,7 +18,7 @@ from gateway import session_cron
 
 @pytest.fixture
 def owner_run(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     db = MagicMock(db_path=tmp_path / "state.db")
     db.get_compression_tip.return_value = None
     owner = SimpleNamespace(db=db)
@@ -64,9 +64,9 @@ def test_sessiondb_init_preserves_multiplex_profile_context(owner_run, tmp_path)
 def test_run_job_does_not_hang_when_sessiondb_init_wedges(owner_run, tmp_path, monkeypatch, setting):
     owner, job, execution_id, agent_cls = owner_run
     if setting == "env":
-        monkeypatch.setenv("HERMES_CRON_SESSION_DB_TIMEOUT", "0.02")
+        monkeypatch.setenv("A2ASSISTANT_CRON_SESSION_DB_TIMEOUT", "0.02")
     else:
-        monkeypatch.delenv("HERMES_CRON_SESSION_DB_TIMEOUT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_CRON_SESSION_DB_TIMEOUT", raising=False)
         (tmp_path / "config.yaml").write_text("cron:\n  session_db_timeout_seconds: 0.02\n")
     entered, release, closed = threading.Event(), threading.Event(), threading.Event()
     owner.db.close.side_effect = closed.set
@@ -110,7 +110,7 @@ def test_owner_store_failure_never_runs_unpersisted_agent(owner_run, failure):
 
 def test_guard_is_released_and_job_refires_after_sessiondb_hang(owner_run, monkeypatch):
     owner, _job, _, agent_cls = owner_run
-    monkeypatch.setenv("HERMES_CRON_SESSION_DB_TIMEOUT", "0.02")
+    monkeypatch.setenv("A2ASSISTANT_CRON_SESSION_DB_TIMEOUT", "0.02")
     from cron import jobs
 
     release = threading.Event()

@@ -71,7 +71,7 @@ def build_cli(data, out, tmp_path):
     return subprocess.run(
         [sys.executable, "-B", "-m", "scripts.build.agent", "--inputs", str(document), "--out", str(out)],
         cwd=tmp_path, env={"PATH": os.environ["PATH"], "HOME": str(home),
-                          "HERMES_HOME": str(home / ".hermes"), "PYTHONPATH": str(ROOT)},
+                          "A2ASSISTANT_HOME": str(home / ".hermes"), "PYTHONPATH": str(ROOT)},
         capture_output=True, text=True, timeout=30,
         check=False,
     )
@@ -118,25 +118,25 @@ def test_referenced_installed_code_uses_derived_command_map_without_copying(tmp_
     source = Path(data["code"])
     (source / "entry.py").write_text(
         "import json, os\nfrom pathlib import Path\n"
-        "def main():\n print(json.dumps([Path(os.environ['HERMES_BUNDLED_SKILLS'],'data').read_text(),"
-        "os.environ['HERMES_NODE']]))\n", encoding="utf-8")
+        "def main():\n print(json.dumps([Path(os.environ['A2ASSISTANT_BUNDLED_SKILLS'],'data').read_text(),"
+        "os.environ['A2ASSISTANT_NODE']]))\n", encoding="utf-8")
     bindir = tmp_path / "installed env/bin"
     bindir.mkdir(parents=True)
     command = bindir / "probe"
     command.write_text(f"#!{sys.executable}\nimport sys\nsys.path.insert(0, {str(source)!r})\nfrom entry import main\nmain()\n", encoding="utf-8")
     command.chmod(0o755)
     data.update(placement="references", repo="share/hermes-agent", command_dir=str(bindir),
-                env={"HERMES_NODE": "/prepared/node"})
+                env={"A2ASSISTANT_NODE": "/prepared/node"})
     before = {p: p.read_bytes() for p in source.rglob("*") if p.is_file()}
     result = build_cli(data, out, tmp_path)
     assert result.returncode == 0, result.stderr
     mapping = json.loads((out / "command-map.json").read_text())
     assert mapping["commands"] == {"probe": {
         "source": str(command), "destination": "bin/probe", "entry": "entry:main"}}
-    assert Path(mapping["env"]["HERMES_TUI_DIR"]).resolve() == Path(data["frontends"]["tui"])
-    assert Path(mapping["env"]["HERMES_WEB_DIST"]).resolve() == Path(data["frontends"]["web"])
-    assert Path(mapping["env"]["HERMES_WEBAPP_DIST"]).resolve() == Path(data["frontends"]["webapp"])
-    assert mapping["env"]["HERMES_INSTALL_ROOT"] == str(out / "share/hermes-agent")
+    assert Path(mapping["env"]["A2ASSISTANT_TUI_DIR"]).resolve() == Path(data["frontends"]["tui"])
+    assert Path(mapping["env"]["A2ASSISTANT_WEB_DIST"]).resolve() == Path(data["frontends"]["web"])
+    assert Path(mapping["env"]["A2ASSISTANT_WEBAPP_DIST"]).resolve() == Path(data["frontends"]["webapp"])
+    assert mapping["env"]["A2ASSISTANT_INSTALL_ROOT"] == str(out / "share/hermes-agent")
     assert not list(out.rglob("entry.py"))
     assert (out / "share/hermes-agent/skills").is_symlink()
     assert (out / "ui-tui").is_symlink()
@@ -302,7 +302,7 @@ def test_payload_smoke_uses_relocated_manifest_commands(tmp_path):
         "import json, os, sys\nfrom pathlib import Path\n"
         "def main():\n"
         f" assert not Path({str(out)!r}).exists(), 'payload was not moved'\n"
-        " assert 'HERMES_PYTHON' not in os.environ\n"
+        " assert 'A2ASSISTANT_PYTHON' not in os.environ\n"
         " assert not Path.cwd().is_relative_to(Path(__file__).parent)\n"
         " if sys.argv[1:] == ['tools', 'list']:\n"
         "  import dependency\n"
@@ -315,7 +315,7 @@ def test_payload_smoke_uses_relocated_manifest_commands(tmp_path):
     (harness / "run.py").write_text("print('harness ok')\n", encoding="utf-8")
     assert build_cli(data, out, tmp_path).returncode == 0
     shutil.rmtree(source)
-    env = dict(os.environ, PYTHONPATH="/foreign", PYTHONHOME="/foreign", HERMES_PYTHON="/foreign")
+    env = dict(os.environ, PYTHONPATH="/foreign", PYTHONHOME="/foreign", A2ASSISTANT_PYTHON="/foreign")
     command = ["bash", str(ROOT / "scripts/smoke-payload.sh"), str(out)]
     result = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stdout + result.stderr

@@ -51,7 +51,7 @@ def _write_config(home: Path, *names: str) -> None:
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)

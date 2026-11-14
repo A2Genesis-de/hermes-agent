@@ -1,4 +1,4 @@
-"""``hermes update``'s .env backfill must never copy the default's secrets into a profile.
+"""``a2assistant update``'s .env backfill must never copy the default's secrets into a profile.
 
 Secrets are profile-scoped, and one bot token can't be consumed twice: a copied TELEGRAM_BOT_TOKEN only
 ever surfaces as a ``duplicate_credential`` fatal next to the default's live adapter.
@@ -18,7 +18,7 @@ def profile_env(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     default_home = tmp_path / ".hermes"
     default_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     return tmp_path
 
 

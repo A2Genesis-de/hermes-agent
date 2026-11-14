@@ -347,7 +347,7 @@ def test_the_gateway_bootstrap_installs_the_verb_over_its_identify_descriptor(tm
     home = tmp_path / "boot"
     home.mkdir(mode=0o700)
     home = home.resolve()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     descriptor = _descriptor(home, instance="instance-boot")
     runner = SimpleNamespace(session_runtime_descriptor=descriptor, _draining=False,
                              session_ticket_store=TicketStore("instance-boot", frozenset({str(home)})),

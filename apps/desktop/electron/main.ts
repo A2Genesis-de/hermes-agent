@@ -42,8 +42,11 @@ import {
 } from 'electron'
 import type { Session } from 'electron'
 
+import { installRootIn } from '../../shared/src/node/legacy-names.mjs'
+import { PRODUCT_NAME, URL_SCHEME, URL_SCHEMES } from '../../shared/src/product-names.mjs'
+
 import { type ActiveRuntimeState, classifyActiveRuntime } from './active-runtime-state'
-import { HERMES_API_EXPECTED_404 } from './api-expected-404'
+import { A2ASSISTANT_API_EXPECTED_404 } from './api-expected-404'
 import {
   destroyKeepaliveAgents,
   htmlResponseError,
@@ -660,6 +663,7 @@ import { startUpdateRelaunchWaiter } from './updater/relaunch-waiter'
 import { preflightStateDb } from './updater/state-db-preflight'
 import { createStoreStrategy } from './updater/store-client'
 import { filenameFromUrl } from './url-filename'
+import { adoptLegacyUserData } from './user-data-migration'
 import { isExternalVenvHolder, isHermesOwnedVenvDaemon } from './venv-holder-select'
 import { fetchMarketplaceThemes, searchMarketplaceThemes } from './vscode-marketplace'
 import { createWakeIndicatorWindowController } from './wake-indicator-window'
@@ -725,9 +729,13 @@ import { readWslWindowsClipboardImage } from './wsl-clipboard-image'
 import { resolvePickerDefaultPath, setActiveGatewayProfile, setWslBridgeProfileState } from './wsl-path-bridge'
 
 const IDENTITY_APP_NAME: string | null = applyDesktopIdentity(app)
-const USER_DATA_OVERRIDE: string | undefined = process.env.HERMES_DESKTOP_USER_DATA_DIR
+const USER_DATA_OVERRIDE: string | undefined = process.env.A2ASSISTANT_DESKTOP_USER_DATA_DIR
 
-if (USER_DATA_OVERRIDE || process.env.HERMES_DATA_DIR_SUFFIX) {
+if (!IDENTITY_APP_NAME && !USER_DATA_OVERRIDE) {
+  app.setPath('userData', adoptLegacyUserData(app.getPath('appData'), line => console.log(line)))
+}
+
+if (USER_DATA_OVERRIDE || process.env.A2ASSISTANT_DATA_DIR_SUFFIX) {
   const resolvedUserData: string = resolveDesktopUserData(app.getPath('userData'))
   fs.mkdirSync(resolvedUserData, { recursive: true })
   app.setPath('userData', resolvedUserData)
@@ -764,15 +772,13 @@ if (!isPrimaryInstance) {
   app.exit(0)
 }
 
-// `hermes desktop` shortens TMPDIR only so the lock above can bind its socket (#124688). The
-// backend and every other child get the real one (the profile scratch dir) back.
-if (process.env.HERMES_DESKTOP_TMPDIR) {
-  process.env.TMPDIR = process.env.HERMES_DESKTOP_TMPDIR
-  delete process.env.HERMES_DESKTOP_TMPDIR
+if (process.env.A2ASSISTANT_DESKTOP_TMPDIR) {
+  process.env.TMPDIR = process.env.A2ASSISTANT_DESKTOP_TMPDIR
+  delete process.env.A2ASSISTANT_DESKTOP_TMPDIR
 }
 
-const DEV_SERVER = process.env.HERMES_DESKTOP_DEV_SERVER
-const IS_PACKAGED = app.isPackaged || Boolean(process.env.HERMES_DESKTOP_IS_PACKAGED)
+const DEV_SERVER = process.env.A2ASSISTANT_DESKTOP_DEV_SERVER
+const IS_PACKAGED = app.isPackaged || Boolean(process.env.A2ASSISTANT_DESKTOP_IS_PACKAGED)
 const IS_MAC = process.platform === 'darwin'
 const IS_WINDOWS = process.platform === 'win32'
 const IS_WSL = isWslEnvironment()
@@ -796,15 +802,6 @@ let f12Blocked = false
 const PRELOAD_PATH = path.join(APP_ROOT, 'dist', 'electron-preload.js')
 const PREVIEW_GUEST_PRELOAD_PATH = path.join(APP_ROOT, 'dist', 'preview-guest-preload.js')
 
-// Remote displays (SSH X11 forwarding, VNC, RDP) make Chromium's GPU
-// compositor flicker — accelerated layers can't be presented cleanly over the
-// wire, so the window flashes during scroll/streaming/animation. Local
-// Windows/macOS (and WSLg, which renders locally via vGPU) composite on the
-// GPU and never see it. Fall back to software rendering when a remote display
-// is detected; it's rock-steady over the wire and the CPU cost is negligible
-// next to the connection's latency. Must run before app `ready` — these
-// switches only apply pre-launch. Override with HERMES_DESKTOP_DISABLE_GPU
-// (1/true → always disable, 0/false → keep GPU on).
 const REMOTE_DISPLAY_REASON = detectRemoteDisplay()
 
 if (REMOTE_DISPLAY_REASON) {
@@ -813,10 +810,6 @@ if (REMOTE_DISPLAY_REASON) {
   // with only --disable-gpu: force compositing onto the CPU too.
   app.commandLine.appendSwitch('disable-gpu-compositing')
 
-  // #97616: disableHardwareAcceleration() alone does NOT stop a GPU child
-  // from spawning (it then dies error_code=1002 on AMD/Mesa). For the explicit
-  // HERMES_DESKTOP_DISABLE_GPU override, fully spawn-block it. Remote-display
-  // detections keep their long-standing compositing-only behavior.
   if (disableGpuSwitchNeededForReason(REMOTE_DISPLAY_REASON)) {
     app.commandLine.appendSwitch('disable-gpu')
   }
@@ -878,7 +871,7 @@ if (DEV_CDP.port) {
   app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1')
   console.log(
     `[hermes] renderer debugging on http://127.0.0.1:${DEV_CDP.port} — anything that can reach it ` +
-      'can run code in the renderer. HERMES_DESKTOP_CDP_PORT=off to disable.'
+      'can run code in the renderer. A2ASSISTANT_DESKTOP_CDP_PORT=off to disable.'
   )
 } else {
   const why = describeDevCdpDecision(DEV_CDP)
@@ -959,7 +952,7 @@ if (NVIDIA_EGL_FALLBACK.enable) {
 // gpu-process, no crash. Bound it: one relaunch into software rendering,
 // then a sticky per-version marker so the next boot goes straight there.
 // Reactive only — healthy Mesa/Wayland stacks keep full acceleration. Must
-// run before app `ready`. Override with HERMES_DESKTOP_DISABLE_GPU
+// run before app `ready`. Override with A2ASSISTANT_DESKTOP_DISABLE_GPU
 // (1/true → always software, 0/false → keep GPU on).
 let linuxGpuFallbackActive = false
 let linuxGpuFallbackSticky = false
@@ -996,15 +989,15 @@ if (process.platform === 'linux') {
     app.commandLine.appendSwitch('disable-gpu-compositing')
     console.log(
       `[hermes] Linux GPU software fallback enabled (${linuxGpuDecision.reason}); disabling GPU ` +
-        'hardware acceleration after a GPU-child init failure (#124843). HERMES_DESKTOP_DISABLE_GPU=0 to opt out.'
+        'hardware acceleration after a GPU-child init failure (#124843). A2ASSISTANT_DESKTOP_DISABLE_GPU=0 to opt out.'
     )
   }
 }
 
 // Linux: point Chromium at the session's keychain backend so safeStorage can
 // encrypt remote gateway tokens (hardening.ts refuses to persist them without
-// it). The value arrives via HERMES_DESKTOP_PASSWORD_STORE, bridged by the
-// `hermes desktop` launcher from detection or `desktop.password_store` in
+// it). The value arrives via A2ASSISTANT_DESKTOP_PASSWORD_STORE, bridged by the
+// `a2assistant desktop` launcher from detection or `desktop.password_store` in
 // config.yaml. Must run before app `ready` — the switch only applies pre-launch.
 const PASSWORD_STORE = resolveLinuxPasswordStore()
 
@@ -1024,7 +1017,7 @@ if (PASSWORD_STORE.store) {
 // 0x80000003. After enough GPU deaths the browser process FATAL-exits before the
 // UI is usable. Must run before app `ready` so `--no-sandbox` applies to child
 // processes. The sticky marker recovers Start Menu / shortcut launches that
-// never go through `hermes desktop`; it is version-scoped so an app update
+// never go through `a2assistant desktop`; it is version-scoped so an app update
 // re-probes the sandbox instead of degrading forever.
 //
 // `windowsSandboxFallbackActive` = this process runs without the Chromium
@@ -1250,15 +1243,15 @@ if (INSTALL_STAMP) {
 
 const DESKTOP_PROFILE_CONFIG_PATH: string = path.join(app.getPath('userData'), 'active-profile.json')
 
-const HERMES_HOME: string = resolveDesktopHermesHome({
+const A2ASSISTANT_HOME: string = resolveDesktopHermesHome({
   home: app.getPath('home'),
   directoryExists,
-  readWindowsHome: (): string | null => readWindowsUserEnvVar('HERMES_HOME')
+  readWindowsHome: (): string | null => readWindowsUserEnvVar('A2ASSISTANT_HOME')
 })
 
 // #77311: `desktop.electron_flags` and the renderer heap ceiling
 // (`desktop.renderer_max_old_space_mb`) used to reach Chromium only through
-// the `hermes desktop` launcher's argv, so a packaged app opened from its
+// the `a2assistant desktop` launcher's argv, so a packaged app opened from its
 // Start-menu / .desktop entry ran with no `--js-flags` at all. Apply them here
 // from config.yaml, before `ready` — Chromium copies `js-flags` to renderer
 // processes only from the browser's pre-launch command line.
@@ -1270,7 +1263,7 @@ let desktopSshPathOverride = ''
   let desktopLaunchYaml: string = ''
 
   try {
-    desktopLaunchYaml = fs.readFileSync(path.join(HERMES_HOME, 'config.yaml'), 'utf8')
+    desktopLaunchYaml = fs.readFileSync(path.join(A2ASSISTANT_HOME, 'config.yaml'), 'utf8')
   } catch {
     void 0 // first run: no config yet → Chromium defaults
   }
@@ -1279,12 +1272,12 @@ let desktopSshPathOverride = ''
   desktopSshPathOverride = desktopLaunchConfig.sshPath || ''
 
   // `desktop.renderer_accessibility: false` must reach packaged launches too,
-  // not only the `hermes desktop` launcher's env bridge (#118271).
+  // not only the `a2assistant desktop` launcher's env bridge (#118271).
   if (
     desktopLaunchConfig.rendererAccessibility === false &&
-    process.env.HERMES_DESKTOP_RENDERER_ACCESSIBILITY === undefined
+    process.env.A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY === undefined
   ) {
-    process.env.HERMES_DESKTOP_RENDERER_ACCESSIBILITY = '0'
+    process.env.A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY = '0'
   }
 
   applyLaunchSwitches(app.commandLine, desktopLaunchConfig, process.argv.slice(1))
@@ -1302,7 +1295,7 @@ if (isPrimaryInstance) {
 // ACTIVE_HERMES_ROOT — the canonical mutable Hermes install. Same path
 // install.ps1 / install.sh use, so a desktop-only user and a CLI-only user end
 // up with identical layouts and can share one install.
-const ACTIVE_HERMES_ROOT = path.join(HERMES_HOME, 'hermes-agent')
+const ACTIVE_HERMES_ROOT = installRootIn(A2ASSISTANT_HOME)
 setNoConsoleGitRoots([!IS_PACKAGED ? SOURCE_REPO_ROOT : null, ACTIVE_HERMES_ROOT])
 // VENV_ROOT — venv lives inside the repo, exactly like install.ps1 does it.
 const VENV_ROOT = path.join(ACTIVE_HERMES_ROOT, 'venv')
@@ -1327,10 +1320,10 @@ const DESKTOP_WINDOW_STATE_PATH = path.join(app.getPath('userData'), 'window-sta
 const DESKTOP_BACKEND_OWNERSHIP_PATH = path.join(app.getPath('userData'), 'backend-ownership.json')
 const DESKTOP_MANAGED_SSH_RECOVERY_PATH = path.join(app.getPath('userData'), 'managed-ssh-update-recovery.json')
 // active-profile.json records which Hermes profile the desktop launches its
-// local backend as. When set, startHermes() passes `hermes --profile <name>
-// dashboard …`, which deterministically pins HERMES_HOME (see
+// local backend as. When set, startHermes() passes `a2assistant --profile <name>
+// dashboard …`, which deterministically pins A2ASSISTANT_HOME (see
 // _apply_profile_override in hermes_cli/main.py) and bypasses the sticky
-// ~/.hermes/active_profile file. Unset (null) preserves the legacy behavior:
+// ~/.a2assistant/active_profile file. Unset (null) preserves the legacy behavior:
 // no --profile flag, so the backend honors active_profile / default.
 
 // Mirrors hermes_cli.profiles._PROFILE_ID_RE so we never hand the backend a
@@ -1340,10 +1333,10 @@ const PROFILE_NAME_RE = DESKTOP_PROFILE_NAME_RE
 // tracks main. User can also override at runtime via
 // hermesDesktop.updates.setBranch().
 const DEFAULT_UPDATE_BRANCH = 'main'
-// desktop.log lives under HERMES_HOME/logs/ so it sits next to agent.log,
+// desktop.log lives under A2ASSISTANT_HOME/logs/ so it sits next to agent.log,
 // errors.log, gateway.log produced by hermes_logging.setup_logging — one log
 // directory per user, regardless of which UI surface produced the line.
-const DESKTOP_LOG_PATH = path.join(HERMES_HOME, 'logs', 'desktop.log')
+const DESKTOP_LOG_PATH = path.join(A2ASSISTANT_HOME, 'logs', 'desktop.log')
 const DESKTOP_LOG_FLUSH_MS = 120
 const DESKTOP_LOG_BUFFER_MAX_CHARS = 64 * 1024
 // Bound desktop.log on disk. It is an append-only forensic log, so a boot loop
@@ -1372,15 +1365,15 @@ enableLinuxCrashDiagnostics(CRASH_DIAGNOSTICS, CRASH_DIAGNOSTICS_LOGS_DIR, {
   startCrashReporter: options => crashReporter.start(options)
 })
 
-const BOOT_FAKE_MODE = process.env.HERMES_DESKTOP_BOOT_FAKE === '1'
-const BOOT_FAKE_ERROR = process.env.HERMES_DESKTOP_BOOT_FAKE_ERROR || ''
+const BOOT_FAKE_MODE = process.env.A2ASSISTANT_DESKTOP_BOOT_FAKE === '1'
+const BOOT_FAKE_ERROR = process.env.A2ASSISTANT_DESKTOP_BOOT_FAKE_ERROR || ''
 // Automated teardown (Playwright's app.close(), harness scripts) quits with
 // nobody to answer a modal, so the active-work confirmation would hang the
 // caller instead of letting the process exit. Force quits set this.
-const SKIP_QUIT_CONFIRM = process.env.HERMES_DESKTOP_SKIP_QUIT_CONFIRM === '1'
+const SKIP_QUIT_CONFIRM = process.env.A2ASSISTANT_DESKTOP_SKIP_QUIT_CONFIRM === '1'
 
 const BOOT_FAKE_STEP_MS = (() => {
-  const raw = Number.parseInt(String(process.env.HERMES_DESKTOP_BOOT_FAKE_STEP_MS || ''), 10)
+  const raw = Number.parseInt(String(process.env.A2ASSISTANT_DESKTOP_BOOT_FAKE_STEP_MS || ''), 10)
 
   if (!Number.isFinite(raw) || raw <= 0) {
     return 650
@@ -1389,7 +1382,7 @@ const BOOT_FAKE_STEP_MS = (() => {
   return Math.max(120, raw)
 })()
 
-const APP_NAME: string = IDENTITY_APP_NAME || process.env.HERMES_DESKTOP_APP_NAME || 'Hermes'
+const APP_NAME: string = IDENTITY_APP_NAME || process.env.A2ASSISTANT_DESKTOP_APP_NAME || PRODUCT_NAME
 const HUD_WINDOW_TITLE = `${APP_NAME} HUD`
 const TITLEBAR_HEIGHT = 34
 const MACOS_TRAFFIC_LIGHTS_HEIGHT = 14
@@ -1768,17 +1761,17 @@ Menu.setApplicationMenu(null)
 // Windows toast notifications silently no-op unless an AppUserModelID is set:
 // `new Notification().show()` returns without error and nothing appears. The
 // AUMID must match the installed Start Menu shortcut's AUMID, which
-// electron-builder derives from the build `appId` (com.nousresearch.hermes) —
+// electron-builder derives from the build `appId` (de.a2genesis.a2assistant) —
 // keep this string in sync with package.json `build.appId`. macOS/Linux don't
 // need this, so gate it on Windows. (Fixes: desktop approval/turn notifications
 // never firing on Windows.)
 if (IS_WINDOWS) {
-  app.setAppUserModelId(IDENTITY_APP_NAME ? PRODUCT_IDENTITY.appId : 'com.nousresearch.hermes')
+  app.setAppUserModelId(PRODUCT_IDENTITY.appId)
 }
 
 // Seed the native About panel with the best-known Hermes version. This is
 // refreshed on every open via showAboutPanelFresh, so an in-place
-// `hermes update` mid-session is reflected without an app restart; the seed
+// `a2assistant update` mid-session is reflected without an app restart; the seed
 // covers the first open and any non-menu invocation path. Never seed empty:
 // an empty applicationVersion falls back to the bundle version, which is the
 // 0.0.0 placeholder on local builds (#124581).
@@ -1892,13 +1885,13 @@ const backendDialClaims = new BackendDialClaims()
 let softRehomeInProgress = false
 // Cached connection DESCRIPTORS for every non-primary (connectionId, profile)
 // scope the app has dialed: canonical local gateways reached through
-// `hermes gateway ensure`, registry remotes, per-profile remote overrides.
+// `a2assistant gateway ensure`, registry remotes, per-profile remote overrides.
 // Never a process — the gateway owns its own lifetime; forgetting an entry only
 // forces the next ensure*() to re-dial. A user with no named profiles never
 // populates this map.
 const backendPool = new Map() // scope key -> { connectionPromise, remoteBaseUrl }
 // Escape hatch: a dedicated, private backend for this app instead of the host's.
-const ISOLATED_BACKEND = process.env.HERMES_DESKTOP_ISOLATED_BACKEND === '1'
+const ISOLATED_BACKEND = process.env.A2ASSISTANT_DESKTOP_ISOLATED_BACKEND === '1'
 const profileDeletionGate = new ProfileDeletionGate()
 
 // rememberLog() state. Declared before any top-level caller that logs during
@@ -1933,7 +1926,7 @@ const rendererReloadTimesRef: { current: number[] } = { current: [] }
 // the renderer's "Reload and retry" path or by quitting the app.
 let bootstrapFailure = null
 // Latched non-bootstrap backend spawn failure — stops getConnection() from
-// respawning hermes serve backend children in a tight loop while boot is broken.
+// respawning a2assistant serve backend children in a tight loop while boot is broken.
 let backendStartFailure = null
 // Latched CONFIRMED remote reauth failure. Remote failures deliberately do not
 // latch via backendStartFailure (they're usually transient and must stay
@@ -1963,7 +1956,7 @@ let connectionConfigCache = null
 let connectionConfigCacheMtime = null
 
 const gatewayConnectionsStore = createDesktopGatewayConnectionsStore({
-  root: uiPreferencesRoot(HERMES_HOME),
+  root: uiPreferencesRoot(A2ASSISTANT_HOME),
   userData: app.getPath('userData'),
   readV1Config: () => readDesktopConnectionConfig(),
   decrypt: secret => decryptDesktopSecret(secret),
@@ -2685,7 +2678,7 @@ async function advanceBootProgress(phase, message, progress) {
 }
 
 // --- in-app update mutual exclusion (#50238) -------------------------------
-// The Tauri updater writes HERMES_HOME/.hermes-update-in-progress for the whole
+// The Tauri updater writes A2ASSISTANT_HOME/.hermes-update-in-progress for the whole
 // duration of an `--update` run (see update.rs UpdateMarkerGuard). If the user
 // relaunches the desktop mid-update — because the window vanished with no
 // progress and looks crashed — a fresh instance must NOT spawn its own local
@@ -2710,7 +2703,7 @@ async function advanceBootProgress(phase, message, progress) {
 function updateGateDeps(callbacks: MarkerGateCallbacks = {}) {
   return {
     hasLiveMarker: markerGateProbe(
-      { hermesHome: HERMES_HOME, isWindows: IS_WINDOWS, log: rememberLog, updateRoot: resolveUpdateRoot },
+      { hermesHome: A2ASSISTANT_HOME, isWindows: IS_WINDOWS, log: rememberLog, updateRoot: resolveUpdateRoot },
       callbacks
     ),
     isUpdateInFlight: () => updateInFlight,
@@ -2720,7 +2713,7 @@ function updateGateDeps(callbacks: MarkerGateCallbacks = {}) {
 
 // The blocked boot screen (R8 D3) every update wait publishes its hold on.
 const updateHoldScreen = createUpdateHoldScreen({
-  hermesHome: HERMES_HOME,
+  hermesHome: A2ASSISTANT_HOME,
   log: rememberLog,
   bootHold: () => bootProgressState.updateHold,
   updateBootProgress
@@ -2810,7 +2803,7 @@ async function waitForUpdateToFinish() {
   // A detached update's result file is the only way the user learns it
   // failed: consumed once, here, where boot passes the update gate.
   parkedRun.report({
-    hermesHome: HERMES_HOME,
+    hermesHome: A2ASSISTANT_HOME,
     log: rememberLog,
     dialog,
     shell,
@@ -2884,7 +2877,7 @@ function findOnPath(command) {
   // On Windows, try PATHEXT extensions BEFORE the bare (empty-extension) name.
   // A real command must resolve via its .exe/.cmd (Windows command-resolution
   // semantics consult PATHEXT); an extensionless file — e.g. a Git-Bash
-  // shell-script shim named `hermes` — must not shadow `hermes.cmd`/`hermes.exe`.
+  // shell-script shim named `a2assistant` — must not shadow `hermes.cmd`/`hermes.exe`.
   // The empty entry is kept LAST so callers that already include the extension
   // (py.exe, pwsh.exe, powershell.exe) still resolve.
   const extensions = buildPathExtCandidates(process.env.PATHEXT, IS_WINDOWS)
@@ -2973,7 +2966,7 @@ function isHermesSourceRoot(root) {
 
 async function findPythonForRoot(root: string): Promise<string | null> {
   return resolveSourcePython(root, {
-    override: process.env.HERMES_DESKTOP_PYTHON,
+    override: process.env.A2ASSISTANT_DESKTOP_PYTHON,
     isWindows: IS_WINDOWS,
     fileExists
   })
@@ -3139,7 +3132,7 @@ function getVenvPython(venvRoot) {
 // This makes "no flashing windows" a property of the one backend launch rather
 // than a flag that has to be remembered at every descendant spawn site. Restoring
 // console python also restores stdout, so the backend announces its port on the
-// normal HERMES_DASHBOARD_READY stdout line and no ready-file side channel is
+// normal A2ASSISTANT_DASHBOARD_READY stdout line and no ready-file side channel is
 // needed.
 
 // resolveGitBinary — locate git.exe on Windows. A fresh installer-driven
@@ -3366,10 +3359,10 @@ function writeZoomState(zoomLevel) {
 
 // Match the backend's source resolution but bias toward a real git checkout.
 // Dev → SOURCE_REPO_ROOT. Packaged/CLI install → ACTIVE_HERMES_ROOT.
-// HERMES_DESKTOP_HERMES_ROOT always wins so devs can pin a worktree.
+// A2ASSISTANT_DESKTOP_HERMES_ROOT always wins so devs can pin a worktree.
 function resolveUpdateRoot() {
   const candidates = [
-    process.env.HERMES_DESKTOP_HERMES_ROOT && path.resolve(process.env.HERMES_DESKTOP_HERMES_ROOT),
+    process.env.A2ASSISTANT_DESKTOP_HERMES_ROOT && path.resolve(process.env.A2ASSISTANT_DESKTOP_HERMES_ROOT),
     !IS_PACKAGED && isHermesSourceRoot(SOURCE_REPO_ROOT) ? SOURCE_REPO_ROOT : null,
     isHermesSourceRoot(ACTIVE_HERMES_ROOT) ? ACTIVE_HERMES_ROOT : null
   ].filter(Boolean)
@@ -3573,7 +3566,7 @@ function createNativePackagedStrategy(
  */
 function resolveCheckoutUpdateStrategy(): CheckoutStrategy {
   return createCheckoutStrategy({
-    hermesHome: HERMES_HOME,
+    hermesHome: A2ASSISTANT_HOME,
     isWindows: IS_WINDOWS,
     isMac: IS_MAC,
     defaultUpdateBranch: DEFAULT_UPDATE_BRANCH,
@@ -3586,7 +3579,7 @@ function resolveCheckoutUpdateStrategy(): CheckoutStrategy {
         python: await findPythonForRoot(updateRoot),
         git: resolveGitBinary(),
         updateRoot,
-        hermesHome: HERMES_HOME,
+        hermesHome: A2ASSISTANT_HOME,
         branchConfigPath: DESKTOP_UPDATE_CONFIG_PATH,
         force: opts.force,
         setChannel: opts.setChannel
@@ -3622,7 +3615,7 @@ function resolveCheckoutUpdateStrategy(): CheckoutStrategy {
       // contract as readSourceUpdate and the hand-off script.
       const managed: boolean = directoryExists(path.join(root, 'pm'))
 
-      const launcher: string | null = managed ? resolveInstallationLauncher(root, IS_WINDOWS, HERMES_HOME) : null
+      const launcher: string | null = managed ? resolveInstallationLauncher(root, IS_WINDOWS, A2ASSISTANT_HOME) : null
 
       if (managed && !launcher) {
         const message =
@@ -3655,7 +3648,7 @@ function resolveCheckoutUpdateStrategy(): CheckoutStrategy {
  * source.
  */
 function resolveDesktopFeedBaseUrl(): string {
-  return resolveFeedBaseUrl(readUpdatesFeedBaseFromConfig(path.join(HERMES_HOME, 'config.yaml')))
+  return resolveFeedBaseUrl(readUpdatesFeedBaseFromConfig(path.join(A2ASSISTANT_HOME, 'config.yaml')))
 }
 
 /** The updater channel from the baked install stamp ('canary' vs 'stable'). */
@@ -3716,16 +3709,16 @@ let quitPromptOpen = false
 let quitConfirmedWithActiveWork = false
 
 // Resolve the staged updater binary the desktop may hand an update to. On
-// Windows that binary owns ALL repo mutation — running `hermes update` +
+// Windows that binary owns ALL repo mutation — running `a2assistant update` +
 // rebuilding the desktop — so the desktop never touches its own bits while
 // running. macOS/Linux stage the same binary but deliberately do not use it;
 // see resolveStagedUpdaterBinary for the policy and for #74836. Returns null
 // whenever no hand-off applies; callers degrade gracefully.
 function resolveUpdaterBinary() {
-  return resolveStagedUpdaterBinary(HERMES_HOME, { fileExists, isWindows: IS_WINDOWS })
+  return resolveStagedUpdaterBinary(A2ASSISTANT_HOME, { fileExists, isWindows: IS_WINDOWS })
 }
 
-// Path to the venv shim whose lock decides whether `hermes update` can write
+// Path to the venv shim whose lock decides whether `a2assistant update` can write
 // fresh entry points. On Windows this is the file the running backend
 // `hermes.exe` holds open; on POSIX it's never mandatory-locked.
 function venvHermesShimPath(updateRoot) {
@@ -3767,7 +3760,7 @@ function isShimLocked(shimPath) {
 // Kill only Hermes-OWNED venv daemons (the memory plugin's hindsight daemon:
 // exe under venv\Scripts AND cmdline referencing hindsight_api.main). The
 // daemon is spawned DETACHED, so it outlives the backend tree-kill and keeps
-// venv files mapped. External holders (a user terminal running `hermes`,
+// venv files mapped. External holders (a user terminal running `a2assistant`,
 // unrelated scripts) are NOT killed. The uninstall lock probe refuses a
 // held installation. Selection lives in the pure
 // venv-holder-select module (ordinal path-prefix, no PowerShell -like
@@ -3867,7 +3860,7 @@ function killExternalVenvHolders(updateRoot) {
 
 // Force-kill the entire process TREE rooted at each PID. Node's child.kill()
 // only signals the direct child, so on Windows a backend `hermes.exe` that
-// spawned its own grandchildren (a `hermes` REPL, a pty terminal session, the
+// spawned its own grandchildren (a `a2assistant` REPL, a pty terminal session, the
 // gateway) would survive and keep the venv shim locked. taskkill /T /F reaps
 // the whole tree synchronously. The command is not widened: one owned PID,
 // /T /F, nothing else. Failures propagate — close/stop must not discard them.
@@ -3916,8 +3909,8 @@ function holderPidsFromLockFile(lockPath: string): Pick<RuntimeLock, 'holderPids
 }
 
 function collectCloseStopLocks(): RuntimeLock[] {
-  const roots = [HERMES_HOME]
-  const profilesRoot = path.join(HERMES_HOME, 'profiles')
+  const roots = [A2ASSISTANT_HOME]
+  const profilesRoot = path.join(A2ASSISTANT_HOME, 'profiles')
 
   try {
     for (const name of fs.readdirSync(profilesRoot)) {
@@ -4202,7 +4195,7 @@ function reapOrphanedBackendsOnce() {
 
 // Stop app-owned Windows backends before replacing application outputs.
 // PM generations can retain live readers. Gateway draining/restart belongs to
-// `hermes update`; neither venv scans nor a second fleet stop belong here.
+// `a2assistant update`; neither venv scans nor a second fleet stop belong here.
 async function stopBackendsForUpdate(): Promise<void> {
   closeGatewayTicketBridges()
 
@@ -4239,7 +4232,7 @@ async function releaseBackendLock(updateRoot: string, tag: string): Promise<{ un
 
   // Uninstall deletes the whole runtime. Drain separately-running gateways
   // through the CLI, rather than targeting a gateway worker by PID.
-  stopGatewayBeforeUpdate(venvHermesShimPath(updateRoot), HERMES_HOME)
+  stopGatewayBeforeUpdate(venvHermesShimPath(updateRoot), A2ASSISTANT_HOME)
 
   // Reap Hermes-OWNED venv daemons the tree-kill above cannot reach: the
   // memory plugin's hindsight daemon is spawned DETACHED (it outlives the
@@ -4311,8 +4304,8 @@ async function releaseBackendLock(updateRoot: string, tag: string): Promise<{ un
 //
 // The desktop is a pure consumer: it does NOT git pull / pip install / rebuild
 // itself (the old open-coded git dance lived here and drifted from
-// `hermes update`). Instead we spawn the staged Hermes-Setup binary with
-// --update and quit, so it can run `hermes update` (which refuses while we
+// `a2assistant update`). Instead we spawn the staged Hermes-Setup binary with
+// --update and quit, so it can run `a2assistant update` (which refuses while we
 // hold the venv shim) and rebuild the desktop with our exe already gone.
 //
 // Detection (checkUpdates / commit changelog / "N behind") stays in the UI;
@@ -4373,7 +4366,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
     return false
   }
 
-  const handoffConflict = await updateHandoffConflict(HERMES_HOME)
+  const handoffConflict = await updateHandoffConflict(A2ASSISTANT_HOME)
 
   if (handoffConflict) {
     // Same hazard as applyUpdates (#75778): a live foreign updater already
@@ -4402,11 +4395,11 @@ async function handOffWindowsBootstrapRecovery(reason) {
   await stopBackendsForUpdate()
 
   const child = spawnUpdaterProcess(updater, updaterArgs, {
-    cwd: HERMES_HOME,
+    cwd: A2ASSISTANT_HOME,
     env: {
       ...process.env,
-      HERMES_HOME,
-      HERMES_INSTALL_ROOT: updateRoot
+      A2ASSISTANT_HOME,
+      A2ASSISTANT_INSTALL_ROOT: updateRoot
     },
     detached: true,
     stdio: 'ignore'
@@ -4421,7 +4414,7 @@ async function handOffWindowsBootstrapRecovery(reason) {
   // Exclusive create only (A7 rule 3): over any existing marker the pre-write
   // is skipped — the staged updater claims (and reclaims) for itself.
   if (Number.isInteger(child.pid) && stagedUpdaterSupportsPrewrittenMarker(updater)) {
-    const prewrite = await writeUpdateMarker(HERMES_HOME, child.pid)
+    const prewrite = await writeUpdateMarker(A2ASSISTANT_HOME, child.pid)
 
     if (!prewrite.ok) {
       rememberLog(`[bootstrap] skipping marker pre-write: ${describeSkippedPrewrite(prewrite)}`)
@@ -4479,7 +4472,7 @@ function runningAppBundle() {
 
 // macOS/Linux update hand-off: spawn the repo-owned posix orchestrator
 // (scripts/desktop-update/posix.sh) detached and QUIT. The script waits us
-// out, runs `hermes update`, swaps/relaunches the app bundle, and writes
+// out, runs `a2assistant update`, swaps/relaunches the app bundle, and writes
 // .hermes-update-result.json for the relaunched Desktop to surface. It shows
 // its own tiny shim window (or nothing, headless) — this process only needs
 // to leave. Checkouts that predate the script get the manual card once.
@@ -4515,7 +4508,7 @@ function readBootstrapMarker() {
 // ever having written the bootstrap marker -- so we must be able to recognise
 // "already installed" off the filesystem alone, not just the marker.
 async function isSourceRuntimeUsable(root: string): Promise<boolean> {
-  return (await resolveSourceInstallationBackend(root, [], { hermesHome: HERMES_HOME })) !== null
+  return (await resolveSourceInstallationBackend(root, [], { hermesHome: A2ASSISTANT_HOME })) !== null
 }
 
 function activeRuntimeState(backend: SourceBackend | null): ActiveRuntimeState {
@@ -4579,7 +4572,7 @@ function writeBootstrapMarker(payload) {
 }
 
 function resolveWebDist() {
-  const override = process.env.HERMES_DESKTOP_WEB_DIST
+  const override = process.env.A2ASSISTANT_DESKTOP_WEB_DIST
 
   if (override && directoryExists(path.resolve(override))) {
     return path.resolve(override)
@@ -4604,7 +4597,7 @@ function resolveWebDist() {
     rememberLog(
       `[web-dist] dashboard frontend dir resolved to an asar-internal path that ` +
         `is not a real directory: ${fallback}. Static routes will 404. ` +
-        `Ensure dist/** is unpacked (asarUnpack) or set HERMES_DESKTOP_WEB_DIST.`
+        `Ensure dist/** is unpacked (asarUnpack) or set A2ASSISTANT_DESKTOP_WEB_DIST.`
     )
   }
 
@@ -4672,7 +4665,7 @@ function resolveRendererIndexWithMissing(): { index: string; missing: string[] }
     rememberLog(
       `[renderer] every renderer bundle is incomplete (${present.join(', ')}). ` +
         `The last update replaced the app while its files were locked. ` +
-        `Repair with: hermes desktop --force-build`
+        `Repair with: a2assistant desktop --force-build`
     )
 
     // present[0]'s own list, captured on the first loop iteration — never the
@@ -4686,7 +4679,7 @@ function resolveRendererIndexWithMissing(): { index: string; missing: string[] }
   rememberLog(
     `[renderer] index.html not found — the desktop app was packaged without a ` +
       `renderer bundle. Tried: ${candidates.join(', ')}. ` +
-      `Rebuild with: hermes desktop --force-build`
+      `Rebuild with: a2assistant desktop --force-build`
   )
 
   return { index: candidates[0], missing: [] }
@@ -4723,7 +4716,7 @@ function resolveHermesCwd() {
   // real directory), then the home dir.
   const candidates = [
     readDefaultProjectDir(),
-    process.env.HERMES_DESKTOP_CWD,
+    process.env.A2ASSISTANT_DESKTOP_CWD,
     IS_PACKAGED ? null : process.env.INIT_CWD,
     IS_PACKAGED ? null : process.cwd(),
     !IS_PACKAGED ? SOURCE_REPO_ROOT : null,
@@ -4826,7 +4819,7 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
       label: `bundled payload at ${payload.root}`,
       command: payload.shim,
       args: [...backendArgs],
-      env: { ...buildDesktopBackendEnv(), HERMES_RUNTIME_DIR: payload.toolsDir },
+      env: { ...buildDesktopBackendEnv(), A2ASSISTANT_RUNTIME_DIR: payload.toolsDir },
       ...payloadTicketRuntime(payload),
       root: payload.repoDir,
       bootstrap: false,
@@ -4835,10 +4828,10 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
     }
   }
 
-  // 1. Explicit override -- HERMES_DESKTOP_HERMES_ROOT points at a developer
+  // 1. Explicit override -- A2ASSISTANT_DESKTOP_HERMES_ROOT points at a developer
   //    checkout. Honour it as-is (no bootstrap; the user is driving).
   const overrideRoot: string | undefined =
-    process.env.HERMES_DESKTOP_HERMES_ROOT && path.resolve(process.env.HERMES_DESKTOP_HERMES_ROOT)
+    process.env.A2ASSISTANT_DESKTOP_HERMES_ROOT && path.resolve(process.env.A2ASSISTANT_DESKTOP_HERMES_ROOT)
 
   if (overrideRoot && isHermesSourceRoot(overrideRoot)) {
     const backend: SourceBackend | null = createSourcePythonBackend(
@@ -4854,7 +4847,7 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
 
   // 2. Development source -- when running `pnpm run dev` from a checkout, the
   //    cloned repo at SOURCE_REPO_ROOT takes precedence over ACTIVE and any
-  //    installed `hermes` on PATH so local Python edits are actually exercised.
+  //    installed `a2assistant` on PATH so local Python edits are actually exercised.
   //    (In dev with no checkout, SOURCE_REPO_ROOT won't pass isHermesSourceRoot.)
   if (!IS_PACKAGED && isHermesSourceRoot(SOURCE_REPO_ROOT)) {
     const backend: SourceBackend | null = createSourcePythonBackend(
@@ -4868,10 +4861,10 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
     }
   }
 
-  // 3. HERMES_DESKTOP_HERMES — an explicit deployment override (the Nix wrapper), not a PATH
+  // 3. A2ASSISTANT_DESKTOP_HERMES — an explicit deployment override (the Nix wrapper), not a PATH
   //    candidate; the pinned backend is the only valid runtime there. Resolve it before any
   //    mutable install (older release, other Python env). It carries the root its launcher reports.
-  const hermesOverride: string | undefined = process.env.HERMES_DESKTOP_HERMES
+  const hermesOverride: string | undefined = process.env.A2ASSISTANT_DESKTOP_HERMES
   let hermesCommand: string | null = null
 
   if (hermesOverride) {
@@ -4923,16 +4916,16 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
   }
 
   // 4. ACTIVE_HERMES_ROOT — the canonical install at
-  //    %LOCALAPPDATA%\\hermes\\hermes-agent (Windows) or ~/.hermes/hermes-agent.
+  //    %LOCALAPPDATA%\\hermes\\hermes-agent (Windows) or ~/.a2assistant/app.
   //    A valid bootstrap marker proves Desktop finished the first-run install
   //    flow, but marker provenance is NOT the same thing as runtime usability:
   //    the CLI can publish the same installation launcher, and older desktop
   //    builds could leave a healthy install behind without the marker. If the
   //    active runtime is usable, launch it directly; only fall through to
   //    bootstrap when the runtime itself is unusable.
-  //    HERMES_DESKTOP_IGNORE_EXISTING=1 skips this rung (see backend-resolution).
+  //    A2ASSISTANT_DESKTOP_IGNORE_EXISTING=1 skips this rung (see backend-resolution).
   const activeBackend: SourceBackend | null = await installedRuntimeGate.resolve(ACTIVE_HERMES_ROOT, () =>
-    resolveSourceInstallationBackend(ACTIVE_HERMES_ROOT, backendArgs, { hermesHome: HERMES_HOME })
+    resolveSourceInstallationBackend(ACTIVE_HERMES_ROOT, backendArgs, { hermesHome: A2ASSISTANT_HOME })
   )
 
   const activeRuntime: ActiveRuntimeState = activeRuntimeState(activeBackend)
@@ -4954,12 +4947,12 @@ async function resolveHermesBackend(backendArgs: string[]): Promise<ResolvedHerm
     //    setup-hermes.sh clone), found through the launcher it published at a
     //    fixed user-bin location: a Finder/Dock launch inherits a PATH without
     //    ~/.local/bin. The reported root is then resolved and probed like any
-    //    installed runtime; HERMES_DESKTOP_IGNORE_EXISTING=1 skips it too.
-    const userInstall: ReturnType<typeof userLauncherInstallRoot> = userLauncherInstallRoot(IS_WINDOWS, HERMES_HOME)
+    //    installed runtime; A2ASSISTANT_DESKTOP_IGNORE_EXISTING=1 skips it too.
+    const userInstall: ReturnType<typeof userLauncherInstallRoot> = userLauncherInstallRoot(IS_WINDOWS, A2ASSISTANT_HOME)
 
     if (userInstall) {
       const userBackend: SourceBackend | null = await installedRuntimeGate.resolve(userInstall.root, () =>
-        resolveSourceInstallationBackend(userInstall.root, backendArgs, { hermesHome: HERMES_HOME })
+        resolveSourceInstallationBackend(userInstall.root, backendArgs, { hermesHome: A2ASSISTANT_HOME })
       )
 
       if (userBackend) {
@@ -5099,8 +5092,8 @@ async function ensureRuntime(
       installStamp: backend.installStamp,
       activeRoot: backend.activeRoot,
       sourceRepoRoot: SOURCE_REPO_ROOT,
-      hermesHome: HERMES_HOME,
-      logRoot: path.join(HERMES_HOME, 'logs'),
+      hermesHome: A2ASSISTANT_HOME,
+      logRoot: path.join(A2ASSISTANT_HOME, 'logs'),
       abortSignal: bootstrapAbortController.signal,
       onEvent: ev => {
         // Tee every bootstrap event to (a) the desktop log for forensics
@@ -5189,7 +5182,7 @@ function fetchJson(url, token, options: any = {}) {
     async (requestState: any) => {
       // Mint inside each retry: a grant authorizes exactly one HTTP request.
       const nativeHeaders = options.gatewayDescriptor
-        ? await nativeGatewayHttpHeaders(options.gatewayDescriptor, url, HERMES_HOME, options.method || 'GET', options.upload ? undefined : options.body)
+        ? await nativeGatewayHttpHeaders(options.gatewayDescriptor, url, A2ASSISTANT_HOME, options.method || 'GET', options.upload ? undefined : options.body)
         : null
 
       return new Promise((resolve, reject) => {
@@ -5612,7 +5605,7 @@ async function previewFileTarget(rawTarget, baseDir) {
   // `base` (the working dir), so such a ref never exists there and the
   // preview/download 404s even though the file is present on disk (#115609).
   if (!fileExists(resolved) && !directoryExists(resolved)) {
-    for (const candidate of homeRelativeAttachmentCandidates(raw, app.getPath('home'), HERMES_HOME)) {
+    for (const candidate of homeRelativeAttachmentCandidates(raw, app.getPath('home'), A2ASSISTANT_HOME)) {
       if (fileExists(candidate)) {
         resolved = candidate
 
@@ -7442,7 +7435,7 @@ async function freshGatewayWsUrl(profile, webContentsId) {
   const connection = await ensureBackend(profile)
 
   if (connection.gatewayEndpoint) {
-    return localGatewayDial({ ensure: () => ensureBackend(profile), forget: () => forgetLocalGatewayDescriptor(profile), launchHome: HERMES_HOME,
+    return localGatewayDial({ ensure: () => ensureBackend(profile), forget: () => forgetLocalGatewayDescriptor(profile), launchHome: A2ASSISTANT_HOME,
       prepare: (baseUrl, ticket) => localGatewayDials.prepare(baseUrl, ticket, webContentsId), profile: String(profile ?? '') })
   }
 
@@ -8280,7 +8273,7 @@ function writeActiveDesktopProfile(name: string | null): string | null {
 
 // Seed active-profile.json from the best available signal when the file does
 // not yet exist.  Runs exactly once (no-op once the file exists).  Priority:
-//   1. Legacy ~/.hermes/active_profile (explicit CLI choice via hermes profile use)
+//   1. Legacy ~/.a2assistant/active_profile (explicit CLI choice via a2assistant profile use)
 //   2. Running gateway (gateway.pid with verified liveness + hermes identity)
 //   3. state.db heuristics (hybrid recency×size score picks the primary workspace)
 // The stored JSON includes _migrated:true so the renderer can optionally surface
@@ -8297,9 +8290,9 @@ function migrateActiveProfileIfMissing() {
 
   activeProfileMigrationAttempted = true
   migrateActiveProfileIfMissingPure(DESKTOP_PROFILE_CONFIG_PATH, {
-    legacyActivePath: path.join(HERMES_HOME, 'active_profile'),
-    hermesHome: HERMES_HOME,
-    profilesRoot: path.join(HERMES_HOME, 'profiles'),
+    legacyActivePath: path.join(A2ASSISTANT_HOME, 'active_profile'),
+    hermesHome: A2ASSISTANT_HOME,
+    profilesRoot: path.join(A2ASSISTANT_HOME, 'profiles'),
     existsSync: p => fs.existsSync(p),
     readFileSync: (p, enc) => fs.readFileSync(p, enc),
     statSync: p => fs.statSync(p),
@@ -8326,7 +8319,7 @@ async function sanitizeDesktopConnectionConfig(config = readDesktopConnectionCon
   const scoped = key ? config.profiles?.[key] || null : null
   const block = key ? scoped || {} : config.remote || {}
 
-  const envOverride = key ? false : Boolean(process.env.HERMES_DESKTOP_REMOTE_URL)
+  const envOverride = key ? false : Boolean(process.env.A2ASSISTANT_DESKTOP_REMOTE_URL)
   const savedMode = key ? scoped?.mode : config.mode
   const ssh = savedMode === 'ssh' ? normalizeSshConfig(block) : null
 
@@ -8334,7 +8327,7 @@ async function sanitizeDesktopConnectionConfig(config = readDesktopConnectionCon
 
   const remoteToken = decryptDesktopSecret(block.token)
   const authMode = normAuthMode(block.authMode)
-  const remoteUrl = envOverride ? String(process.env.HERMES_DESKTOP_REMOTE_URL || '') : String(block.url || '')
+  const remoteUrl = envOverride ? String(process.env.A2ASSISTANT_DESKTOP_REMOTE_URL || '') : String(block.url || '')
   const mode = envOverride ? 'remote' : savedMode === 'ssh' ? 'ssh' : modeIsRemoteLike(savedMode) ? savedMode : 'local'
 
   // Whether the OS keyring (safeStorage) can encrypt the saved token. When
@@ -8393,7 +8386,7 @@ async function sanitizeDesktopConnectionConfig(config = readDesktopConnectionCon
     sshRemoteHermesPath: (ssh || savedSsh)?.remoteHermesPath || '',
     sshRemoteProfile: (ssh || savedSsh)?.remoteProfile || '',
     // The env override only forces the global/primary connection; a per-profile
-    // scope is never overridden by HERMES_DESKTOP_REMOTE_URL.
+    // scope is never overridden by A2ASSISTANT_DESKTOP_REMOTE_URL.
     envOverride
   }
 }
@@ -8904,8 +8897,8 @@ function activeSshTerminalTarget(webContentsId?: number) {
   const route = resolveDesktopRemoteRoute({
     config,
     env: {
-      token: process.env.HERMES_DESKTOP_REMOTE_TOKEN,
-      url: process.env.HERMES_DESKTOP_REMOTE_URL
+      token: process.env.A2ASSISTANT_DESKTOP_REMOTE_TOKEN,
+      url: process.env.A2ASSISTANT_DESKTOP_REMOTE_URL
     },
     profile,
     registry: readDesktopConnectionsRegistry()
@@ -9370,7 +9363,7 @@ function persistSshConnectionToken(profile, source, token, registryConnectionId 
 // Resolve the remote backend for a given profile, or null when that profile
 // should run a LOCAL backend. Precedence:
 //   1. explicit per-profile remote override (connection.json `profiles[name]`)
-//   2. env override (HERMES_DESKTOP_REMOTE_URL/_TOKEN) — applies app-wide
+//   2. env override (A2ASSISTANT_DESKTOP_REMOTE_URL/_TOKEN) — applies app-wide
 //   3. global remote (connection.json `mode: 'remote'`)
 // A null/empty profile resolves the env/global remote, so legacy callers and
 // the connection test (which pass no profile) are unchanged.
@@ -9399,8 +9392,8 @@ async function resolveRemoteBackend(
     const currentRoute = resolveDesktopRemoteRoute({
       config: readDesktopConnectionConfig(),
       env: {
-        token: process.env.HERMES_DESKTOP_REMOTE_TOKEN,
-        url: process.env.HERMES_DESKTOP_REMOTE_URL
+        token: process.env.A2ASSISTANT_DESKTOP_REMOTE_TOKEN,
+        url: process.env.A2ASSISTANT_DESKTOP_REMOTE_URL
       },
       profile: profileKey,
       registry: readDesktopConnectionsRegistry()
@@ -9436,8 +9429,8 @@ async function resolveRemoteBackend(
     : resolveDesktopRemoteRoute({
         config,
         env: {
-          token: process.env.HERMES_DESKTOP_REMOTE_TOKEN,
-          url: process.env.HERMES_DESKTOP_REMOTE_URL
+          token: process.env.A2ASSISTANT_DESKTOP_REMOTE_TOKEN,
+          url: process.env.A2ASSISTANT_DESKTOP_REMOTE_URL
         },
         profile,
         registry
@@ -9505,7 +9498,7 @@ function configuredRemoteProfileNames() {
 // profile via ?profile=. Cloud counts — it resolves to a remote backend (Q6).
 // Distinct from per-profile overrides — here there's one host for all.
 function globalRemoteActive() {
-  if (process.env.HERMES_DESKTOP_REMOTE_URL) {
+  if (process.env.A2ASSISTANT_DESKTOP_REMOTE_URL) {
     return true
   }
 
@@ -10121,7 +10114,7 @@ async function ensureRegistryBackend(
     const rawProfile = String(profile ?? '').trim()
 
     const localProfileExists = rawProfile
-      ? directoryExists(path.join(HERMES_HOME, 'profiles', rawProfile.toLowerCase()))
+      ? directoryExists(path.join(A2ASSISTANT_HOME, 'profiles', rawProfile.toLowerCase()))
       : undefined
 
     // Pass the raw profile, not profileKey: profileKey collapses null to
@@ -10167,7 +10160,7 @@ async function ensureRegistryBackend(
   const key = backendScopeKey(id, profile)
   const existing = backendPool.get(key)
 
-  // One remote `hermes serve` per SSH host: a named profile rides the default backend when it can.
+  // One remote `a2assistant serve` per SSH host: a named profile rides the default backend when it can.
   const shared = existing ? null : await resolveSharedSshProfileBackend(source, profile, {
     ensureDefault: (): Promise<any> => ensureRegistryBackend(id, 'default', managedUpdateCorrelation, { passive }),
     listProfiles: descriptor => getJsonForBackend(descriptor, '/api/profiles', { timeoutMs: 8_000 })
@@ -10394,8 +10387,8 @@ async function captureManagedSshScopes(source) {
     resolveDesktopRemoteRoute({
       config,
       env: {
-        token: process.env.HERMES_DESKTOP_REMOTE_TOKEN,
-        url: process.env.HERMES_DESKTOP_REMOTE_URL
+        token: process.env.A2ASSISTANT_DESKTOP_REMOTE_TOKEN,
+        url: process.env.A2ASSISTANT_DESKTOP_REMOTE_URL
       },
       profile,
       registry
@@ -10840,7 +10833,7 @@ function assertPoolEntryStillOwned(poolKey: string, entry: any) {
 
 // Resolve the connection descriptor for a named profile that is not the
 // primary: attach to (or start) its canonical local gateway via
-// `hermes gateway ensure`, or verify and describe its remote. Mirrors the local
+// `a2assistant gateway ensure`, or verify and describe its remote. Mirrors the local
 // portion of startHermes() without the boot-progress UI, bootstrap, or
 // first-run handling (those belong to the primary only). `opts.forceLocal`
 // skips remote resolution entirely (the registry 'local' entry means THIS
@@ -10876,7 +10869,7 @@ async function dialPoolBackend(profile, entry, opts: { forceLocal?: boolean; poo
   }
 
   assertLocalProfileCanStart(profile, profileDeletionGate, key =>
-    directoryExists(path.join(HERMES_HOME, 'profiles', key))
+    directoryExists(path.join(A2ASSISTANT_HOME, 'profiles', key))
   )
 
   const connection = await ensureLocalGateway(async () => {
@@ -10892,8 +10885,8 @@ async function dialPoolBackend(profile, entry, opts: { forceLocal?: boolean; poo
     return runGatewayEnsure(
       { ...backend, env: desktopBackendSpawnEnv(backend.env || {}) },
       resolveHermesCwd(),
-      HERMES_HOME,
-      profileBackendParentEnv({ hermesHome: HERMES_HOME, profile })
+      A2ASSISTANT_HOME,
+      profileBackendParentEnv({ hermesHome: A2ASSISTANT_HOME, profile })
     )
   }, async () => {
     // Same update mutual exclusion as the primary's waitForLocalStart (#73822);
@@ -10912,7 +10905,7 @@ async function dialPoolBackend(profile, entry, opts: { forceLocal?: boolean; poo
     })
     // Update waits yield: retirement or profile deletion may win in that gap.
     assertPoolEntryStillOwned(poolKey, entry)
-    assertLocalProfileCanStart(profile, profileDeletionGate, key => directoryExists(path.join(HERMES_HOME, 'profiles', key)))
+    assertLocalProfileCanStart(profile, profileDeletionGate, key => directoryExists(path.join(A2ASSISTANT_HOME, 'profiles', key)))
   }, restartStaleLocalGateway)
 
   assertPoolEntryStillOwned(poolKey, entry)
@@ -10920,7 +10913,7 @@ async function dialPoolBackend(profile, entry, opts: { forceLocal?: boolean; poo
   return { ...connection, profile, logs: hermesLog.slice(-80), ...getWindowState() }
 }
 
-// `hermes gateway restart` drains in-flight turns before the owner exits; the CLI client is
+// `a2assistant gateway restart` drains in-flight turns before the owner exits; the CLI client is
 // bounded so a wedged drain cannot hang Restart. The gateway's own drain is unaffected by the kill.
 const GATEWAY_RESTART_CLIENT_TIMEOUT_MS = 120_000
 
@@ -10935,17 +10928,17 @@ async function restartLocalGatewayOwner(ownerProfile: string): Promise<void> {
     return runGatewayEnsure(
       { ...backend, env: desktopBackendSpawnEnv(backend.env || {}) },
       resolveHermesCwd(),
-      HERMES_HOME,
-      profileBackendParentEnv({ hermesHome: HERMES_HOME, profile: ownerProfile }),
-      { timeoutMs: GATEWAY_RESTART_CLIENT_TIMEOUT_MS, label: 'hermes gateway restart' }
+      A2ASSISTANT_HOME,
+      profileBackendParentEnv({ hermesHome: A2ASSISTANT_HOME, profile: ownerProfile }),
+      { timeoutMs: GATEWAY_RESTART_CLIENT_TIMEOUT_MS, label: 'a2assistant gateway restart' }
     )
   }, ownerProfile)
 
   const reason = `${result.stdout}\n${result.stderr}`.trim().split(/\r?\n/).filter(Boolean).pop()
-  rememberLog(`[gateway] hermes --profile ${ownerProfile} gateway restart exited ${result.code}${reason ? `: ${reason}` : ''}`)
+  rememberLog(`[gateway] a2assistant --profile ${ownerProfile} gateway restart exited ${result.code}${reason ? `: ${reason}` : ''}`)
 }
 
-// A ready gateway whose boot commit differs from this Hermes (it outlived `hermes update`) is
+// A ready gateway whose boot commit differs from this Hermes (it outlived `a2assistant update`) is
 // restarted once before attaching instead of being re-attached on every dial.
 const restartStaleLocalGateway = createStaleGatewayRestarter(restartLocalGatewayOwner, rememberLog)
 
@@ -10965,7 +10958,7 @@ async function restartAttachedLocalGateway(profile: string): Promise<void> {
 }
 
 // Forget a cached descriptor. Nothing is killed: the gateway behind it owns its
-// own lifetime (`hermes gateway ensure` attach semantics), so the next
+// own lifetime (`a2assistant gateway ensure` attach semantics), so the next
 // ensure*() for this key simply re-dials. Every retire path — dispatch probe
 // failure, resume revalidation, registry removal, profile delete/rename, quit —
 // funnels through here so the verb stays in one place.
@@ -11290,10 +11283,10 @@ async function startHermes(requestedProfile?: string, inheritsPrimary = false) {
     const backendArgs = ['gateway', 'ensure', '--json']
 
     // Pin the desktop's chosen profile via the global --profile flag. This is
-    // deterministic (it wins over the sticky ~/.hermes/active_profile file) and
-    // resolves HERMES_HOME the same way `hermes -p <name>` does on the CLI. A
+    // deterministic (it wins over the sticky ~/.a2assistant/active_profile file) and
+    // resolves A2ASSISTANT_HOME the same way `a2assistant -p <name>` does on the CLI. A
     // launch override is persisted into active-profile.json before startHermes,
-    // so Hermes.exe --profile <name> and hermes -p <name> desktop both land
+    // so Hermes.exe --profile <name> and a2assistant -p <name> desktop both land
     // here. `activeProfile` is the SAME decision that named routing above —
     // never re-read here (#108417). An unset preference keeps the legacy
     // launch so existing installs are unaffected.
@@ -11346,7 +11339,7 @@ async function startHermes(requestedProfile?: string, inheritsPrimary = false) {
       return setup.connection
     }
 
-    // No `attachHostBackend` is wired: `hermes gateway ensure` below IS the
+    // No `attachHostBackend` is wired: `a2assistant gateway ensure` below IS the
     // attach-or-start step for the canonical local gateway.
     if (setup.kind === 'attached') {
       throw new Error('Unexpected attached backend outcome without a host attach step.')
@@ -11358,8 +11351,8 @@ async function startHermes(requestedProfile?: string, inheritsPrimary = false) {
     const connection = await ensureLocalGateway(() => runGatewayEnsure(
       { ...setup.backend, env: desktopBackendSpawnEnv(setup.backend.env || {}) },
       resolveHermesCwd(),
-      HERMES_HOME,
-      profileBackendParentEnv({ hermesHome: HERMES_HOME, profile: primaryProfile })
+      A2ASSISTANT_HOME,
+      profileBackendParentEnv({ hermesHome: A2ASSISTANT_HOME, profile: primaryProfile })
     ), undefined, restartStaleLocalGateway)
 
     backendConnectionState.assertCurrentAttempt(connectionAttempt)
@@ -13255,7 +13248,7 @@ function createWindow() {
             errorCode: details?.exitCode,
             errorDescription:
               'The desktop renderer crashed repeatedly (Windows STATUS_STACK_BUFFER_OVERRUN / 0xC0000409). GPU fallback could not recover the window.',
-            repairHint: 'hermes desktop --force-build',
+            repairHint: 'a2assistant desktop --force-build',
             reloadUrl: DEV_SERVER || pathToFileURL(resolveRendererIndex()).toString()
           })
 
@@ -13312,7 +13305,7 @@ function createWindow() {
           errorCode: details?.errorCode,
           url: details?.url,
           errorDescription: 'The desktop renderer failed to load repeatedly after the update.',
-          repairHint: 'hermes desktop --force-build',
+          repairHint: 'a2assistant desktop --force-build',
           reloadUrl: DEV_SERVER || pathToFileURL(resolveRendererIndex()).toString()
         })
       },
@@ -13373,7 +13366,7 @@ function createWindow() {
       errorCode: 'ERR_FILE_NOT_FOUND',
       errorDescription: `The desktop renderer bundle is incomplete after the last update (${tornAssets.length} missing file(s)).`,
       missingAssets: tornAssets,
-      repairHint: 'hermes desktop --force-build',
+      repairHint: 'a2assistant desktop --force-build',
       reloadUrl: pathToFileURL(rendererIndex).toString()
     })
   } else {
@@ -13642,13 +13635,13 @@ ipcMain.on('hermes:window:relay', (event, payload) => {
 })
 
 // Hand a session to the user's OWN terminal emulator, running the TUI against
-// it (`hermes --tui --resume <id>`). Not the in-app terminal pane: the point is
+// it (`a2assistant --tui --resume <id>`). Not the in-app terminal pane: the point is
 // to continue the chat in the terminal they already live in.
 //
 // The desktop's runtime is usually a venv Python invoked as
 // `python -m hermes_cli.main`, so we resolve the SAME backend the app itself
 // launches and carry its argv + PYTHONPATH into a launcher script rather than
-// hoping a `hermes` exists on the user's interactive PATH. Resolution only —
+// hoping a `a2assistant` exists on the user's interactive PATH. Resolution only —
 // never ensureRuntime(), which would kick off a first-run install from a menu
 // click; an unresolved runtime is reported instead.
 ipcMain.handle('hermes:window:openInTerminal', async (_event, sessionId, opts) => {
@@ -13679,7 +13672,7 @@ ipcMain.handle('hermes:window:openInTerminal', async (_event, sessionId, opts) =
         args: backend.args,
         command: backend.command,
         cwd,
-        env: terminalScriptEnv(backend.env, HERMES_HOME)
+        env: terminalScriptEnv(backend.env, A2ASSISTANT_HOME)
       }),
       { mode: 0o700 }
     )
@@ -14330,7 +14323,7 @@ async function enumerateRegistryAgentSources(registry = readDesktopConnectionsRe
               ? profileMetadataFromApiProfiles(body.profiles)
               : undefined
 
-            // The root HERMES_HOME is an agent too; enumerations that omit it
+            // The root A2ASSISTANT_HOME is an agent too; enumerations that omit it
             // (older backends list only named profiles) still get a default row.
             if (!profiles.includes('default')) {
               profiles.unshift('default')
@@ -14421,7 +14414,7 @@ ipcMain.handle('hermes:gateway:ws-url-for', async (_event, payload) => {
     const connection = await ensureRegistryBackend(payload?.connectionId, payload?.profile)
 
     if (connection.gatewayEndpoint) {
-      return localGatewayDial({ ensure: () => ensureRegistryBackend(payload?.connectionId, payload?.profile), launchHome: HERMES_HOME,
+      return localGatewayDial({ ensure: () => ensureRegistryBackend(payload?.connectionId, payload?.profile), launchHome: A2ASSISTANT_HOME,
         forget: () => forgetRegistryLocalGatewayDescriptor(payload?.connectionId, payload?.profile), profile: String(payload?.profile ?? ''),
         prepare: (baseUrl, ticket) => localGatewayDials.prepare(baseUrl, ticket, _event.sender.id) })
     }
@@ -14431,7 +14424,7 @@ ipcMain.handle('hermes:gateway:ws-url-for', async (_event, payload) => {
 })
 
 const pluginWsUrl = createPluginWsUrlHandler({ ensureBackend, ensureRegistryBackend, forgetLocalGatewayDescriptor,
-  forgetRegistryLocalGatewayDescriptor, launchHome: HERMES_HOME, prepare: localGatewayDials.preparePlugin })
+  forgetRegistryLocalGatewayDescriptor, launchHome: A2ASSISTANT_HOME, prepare: localGatewayDials.preparePlugin })
 
 ipcMain.handle('hermes:plugin:ws-url', (event, payload) => pluginWsUrl(payload ?? {}, event.sender.id))
 
@@ -14485,7 +14478,7 @@ async function requestManagedSshUpdate(rawId) {
 
 ipcMain.handle('hermes:connections:update-managed', async (_event, rawId) => requestManagedSshUpdate(rawId))
 
-// Fan out `hermes update` to every eligible registered connection at once.
+// Fan out `a2assistant update` to every eligible registered connection at once.
 // Cloud entries are excluded (platform-managed); each dispatch reports
 // independently so one dead LAN box can't wedge the batch. Local reuses the
 // app's own update pipeline; Desktop-managed SSH uses the transactional
@@ -14902,7 +14895,7 @@ ipcMain.handle('hermes:profile:set', async (_event, name) => {
   const next = writeActiveDesktopProfile(name)
 
   // Switching profiles is a backend re-home: relaunch the dashboard under the
-  // new HERMES_HOME. Pool backends keep their own homes, so only the primary
+  // new A2ASSISTANT_HOME. Pool backends keep their own homes, so only the primary
   // is torn down.
   await teardownPrimaryBackendAndWait()
   mainWindow?.reload()
@@ -14926,7 +14919,7 @@ registerPreviewSignins({
 
     return { profile: route.profile, local: connection.mode !== 'remote' }
   },
-  exportSignins: async profile => runSigninExport(await ensureRuntime(await resolveHermesBackend(['--profile', profile, 'browser', 'export-signins', '--json']), () => undefined), resolveHermesCwd(), HERMES_HOME, profileBackendParentEnv({ hermesHome: HERMES_HOME, profile }))
+  exportSignins: async profile => runSigninExport(await ensureRuntime(await resolveHermesBackend(['--profile', profile, 'browser', 'export-signins', '--json']), () => undefined), resolveHermesCwd(), A2ASSISTANT_HOME, profileBackendParentEnv({ hermesHome: A2ASSISTANT_HOME, profile }))
 })
 
 ipcMain.on('hermes:f12ShortcutActive', (event, active) => {
@@ -15424,7 +15417,7 @@ async function handleHermesApiRequest(request) {
   // Local-profile REST calls stay on the primary dashboard and carry ?profile=
   // (or name the profile in the path / PATCH body). A request that MUTATES
   // state the server cannot scope at all retains its pooled backend, whose
-  // HERMES_HOME is then the scope, so a destructive call can never fall
+  // A2ASSISTANT_HOME is then the scope, so a destructive call can never fall
   // through to the primary home — `resolveProfileBackendRoute` case 6.
   //
   // A profile rename tears down the old-name backend the same way; for a
@@ -15504,7 +15497,7 @@ function formatApiRequestFailure(
 ipcMain.handle('hermes:api', async (_event, request) => {
   // Hold the deletion gate for BOTH profile deletes and renames: a concurrent
   // renderer reconnect entering ensureBackend() mid-mutation would otherwise
-  // respawn the old-name backend and recreate its HERMES_HOME (#45474).
+  // respawn the old-name backend and recreate its A2ASSISTANT_HOME (#45474).
   const deletingProfile = profileNameFromDeleteRequest(request)
   const mutatingProfile = deletingProfile || profileRenameFromRequest(request)?.oldName || null
   const registryConnectionId = apiRequestRegistryConnectionId(request)
@@ -15546,7 +15539,7 @@ ipcMain.handle('hermes:api', async (_event, request) => {
     // contract is unchanged; only Electron's logging is bypassed. Every other
     // failure still rejects and still logs in full.
     if (isNotFoundApiError(error)) {
-      return { [HERMES_API_EXPECTED_404]: String((error as any)?.message ?? error) }
+      return { [A2ASSISTANT_API_EXPECTED_404]: String((error as any)?.message ?? error) }
     }
 
     // Persist the failure (full stack) before the rejection crosses to the
@@ -15819,7 +15812,7 @@ ipcMain.handle('hermes:savePastedText', async (_event, payload) => {
     throw new Error('savePastedText: missing text')
   }
 
-  return writeComposerPaste(HERMES_HOME, text)
+  return writeComposerPaste(A2ASSISTANT_HOME, text)
 })
 
 ipcMain.handle('hermes:saveClipboardImage', async () => {
@@ -16025,7 +16018,7 @@ ipcMain.on('hermes:translucency:support', event => {
 
 // Feature-flag facts the renderer needs before first paint (same sendSync
 // pattern as translucency). Resolved in feature-flags.ts from the launch
-// argv and the artifact's channel: `--local` (from `hermes desktop --local`
+// argv and the artifact's channel: `--local` (from `a2assistant desktop --local`
 // or directly on Hermes.exe, a shortcut edit) gates the local-models GUI on
 // stable builds, and canary builds get the same surfaces by default. Launch
 // flags survive self-relaunches because collectRelaunchArgs only strips
@@ -16403,8 +16396,8 @@ ipcMain.on('hermes:logs:renderer-error', (_event, report) => {
 
 // Pre-paint payloads the preload reads synchronously: the local skin, and this
 // machine's shared UI preferences (#145213) — see local-skin.ts, ui-preferences.ts.
-registerLocalSkinIpc(ipcMain, HERMES_HOME, id => windowConnectionRoutes.get(id)?.profile, primaryProfileKey)
-registerMachineUiPreferences(HERMES_HOME)
+registerLocalSkinIpc(ipcMain, A2ASSISTANT_HOME, id => windowConnectionRoutes.get(id)?.profile, primaryProfileKey)
+registerMachineUiPreferences(A2ASSISTANT_HOME)
 // Another writer (the Webapp) changed the shared list: same teardown as a local save/remove.
 gatewayConnectionsStore.watch({
   onRegistry: (changes, { after, before }) => {
@@ -16445,7 +16438,7 @@ ipcMain.on('hermes:logs:renderer-line', (_event, line) => {
 
 // Local filesystem + plugin-root IPC (readDir/reveal/rename/trash/…) — see fs-ipc.ts.
 registerFsIpc({
-  hermesHome: HERMES_HOME,
+  hermesHome: A2ASSISTANT_HOME,
   readActiveDesktopProfile,
   expandUserPath,
   resolveRequestedPathForIpc,
@@ -16509,7 +16502,7 @@ function resolveHermesVersion(scope: { connectionId?: string; profile?: string }
   return resolveGatewayVersion(path => handleHermesApiRequest({ ...scope, path, timeoutMs: 5000 }))
 }
 
-// Renderer-bundle skew: `hermes update` moves the SOURCE TREE, but the UI
+// Renderer-bundle skew: `a2assistant update` moves the SOURCE TREE, but the UI
 // (including bundled plugins like Bot Mode) is compiled into this binary at
 // build time. A terminal-side update — or an in-app update whose bundle-swap
 // leg failed — leaves the new runtime running under an old renderer, so About
@@ -16523,7 +16516,7 @@ const checkRendererSkew = createBundleSkewChecker(
   (args, options) => execGit(resolveGitBinary(), args, options),
   // Only a LIVE marker defers the warning: Desktop never deletes a dead one,
   // so a leftover file would otherwise suppress it indefinitely.
-  { isUpdating: async () => updateInFlight || isQuittingForHandoff || Boolean(await readLiveUpdateMarker(HERMES_HOME)) }
+  { isUpdating: async () => updateInFlight || isQuittingForHandoff || Boolean(await readLiveUpdateMarker(A2ASSISTANT_HOME)) }
 )
 
 async function detectRendererSkew() {
@@ -16531,7 +16524,7 @@ async function detectRendererSkew() {
 }
 
 // Re-resolve the focused window's live Hermes version just before showing the native About
-// panel, so an in-place `hermes update` shows without a restart. macOS only (no-op elsewhere).
+// panel, so an in-place `a2assistant update` shows without a restart. macOS only (no-op elsewhere).
 function showAboutPanelFresh(): void {
   const scope = windowConnectionRoutes.versionScopeFor(BrowserWindow.getFocusedWindow() ?? mainWindow)
   void Promise.all([detectRendererSkew(), resolveHermesVersion(scope)]).then(([skew, version]) => {
@@ -16552,7 +16545,7 @@ ipcMain.handle('hermes:version', async (_event, scope?: { connectionId?: string;
   const [skew, version, clientVersion] = await Promise.all([
     detectRendererSkew(),
     resolveHermesVersion(scope),
-    resolveDesktopClientVersion(INSTALL_STAMP, resolveUpdateRoot(), HERMES_HOME, app.getVersion())
+    resolveDesktopClientVersion(INSTALL_STAMP, resolveUpdateRoot(), A2ASSISTANT_HOME, app.getVersion())
   ])
 
   return {
@@ -16564,12 +16557,12 @@ ipcMain.handle('hermes:version', async (_event, scope?: { connectionId?: string;
     nodeVersion: process.versions.node,
     platform: process.platform,
     hermesRoot: resolveUpdateRoot(),
-    hermesHome: HERMES_HOME,
+    hermesHome: A2ASSISTANT_HOME,
     bundleOutOfSync: skew.outOfSync,
     bundleCommitsBehind: skew.desktopCommitsBehind,
     // The install id: sha16 of the canonical install-root path — the key of
     // this install's per-install channel record and its installs/<sha16>/
-    // state folder. Same value `hermes update --install-id` prints; About
+    // state folder. Same value `a2assistant update --install-id` prints; About
     // renders it as `sha16 (path)`.
     installId: installIdForRoot(resolveUpdateRoot(), canonicalizeInstallPath),
     // The artifact kind of THIS app plus whether the runtime checkout came
@@ -16601,14 +16594,14 @@ ipcMain.handle('hermes:app:relaunch', async () => {
 })
 
 /** The latest pm/venv/plugin-operation receipt — the machine-readable
- *  surface every medium reads (CLI: `hermes pm status`). Returned as one
+ *  surface every medium reads (CLI: `a2assistant pm status`). Returned as one
  *  parsed JSON object: { kind, outcome, venv_rebuild, plugin_bisect,
  *  plugin_checks, ... } or null when no operation has run yet. The file
- *  lives at <HERMES_HOME>/logs/update_receipts/latest.json — written by
+ *  lives at <A2ASSISTANT_HOME>/logs/update_receipts/latest.json — written by
  *  pm syncs (bisect disables, failed rebuilds), plugin update checks,
  *  and (embedded) updates. */
 function readLatestSyncReceipt(): Record<string, unknown> | null {
-  const receiptPath = path.join(HERMES_HOME, 'logs', 'update_receipts', 'latest.json')
+  const receiptPath = path.join(A2ASSISTANT_HOME, 'logs', 'update_receipts', 'latest.json')
 
   try {
     const text = fs.readFileSync(receiptPath, 'utf8')
@@ -16638,7 +16631,7 @@ function canonicalizeInstallPath(p: string): string {
 /** True when the runtime checkout was created by a bootstrap installer
  *  (install.sh / install.ps1 / the desktop first-launch bootstrap): those all
  *  finish by writing `.hermes-bootstrap-complete` into the checkout root, and
- *  `hermes update` preserves the file, so a manual clone never grows one. A
+ *  `a2assistant update` preserves the file, so a manual clone never grows one. A
  *  missing checkout (sealed bundled payloads, remote backends) is not
  *  installer-created. */
 export function isInstallerCreatedCheckout(root: string | null = ACTIVE_HERMES_ROOT): boolean {
@@ -16702,7 +16695,7 @@ function resolveHermesRuntime() {
 //
 // The renderer's About → Danger Zone surfaces three options that mirror the
 // CLI exactly: GUI only, Lite (keep user data), Full. We ask the agent to do
-// the actual removal via `hermes uninstall …` so the cross-platform PATH /
+// the actual removal via `a2assistant uninstall …` so the cross-platform PATH /
 // registry / service / node-symlink cleanup all lives in one place
 // (hermes_cli/uninstall.py + hermes_cli/gui_uninstall.py).
 //
@@ -16715,7 +16708,7 @@ function uninstallVenvPython(): string {
 
 function fallbackUninstallSummary(): UninstallSummaryDetails {
   return {
-    hermes_home: HERMES_HOME,
+    hermes_home: A2ASSISTANT_HOME,
     agent_installed: isHermesSourceRoot(ACTIVE_HERMES_ROOT) && fileExists(uninstallVenvPython()),
     gui_installed: true,
     source_built_artifacts: [],
@@ -16754,7 +16747,7 @@ async function probeUninstallSummary(): Promise<UninstallSummaryDetails> {
         ['-m', 'hermes_cli.main', 'uninstall', '--gui-summary'],
         hiddenWindowsChildOptions({
           cwd: agentRoot,
-          env: { ...process.env, HERMES_HOME, NO_COLOR: '1' },
+          env: { ...process.env, A2ASSISTANT_HOME, NO_COLOR: '1' },
           stdio: ['ignore', 'pipe', 'ignore']
         })
       )
@@ -16854,7 +16847,7 @@ async function runDesktopUninstall(mode: string): Promise<DesktopUninstallResult
     agentRoot: ACTIVE_HERMES_ROOT,
     uninstallArgs,
     appPath: removeBundle,
-    hermesHome: HERMES_HOME
+    hermesHome: A2ASSISTANT_HOME
   }
 
   let scriptPath
@@ -16923,7 +16916,7 @@ ipcMain.handle('hermes:vscode-theme:search', async (_event, query) => searchMark
 // hermes:// deep links (e.g. hermes://blueprint/morning-brief?time=08:00,
 // hermes://mcp/install?name=NAME&config=B64 — the vendor "Add to Hermes"
 // button, or hermes://plugin/install?repo=owner/repo). Dev
-// (`HERMES_DESKTOP_DEV_SERVER`) registers hermes-dev:// instead — bare
+// (`A2ASSISTANT_DESKTOP_DEV_SERVER`) registers hermes-dev:// instead — bare
 // Electron or a stale OS handler often owns hermes:// on dev machines.
 // Parsing is generic ({kind, name, params}); the renderer routes per kind
 // and anything install-shaped requires explicit user confirmation there.
@@ -16931,9 +16924,9 @@ ipcMain.handle('hermes:vscode-theme:search', async (_event, query) => searchMark
 // running app. Three delivery paths: macOS 'open-url',
 // Win/Linux running-app 'second-instance' (argv), Win/Linux cold-start argv.
 // ---------------------------------------------------------------------------
-const HERMES_PROTOCOL = DEV_SERVER ? 'hermes-dev' : 'hermes'
-/** Schemes accepted when parsing inbound URLs (dev accepts both). */
-const DEEPLINK_SCHEMES = DEV_SERVER ? ['hermes-dev', 'hermes'] : ['hermes']
+const DEV_URL_SCHEME = `${URL_SCHEME}-dev`
+const REGISTERED_SCHEMES: readonly string[] = DEV_SERVER ? [DEV_URL_SCHEME] : URL_SCHEMES
+const DEEPLINK_SCHEMES: readonly string[] = DEV_SERVER ? [DEV_URL_SCHEME, ...URL_SCHEMES] : URL_SCHEMES
 let _pendingDeepLink = null
 let _rendererReadyForDeepLink = false
 // Set by sendOpenUpdatesRequested() when the renderer cannot hear it yet.
@@ -17051,7 +17044,7 @@ ipcMain.handle('hermes:deep-link-ready', () => {
     const queued = _pendingDeepLink
     _pendingDeepLink = null
     handleDeepLink(
-      `${HERMES_PROTOCOL}://${queued.kind}/${encodeURIComponent(queued.name)}` +
+      `${REGISTERED_SCHEMES[0]}://${queued.kind}/${encodeURIComponent(queued.name)}` +
         (Object.keys(queued.params).length ? '?' + new URLSearchParams(queued.params).toString() : '')
     )
   }
@@ -17060,10 +17053,12 @@ ipcMain.handle('hermes:deep-link-ready', () => {
 })
 
 function registerDeepLinkProtocol() {
-  registerDeepLinkProtocolWith({
-    app, protocol: HERMES_PROTOCOL, env: process.env, defaultApp: Boolean(process.defaultApp),
-    argv: process.argv, execPath: process.execPath, resolve: entry => path.resolve(entry), log: rememberLog
-  })
+  for (const protocol of REGISTERED_SCHEMES) {
+    registerDeepLinkProtocolWith({
+      app, protocol, env: process.env, defaultApp: Boolean(process.defaultApp),
+      argv: process.argv, execPath: process.execPath, resolve: entry => path.resolve(entry), log: rememberLog
+    })
+  }
 }
 
 // macOS: register the deep link before the lock. Launch Services relaunches
@@ -17107,7 +17102,7 @@ if (!isPrimaryInstance) {
     // SSH-started sessions). Checked before deep links so a carried `hermes://`
     // URL still routes normally when no flag is present.
     if (hasClosePreviewFlag(argv)) {
-      handleDeepLink('hermes://close-preview')
+      handleDeepLink(`${URL_SCHEME}://close-preview`)
     }
 
     const url = _extractDeepLink(argv)
@@ -17193,7 +17188,7 @@ app.whenReady().then(() => {
   // APIs don't register as screen readers, so Chromium never builds the tree
   // and the composer stays invisible to them. Must run after `ready` (the
   // API's requirement). Opt out with desktop.renderer_accessibility: false
-  // (bridged as HERMES_DESKTOP_RENDERER_ACCESSIBILITY=0); the platform/env
+  // (bridged as A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY=0); the platform/env
   // decision lives in the extracted helper.
   enableRendererAccessibility({ appApi: app })
 
@@ -17217,14 +17212,14 @@ app.whenReady().then(() => {
   void minimizeToTray.start()
   mainProcessLagWatchdog.start()
   f12Blocked = readPersistedDisableF12()
-  // Before the first profile read: a remembered local profile this HERMES_HOME
+  // Before the first profile read: a remembered local profile this A2ASSISTANT_HOME
   // no longer has would fail every boot with `Profile '<name>' does not exist`.
   desktopProfilePreferences.forgetMissingLocalProfiles({
     globalRemote: globalRemoteActive(),
     hasRemoteOverride: profileHasRemoteOverride,
     launchProfile: parseLaunchProfile(process.argv),
     log: rememberLog,
-    profileExists: profile => localProfileIsLive(HERMES_HOME, profile)
+    profileExists: profile => localProfileIsLive(A2ASSISTANT_HOME, profile)
   })
   // Seed this before the first window exists: a picker can open before
   // startHermes() finishes resolving the configured backend.
@@ -17338,8 +17333,8 @@ function quitStopsBackendWork(): boolean {
       resolveDesktopRemoteRoute({
         config: readDesktopConnectionConfig(),
         env: {
-          token: process.env.HERMES_DESKTOP_REMOTE_TOKEN,
-          url: process.env.HERMES_DESKTOP_REMOTE_URL
+          token: process.env.A2ASSISTANT_DESKTOP_REMOTE_TOKEN,
+          url: process.env.A2ASSISTANT_DESKTOP_REMOTE_URL
         },
         profile: primaryProfileKey(),
         registry: readDesktopConnectionsRegistry()

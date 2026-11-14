@@ -101,7 +101,7 @@ def test_live_supervised_serve_suppresses_cold_start(sleeper, monkeypatch, tmp_p
     from hermes_cli import gateway_windows
     from hermes_cli import update_cmd
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir()
 
     serve = sleeper()
@@ -126,7 +126,7 @@ def test_live_supervised_serve_suppresses_cold_start(sleeper, monkeypatch, tmp_p
 def test_holder_scan_fallback_respects_token_classifier(sleeper, monkeypatch, tmp_path):
     from hermes_cli import update_cmd
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir()
     _write_ledger([])  # force the fallback rung
 

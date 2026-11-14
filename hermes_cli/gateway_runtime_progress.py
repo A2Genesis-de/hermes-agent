@@ -10,9 +10,9 @@ as before. Progress is read on the home's verified running gateway, else the pro
 spawned (not its descendants: on Windows a uv venv launcher waits on its child, so a start there
 keeps the base deadline until the gateway publishes its lock).
 
-An explicit timeout is hard. That covers ``hermes gateway ensure/attach --timeout`` (Desktop runs it
+An explicit timeout is hard. That covers ``a2assistant gateway ensure/attach --timeout`` (Desktop runs it
 under its own outer timer) and the Ink TUI bootstrap; the adaptive wait serves the in-process clients
-(``hermes -z``, ``chat -q``, cron, kanban workers, ACP).
+(``a2assistant -z``, ``chat -q``, cron, kanban workers, ACP).
 """
 from __future__ import annotations
 

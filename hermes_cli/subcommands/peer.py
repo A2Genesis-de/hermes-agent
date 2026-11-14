@@ -1,12 +1,12 @@
-"""``hermes peer`` — bot-to-bot DMs across machines/gateways.
+"""``a2assistant peer`` — bot-to-bot DMs across machines/gateways.
 
 A *peer* is another Hermes gateway running the ``api_server`` platform; its stock
 API is the transport (no new server surface). ``dm`` resolves the remote canonical
 "Bot Chat" session (creating it when missing) and runs ONE synchronous turn — the
-cross-machine twin of ``hermes -p <bot> chat --in ~ -c "Bot Chat"``. ``run``/``status``
+cross-machine twin of ``a2assistant -p <bot> chat --in ~ -c "Bot Chat"``. ``run``/``status``
 /``stop`` do the same turn through the async Runs API. Peer labels/URLs live in
-config.yaml (``bot_peers``); the key lives in ``~/.hermes/.env`` as
-``HERMES_PEER_<NAME>_KEY``. ``<peer>/<profile>`` targets the ``/p/<profile>/`` mirror.
+config.yaml (``bot_peers``); the key lives in ``~/.a2assistant/.env`` as
+``A2ASSISTANT_PEER_<NAME>_KEY``. ``<peer>/<profile>`` targets the ``/p/<profile>/`` mirror.
 """
 
 from __future__ import annotations
@@ -36,7 +36,7 @@ LIST_TIMEOUT_S = 30
 
 
 def _peer_key_env(name: str) -> str:
-    return f"HERMES_PEER_{name.upper().replace('-', '_')}_KEY"
+    return f"A2ASSISTANT_PEER_{name.upper().replace('-', '_')}_KEY"
 
 
 def _load_peers() -> dict:
@@ -118,9 +118,9 @@ def _peer_lacks_profile(exc: Exception) -> bool:
 def _resolve_base(peer: dict, profile: str | None, key: str, peer_name: str = "") -> str:
     """The mirror a target addresses. Bot Mode shows a peer's default profile as @hermes
     (#118076); an upgraded peer aliases ``/p/hermes`` to its default itself, unless it has a real
-    pre-reservation profile named ``hermes``, which keeps the handle. The client never reroutes on
+    pre-reservation profile named ``a2assistant``, which keeps the handle. The client never reroutes on
     its own: an older peer answers the same generic 404 for "no such profile" and for a real
-    ``hermes`` profile it does not serve (parked, standalone), so guessing ``/p/default`` there
+    ``a2assistant`` profile it does not serve (parked, standalone), so guessing ``/p/default`` there
     delivers into the wrong agent. That ambiguous answer becomes an error naming the explicit
     ``<peer>/default`` address instead."""
     base = _base_url(peer, profile)
@@ -193,7 +193,7 @@ def _parse_target(target: str) -> tuple[str, str | None]:
     peer = peer.strip()
     profile = profile.strip() or None
     if not peer:
-        raise ValueError("Peer name required (hermes peer dm <peer>[/<agent>] ...)")
+        raise ValueError("Peer name required (a2assistant peer dm <peer>[/<agent>] ...)")
     if profile and not _PROFILE_RE.match(profile):
         raise ValueError(f"Invalid agent/profile name: {profile!r}")
     if profile:
@@ -219,12 +219,12 @@ def _resolve_peer_target(target: str) -> tuple[str, str | None, dict, str]:
     peer_name, profile = _parse_target(target)
     peer = _load_peers().get(peer_name)
     if not isinstance(peer, dict) or not peer.get("url"):
-        raise LookupError(f"No peer named '{peer_name}'. Run: hermes peer list")
+        raise LookupError(f"No peer named '{peer_name}'. Run: a2assistant peer list")
     key = _peer_secret(peer_name)
     if not key:
         raise PermissionError(
-            f"No API key for peer '{peer_name}'. Set it: hermes peer add {peer_name} "
-            f"--url <url> --key <key> (or add {_peer_key_env(peer_name)}=<key> to ~/.hermes/.env)")
+            f"No API key for peer '{peer_name}'. Set it: a2assistant peer add {peer_name} "
+            f"--url <url> --key <key> (or add {_peer_key_env(peer_name)}=<key> to ~/.a2assistant/.env)")
     return peer_name, profile, peer, key
 
 
@@ -287,12 +287,12 @@ def _peer_add(args) -> int:
         from hermes_cli.config import save_env_value
 
         save_env_value(_peer_key_env(name), key)
-        print(f"Peer '{name}' saved ({url}) — key stored as {_peer_key_env(name)} in ~/.hermes/.env")
+        print(f"Peer '{name}' saved ({url}) — key stored as {_peer_key_env(name)} in ~/.a2assistant/.env")
     else:
         print(
             f"Peer '{name}' saved ({url}). No key given — set the peer's API_SERVER_KEY with:\n"
-            f"  hermes peer add {name} --url {url} --key <key>\n"
-            f"  (or add {_peer_key_env(name)}=<key> to ~/.hermes/.env)")
+            f"  a2assistant peer add {name} --url {url} --key <key>\n"
+            f"  (or add {_peer_key_env(name)}=<key> to ~/.a2assistant/.env)")
     return 0
 
 
@@ -311,7 +311,7 @@ def _peer_remove(args) -> int:
 def _peer_list(args) -> int:
     peers = _load_peers()
     if not peers:
-        print("No peers registered. Add one: hermes peer add <name> --url http://host:port --key <API_SERVER_KEY>")
+        print("No peers registered. Add one: a2assistant peer add <name> --url http://host:port --key <API_SERVER_KEY>")
         return 0
     for name in sorted(peers):
         entry = peers[name] if isinstance(peers[name], dict) else {}
@@ -347,7 +347,7 @@ def _peer_run_ctl(args, action: str, peer_name: str, profile: str | None, base: 
 
 
 def _turn_body(message: str, *, message_key: str, **extra) -> dict:
-    """Request body for one turn. ``author`` is added only when a dispatcher set HERMES_TURN_AUTHOR."""
+    """Request body for one turn. ``author`` is added only when a dispatcher set A2ASSISTANT_TURN_AUTHOR."""
     from agent.turn_author import turn_author_from_env
 
     body = {message_key: message, **extra}
@@ -446,7 +446,7 @@ def cmd_peer(args) -> int:
     if action in _REGISTRY_ACTIONS:
         return _REGISTRY_ACTIONS[action](args)
     if action not in {"dm", "run", "status", "stop"}:
-        print("Unknown peer action. See: hermes peer --help", file=sys.stderr)
+        print("Unknown peer action. See: a2assistant peer --help", file=sys.stderr)
         return 2
     try:
         peer_name, profile, peer, key = _resolve_peer_target(args.target)
@@ -476,21 +476,21 @@ def build_peer_parser(subparsers) -> None:
     parser = subparsers.add_parser(
         "peer", help="Bot-to-bot DMs across machines (peer A2Assistant gateways)",
         description="Register other A2Assistant gateways as peers and message their agents. "
-            "'hermes peer dm <peer>[/<agent>] \"...\"' delivers into the remote "
+            "'a2assistant peer dm <peer>[/<agent>] \"...\"' delivers into the remote "
             "agent's canonical Bot Chat over the peer's API server and prints "
-            "the reply — the cross-machine twin of 'hermes -p <bot> chat'. "
+            "the reply — the cross-machine twin of 'a2assistant -p <bot> chat'. "
             "The peer must run the api_server platform; its API_SERVER_KEY is "
-            "stored locally as a credential in ~/.hermes/.env.",
+            "stored locally as a credential in ~/.a2assistant/.env.",
         epilog=(
             "Examples:\n"
-            "  hermes peer add spark --url http://spark.lan:8377 --key <API_SERVER_KEY>\n"
-            "  hermes peer list\n"
-            '  hermes peer dm spark "Message from 🤖 dixie (@dixie): disk status?"\n'
-            '  hermes peer dm spark/researcher "..."   # named profile on a multiplexed peer\n'
-            "  hermes peer run spark --idempotency-key ticket-123 < long-task.txt\n"
-            "  hermes peer status spark run_abc123\n"
-            "  hermes peer stop spark run_abc123\n"
-            "  hermes peer remove spark\n"
+            "  a2assistant peer add spark --url http://spark.lan:8377 --key <API_SERVER_KEY>\n"
+            "  a2assistant peer list\n"
+            '  a2assistant peer dm spark "Message from 🤖 dixie (@dixie): disk status?"\n'
+            '  a2assistant peer dm spark/researcher "..."   # named profile on a multiplexed peer\n'
+            "  a2assistant peer run spark --idempotency-key ticket-123 < long-task.txt\n"
+            "  a2assistant peer status spark run_abc123\n"
+            "  a2assistant peer stop spark run_abc123\n"
+            "  a2assistant peer remove spark\n"
             "\n"
             "Exit codes: 0 ok, 1 delivery/peer error, 2 usage error."),
         formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -499,7 +499,7 @@ def build_peer_parser(subparsers) -> None:
     add_p = peer_sub.add_parser("add", aliases=["set"], help="Register (or update) a peer gateway")
     add_p.add_argument("name", help="Peer name (lowercase slug, e.g. spark, homelab)")
     add_p.add_argument("--url", required=True, help="Peer gateway base URL, e.g. http://spark.lan:8377")
-    add_p.add_argument("--key", default="", help="The peer's API_SERVER_KEY (stored in ~/.hermes/.env)")
+    add_p.add_argument("--key", default="", help="The peer's API_SERVER_KEY (stored in ~/.a2assistant/.env)")
     add_p.add_argument("--note", default="", help="Optional description")
 
     peer_sub.add_parser("list", aliases=["ls"], help="List registered peers")
@@ -511,7 +511,7 @@ def build_peer_parser(subparsers) -> None:
         sp = peer_sub.add_parser(name, help=help)
         sp.add_argument("target", help="<peer> or <peer>/<agent> (named profile on a multiplexed peer)")
         if run_id:
-            sp.add_argument("run_id", help="Run ID returned by 'hermes peer run'")
+            sp.add_argument("run_id", help="Run ID returned by 'a2assistant peer run'")
         else:
             sp.add_argument("message", nargs="?", default=None, help="Message text (or stdin)")
             if name == "run":

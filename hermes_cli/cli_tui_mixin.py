@@ -1650,7 +1650,7 @@ class CLITuiMixin:
         event.app.invalidate()
 
     def _tui_collapse_paste(self, text: str, line_count: int, *, fallback: bool) -> str:
-        """Save a large paste under ~/.hermes/pastes and return the placeholder for the buffer."""
+        """Save a large paste under ~/.a2assistant/pastes and return the placeholder for the buffer."""
         from cli import _hermes_home, datetime, logger
         self._tui_paste_counter += 1
         paste_dir = _hermes_home / "pastes"
@@ -1879,7 +1879,7 @@ class CLITuiMixin:
         self._voice_last_tts_text = ""  # most recently spoken TTS text (echo guard, #75780)
         self._voice_barge_phase = None  # "generation" or "playback" phase of the last barge trip
 
-        if os.environ.get("HERMES_DEFER_AGENT_STARTUP") != "1":
+        if os.environ.get("A2ASSISTANT_DEFER_AGENT_STARTUP") != "1":
             self._install_tool_callbacks()
 
     def _tui_build_key_bindings(self):

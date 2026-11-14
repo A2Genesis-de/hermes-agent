@@ -101,7 +101,7 @@ export const ar = defineLocale({
   status: {
     actionFailed: "فشلت الإجراء",
     actionFinished: "انتهى",
-    actionFinishedOwed: "تم التحديث، لكن لا تزال هناك خطوات معلّقة (أعد تشغيل `hermes update` لإكمالها)",
+    actionFinishedOwed: "تم التحديث، لكن لا تزال هناك خطوات معلّقة (أعد تشغيل `a2assistant update` لإكمالها)",
     actions: "إجراءات",
     agent: "العامل",
     activeSessions: "الجلسات النشطة",
@@ -277,7 +277,7 @@ export const ar = defineLocale({
       "تم الحفظ — أعد تشغيل البوابة لتطبيق التغيير.",
     forceReinstall: "إعادة تثبيت إجباري (حذف المجلد الموجود أولاً)",
     headline:
-      "اكتشف وثبِّت وفعِّل وحدِّث مكوِّنات A2Assistant الإضافية (مطابقة `hermes plugins`).",
+      "اكتشف وثبِّت وفعِّل وحدِّث مكوِّنات A2Assistant الإضافية (مطابقة `a2assistant plugins`).",
     identifierLabel: "رابط Git أو owner/repo",
     inactive: "غير نشط",
     installBtn: "تثبيت من Git",
@@ -294,8 +294,8 @@ export const ar = defineLocale({
     providersHint:
       "يكتب memory.provider (فارغ = مدمج) و context.engine إلى config.yaml. يسري في الجلسة التالية.",
     refreshDashboard: "إعادة فحص امتدادات لوحة التحكم",
-    removeConfirm: "إزالة هذا المكوِّن الإضافي من ~/.hermes/plugins/؟",
-    removeHint: "يمكن إزالة المكوِّنات المثبتة من المستخدم تحت ~/.hermes/plugins فقط.",
+    removeConfirm: "إزالة هذا المكوِّن الإضافي من ~/.a2assistant/plugins/؟",
+    removeHint: "يمكن إزالة المكوِّنات المثبتة من المستخدم تحت ~/.a2assistant/plugins فقط.",
     rescanHeading: "سجل مكوِّنات SPA",
     rescanHint: "أعد الفحص بعد إضافة ملفات على القرص لتمكن الشريط الجانبي من التقاط المخطوطات الجديدة.",
     runtimeHeading: "وقت تشغيل البوابة (مكوِّنات YAML)",
@@ -316,7 +316,7 @@ export const ar = defineLocale({
     all: "الكل",
     categories: "الفئات",
     filters: "الفلاتر",
-    noSkills: "لم يُعثر على مهارات. يتم تحميل المهارات من ~/.hermes/skills/",
+    noSkills: "لم يُعثر على مهارات. يتم تحميل المهارات من ~/.a2assistant/skills/",
     noSkillsMatch: "لا توجد مهارات تطابق بحثك أو الفلاتر.",
     skillCount: "{count} مهارة{s}",
     resultCount: "{count} نتيجة{s}",
@@ -330,7 +330,7 @@ export const ar = defineLocale({
   },
 
   config: {
-    configPath: "~/.hermes/config.yaml",
+    configPath: "~/.a2assistant/config.yaml",
     filters: "الفلاتر",
     sections: "الأقسام",
     exportConfig: "تصدير الإعدادات كـ JSON",

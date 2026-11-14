@@ -29,7 +29,7 @@ def test_plugin_skills_reach_tui_slash_menu_and_stack_per_profile(tmp_path, monk
             md.write_text(f"---\nname: {name}\ndescription: {label} {name}.\n---\n\n{label}-{name}-body\n", encoding="utf-8")
         (home / "config.yaml").write_text(f"plugins:\n  enabled: [probe-{label}]\n", encoding="utf-8")
 
-    monkeypatch.setenv("HERMES_HOME", str(homes["alpha"]))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(homes["alpha"]))
     plugins._reset_plugin_managers_for_tests()
     try:
         for label in ("alpha", "beta", "alpha"):

@@ -5,7 +5,7 @@ nothing new; each repeat is a full model turn. After ``_PROMOTE_AFTER`` consecut
 with no new output, this promotes the session to ``notify_on_complete`` (wiring gateway delivery when
 the process was started silently) and tells the model to stop checking: the exit arrives as a message.
 
-Only where a completion can actually reach this agent: one-shot runners (``hermes -z``), cron, Kanban
+Only where a completion can actually reach this agent: one-shot runners (``a2assistant -z``), cron, Kanban
 workers, stateless HTTP sessions, delegated subagents, profiles whose effective
 ``display.background_process_notifications`` is ``off``, and callers that do not own the process's
 completion (another session's process, a subagent's un-handed-off process) keep the old result, since
@@ -74,13 +74,13 @@ def _count_unchanged(session) -> int:
 def _can_deliver_completion() -> bool:
     """Whether a completion notice for this session can reach the agent that is waiting.
 
-    Finite turns (non-interactive ``hermes chat -q`` / ``-z``, as ``delegate_task`` decides inline execution) end
+    Finite turns (non-interactive ``a2assistant chat -q`` / ``-z``, as ``delegate_task`` decides inline execution) end
     the run when the turn ends, so a promised notice would never arrive."""
     from agent.delegation_context import is_delegated_child_context
     from gateway.session_context import async_delivery_supported, get_session_env
     from gateway.session_finite import finite_turn_required
     finite = finite_turn_required()
-    if finite is True or (finite is None and get_session_env("HERMES_SINGLE_QUERY_SESSION") == "1"):
+    if finite is True or (finite is None and get_session_env("A2ASSISTANT_SINGLE_QUERY_SESSION") == "1"):
         return False
     if not async_delivery_supported() or is_delegated_child_context():
         return False
@@ -89,7 +89,7 @@ def _can_deliver_completion() -> bool:
     from hermes_cli.config import cfg_get
     try:
         from gateway.platforms._shared import platform_gate_env
-        modes = (platform_gate_env("HERMES_BACKGROUND_NOTIFICATIONS"),
+        modes = (platform_gate_env("A2ASSISTANT_BACKGROUND_NOTIFICATIONS"),
                  cfg_get(_effective_config(), "display", "background_process_notifications"))
     except Exception:
         logger.debug("background_process_notifications unreadable; assuming on", exc_info=True)
@@ -106,7 +106,7 @@ def _caller_receives_completion(session) -> bool:
     from gateway.session_context import get_session_env
     from tools.process_registry import ProcessRegistry
     from tools.process_registry_notifications import should_surface_notification
-    caller_key = get_session_env("HERMES_SESSION_KEY", "")
+    caller_key = get_session_env("A2ASSISTANT_SESSION_KEY", "")
     evt = {"type": "completion", "session_id": session.id, "session_key": session.session_key,
            "task_id": session.task_id, "owner_task_id": session.owner_task_id}
     if session.session_key and not caller_key:
@@ -130,7 +130,7 @@ def _claim_notify_if_running(registry, session) -> bool:
 def _promote(registry, session) -> None:
     """Wire completion delivery for a process just claimed by ``_claim_notify_if_running``.
 
-    CLI, TUI/Desktop and ``hermes chat -q`` drain ``completion_queue``, which the exit path fills
+    CLI, TUI/Desktop and ``a2assistant chat -q`` drain ``completion_queue``, which the exit path fills
     whenever the flag is set. The messaging gateway delivers only through a per-process watcher, so a
     process started silently also needs the chat routing stamped and a watcher armed."""
     from tools.terminal_tool_background import _register_completion_watcher, _stamp_gateway_routing

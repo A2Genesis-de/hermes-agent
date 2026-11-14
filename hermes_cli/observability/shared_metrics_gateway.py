@@ -34,7 +34,7 @@ def _submit(fn: Callable[..., Any], *args: Any, **kwargs: Any) -> Future | None:
     try:
         with _executor_lock:
             if _executor is None:
-                _executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="hermes-gateway-metrics")
+                _executor = ThreadPoolExecutor(max_workers=1, thread_name_prefix="a2assistant-gateway-metrics")
         return _executor.submit(contextvars.copy_context().run, _guarded, fn, *args, **kwargs)
     except Exception:  # interpreter shutdown refuses new work: the metric is simply dropped
         logger.debug("Gateway shared metric not scheduled", exc_info=True)

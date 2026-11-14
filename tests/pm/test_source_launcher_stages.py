@@ -71,7 +71,7 @@ exit 0
                   if shell == 'powershell' else Path(shutil.which('pwsh') or pytest.fail('native lane requires PowerShell 7')))
     env = dict(os.environ, PROBE_INSTALLER=str(ROOT / 'scripts/install.ps1'),
                PROBE_REPO=str(repo), PROBE_HOME=str(home), PROBE_PYTHON=str(interpreter),
-               HERMES_HOME=str(tmp_path / 'other-home'),
+               A2ASSISTANT_HOME=str(tmp_path / 'other-home'),
                PROBE_PY_REQUEST=py_request, PROBE_UV_CALLS=str(calls),
                UV_OFFLINE='1', UV_PYTHON_DOWNLOADS='never')
     env['PATH'] = os.pathsep.join([str(powershell.parent), str(Path(os.environ['SystemRoot']) / 'System32')])
@@ -87,7 +87,7 @@ exit 0
     for name in ('hermes', 'hermes-acp'):
         command = home / 'bin' / (name + ('.exe' if (home / 'bin' / (name + '.exe')).is_file() else '.cmd'))
         child_env = dict(env)
-        child_env.pop('HERMES_HOME', None)
+        child_env.pop('A2ASSISTANT_HOME', None)
         child = subprocess.run([str(command), 'from-powershell'], cwd=tmp_path, env=child_env,
                                capture_output=True, text=True, encoding='utf-8', timeout=30, check=False)
         assert child.returncode == 7, child.stdout + child.stderr

@@ -61,7 +61,7 @@ def _run_native_windows_gateway_start_diag(
         gateway_cli.supports_systemd_services = lambda: False
         gateway_cli.run_gateway(quiet=True)
 
-        diag_path = pathlib.Path(os.environ["HERMES_HOME"]) / "logs" / "gateway-exit-diag.log"
+        diag_path = pathlib.Path(os.environ["A2ASSISTANT_HOME"]) / "logs" / "gateway-exit-diag.log"
         rows = [json.loads(line) for line in diag_path.read_text(encoding="utf-8").splitlines()]
         start = next(row for row in rows if row["tag"] == "gateway.start")
         payload = {
@@ -74,10 +74,10 @@ def _run_native_windows_gateway_start_diag(
     env: dict[str, str] = dict(os.environ)
     env.update(
         {
-            "HERMES_HOME": str(tmp_path),
-            "HERMES_GATEWAY_DETACHED": "1",
-            "HERMES_GATEWAY_EXIT_DIAG": "1",
-            "HERMES_GATEWAY_MAX_STARTS": "0",
+            "A2ASSISTANT_HOME": str(tmp_path),
+            "A2ASSISTANT_GATEWAY_DETACHED": "1",
+            "A2ASSISTANT_GATEWAY_EXIT_DIAG": "1",
+            "A2ASSISTANT_GATEWAY_MAX_STARTS": "0",
             "PYTHONIOENCODING": "utf-8",
         }
     )
@@ -156,7 +156,7 @@ def test_gateway_run_subprocess_preserves_daemon_exit_codes(
 
         import hermes_cli.gateway as gateway_cli
 
-        outcome = os.environ["HERMES_TEST_GATEWAY_OUTCOME"]
+        outcome = os.environ["A2ASSISTANT_TEST_GATEWAY_OUTCOME"]
 
         async def start_gateway(**kwargs):
             if outcome == "failure":
@@ -179,9 +179,9 @@ def test_gateway_run_subprocess_preserves_daemon_exit_codes(
     )
     env = {
         **os.environ,
-        "HERMES_HOME": str(tmp_path),
-        "HERMES_GATEWAY_EXIT_DIAG": "0",
-        "HERMES_TEST_GATEWAY_OUTCOME": outcome,
+        "A2ASSISTANT_HOME": str(tmp_path),
+        "A2ASSISTANT_GATEWAY_EXIT_DIAG": "0",
+        "A2ASSISTANT_TEST_GATEWAY_OUTCOME": outcome,
         "INVOCATION_ID": "systemd-test",
     }
 
@@ -349,7 +349,7 @@ def test_spawn_detached_gateway_timestamps_stderr(monkeypatch, tmp_path):
 
 @pytest.mark.platforms("posix")  # systemd user-linger is Linux-only (drives os.getuid())
 def test_systemd_install_checks_linger_status(monkeypatch, tmp_path):
-    unit_path = tmp_path / "systemd" / "user" / "hermes-gateway.service"
+    unit_path = tmp_path / "systemd" / "user" / "a2assistant-gateway.service"
 
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
     # Synthetic unit with a non-temp home: the real generator bakes the
@@ -359,7 +359,7 @@ def test_systemd_install_checks_linger_status(monkeypatch, tmp_path):
         gateway,
         "generate_systemd_unit",
         lambda system=False, run_as_user=None: (
-            '[Service]\nEnvironment="HERMES_HOME=/home/alice/.hermes"\n'
+            '[Service]\nEnvironment="A2ASSISTANT_HOME=/home/alice/.hermes"\n'
         ),
     )
 
@@ -408,7 +408,7 @@ def test_gateway_install_noninteractive_skips_legacy_unit_prompt(monkeypatch, tm
     monkeypatch.setattr(gateway, "remove_legacy_hermes_units", lambda interactive=False: calls.append(("remove_legacy",)))
     monkeypatch.setattr(gateway, "print_legacy_unit_warning", lambda: None)
 
-    fake_path = tmp_path / "hermes-gateway.service"
+    fake_path = tmp_path / "a2assistant-gateway.service"
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: fake_path)
     monkeypatch.setattr(gateway, "generate_systemd_unit", lambda system=False, run_as_user=None: "[Service]")
     monkeypatch.setattr(gateway, "_run_systemctl", lambda *a, **kw: None)
@@ -515,7 +515,7 @@ class TestWaitForGatewayExit:
 
 
 class TestRestartWaitsForApiServerPort:
-    """Regression for #91547: ``hermes gateway restart`` waited only for the old PID; on macOS the
+    """Regression for #91547: ``a2assistant gateway restart`` waited only for the old PID; on macOS the
     replacement then hit EADDRINUSE and ran with no API server."""
 
     def test_port_is_reported_free_once_the_old_listener_closes(self):
@@ -719,7 +719,7 @@ class TestReapUnsupervisedGatewayOrphansMacOS:
 
     Regression guard: without the ``is_macos()`` exclusion of
     ``_get_service_pids()``, the reaper would SIGTERM the launchd-supervised
-    gateway every time Hermes Desktop opens (``hermes serve`` calls
+    gateway every time Hermes Desktop opens (``a2assistant serve`` calls
     ``_reap_unsupervised_gateway_orphans`` during startup).
     """
 
@@ -769,7 +769,7 @@ class TestReapUnsupervisedGatewayOrphansWindows:
     Regression guard: without the Windows exemption of the recorded healthy
     gateway PID (and its parent chain), the reaper would SIGTERM/SIGKILL a
     Scheduled-Task-supervised gateway every time Hermes Desktop opens
-    (``hermes serve`` calls ``_reap_unsupervised_gateway_orphans`` during
+    (``a2assistant serve`` calls ``_reap_unsupervised_gateway_orphans`` during
     startup). The Scheduled-Task bootstrap's argv matches the gateway scan,
     so it is reaped as an "orphan" — and when the bootstrap dies, the
     detached gateway it spawned exits with it (#86098).

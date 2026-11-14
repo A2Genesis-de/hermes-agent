@@ -23,7 +23,7 @@ def _page(monkeypatch, tmp_path):
     application.state.auth_required = False
     monkeypatch.setattr(server, "app", application)
     monkeypatch.setattr(server, "WEB_DIST", tmp_path)
-    monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SERVE_HEADLESS", raising=False)
     mount_spa(application)
     return TestClient(application)
 

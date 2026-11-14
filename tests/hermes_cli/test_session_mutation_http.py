@@ -19,7 +19,7 @@ async def test_http_and_ws_clients_compete_for_one_revision(tmp_path, monkeypatc
     from hermes_cli.web_routers.sessions import manage_router
     from hermes_cli import web_server as web
     monkeypatch.setattr(web, '_SESSION_TOKEN', 'fixture-token')
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr('hermes_state._default_db_path', lambda: tmp_path / 'state.db')
     app = FastAPI()
     app.state.auth_required = False

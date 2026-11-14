@@ -23,7 +23,7 @@ class SlashWire(Wire):
 
 @pytest.mark.asyncio
 async def test_repeated_prompt_after_slash_command_is_new_work(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     executed = []
 

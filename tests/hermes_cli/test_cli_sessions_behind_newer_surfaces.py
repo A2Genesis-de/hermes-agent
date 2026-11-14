@@ -1,7 +1,7 @@
 """CLI session lookups must page by creating surface, not by a fixed local window.
 
 Gateway rows for Desktop, TUI and the classic CLI are stored as ``source='local'``
-with the real surface in ``created_source``. ``hermes -c``, in-chat ``/sessions``
+with the real surface in ``created_source``. ``a2assistant -c``, in-chat ``/sessions``
 and ``/resume`` read those rows through ``SurfaceLabelReader``. A fixed over-fetch
 of every local row, filtered afterwards, dropped the CLI session once enough newer
 Desktop/TUI rows filled the window.
@@ -39,7 +39,7 @@ def _newer_locals(count: int, *, start: float, prefix: str) -> list[tuple[str, s
 
 
 def _resolve_cli(monkeypatch, home) -> str | None:
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr("hermes_cli.main._resolve_workspace_key", lambda: None)
     from hermes_cli.main import _resolve_last_session
 
@@ -68,7 +68,7 @@ def _ids(reader, method: str, **kwargs) -> list[str]:
 
 
 def test_continue_and_sessions_find_cli_session_behind_newer_desktop_rows(tmp_path, monkeypatch):
-    """Bare ``hermes -c``, ``/sessions`` and ``/resume`` reach the CLI session behind 200 newer rows."""
+    """Bare ``a2assistant -c``, ``/sessions`` and ``/resume`` reach the CLI session behind 200 newer rows."""
     db = SessionDB(db_path=tmp_path / "state.db")
     _populate(db, [("cli-session", "local", "cli", 1_000_000), *_newer_locals(200, start=2_000_000, prefix="d")])
     assert _recent_cli_ids(db) == (["cli-session"], ["cli-session"])

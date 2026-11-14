@@ -20,7 +20,7 @@ from tests.gateway.test_cli_plugin_command_in_gateway import (
 from tests.waiting import wait_until
 
 # The command socket's thread (hermes_cli/gateway_connection.py); none may outlive its command.
-_COMMAND_THREAD = 'hermes-gateway-command'
+_COMMAND_THREAD = 'a2assistant-gateway-command'
 
 
 def _command_threads():
@@ -36,7 +36,7 @@ def _cli(monkeypatch, home):
     _no_local_plugins(monkeypatch)
     monkeypatch.setattr(cli_mod, '_ensure_skill_commands', dict)
     monkeypatch.setattr(cli_mod, 'get_skill_bundles', dict)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     conn = GatewayConnection(connect=_dial_running(home))
     c = HermesCLI()
     c.agent, c._session_db, c._gateway_session_open = None, GatewaySessionStore(conn), False

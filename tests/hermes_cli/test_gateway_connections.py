@@ -30,7 +30,7 @@ FIXTURE = Path(__file__).resolve().parents[1] / "fixtures" / "gateway_connection
 def home(monkeypatch, tmp_path):
     root = tmp_path / "root"
     (root / "profiles" / "coder").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "coder"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root / "profiles" / "coder"))
     return root.resolve()
 
 
@@ -123,7 +123,7 @@ def test_a_corrupt_store_is_kept_aside_and_an_unreadable_one_refuses(home, tmp_p
 
 
 def _save_one(root: str, index: int) -> None:
-    os.environ["HERMES_HOME"] = root
+    os.environ["A2ASSISTANT_HOME"] = root
     store.save_connection({"kind": "remote", "label": f"Box {index}", "url": f"http://box{index}:1", "token": "t"})
 
 

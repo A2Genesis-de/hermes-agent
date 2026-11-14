@@ -259,7 +259,7 @@ def resolve_plugin_load_order(manifests: Mapping[str, PluginManifest]) -> list[s
                 logger.warning(
                     "Plugin %s requires plugin '%s' which is not enabled/"
                     "installed; loading anyway (probe availability at runtime "
-                    "via ctx.has_plugin). Run `hermes plugins enable %s` if it is installed.",
+                    "via ctx.has_plugin). Run `a2assistant plugins enable %s` if it is installed.",
                     k, dep_id, dep_id,
                 )
             elif resolved == k:

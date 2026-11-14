@@ -12,7 +12,7 @@ from gateway.platforms.api_server import APIServerAdapter, _ProviderAuthResoluti
 @pytest.mark.parametrize("setting", [None, False, True])
 @pytest.mark.parametrize("category", ["diagnostic", "result"])
 async def test_notification_projection_preserves_source_outcome(tmp_path, monkeypatch, setting, category):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("{}" if setting is None else
         f"display: {{suppress_warning_notifications: {str(setting).lower()}}}\n")
     adapter = APIServerAdapter(PlatformConfig(enabled=True))
@@ -61,7 +61,7 @@ async def test_notification_projection_preserves_source_outcome(tmp_path, monkey
 @pytest.mark.asyncio
 @pytest.mark.parametrize("setting", [None, False, True])
 async def test_pre_agent_auth_diagnostic_obeys_policy_without_losing_logs(tmp_path, monkeypatch, caplog, setting):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("{}" if setting is None else
         f"display: {{suppress_warning_notifications: {str(setting).lower()}}}\n")
     adapter = APIServerAdapter(PlatformConfig(enabled=True))
@@ -82,7 +82,7 @@ async def test_http_diagnostic_projection_keeps_source_and_terminal_flags(tmp_pa
     from aiohttp.test_utils import TestClient, TestServer
     import json
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("{}" if setting is None else
         f"display: {{suppress_warning_notifications: {str(setting).lower()}}}\n")
     adapter = APIServerAdapter(PlatformConfig(enabled=True, extra={"key": "test-local-key"}))
@@ -143,7 +143,7 @@ async def test_http_unhandled_diagnostic_error_is_quiet_but_failed(tmp_path, mon
     from aiohttp.test_utils import TestClient, TestServer
     import json
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("{}" if setting is None else
         f"display: {{suppress_warning_notifications: {str(setting).lower()}}}\n")
     adapter = APIServerAdapter(PlatformConfig(enabled=True, extra={"key": "test-local-key"}))
@@ -174,7 +174,7 @@ async def test_http_idempotency_does_not_replay_opposite_presentation(tmp_path, 
     from aiohttp.test_utils import TestClient, TestServer
     from gateway.platforms.api_server import _IdempotencyCache
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr("gateway.platforms.api_server._idem_cache", _IdempotencyCache())
     (tmp_path / "config.yaml").write_text("display: {suppress_warning_notifications: true}\n")
     adapter = APIServerAdapter(PlatformConfig(enabled=True, extra={"key": "test-local-key"}))

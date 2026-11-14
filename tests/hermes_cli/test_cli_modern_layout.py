@@ -116,7 +116,7 @@ def test_layout_and_busy_default_through_the_config_loader(tmp_path, monkeypatch
 
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(cli, "_hermes_home", home)
     (home / "config.yaml").write_text(yaml.safe_dump({"display": display} if display else {"model": {}}))
     loaded = cli.load_cli_config()["display"]

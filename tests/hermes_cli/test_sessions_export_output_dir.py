@@ -1,4 +1,4 @@
-"""`hermes sessions export` single-file formats accept a directory as OUTPUT."""
+"""`a2assistant sessions export` single-file formats accept a directory as OUTPUT."""
 
 import json
 import sys

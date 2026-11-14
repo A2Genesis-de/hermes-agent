@@ -1,4 +1,4 @@
-"""``hermes gui --setup-tcc-identity``: a persistent self-signed macOS code-signing identity.
+"""``a2assistant gui --setup-tcc-identity``: a persistent self-signed macOS code-signing identity.
 
 Split out of ``hermes_cli/main_desktop.py``. The facade's build/sign helpers are imported lazily
 inside the function that uses them (the facade late-imports this module from ``cmd_gui``).
@@ -10,6 +10,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from hermes_cli.branding import DESKTOP_APP_ID
 
 
 def _macos_codesigning_identity_valid(security: str, identity: str) -> bool:
@@ -163,6 +164,6 @@ def _desktop_macos_setup_tcc_identity(identity: str = "Hermes Local Signing") ->
     print(
         "\n  Note: macOS will re-prompt for permissions ONE final time (the identity "
         "changed). Grant them and they persist from then on. If a permission gets "
-        "stuck, reset it with:  tccutil reset All com.nousresearch.hermes"
+        f"stuck, reset it with:  tccutil reset All {DESKTOP_APP_ID}"
     )
     return True

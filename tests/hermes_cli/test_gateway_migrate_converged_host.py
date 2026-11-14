@@ -1,4 +1,4 @@
-"""A CONVERGED host is a no-op for ``hermes gateway migrate --multiplex``, run after run.
+"""A CONVERGED host is a no-op for ``a2assistant gateway migrate --multiplex``, run after run.
 
 Driven through the REAL topology path, not stubbed per-profile PIDs: a live host rendezvous
 record + the per-profile ``gateway_state.json`` the multiplexer stamps, so
@@ -36,9 +36,9 @@ def converged_host(tmp_path, monkeypatch):
         (root / sub / "SOUL.md").write_text("x\n", encoding="utf-8")
     (root / "config.yaml").write_text("model:\n  default: x\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     assert str(hermes_constants.get_default_hermes_root()).startswith(str(tmp_path))
@@ -57,7 +57,7 @@ def converged_host(tmp_path, monkeypatch):
 
     from gateway import status
     from gateway import host_attach, host_rendezvous as hr
-    monkeypatch.setattr(status, "_read_process_cmdline", lambda p: "hermes gateway run")
+    monkeypatch.setattr(status, "_read_process_cmdline", lambda p: "a2assistant gateway run")
     # The WIRE only: the owner's control socket answer. Everything that reads it is real.
     monkeypatch.setattr("gateway.control_socket.identify_gateway",
                         lambda home: {"pid": pid, "hermes_home": str(root), "served_profiles": served})

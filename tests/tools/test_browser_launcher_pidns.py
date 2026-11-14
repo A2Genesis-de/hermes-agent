@@ -1,6 +1,6 @@
 """A pid in launcher state means something only inside the PID namespace and boot that wrote it.
 
-One ``HERMES_HOME`` can be shared by a container gateway and a host CLI: a record, lease or throwaway profile dir
+One ``A2ASSISTANT_HOME`` can be shared by a container gateway and a host CLI: a record, lease or throwaway profile dir
 written in another PID namespace (or before a reboot), or one that does not say where it was written, names a
 pid that may be dead HERE while its process lives THERE. It is never judged dead: never reaped, deleted,
 dropped or handed over. Same-namespace state of a process that is gone is still cleaned up

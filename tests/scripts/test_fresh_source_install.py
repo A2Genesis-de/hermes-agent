@@ -44,7 +44,7 @@ def test_current_installer_publishes_real_dependencies_and_warm_path(tmp_path, s
     shutil.copy2(python, bootstrap / f"bin/python{minor}")
     (bootstrap / "bin/python3").symlink_to(f"python{minor}")
     env = {"PATH": os.environ["PATH"], "HOME": str(home), "LANG": "C.UTF-8",
-           "HERMES_HOME": str(home / ".hermes"), "UV_PYTHON_INSTALL_DIR": str(managed),
+           "A2ASSISTANT_HOME": str(home / ".hermes"), "UV_PYTHON_INSTALL_DIR": str(managed),
            "UV_PYTHON_DOWNLOADS": "never", "UV_CACHE_DIR": str(tmp_path / "cache")}
     canary = tmp_path / "ambient-bin"
     canary.mkdir()
@@ -128,7 +128,7 @@ def test_current_installer_publishes_real_dependencies_and_warm_path(tmp_path, s
          "commit", "-m", "fixture"], cwd=source)
     commit = run(["git", "rev-parse", "HEAD"], cwd=source).stdout.strip()
     install = tmp_path / "installed source"
-    env["HERMES_REPO_URL"] = str(source)
+    env["A2ASSISTANT_REPO_URL"] = str(source)
     command = ["bash", str(ROOT / "scripts/install.sh"), "--dir", str(install),
                "--branch", "fixture", "--commit", commit, "--non-interactive", "--json"]
     result = run(command, expected=1 if fault else 0)

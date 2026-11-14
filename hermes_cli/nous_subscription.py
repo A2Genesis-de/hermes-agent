@@ -228,7 +228,7 @@ def _provider_label(kind: str, current_provider: str) -> str:
 
 def _local_stt_backend_available() -> bool:
     """True when faster-whisper imports or a custom local STT command is configured."""
-    if get_env_value("HERMES_LOCAL_STT_COMMAND"):
+    if get_env_value("A2ASSISTANT_LOCAL_STT_COMMAND"):
         return True
     try:
         from tools.transcription_tools import _HAS_FASTER_WHISPER

@@ -16,7 +16,7 @@ def _write_home(home: Path, body: str, env: str = "") -> Path:
 
 
 def _check(home: Path, monkeypatch, capsys) -> str:
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     _cmd_config_check(None)
     return capsys.readouterr().out
 
@@ -74,5 +74,5 @@ def test_config_check_reports_disabled_platform_only_when_runtime_disables_it(tm
         output = _check(home, monkeypatch, capsys)
         assert ("platform plugin 'platforms/fakechat' is disabled" in output) is reported, home.name
         if reported:
-            assert "hermes plugins enable platforms/fakechat" in output
+            assert "a2assistant plugins enable platforms/fakechat" in output
         assert "synthetic-test-token" not in output

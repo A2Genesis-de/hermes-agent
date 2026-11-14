@@ -1,7 +1,7 @@
 """Codex pool entries and the auth.json singleton: who may adopt whose tokens.
 
 ``manual:device_code`` is ambiguous — a legacy alias of the singleton or an independent account
-added with ``hermes auth add openai-codex``. Adopting the singleton into an independent account
+added with ``a2assistant auth add openai-codex``. Adopting the singleton into an independent account
 silently turned two logins into one (both then hit the same usage limit; salvaged from #100423 and
 #106788, cluster #92198 / #95297, issue #106705).
 """
@@ -48,7 +48,7 @@ def _write_store(home, singleton_tokens: dict, singleton_last_refresh: str, manu
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 

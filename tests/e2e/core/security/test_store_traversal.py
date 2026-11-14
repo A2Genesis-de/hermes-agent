@@ -3,15 +3,15 @@
 Two operator/agent-facing name lookups must stay inside the thing they name:
 
 * ``/memory`` and ``/skills`` ``approve|reject|diff <id>`` (#119997): the id names a record staged under
-  ``<HERMES_HOME>/pending/<subsystem>/``. A ``../`` or absolute id must not read, delete or apply any
+  ``<A2ASSISTANT_HOME>/pending/<subsystem>/``. A ``../`` or absolute id must not read, delete or apply any
   file outside that directory. Driven through the real ``tui_gateway`` stdio backend (``slash.exec``),
   after real staged writes: the fake model calls the ``memory`` and ``skill_manage`` tools with
   ``memory.write_approval`` / ``skills.write_approval`` on, so the store directories exist exactly as
   they do for a user.
 * ``skill_manage delete`` (#120528) must refuse a pinned skill and the essential ``hermes-agent`` skill
   whatever spelling names it: bare (``my-skill``) or categorized (``research/my-skill``). The pin is set
-  with the real ``hermes curator pin`` CLI; the deletes are real tool calls in real agent turns on the
-  same backend (``hermes chat -q`` does not offer ``skill_manage``: one-shot runs hide it).
+  with the real ``a2assistant curator pin`` CLI; the deletes are real tool calls in real agent turns on the
+  same backend (``a2assistant chat -q`` does not offer ``skill_manage``: one-shot runs hide it).
 
 Every breach asserts on disk (victim bytes, skill dir, MEMORY.md) and on the command output.
 """
@@ -230,7 +230,7 @@ def deletes(tmp_path_factory: pytest.TempPathFactory) -> Iterator[DeleteRun]:
     with FakeLLMServer([], api_key=key) as srv:
         H.write_home(home / ".hermes", srv.base_url, api_key=key)
         pin = H.run_hermes(["curator", "pin", "my-skill"], home, timeout=90)
-        assert pin.returncode == 0, f"hermes curator pin failed: {pin.stdout}\n{pin.stderr[-2000:]}"
+        assert pin.returncode == 0, f"a2assistant curator pin failed: {pin.stdout}\n{pin.stderr[-2000:]}"
         b = TuiBackend(home, root / "tui.log")
         try:
             sid = b.ok("session.create", {})["session_id"]

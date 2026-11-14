@@ -28,8 +28,8 @@ def presented(monkeypatch):
 
 def _desktop_backend(monkeypatch):
     """The backend Desktop spawned: the inherited flag plus the per-spawn credential."""
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "spawn-token")
+    monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "spawn-token")
 
 
 def _resolve(monkeypatch):
@@ -253,11 +253,11 @@ class TestWhoWaits:
         assert len(presented) == 1                       # the 429 did not skip presenting
 
     def test_an_inherited_desktop_flag_is_not_the_desktop_surface(self, nas, monkeypatch, capsys):
-        """A ``hermes`` run in the desktop's terminal pane inherits HERMES_DESKTOP but not the spawn
+        """A ``a2assistant`` run in the desktop's terminal pane inherits A2ASSISTANT_DESKTOP but not the spawn
         credential: it reports ``cli`` to the service and prints the link where its user is."""
         import webbrowser
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
         monkeypatch.setenv("SSH_TTY", "/dev/pts/0")
         monkeypatch.setattr(webbrowser, "open", lambda _url: False)
         _connectors_token()

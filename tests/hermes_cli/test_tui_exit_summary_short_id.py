@@ -1,6 +1,6 @@
 """The TUI exit epilogue names a canonical session as compactly as main did (PR #106742 row 36).
 
-Main printed ``hermes --tui --resume 20261012_185208_a67483`` (22 chars). A canonical local session is
+Main printed ``a2assistant --tui --resume 20261012_185208_a67483`` (22 chars). A canonical local session is
 keyed ``local-`` + 64 hex (70 chars); the epilogue prints its unique 22-char prefix, and ``--resume``
 accepts that prefix back.
 """
@@ -21,7 +21,7 @@ def _seed(home, sid, tokens=(300, 60)):
 def home(tmp_path, monkeypatch):
     home = tmp_path / '.hermes'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     return home
 
 
@@ -32,7 +32,7 @@ def test_epilogue_prints_short_resume_id_for_canonical_session(home, capsys):
     _print_tui_exit_summary(sid)
     out = capsys.readouterr().out
     short = sid[:22]
-    assert f'hermes --tui --resume {short}\n' in out
+    assert f'a2assistant --tui --resume {short}\n' in out
     assert sid not in out
     assert 'Tokens:         360 (in 300, out 60' in out
 
@@ -52,7 +52,7 @@ def test_ambiguous_prefix_falls_back_to_full_id(home, capsys):
     _seed(home, a)
     _seed(home, b)
     _print_tui_exit_summary(a)
-    assert f'hermes --tui --resume {a}\n' in capsys.readouterr().out
+    assert f'a2assistant --tui --resume {a}\n' in capsys.readouterr().out
     assert _resolve_session_by_name_or_id(a[:22]) is None
 
 
@@ -60,7 +60,7 @@ def test_stored_ids_print_unchanged(home, capsys):
     from hermes_cli.main_tui_launch import _print_tui_exit_summary
     _seed(home, '20261012_185208_a67483')
     _print_tui_exit_summary('20261012_185208_a67483')
-    assert 'hermes --tui --resume 20261012_185208_a67483\n' in capsys.readouterr().out
+    assert 'a2assistant --tui --resume 20261012_185208_a67483\n' in capsys.readouterr().out
 
 
 def test_branch_child_epilogue_counts_the_branched_conversation(home, capsys):

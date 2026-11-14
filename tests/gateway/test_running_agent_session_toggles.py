@@ -156,7 +156,7 @@ async def test_fresh_ancient_turn_remains_controllable(monkeypatch):
     }
     runner._running_agents_ts[sk] = time.time() - 31_471
     runner._handle_verbose_command = AsyncMock(return_value="tool progress: new")
-    monkeypatch.setenv("HERMES_AGENT_TIMEOUT", "1800")
+    monkeypatch.setenv("A2ASSISTANT_AGENT_TIMEOUT", "1800")
 
     result = await runner._handle_message(_make_event("/verbose"))
 

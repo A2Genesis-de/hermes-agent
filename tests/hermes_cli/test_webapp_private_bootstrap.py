@@ -25,7 +25,7 @@ def test_bootstrap_token_visibility(monkeypatch, tmp_path, surface, gated, headl
     application.state.auth_required = gated
     monkeypatch.setattr(server, "app", application)
     monkeypatch.setattr(server, "WEB_DIST", tmp_path)
-    monkeypatch.setenv("HERMES_SERVE_HEADLESS", "1" if headless else "0")
+    monkeypatch.setenv("A2ASSISTANT_SERVE_HEADLESS", "1" if headless else "0")
     mount_spa(application)
     client = TestClient(application)
     for path in ("/", "/chat", "/settings", "/index.html"):
@@ -56,7 +56,7 @@ def test_html_cannot_authorize_privileged_sibling_routes(monkeypatch, tmp_path, 
     spa.state.ui_surface = "webapp"
     spa.state.auth_required = False
     monkeypatch.setattr(server, "WEB_DIST", tmp_path)
-    monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SERVE_HEADLESS", raising=False)
     mount_spa(spa)
     html = TestClient(spa).get("/").text
     match = re.search(r'__HERMES_SESSION_TOKEN__\s*=\s*("[^"]*")', html)

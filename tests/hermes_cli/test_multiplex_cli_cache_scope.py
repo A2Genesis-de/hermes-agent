@@ -55,7 +55,7 @@ def homes(tmp_path, monkeypatch):
     b = a / "profiles" / "B"
     for home in (a, b):
         (home / "cache").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(a))
     for var in ("DEEPINFRA_API_KEY", "DEEPINFRA_BASE_URL", "NOUS_INFERENCE_BASE_URL"):
         monkeypatch.delenv(var, raising=False)
     return a, b
@@ -144,7 +144,7 @@ def test_banner_skills_are_the_routed_profiles(homes):
 
 def test_failed_guest_mint_only_suppresses_that_profile(homes, monkeypatch, tmp_path):
     a, b = homes
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared"))
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(tmp_path / "shared"))
     import hermes_cli.anon_auth as anon
     from hermes_cli import auth_nous
 

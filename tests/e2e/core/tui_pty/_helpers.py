@@ -1,4 +1,4 @@
-"""Drive a real ``hermes --tui`` inside a private tmux server and read what the user would see.
+"""Drive a real ``a2assistant --tui`` inside a private tmux server and read what the user would see.
 
 tmux is the terminal emulator here: it owns the grid, reflows it on resize and keeps the
 scrollback, exactly as it does for a user running the TUI inside tmux. We read it back with
@@ -9,7 +9,7 @@ Every transcript word the fake provider streams is a unique token (``<tag>w<NNN>
 *word ledger* over the captured text tells lost, duplicated and reordered words apart.
 
 Isolation: the tmux server has its own socket and a config written into the test's tmp dir;
-the TUI gets a sandbox HOME/HERMES_HOME wired only to the loopback fake provider; cleanup kills
+the TUI gets a sandbox HOME/A2ASSISTANT_HOME wired only to the loopback fake provider; cleanup kills
 the tmux server and every process of the pane's session by session id, never by pattern.
 """
 
@@ -72,15 +72,15 @@ def require_tui() -> None:
     ) if not ok]
     if not missing:
         return
-    if os.environ.get("HERMES_E2E_REQUIRE_TUI") == "1" and missing != ["tmux"]:
-        pytest.fail(f"{missing} missing but HERMES_E2E_REQUIRE_TUI=1")
+    if os.environ.get("A2ASSISTANT_E2E_REQUIRE_TUI") == "1" and missing != ["tmux"]:
+        pytest.fail(f"{missing} missing but A2ASSISTANT_E2E_REQUIRE_TUI=1")
     pytest.skip(f"needs {missing}")
 
 
 def private_tui_dir(root: Path) -> Path:
-    """A private copy of the prebuilt bundle for ``HERMES_TUI_DIR``.
+    """A private copy of the prebuilt bundle for ``A2ASSISTANT_TUI_DIR``.
 
-    A checkout launch of ``hermes --tui`` re-runs esbuild on ``ui-tui/dist/entry.js`` every
+    A checkout launch of ``a2assistant --tui`` re-runs esbuild on ``ui-tui/dist/entry.js`` every
     time, non-atomically, so a TUI started by another worker (or another e2e suite) while it
     rebuilds dies with a Node ``SyntaxError`` on a half-written bundle. The prebuilt-bundle path
     runs the same file without rebuilding; a copy that ``node --check`` accepts is immune to
@@ -220,7 +220,7 @@ def layout_problem(rows: list[str], cols: int, tag: str, slack: int | None = 12)
 
 
 class TmuxTui:
-    """One ``hermes --tui`` in a private tmux server."""
+    """One ``a2assistant --tui`` in a private tmux server."""
 
     def __init__(self, root: Path, base_url: str, *, cols: int = 120, rows: int = 50,
                  extra_config: str = "", args: Iterable[str] = ("--yolo",), inline: bool = False,
@@ -247,13 +247,13 @@ class TmuxTui:
             "set -g history-limit 100000\nset -g status off\nset -g remain-on-exit on\n"
             "set -g default-terminal tmux-256color\nset -g escape-time 10\n", encoding="utf-8")
         env = {k: v for k, v in os.environ.items()
-               if not k.startswith(("HERMES_", "TMUX", "OPENAI_", "OPENROUTER_", "ANTHROPIC_"))}
-        env.update(HOME=str(self.home), HERMES_HOME=str(self.hermes_home), PYTHONPATH=str(REPO_ROOT),
+               if not k.startswith(("A2ASSISTANT_", "TMUX", "OPENAI_", "OPENROUTER_", "ANTHROPIC_"))}
+        env.update(HOME=str(self.home), A2ASSISTANT_HOME=str(self.hermes_home), PYTHONPATH=str(REPO_ROOT),
                    TMPDIR=str(root / "tmp"), LANG="C.UTF-8", LC_ALL="C.UTF-8", PYTHONUNBUFFERED="1",
-                   HERMES_STATE_DB_GUARD_BYPASS="1", HERMES_TUI_INLINE="1" if inline else "0",
-                   HERMES_TUI_DIR=str(tui_dir or private_tui_dir(root)))
+                   A2ASSISTANT_STATE_DB_GUARD_BYPASS="1", A2ASSISTANT_TUI_INLINE="1" if inline else "0",
+                   A2ASSISTANT_TUI_DIR=str(tui_dir or private_tui_dir(root)))
         env.update(env_extra or {})
-        self._gateway_home = env["HERMES_HOME"]  # env_extra may point several TUIs at one home
+        self._gateway_home = env["A2ASSISTANT_HOME"]  # env_extra may point several TUIs at one home
         argv = [sys.executable, "-m", "hermes_cli.main", "--tui", *args]
         subprocess.run(["tmux", "-S", self.sock, "-f", str(conf), "new-session", "-d", "-s", "p",
                         "-x", str(cols), "-y", str(rows), "-c", str(root / "work"), *argv],
@@ -397,7 +397,7 @@ class TmuxTui:
             raise AssertionError(f"{exc}\n{self.dump()}") from None
         state = self.pane_state()
         assert state.startswith("0 "), (
-            f"hermes --tui exited during startup (pane_dead pid status={state!r}, "
+            f"a2assistant --tui exited during startup (pane_dead pid status={state!r}, "
             f"tmux server {'up' if state else 'gone'})\n{self.dump()}")
 
     def wait_ready(self, timeout: float = 120.0) -> None:
@@ -410,7 +410,7 @@ class TmuxTui:
                  what="the startup session (status bar 'ready')")
         except AssertionError as exc:
             raise AssertionError(f"{exc} (status {self.status()!r})\n{self.dump()}") from None
-        assert self.alive(), f"hermes --tui exited during startup\n{self.dump()}"
+        assert self.alive(), f"a2assistant --tui exited during startup\n{self.dump()}"
         self.wait_quiet(1.5, timeout=timeout)
 
     # -- processes -------------------------------------------------------------------------------

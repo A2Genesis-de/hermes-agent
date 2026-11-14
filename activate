@@ -9,7 +9,7 @@
 # Applies the composed pm env (PATH + tool vars) to the CURRENT shell, with
 # save/restore: `deactivate` undoes exactly what activation changed.
 #
-# `hermes` becomes a shell function for this checkout. It runs only while the
+# `a2assistant` becomes a shell function for this checkout. It runs only while the
 # shell is inside this worktree and refuses outside it, so a sibling worktree
 # keeps its own command. A prompt prefix names the worktree.
 #
@@ -18,8 +18,8 @@
 #
 # Sync through setup before selecting the environment. PM owns freshness;
 # activation does not maintain a second dependency stamp. It trusts the
-# recorded tool digest instead of re-hashing every entry. `hermes pm
-# install` and `hermes update` keep that check.
+# recorded tool digest instead of re-hashing every entry. `a2assistant pm
+# install` and `a2assistant update` keep that check.
 # ============================================================================
 _HERMES_REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # Options: `--test-extras a,b` selects the test environment's runtime extras
@@ -84,7 +84,7 @@ for _hermes_k in $_hermes_keys; do
 done
 hermes_apply_env "$_hermes_script"
 
-# This checkout, not whichever `hermes` PATH finds. A function beats PATH, an
+# This checkout, not whichever `a2assistant` PATH finds. A function beats PATH, an
 # alias, and a hashed command, including the MSIX execution alias.
 __HERMES_WORKTREE="$_HERMES_REPO"
 # The branch names the worktree. A checkout cannot share a branch with another.
@@ -100,9 +100,9 @@ _hermes_worktree_here() {
     [ "$(cd "$_hermes_top" && pwd -P)" = "$(cd "$__HERMES_WORKTREE" && pwd -P)" ]
 }
 
-hermes() {
+a2assistant() {
     _hermes_worktree_here || {
-        printf '%s\n' "hermes: $(pwd) is outside $__HERMES_WORKTREE; refusing (the installed command is hidden while this checkout is active)" >&2
+        printf '%s\n' "a2assistant: $(pwd) is outside $__HERMES_WORKTREE; refusing (the installed command is hidden while this checkout is active)" >&2
         return 1
     }
     (
@@ -122,6 +122,8 @@ hermes() {
         fi
     )
 }
+
+hermes() { a2assistant "$@"; }
 
 _hermes_prompt() {
     if [ "$__HERMES_SAVED_PS1" = "__HERMES_UNSET__" ]; then

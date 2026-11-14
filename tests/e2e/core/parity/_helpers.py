@@ -1,4 +1,4 @@
-"""Shared fixture HERMES_HOME + invariant checks for the entrypoint-parity suite.
+"""Shared fixture A2ASSISTANT_HOME + invariant checks for the entrypoint-parity suite.
 
 One fixture home carries every feature that has historically been wired into
 some entrypoints and forgotten in others (issue class C19): a shell hook and a
@@ -88,9 +88,9 @@ class ParityHome:
         real_root = Path(pwd.getpwuid(os.getuid()).pw_dir, ".hermes").resolve()
         fixture = self.hermes_home.resolve()
         assert fixture != real_root and fixture.parent != real_root / "profiles", (
-            f"fixture HERMES_HOME {self.hermes_home} is the real install's live home")
+            f"fixture A2ASSISTANT_HOME {self.hermes_home} is the real install's live home")
         assert fixture == (self.home / ".hermes").resolve(), (
-            f"fixture HERMES_HOME {self.hermes_home} is not <fixture HOME>/.hermes")
+            f"fixture A2ASSISTANT_HOME {self.hermes_home} is not <fixture HOME>/.hermes")
         # Allowlist, not denylist: the runner may itself be a Hermes process whose
         # TERMINAL_CWD / HERMES_* / credential env would silently reroute the child.
         env = {
@@ -99,7 +99,7 @@ class ParityHome:
         }
         env.update({
             "HOME": str(self.home),
-            "HERMES_HOME": str(self.hermes_home),
+            "A2ASSISTANT_HOME": str(self.hermes_home),
             "PYTHONPATH": str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1",
             "NO_COLOR": "1",
@@ -110,7 +110,7 @@ class ParityHome:
             # the tmp HERMES_HOME's db; under a pytest ancestor the live-DB guard
             # (hermes_state_guard) would refuse it. This is the guard's documented
             # child-process escape hatch; the path is tmp_path by construction.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
         })
         env.update(extra or {})
         return env
@@ -460,9 +460,9 @@ def terminate(proc: subprocess.Popen, timeout: float = 30.0) -> int | None:
 
 
 def stop_profile_gateway(ph: ParityHome, timeout: float = STOP_TIMEOUT) -> bool:
-    """The normal stop for the profile's ``gateway run`` daemon: ``hermes gateway stop``.
+    """The normal stop for the profile's ``gateway run`` daemon: ``a2assistant gateway stop``.
 
-    ``hermes -z``, ``hermes chat -q``, ``hermes acp`` and ``hermes cron run`` are clients of the
+    ``a2assistant -z``, ``a2assistant chat -q``, ``a2assistant acp`` and ``a2assistant cron run`` are clients of the
     unified gateway runtime: their first connect spawns the profile's daemon (``ensure_gateway_runtime``
     → ``spawn_unmanaged_gateway``), the daemon owns the agent — and with it the MCP server tree — and it
     keeps serving after the client exits (cron, messaging, the next client). So the surface's
@@ -474,7 +474,7 @@ def stop_profile_gateway(ph: ParityHome, timeout: float = STOP_TIMEOUT) -> bool:
         hermes_argv("gateway", "stop"), cwd=ph.project, env=ph.env(), capture_output=True, text=True,
         timeout=timeout, stdin=subprocess.DEVNULL, check=False
     )
-    assert proc.returncode == 0, f"hermes gateway stop exited {proc.returncode}: {proc.stderr[-2000:]}"
+    assert proc.returncode == 0, f"a2assistant gateway stop exited {proc.returncode}: {proc.stderr[-2000:]}"
     return "Stopped gateway" in proc.stdout
 
 

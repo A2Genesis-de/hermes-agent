@@ -19,9 +19,9 @@ def launched_under_work(tmp_path, monkeypatch) -> tuple[Path, Path]:
     root = tmp_path / ".hermes"
     root.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     work = profiles.create_profile("work", no_alias=True)
-    monkeypatch.setenv("HERMES_HOME", str(work))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(work))
     return root, work
 
 

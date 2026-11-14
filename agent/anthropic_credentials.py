@@ -3,7 +3,7 @@
 ``resolve_anthropic_token()`` order: ``ANTHROPIC_TOKEN`` / ``CLAUDE_CODE_OAUTH_TOKEN``,
 ``ANTHROPIC_API_KEY``, Hermes-owned OAuth grants in the ``auth.json`` credential
 pool, then ``~/.claude/.credentials.json`` / macOS Keychain as a borrowed fallback.
-``~/.hermes/.anthropic_oauth.json`` (Hermes PKCE) and
+``~/.a2assistant/.anthropic_oauth.json`` (Hermes PKCE) and
 the Claude Code file are *singletons*: ``credential_pool._seed_from_singletons()``
 re-reads them on every ``load_pool()``, so a failed write here is a failed refresh
 (``CredentialPersistError``), not a cache miss.
@@ -477,7 +477,7 @@ def _refresh_oauth_token(creds: dict[str, Any]) -> Optional[str]:
     path-keyed cross-process lock (else two profiles can spend one refresh token)."""
     try:
         from hermes_cli.auth import AUTH_LOCK_TIMEOUT_SECONDS, _auth_store_lock, env_float
-        refresh_timeout_seconds = env_float("HERMES_ANTHROPIC_REFRESH_TIMEOUT_SECONDS", 20)
+        refresh_timeout_seconds = env_float("A2ASSISTANT_ANTHROPIC_REFRESH_TIMEOUT_SECONDS", 20)
         lock_timeout_seconds = max(float(AUTH_LOCK_TIMEOUT_SECONDS), float(refresh_timeout_seconds) + 5.0)
         cred_path = claude_code_credentials_path()
         with _auth_store_lock(timeout_seconds=lock_timeout_seconds, target_path=cred_path):
@@ -496,7 +496,7 @@ def _refresh_oauth_token(creds: dict[str, Any]) -> Optional[str]:
             # Another process may have spent this token and lost the commit; its sidecar verdict is authoritative.
             if is_rotation_consumed_uncommitted(refresh_token, source_path=cred_path):
                 logger.debug("Refresh token was already consumed by an uncommitted rotation "
-                             "- refusing to replay it; run 'hermes auth add anthropic'")
+                             "- refusing to replay it; run 'a2assistant auth add anthropic'")
                 return None
             fingerprint = hashlib.sha256(refresh_token.encode("utf-8")).hexdigest()[:32]
             if fingerprint in _DEAD_REFRESH_TOKEN_FINGERPRINTS:
@@ -509,7 +509,7 @@ def _refresh_oauth_token(creds: dict[str, Any]) -> Optional[str]:
                     _DEAD_REFRESH_TOKEN_FINGERPRINTS.add(fingerprint)
                     logger.warning(
                         "Claude Code OAuth refresh token is terminally invalid (%s); A2Assistant cannot use this "
-                        "login. Run 'hermes auth add anthropic' to give A2Assistant its own login.", e)
+                        "login. Run 'a2assistant auth add anthropic' to give A2Assistant its own login.", e)
                 else:
                     logger.debug("Failed to refresh Claude Code token: %s", e)
                 return None
@@ -524,7 +524,7 @@ def _refresh_oauth_token(creds: dict[str, Any]) -> Optional[str]:
                 logger.error(
                     "Anthropic OAuth refresh rotated the single-use token but could not "
                     "commit it to %s (%s) — treating the refresh as failed; "
-                    "run 'hermes auth add anthropic' to give A2Assistant its own login",
+                    "run 'a2assistant auth add anthropic' to give A2Assistant its own login",
                     cred_path, e,
                 )
                 mark_rotation_consumed_uncommitted(
@@ -632,7 +632,7 @@ def _resolve_claude_code_token_from_credentials(creds: Optional[dict[str, Any]] 
     logger.debug("Claude Code credentials expired — attempting refresh")
     refreshed = _refresh_oauth_token(creds)
     if not refreshed:
-        logger.debug("Token refresh failed — run 'hermes auth add anthropic' to give A2Assistant its own login")
+        logger.debug("Token refresh failed — run 'a2assistant auth add anthropic' to give A2Assistant its own login")
     return refreshed or None
 
 
@@ -816,7 +816,7 @@ def run_hermes_oauth_login_pure() -> Optional[dict[str, Any]]:
 
 
 def read_hermes_oauth_credentials() -> Optional[dict[str, Any]]:
-    """Read Hermes-managed OAuth credentials from ~/.hermes/.anthropic_oauth.json."""
+    """Read Hermes-managed OAuth credentials from ~/.a2assistant/.anthropic_oauth.json."""
     data = _load_json_if_exists(_get_hermes_oauth_file(), "A2Assistant OAuth credentials")
     return data if data is not None and data.get("accessToken") else None
 
@@ -824,9 +824,9 @@ def read_hermes_oauth_credentials() -> Optional[dict[str, Any]]:
 def _write_hermes_oauth_credentials(
     access_token: str, refresh_token: Optional[str], expires_at_ms: Optional[int], *, target: Optional[Path] = None
 ) -> None:
-    """Commit refreshed hermes_pkce tokens to ~/.hermes/.anthropic_oauth.json (``CredentialPersistError`` on failure).
+    """Commit refreshed hermes_pkce tokens to ~/.a2assistant/.anthropic_oauth.json (``CredentialPersistError`` on failure).
     ``target`` lets a named profile commit a grant it BORROWED from the global root back to the ROOT singleton
-    instead of forking a copy under its own HERMES_HOME; without this write-through the next ``load_pool()``
+    instead of forking a copy under its own A2ASSISTANT_HOME; without this write-through the next ``load_pool()``
     re-seeds the stale (consumed) pair from the file over the rotated pool entry."""
     _commit_private_json(
         target if target is not None else _get_hermes_oauth_file(),

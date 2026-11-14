@@ -6,7 +6,7 @@
  * resolved connection, never from a renderer flag.
  *
  * No cookie decryption here or in the backend: the user's real browser, running on the Hermes-owned profile
- * snapshot, decrypts its own store, and `hermes browser export-signins --json` (a local child of the owning
+ * snapshot, decrypts its own store, and `a2assistant browser export-signins --json` (a local child of the owning
  * profile, which re-checks consent itself) reads it over CDP and writes the list to its stdout pipe. Values
  * go from that pipe straight into the partition's cookie jar; the renderer gets counts only. The identities
  * imported (url, name, domain, path; never values) are recorded under userData so consent-off removes
@@ -92,7 +92,7 @@ export function runSigninExport(
       return
     }
 
-    const env = { ...parentEnv, HERMES_HOME: home, ...backend.env }
+    const env = { ...parentEnv, A2ASSISTANT_HOME: home, ...backend.env }
     const child = spawn(windowsShellCommand(backend.command, Boolean(backend.shell)), backend.args, hiddenWindowsChildOptions({ cwd, env, shell: backend.shell, stdio: ['ignore', 'pipe', 'pipe'] }))
     const chunks: Buffer[] = []
     let size = 0

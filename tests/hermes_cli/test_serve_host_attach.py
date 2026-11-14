@@ -1,4 +1,4 @@
-"""A second `hermes serve` attaches to the host backend instead of binding a second port.
+"""A second `a2assistant serve` attaches to the host backend instead of binding a second port.
 
 Attach is a PROOF, not a guess: exit 0 means the recorded owner answered on its recorded port and
 serves what the caller asked for. Every other shape falls through to the bind or refuses loudly.
@@ -25,8 +25,8 @@ def _args(**over):
 
 @pytest.fixture
 def host_dir(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-    monkeypatch.delenv("HERMES_DESKTOP", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP", raising=False)
     monkeypatch.setattr("sys.argv", ["hermes", "serve"])
     return tmp_path
 
@@ -98,8 +98,8 @@ def test_inherited_desktop_flag_without_spawn_credential_still_attaches(host_dir
     Only the Desktop backend receives the per-spawn session credential.  A bare
     marker must therefore preserve the one-host-backend attach invariant.
     """
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
     _publish(hr.process_create_time(), port=owner.port)
 
     with pytest.raises(SystemExit) as exc:
@@ -110,8 +110,8 @@ def test_inherited_desktop_flag_without_spawn_credential_still_attaches(host_dir
 
 def test_desktop_owned_backend_keeps_its_separate_lifecycle(host_dir, owner, monkeypatch):
     """Desktop's credential-bearing backend does not attach to the host owner."""
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
+    monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
     _publish(hr.process_create_time(), port=owner.port)
 
     assert _attach_to_host_backend(_args(), headless_backend=True) is None
@@ -172,7 +172,7 @@ def test_an_explicit_endpoint_the_owner_cannot_serve_is_refused(host_dir, owner,
 
 
 def test_dashboard_is_never_routed_to_a_headless_backend(host_dir, owner, capsys):
-    """`hermes serve` and `hermes dashboard` publish the same host role; only one mounts the SPA,
+    """`a2assistant serve` and `a2assistant dashboard` publish the same host role; only one mounts the SPA,
     so attaching a dashboard user to a headless backend opens a URL with no UI behind it."""
     owner.serves_spa["value"] = False
     _publish(hr.process_create_time(), port=owner.port)

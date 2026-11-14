@@ -29,7 +29,7 @@ def clean_layers():
 
 @pytest.fixture
 def home(tmp_path, monkeypatch, clean_layers):
-    """A temp HERMES_HOME with no plugins and an empty bundled plugin dir."""
+    """A temp A2ASSISTANT_HOME with no plugins and an empty bundled plugin dir."""
     from hermes_cli import plugins as plugins_mod
 
     home = tmp_path / "home"
@@ -37,8 +37,8 @@ def home(tmp_path, monkeypatch, clean_layers):
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_LANGUAGE", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_LANGUAGE", raising=False)
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     i18n.reset_language_cache()
     return home
@@ -100,7 +100,7 @@ def test_overlay_is_profile_scoped_across_two_homes(tmp_path, monkeypatch, clean
     (home_a / "locales").mkdir(parents=True)
     home_b.mkdir()
     (home_a / "locales" / "de.yaml").write_text(yaml.safe_dump({"approval": {"denied": "Nur A"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home_a))
     i18n.reset_language_cache()
     bundled_de = i18n_layers.parse_locale_file(i18n._locales_dir() / "de.yaml")[_KEY]
 

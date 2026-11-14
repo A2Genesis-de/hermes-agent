@@ -4,7 +4,7 @@
  * returned to the bot relay, and per-route bot titles. Two registry sources can
  * both expose `default`, so a request answered by the wrong backend looks
  * healthy everywhere except in these values; desktop.log is what a
- * `hermes debug share` bundle carries off the user's machine.
+ * `a2assistant debug share` bundle carries off the user's machine.
  *
  * A line is written only when a key's value changes, so a steady state costs
  * nothing per relay tick. Renderer console lines below error level never

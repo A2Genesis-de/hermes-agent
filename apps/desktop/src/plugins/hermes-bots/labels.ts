@@ -50,7 +50,7 @@ export function displayName(bot: Partial<RosterRow>, meta?: BotMeta | null): str
     return backendTitle
   }
 
-  // Core-profile display name (profile.yaml, set via `hermes profile rename
+  // Core-profile display name (profile.yaml, set via `a2assistant profile rename
   // default <name>` or the dashboard) — the CLI-level equivalent of a Bot
   // Mode title. Rides the profiles.list row; presentation-only.
   if (typeof bot?.display_name === 'string' && bot.display_name.trim()) {

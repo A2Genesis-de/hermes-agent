@@ -1,4 +1,4 @@
-"""``hermes gateway restart`` without an installed service unit must actually restart.
+"""``a2assistant gateway restart`` without an installed service unit must actually restart.
 
 Linger is a systemd-unit concern. With no unit installed the detached ``run_gateway`` IS the
 restart, yet the linger check ran unconditionally and bailed with exit 0 on any Linux login
@@ -119,7 +119,7 @@ def test_detached_restart_all_never_runs_the_host_gateway_in_the_caller(monkeypa
 
     (tmp_path / "profiles" / "work").mkdir(parents=True)
     (tmp_path / "active_profile").write_text("work\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     hermes_constants._default_hermes_root_memo = None
     monkeypatch.setattr(gw, "_refuse_from_inside_gateway", lambda *a, **k: None)
     monkeypatch.setattr(gw, "_dispatch_all_via_service_manager_if_s6", lambda verb: False)

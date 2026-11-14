@@ -23,7 +23,7 @@ def two_homes(tmp_path, monkeypatch):
     (alpha / "config.yaml").write_text(
         "sessions:\n  search_slow_ms: 50\n", encoding="utf-8")
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     ss.set_multiplex_active(False)
     yield root, alpha
     ss.set_multiplex_active(False)
@@ -33,7 +33,7 @@ def test_served_profile_reads_its_own_sessions_settings(two_homes, monkeypatch):
     _root, alpha = two_homes
     from hermes_state_search import _search_slow_ms
     # The multiplexer bridged the LAUNCH (default) profile's sessions.* into env at import.
-    monkeypatch.setenv("HERMES_SEARCH_SLOW_MS", "1000")
+    monkeypatch.setenv("A2ASSISTANT_SEARCH_SLOW_MS", "1000")
     assert _search_slow_ms() == 1000.0  # unscoped = env bridge
     token = set_hermes_home_override(str(alpha))
     try:
@@ -45,11 +45,11 @@ def test_served_profile_reads_its_own_sessions_settings(two_homes, monkeypatch):
 def test_per_turn_sessions_bridge_skips_secondary_scope(two_homes, monkeypatch):
     _root, alpha = two_homes
     from gateway import run as gw_run
-    monkeypatch.delenv("HERMES_SEARCH_SLOW_MS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SEARCH_SLOW_MS", raising=False)
     ss.set_multiplex_active(True)
     with gw_run._profile_runtime_scope(alpha):
         gw_run._bridge_max_turns_from_config(alpha)
-    assert "HERMES_SEARCH_SLOW_MS" not in __import__("os").environ, "secondary scope must not write the process env"
+    assert "A2ASSISTANT_SEARCH_SLOW_MS" not in __import__("os").environ, "secondary scope must not write the process env"
 
 
 def test_resolve_proxy_url_reads_routed_profile_scope(two_homes, monkeypatch):

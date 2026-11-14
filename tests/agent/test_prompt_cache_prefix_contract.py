@@ -55,7 +55,7 @@ def _prefix_breaks(requests: list[dict[str, Any]]) -> list[tuple[int, str]]:
 @pytest.fixture
 def caching_route():
     """A custom OpenAI-wire relay declared ``prompt_caching: true`` -> envelope cache layout."""
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     skill = home / "skills" / "demo"
     skill.mkdir(parents=True)
     (skill / "SKILL.md").write_text(f"---\nname: demo\ndescription: Demo skill.\n---\n\n# Demo\n\n{SKILL_BODY}\n")

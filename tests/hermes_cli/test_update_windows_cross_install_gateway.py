@@ -1,4 +1,4 @@
-"""``hermes update`` on Windows pauses only its own install's gateways (#124659).
+"""``a2assistant update`` on Windows pauses only its own install's gateways (#124659).
 
 The host-wide gateway scan sees every install's gateway. Each process below carries the live
 environment a gateway of one install has; ownership is read from it by the same home scope the
@@ -26,14 +26,14 @@ def host_gateways(tmp_path):
     """``{name: pid}`` of one long-lived process per install on the host."""
     other = tmp_path / "other-user"
     installs = {
-        "own": {"HERMES_HOME": os.environ["HERMES_HOME"]},
-        "foreign": {"HERMES_HOME": str(other / ".hermes")},
+        "own": {"A2ASSISTANT_HOME": os.environ["A2ASSISTANT_HOME"]},
+        "foreign": {"A2ASSISTANT_HOME": str(other / ".hermes")},
         # Another install at its platform default home: no HERMES_HOME in its environment.
         "foreign_default": {"HOME": str(other), "USERPROFILE": str(other),
                             "LOCALAPPDATA": str(other / "AppData" / "Local")},
     }
     base = {k: v for k, v in os.environ.items()
-            if k not in ("HERMES_HOME", "HOME", "USERPROFILE", "LOCALAPPDATA")}
+            if k not in ("A2ASSISTANT_HOME", "HOME", "USERPROFILE", "LOCALAPPDATA")}
     procs = {
         name: subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"],
                                env={**base, **extra}, stdin=subprocess.DEVNULL)

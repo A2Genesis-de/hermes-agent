@@ -86,7 +86,7 @@ def _tui_save(db, fmt, out, *, host=False, profile=False):
             ComputeHost(stdout=wire, heartbeat_secs=0)._handle_control({"sid": sid, **frame})
         return json.loads(wire.getvalue())
 
-    launch = {"HERMES_HOME": str(out.parent / "launch")} if profile else {}
+    launch = {"A2ASSISTANT_HOME": str(out.parent / "launch")} if profile else {}
     with mock.patch.dict(server._sessions, {"tui-save": parent}), mock.patch.dict(os.environ, launch), \
             mock.patch.object(server, "_session_uses_compute_host", lambda s: host and s is parent), \
             mock.patch.object(server, "_send_compute_host_control", control):
@@ -99,7 +99,7 @@ def _tui_save(db, fmt, out, *, host=False, profile=False):
 
 @pytest.mark.parametrize("save", [_cli_save, _gateway_save], ids=["cli", "gateway"])
 def test_save_transcript_holds_display_history(tmp_path, monkeypatch, save):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     db = _compacted_store(tmp_path / "state.db")
     try:
         text = save(db, "md", tmp_path / "saved.md")
@@ -118,7 +118,7 @@ def test_save_json_restores_compacted_history_as_archived(tmp_path, monkeypatch,
 
     from hermes_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     db = _compacted_store(tmp_path / "state.db")
     # A model-only live row (a micro-compaction merge) is context, not display history: only the transfer
     # projection carries it, so the snapshot's ids pin that projection, not the display read.

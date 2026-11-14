@@ -25,7 +25,7 @@ def react_to_message_tool(emoji: str, message_row_id=None, messages_back=None) -
     """Attach (or with an empty ``emoji`` retract) the agent's reaction."""
     emoji = (emoji or "").strip()
     # Routing keys identify a channel; message rows belong to the live durable session.
-    session_key = get_session_env("HERMES_SESSION_ID", "") or get_session_env("HERMES_SESSION_KEY", "")
+    session_key = get_session_env("A2ASSISTANT_SESSION_ID", "") or get_session_env("A2ASSISTANT_SESSION_KEY", "")
     if not session_key:
         return tool_error("No active session — reactions need a persisted conversation.")
     db = _open_session_db()

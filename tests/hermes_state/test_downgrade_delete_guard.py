@@ -53,7 +53,7 @@ def test_an_older_release_delete_of_a_ledgered_session_is_refused_with_the_way_b
         _older_release_delete(path, 'ledgered')
     message = str(refused.value)
     assert 'newer A2Assistant' in message and 'Downgrading is unsupported' in message
-    assert 'hermes update' in message and 'pre-update snapshot' in message
+    assert 'a2assistant update' in message and 'pre-update snapshot' in message
     # The older release buckets by phrase; this must not read as damage, contention or a full disk.
     assert classify_persistence_error(refused.value) == 'unknown'
     _older_release_delete(path, 'plain')  # a session without runtime history still deletes

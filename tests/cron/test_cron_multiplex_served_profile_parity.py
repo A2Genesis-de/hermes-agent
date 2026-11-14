@@ -3,7 +3,7 @@
 A profile served by the default multiplexer runs its ticks inside the default profile's process:
 ``os.environ`` holds the DEFAULT profile's ``.env`` and the served profile's values exist only
 in its secret scope / home override. Every knob cron reads from ``.env`` and every child env it
-builds must resolve exactly as it would under a standalone ``hermes -p <name> gateway run``.
+builds must resolve exactly as it would under a standalone ``a2assistant -p <name> gateway run``.
 """
 
 from pathlib import Path
@@ -23,14 +23,14 @@ def two_homes(tmp_path, monkeypatch):
     for home in (root, alpha):
         (home / "cron").mkdir(parents=True)
     (root / ".env").write_text(
-        "HERMES_CRON_TIMEOUT=111\nHERMES_MODEL=default-model\nTERMINAL_ENV=docker\n"
-        "TERMINAL_DOCKER_IMAGE=default-only-image\nHERMES_LANGUAGE=en\n")
-    (alpha / ".env").write_text("HERMES_CRON_TIMEOUT=222\nHERMES_LANGUAGE=zh\n")
+        "A2ASSISTANT_CRON_TIMEOUT=111\nA2ASSISTANT_MODEL=default-model\nTERMINAL_ENV=docker\n"
+        "TERMINAL_DOCKER_IMAGE=default-only-image\nA2ASSISTANT_LANGUAGE=en\n")
+    (alpha / ".env").write_text("A2ASSISTANT_CRON_TIMEOUT=222\nA2ASSISTANT_LANGUAGE=zh\n")
     # The launch (default) profile's .env is what the multiplexer process loaded into os.environ.
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    for key, val in (("HERMES_CRON_TIMEOUT", "111"), ("HERMES_MODEL", "default-model"),
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
+    for key, val in (("A2ASSISTANT_CRON_TIMEOUT", "111"), ("A2ASSISTANT_MODEL", "default-model"),
                      ("TERMINAL_ENV", "docker"), ("TERMINAL_DOCKER_IMAGE", "default-only-image"),
-                     ("HERMES_LANGUAGE", "en")):
+                     ("A2ASSISTANT_LANGUAGE", "en")):
         monkeypatch.setenv(key, val)
     set_multiplex_active(True)
     home_token = set_hermes_home_override(str(alpha))
@@ -42,7 +42,7 @@ def two_homes(tmp_path, monkeypatch):
 
 
 def test_cron_env_settings_resolve_from_the_served_profile(two_homes):
-    """``HERMES_CRON_TIMEOUT`` / ``HERMES_MODEL`` are alpha's (or absent) both with the fire-time
+    """``A2ASSISTANT_CRON_TIMEOUT`` / ``A2ASSISTANT_MODEL`` are alpha's (or absent) both with the fire-time
     secret scope installed and on the bare tick thread — never the default profile's environ."""
     import cron.scheduler as sched
     from cron.jobs import _oneshot_run_claim_ttl_seconds
@@ -88,9 +88,9 @@ def test_child_env_for_served_profile_drops_launch_profile_settings(two_homes):
         env = strip_launch_profile_env(build_subprocess_env(scrub_secrets=True, inherit_profile_home=True))
     finally:
         reset_secret_scope(token)
-    for key in ("HERMES_MODEL", "TERMINAL_ENV", "TERMINAL_DOCKER_IMAGE", "HERMES_LANGUAGE", "HERMES_CRON_TIMEOUT"):
+    for key in ("A2ASSISTANT_MODEL", "TERMINAL_ENV", "TERMINAL_DOCKER_IMAGE", "A2ASSISTANT_LANGUAGE", "A2ASSISTANT_CRON_TIMEOUT"):
         assert key not in env, key
-    assert env["HERMES_HOME"] == str(alpha)
+    assert env["A2ASSISTANT_HOME"] == str(alpha)
     assert "PATH" in env
 
     # No-op when the scope IS the launch profile (standalone / default profile's own children).
@@ -101,4 +101,4 @@ def test_child_env_for_served_profile_drops_launch_profile_settings(two_homes):
     finally:
         reset_hermes_home_override(home_token)
     assert env["TERMINAL_ENV"] == "docker"
-    assert env["HERMES_MODEL"] == "default-model"
+    assert env["A2ASSISTANT_MODEL"] == "default-model"

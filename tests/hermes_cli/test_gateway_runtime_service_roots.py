@@ -16,9 +16,9 @@ def test_requested_service_name_does_not_borrow_callers_home(tmp_path, monkeypat
     if named:
         requested = requested / 'profiles' / 'worker'
     requested.mkdir(parents=True)
-    monkeypatch.setenv('HERMES_HOME', str(requested))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(requested))
     installed = _profile_suffix()
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path / '.hermes'))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path / '.hermes'))
     assert service_suffix(requested) == installed
 
 
@@ -34,5 +34,5 @@ def test_malformed_installed_plist_has_a_bounded_refusal():
     from hermes_cli.gateway_runtime_service import _verify_binding, RuntimeStartError
     with pytest.raises(RuntimeStartError, match='service_identity_unverified'):
         _verify_binding(plistlib.loads, b'<?xml version="1.0"?><plist><dict>')
-    definition = {'Label': 'ai.hermes.gateway'}
+    definition = {'Label': 'de.a2genesis.a2assistant.gateway'}
     assert _verify_binding(plistlib.loads, plistlib.dumps(definition)) == definition

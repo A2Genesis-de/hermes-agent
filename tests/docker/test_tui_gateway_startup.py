@@ -57,7 +57,7 @@ def test_tui_bootstrap_starts_the_correct_supervised_owner(
             "print(json.dumps({'profile_id': grant['profile_id']}))"
         ),
         timeout=60,
-        extra_docker_args=("-e", f"HERMES_HOME={home}"),
+        extra_docker_args=("-e", f"A2ASSISTANT_HOME={home}"),
     )
     assert probe.returncode == 0, probe.stderr
     assert json.loads(probe.stdout)["profile_id"] == home

@@ -156,7 +156,7 @@ export const GROUP_SURFACE_FR = {
     attentionFallback: "Nécessite votre attention",
     attentionProviderAuth: "Reconnectez-vous pour ce profil",
     attentionQuota: "Quota ou solde épuisé",
-    attentionMissingConfig: "Fournisseur non configuré — exécutez hermes model",
+    attentionMissingConfig: "Fournisseur non configuré — exécutez a2assistant model",
     attentionBlocked: "Bot bloqué — consultez son dernier message",
     editMenu: "Modifier…",
     duplicate: "Dupliquer",

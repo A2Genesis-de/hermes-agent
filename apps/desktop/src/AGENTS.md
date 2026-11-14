@@ -7,7 +7,7 @@ Root TypeScript style rules apply.
 
 Electron + React + nanostores (`@assistant-ui/react`) talks JSON-RPC over the existing
 `@hermes/shared` client. Normal local primary and pooled launches invoke
-`hermes gateway ensure --json`, consume its credential-free endpoint, and authenticate
+`a2assistant gateway ensure --json`, consume its credential-free endpoint, and authenticate
 WebSockets with fresh private control tickets. The app never acquires the gateway PID as
 an owned child. Closing, switching or evicting a Desktop connection disconnects the viewer;
 only explicit gateway lifecycle commands stop the owner.
@@ -18,8 +18,8 @@ an unexpired one-use dial bound to the requesting window. No public dashboard to
 scraped or added to the public connection descriptor. SSH/URL intent retains its existing
 remote resolution and exposure lifecycle; a remote failure must never start a local owner.
 
-The gateway `gateway ensure` attaches to is **one multiplexing owner per home**: `HERMES_DESKTOP=1`
-is not how the app finds it, and no per-profile `hermes serve --port 0` child is spawned. One
+The gateway `gateway ensure` attaches to is **one multiplexing owner per home**: `A2ASSISTANT_DESKTOP=1`
+is not how the app finds it, and no per-profile `a2assistant serve --port 0` child is spawned. One
 gateway process serves sessions from several homes (`tui_gateway/AGENTS.md` § Profile scope); a
 served secondary answers through the multiplexer's control socket (`GatewayEndpoint.multiplex_home`).
 Remote connections (SSH, URL+token, Cloud) likewise reach a backend that may serve several profiles

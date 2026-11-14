@@ -295,7 +295,7 @@ def test_parallel_safe_opt_in_is_per_profile(two_profiles):
 
 
 def test_served_profile_without_multiplex_flag_gets_its_own_connection(two_profiles, monkeypatch):
-    """A dashboard/desktop backend serves profiles through the HERMES_HOME override with
+    """A dashboard/desktop backend serves profiles through the A2ASSISTANT_HOME override with
     ``gateway.multiplex_profiles`` off; a same-named server with other credentials must still be a
     separate connection there, or profile B calls the server as profile A (#111151). The launch
     profile itself (no override) keeps the bare, unscoped key."""
@@ -401,7 +401,7 @@ def test_launch_profile_pruning_a_server_keeps_served_profiles_same_named_connec
 
 def test_adopter_scope_setup_failure_leaks_no_override_and_continues(two_profiles, monkeypatch):
     """A corrupt/removed adopter home raising inside ``build_profile_secret_scope`` must
-    not leak that adopter's HERMES_HOME override into the caller's context, and the
+    not leak that adopter's A2ASSISTANT_HOME override into the caller's context, and the
     remaining adopters still get their re-registration pass."""
     import agent.secret_scope as ss
     import tools.mcp_tool as core

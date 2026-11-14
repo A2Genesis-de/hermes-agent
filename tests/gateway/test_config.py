@@ -30,7 +30,7 @@ from gateway.config import (
 def test_gateway_file_layers_preserve_unicode_and_fallback(tmp_path, monkeypatch, encoding):
     import json
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     legacy = tmp_path / "gateway.json"
     yaml_path = tmp_path / "config.yaml"
@@ -276,7 +276,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("WEBHOOK_SECRET", "whsec-expanded")
         monkeypatch.setenv("API_SERVER_KEY", "server-key-expanded")
         # A key NO env bridge reads: only the YAML-layer expansion can satisfy it, so this
@@ -304,7 +304,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("WEBHOOK_SECRET_UNSET_FOR_TEST", raising=False)
 
         config = load_gateway_config()
@@ -326,7 +326,7 @@ class TestLoadGatewayConfig:
             '    typing_status_text: "chasing yarn…"\n',
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -336,7 +336,7 @@ class TestLoadGatewayConfig:
 
     def test_multiplex_profiles_from_nested_gateway_section(self, tmp_path, monkeypatch):
         """``gateway.multiplex_profiles: true`` (the nested form written by
-        ``hermes config set gateway.multiplex_profiles true``) must enable
+        ``a2assistant config set gateway.multiplex_profiles true``) must enable
         multiplexing when loaded via load_gateway_config().
 
         Regression: load_gateway_config() only surfaced the *top-level*
@@ -354,7 +354,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -372,7 +372,7 @@ class TestLoadGatewayConfig:
             "    - worker\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -387,7 +387,7 @@ class TestLoadGatewayConfig:
             "gateway:\n  quick_commands:\n    limits:\n      type: exec\n      command: echo ok\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -404,7 +404,7 @@ class TestLoadGatewayConfig:
             "gateway:\n  stt:\n    enabled: false\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -440,7 +440,7 @@ class TestLoadGatewayConfig:
             "gateway:\n  api_server:\n    enabled: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -465,7 +465,7 @@ class TestLoadGatewayConfig:
             "    model_name: my-hermes\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -484,7 +484,7 @@ class TestLoadGatewayConfig:
             "  room_link_url: https://peer.example.test/hermes\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -510,7 +510,7 @@ class TestLoadGatewayConfig:
             "    enabled: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -529,7 +529,7 @@ class TestLoadGatewayConfig:
             "gateway:\n  group_sessions_per_user: false\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -544,7 +544,7 @@ class TestLoadGatewayConfig:
             "gateway:\n  reset_triggers:\n    - /new\n    - /clear\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -558,7 +558,7 @@ class TestLoadGatewayConfig:
             "gateway:\n  always_log_local: false\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -573,7 +573,7 @@ class TestLoadGatewayConfig:
             "gateway:\n  unauthorized_dm_behavior: ignore\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -596,7 +596,7 @@ class TestLoadGatewayConfig:
             "    token: '123:abc'\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("GATEWAY_RELAY_URL", "https://connector.example/relay")
 
         config = load_gateway_config()
@@ -625,7 +625,7 @@ class TestLoadGatewayConfig:
             "      bot_token: '123:abc'\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("GATEWAY_RELAY_URL", raising=False)
 
         config = load_gateway_config()
@@ -649,7 +649,7 @@ class TestLoadGatewayConfig:
             "      bot_token: '123:abc'\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("GATEWAY_RELAY_URL", "https://connector.example/relay")
         monkeypatch.setenv("GATEWAY_RELAY_ALLOW_DIRECT_PLATFORMS", "true")
 
@@ -682,7 +682,7 @@ class TestLoadGatewayConfig:
             "      bot_token: '123:abc'\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         # Managed-deploy stamp in the process env; the profile .env has none.
         monkeypatch.setenv("GATEWAY_RELAY_URL", "https://deploy.example/relay")
 
@@ -738,7 +738,7 @@ class TestLoadGatewayConfig:
             "      bot_token: '123:abc'\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("GATEWAY_RELAY_URL", "https://connector.example/relay")
 
         with caplog.at_level(_logging.INFO, logger="gateway.config"):
@@ -764,7 +764,7 @@ class TestLoadGatewayConfig:
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text(yaml_text, encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("GATEWAY_ALLOW_ALL_USERS", raising=False)
 
         runner = object.__new__(GatewayAuthorizationMixin)
@@ -785,7 +785,7 @@ class TestLoadGatewayConfig:
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text(yaml_text, encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         if env is None:
             monkeypatch.delenv("GATEWAY_ALLOW_ALL_USERS", raising=False)
         else:
@@ -808,7 +808,7 @@ class TestLoadGatewayConfig:
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("gateway:\n  allow_all_users: true\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("GATEWAY_ALLOW_ALL_USERS", raising=False)
         load_gateway_config()
         assert os.environ.get("GATEWAY_ALLOW_ALL_USERS") == "true"
@@ -832,7 +832,7 @@ class TestLoadGatewayConfig:
         secondary.mkdir(parents=True)
         (hermes_home / "config.yaml").write_text(
             "gateway:\n  allow_all_users: true\n  multiplex_profiles: true\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("GATEWAY_ALLOW_ALL_USERS", raising=False)
         runner = object.__new__(GatewayAuthorizationMixin)
         runner.config = load_gateway_config()
@@ -868,7 +868,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -900,7 +900,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -926,7 +926,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -947,7 +947,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -964,7 +964,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("TELEGRAM_PROXY", "socks5://from-env:1080")
 
         load_gateway_config()
@@ -993,7 +993,7 @@ class TestLoadGatewayConfig:
             encoding="utf-8",
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(default_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
         monkeypatch.setenv("API_SERVER_ENABLED", "true")
         monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "default-token")
 
@@ -1046,7 +1046,7 @@ class TestWebhookPortBridging:
             "    port: 8649\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("WEBHOOK_ENABLED", raising=False)
         monkeypatch.delenv("WEBHOOK_PORT", raising=False)
 
@@ -1069,7 +1069,7 @@ class TestWebhookPortBridging:
             "  extra:\n    port: 9999\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("WEBHOOK_PORT", raising=False)
         wh = load_gateway_config().platforms[Platform.WEBHOOK]
         assert (wh.extra.get("port"), wh.extra.get("host"), wh.extra.get("secret")) == (9999, "127.0.0.2", "fixture")
@@ -1090,7 +1090,7 @@ class TestHomeChannelEnvOverrides:
 
         for platform, platform_config, env, expected in cases:
             config = GatewayConfig(platforms={platform: platform_config})
-            with patch.dict(os.environ, {**env, "HERMES_HOME": os.environ["HERMES_HOME"]}, clear=True):
+            with patch.dict(os.environ, {**env, "A2ASSISTANT_HOME": os.environ["A2ASSISTANT_HOME"]}, clear=True):
                 _apply_env_overrides(config)
 
             home = config.platforms[platform].home_channel
@@ -1112,7 +1112,7 @@ class TestMultiplexProfilesEnvOverride:
         hermes_home.mkdir(exist_ok=True)
         if config_text is not None:
             (hermes_home / "config.yaml").write_text(config_text, encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         return load_gateway_config()
 
     # ── Tier 1: env wins ──────────────────────────────────────────────────
@@ -1155,7 +1155,7 @@ class TestMultiplexProfilesConfig:
 
 
     def test_multiplex_profiles_nested_under_gateway(self, tmp_path, monkeypatch):
-        """gateway.multiplex_profiles (the form written by `hermes config set
+        """gateway.multiplex_profiles (the form written by `a2assistant config set
         gateway.multiplex_profiles true`) must be honored. Regression test for
         the silent-fallback bug where the loader only forwarded the top-level
         key, so users who wrote it under gateway: got multiplex_profiles=False
@@ -1166,7 +1166,7 @@ class TestMultiplexProfilesConfig:
             "gateway:\n  multiplex_profiles: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -1191,7 +1191,7 @@ class TestMultiplexProfilesConfig:
             "gateway:\n  multiplex_profiles: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config = load_gateway_config()
 
@@ -1226,7 +1226,7 @@ class TestApiServerEnvOverride:
         )
 
         api_server_key = "secret-key-at-least-16"
-        with patch.dict(os.environ, {"API_SERVER_KEY": api_server_key, "HERMES_HOME": os.environ["HERMES_HOME"]}, clear=True):
+        with patch.dict(os.environ, {"API_SERVER_KEY": api_server_key, "A2ASSISTANT_HOME": os.environ["A2ASSISTANT_HOME"]}, clear=True):
             _apply_env_overrides(config)
 
         # Explicit disable wins over the env-var presence.
@@ -1246,7 +1246,7 @@ class TestWebhookEnvOverride:
             "    enabled: true\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("WEBHOOK_ENABLED", raising=False)
         monkeypatch.setenv("WEBHOOK_PORT", "9012")
         monkeypatch.setenv("WEBHOOK_SECRET", "webhook-env-secret")
@@ -1270,7 +1270,7 @@ class TestWebhookEnvOverride:
             "    secret: yaml-secret\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.delenv("WEBHOOK_ENABLED", raising=False)
         monkeypatch.delenv("WEBHOOK_PORT", raising=False)
         monkeypatch.setenv("WEBHOOK_SECRET", "")
@@ -1307,7 +1307,7 @@ class TestWebhookEnvOverride:
         with patch.dict(
             os.environ,
             {
-                "HERMES_HOME": os.environ["HERMES_HOME"],
+                "A2ASSISTANT_HOME": os.environ["A2ASSISTANT_HOME"],
                 "WEBHOOK_ENABLED": "true",
                 "WEBHOOK_PORT": "9999",
                 "WEBHOOK_SECRET": "shared-secret",
@@ -1330,7 +1330,7 @@ class TestOnAllAdaptersDown:
     """gateway.on_all_adapters_down: what the runner does when the last messaging
     adapter goes down (#118080). Default 'exit' preserves the service-restart
     contract; 'stay_alive' is for launchers with no supervising service manager
-    (the desktop app's direct `hermes serve` child)."""
+    (the desktop app's direct `a2assistant serve` child)."""
 
     def test_default_is_exit(self):
         config = GatewayConfig.from_dict({})
@@ -1388,7 +1388,7 @@ class TestTopLevelBlockVsAuthoredExtra:
         if global_value is not None:
             cfg["require_mention"] = global_value
         (home / "config.yaml").write_text(json.dumps(cfg), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         for key in list(os.environ):
             if key.startswith(platform.upper() + "_"):
                 monkeypatch.delenv(key)
@@ -1457,8 +1457,8 @@ class TestTopLevelBlockVsAuthoredExtra:
             managed_cfg = {"gateway": {"platforms": {platform: {"extra": pin}}}}
         (home / "config.yaml").write_text(json.dumps(user), encoding="utf-8")
         (managed / "config.yaml").write_text(json.dumps(managed_cfg), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
         for key in list(os.environ):
             if key.startswith(platform.upper() + "_"):
                 monkeypatch.delenv(key)

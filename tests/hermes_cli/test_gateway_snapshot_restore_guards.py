@@ -44,7 +44,7 @@ def _corrupt_manifest(sid):
     ("satellite-not-reserved", lambda sid: True, "manual", "is not served again yet: host operation is still pending"),
     ("invalid-id", lambda sid: False, "manual", "Snapshot not found: ../outside"),
     ("other-pid-paused", None, "manual", "Gateway refused the snapshot maintenance handoff"),
-    ("satellite-unserve-error", None, "manual", "nothing was restored. Park the profile with `hermes -p state"),
+    ("satellite-unserve-error", None, "manual", "nothing was restored. Park the profile with `a2assistant -p state"),
     # A profile the user parked is restored but stays parked: the restore does not serve it.
     ("satellite-pre-parked", lambda sid: True, "manual", "Restored state from"),
     ("corrupt-manifest", _corrupt_manifest, "manual", "was not fully restored"),
@@ -55,11 +55,11 @@ def test_restore_reply_follows_the_restore_not_the_rejoin(tmp_path, monkeypatch,
                                                           case, restore, supervisor, expected):
     home = (tmp_path / "state").resolve()
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     if case == "remote":
-        monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", "wss://remote.invalid/api/ws")
+        monkeypatch.setenv("A2ASSISTANT_TUI_GATEWAY_URL", "wss://remote.invalid/api/ws")
     else:
-        monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_TUI_GATEWAY_URL", raising=False)
     (home / "config.yaml").write_text("{}\n", encoding="utf-8")
     snapshot = create_quick_snapshot(hermes_home=home)
     old = _Connection()

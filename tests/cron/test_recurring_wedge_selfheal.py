@@ -4,7 +4,7 @@ The 2026-08-14 incident (t_20e23f84): 4 recurring no_agent interval jobs
 EAGAIN-failed at 12:50:05 and then recorded ZERO executions for ~1h47m while
 the scheduler ticked normally and fired 100+ other jobs — wedged in a
 non-dispatch state that even survived a gateway restart, cleared only by a
-manual force-run (`hermes cron run <id>`).
+manual force-run (`a2assistant cron run <id>`).
 
 Root cause class (t_3778a491, the SAME symptom on 2026-08-02): `_submit_with_guard`
 adds a job id to the in-memory `_running_job_ids` set BEFORE the future that
@@ -46,10 +46,10 @@ def cron_env(tmp_path, monkeypatch):
     (hermes_home / "cron").mkdir()
     (hermes_home / "cron" / "output").mkdir()
     (hermes_home / "scripts").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     import cron.jobs as jobs_mod
-    monkeypatch.setattr(jobs_mod, "HERMES_DIR", hermes_home)
+    monkeypatch.setattr(jobs_mod, "A2ASSISTANT_DIR", hermes_home)
     monkeypatch.setattr(jobs_mod, "CRON_DIR", hermes_home / "cron")
     monkeypatch.setattr(jobs_mod, "JOBS_FILE", hermes_home / "cron" / "jobs.json")
     monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", hermes_home / "cron" / "output")

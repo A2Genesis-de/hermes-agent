@@ -96,7 +96,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory(prefix="hermes-install-proof-", dir=prefix / "tmp") as tmp:
         home = Path(tmp)
         env = {
-            "PREFIX": str(prefix), "HOME": str(home), "HERMES_HOME": str(home / "state"),
+            "PREFIX": str(prefix), "HOME": str(home), "A2ASSISTANT_HOME": str(home / "state"),
             "PATH": str(prefix / "bin"), "TERM": "xterm-256color", "LANG": "C.UTF-8",
             "LD_LIBRARY_PATH": ":".join((
                 str(root / "tools/python" / prefix.relative_to("/") / "lib"),
@@ -104,7 +104,7 @@ def main() -> None:
                 str(root / "tools/ffmpeg" / prefix.relative_to("/") / "lib"),
                 str(root / "runtime-libs/lib"), str(prefix / "lib"),
             )),
-            "HERMES_RUNTIME_DIR": str(root / "tools"),
+            "A2ASSISTANT_RUNTIME_DIR": str(root / "tools"),
             "PYTHONPATH": str(root / "app"),
             "PYTHONPYCACHEPREFIX": str(home / "pycache"),
         }

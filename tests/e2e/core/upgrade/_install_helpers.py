@@ -46,9 +46,9 @@ def git(*args: str, cwd: Path, check: bool = True, env: dict | None = None) -> s
 
 
 def head_sha() -> str:
-    """The commit the sandbox installs: HEAD, or HERMES_E2E_INSTALL_REF (a patched commit object,
+    """The commit the sandbox installs: HEAD, or A2ASSISTANT_E2E_INSTALL_REF (a patched commit object,
     used to prove a scenario red against a sabotaged install without moving the branch)."""
-    return git("rev-parse", os.environ.get("HERMES_E2E_INSTALL_REF") or "HEAD", cwd=H.WORKTREE)
+    return git("rev-parse", os.environ.get("A2ASSISTANT_E2E_INSTALL_REF") or "HEAD", cwd=H.WORKTREE)
 
 
 # Release tags only: ``v<calver>`` (to v2026.9.24) and ``v0.<minor>.<patch>`` (from v0.21.6). Canary
@@ -100,14 +100,14 @@ def upgrade_base(generation: str | None = None) -> UpgradeBase | None:
     """The start version of the upgrade suites; None when no release is reachable (a tagless checkout).
 
     ``generation`` is for a scenario that only exists for one updater (``by-path``, ``handoff``,
-    ``pre-handoff``): the newest release that ships it. Otherwise ``HERMES_E2E_UPGRADE_BASE`` picks
+    ``pre-handoff``): the newest release that ships it. Otherwise ``A2ASSISTANT_E2E_UPGRADE_BASE`` picks
     it: a tag, a commit, or a generation name. Unset, it is N-1, the newest release before HEAD.
-    ``HERMES_E2E_N1_REF`` is an older name for the same variable.
+    ``A2ASSISTANT_E2E_N1_REF`` is an older name for the same variable.
 
     No release on CI raises instead: the e2e-upgrade job checks out full history and tags, so an
     empty answer there is a broken checkout, and returning None would skip every suite green.
     """
-    override = os.environ.get("HERMES_E2E_UPGRADE_BASE") or os.environ.get("HERMES_E2E_N1_REF") or ""
+    override = os.environ.get("A2ASSISTANT_E2E_UPGRADE_BASE") or os.environ.get("A2ASSISTANT_E2E_N1_REF") or ""
     chosen = generation or override
     generations = {name for name, _ in UPDATER_GENERATIONS}
     if chosen and chosen not in generations:
@@ -178,7 +178,7 @@ class Sandbox:
 
     @property
     def hermes_home(self) -> Path:
-        return Path(self.env["HERMES_HOME"])
+        return Path(self.env["A2ASSISTANT_HOME"])
 
     @property
     def checkout(self) -> Path:
@@ -211,7 +211,7 @@ class Sandbox:
 
 
 def new_sandbox(root: Path, origin: Path | None = None, *, pythonpath: Path | None = None) -> Sandbox:
-    """Empty fake HOME: no ``~/.hermes`` at all, only what a fresh machine with uv/git/node has."""
+    """Empty fake HOME: no ``~/.a2assistant`` at all, only what a fresh machine with uv/git/node has."""
     root.mkdir(parents=True, exist_ok=True)
     wrap = root / "wrap"
     env = H.isolated_env(root, extra_path=[wrap], pythonpath=pythonpath)
@@ -256,11 +256,11 @@ def fresh_install_env(sb: Sandbox) -> dict[str, str]:
     install saves the choice, which carries every rerun (a rerun passes nothing, as users do)."""
     if sb.checkout.exists():
         return sb.env
-    return {**sb.env, "HERMES_INSTALL_CHANNEL": "main"}
+    return {**sb.env, "A2ASSISTANT_INSTALL_CHANNEL": "main"}
 
 
 def pin_main_channel(sb: Sandbox) -> None:
-    """Follow every commit on main, as `hermes update --set-channel main` records it.
+    """Follow every commit on main, as `a2assistant update --set-channel main` records it.
 
     An official-origin source checkout defaults to the stable channel (the latest published GitHub
     release). These sandboxes publish commits on main and no releases, and their subject is moving

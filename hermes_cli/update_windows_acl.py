@@ -1,4 +1,4 @@
-"""``hermes update``'s owed ``windows_home_acl`` step: after an elevated update, give the same
+"""``a2assistant update``'s owed ``windows_home_acl`` step: after an elevated update, give the same
 user back access to the home tree that run may have left Administrators-only (#139870, #134889 W8).
 Split from ``update_cmd_maint.py``."""
 import logging

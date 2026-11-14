@@ -1,4 +1,4 @@
-"""``hermes desktop --install-apparmor-profile`` outside Linux (#130177 review)."""
+"""``a2assistant desktop --install-apparmor-profile`` outside Linux (#130177 review)."""
 
 from __future__ import annotations
 

@@ -82,7 +82,7 @@ export const zhHantCapabilities = {
     unlockedHint: '鎖定後，代理程式將無法變更此技能。你仍可自行編輯。',
     archive: '封存',
     skillArchivedTitle: '技能已封存',
-    skillArchivedMessage: '可透過 hermes curator restore 還原。',
+    skillArchivedMessage: '可透過 a2assistant curator restore 還原。',
     officialCatalog: '可安裝',
     officialPill: '官方'
   },

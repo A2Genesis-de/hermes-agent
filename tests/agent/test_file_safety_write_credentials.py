@@ -1,4 +1,4 @@
-"""Secret stores under HERMES_HOME are write-denied; control files stay writable (#110464).
+"""Secret stores under A2ASSISTANT_HOME are write-denied; control files stay writable (#110464).
 
 ``get_read_block_error`` refuses every credential store. The write side is deliberately
 narrower — #45947 freed ``auth.json`` / ``config.yaml`` / ``webhook_subscriptions.json`` so
@@ -24,7 +24,7 @@ WRITABLE_CONTROL_FILES = ("auth.json", "config.yaml", "webhook_subscriptions.jso
 
 @pytest.fixture()
 def hermes_layout(tmp_path, monkeypatch):
-    """Profile HERMES_HOME plus a distinct global root, both patched."""
+    """Profile A2ASSISTANT_HOME plus a distinct global root, both patched."""
     root = tmp_path / "hermes_root"
     profile = root / "profiles" / "coder"
     profile.mkdir(parents=True)
@@ -59,7 +59,7 @@ def test_control_files_and_lookalikes_outside_home_stay_writable(hermes_layout, 
 
 
 class TestProfileHomeProcessHome:
-    """With the process HOME pinned to ``{HERMES_HOME}/home`` (TERMINAL_HOME_MODE=profile,
+    """With the process HOME pinned to ``{A2ASSISTANT_HOME}/home`` (TERMINAL_HOME_MODE=profile,
     containers, spawned workers) the write guards must still cover every home a write can
     land in: the OS user's real home, the profile home and ``~name`` accounts."""
 
@@ -67,7 +67,7 @@ class TestProfileHomeProcessHome:
     def profile_home_env(self, tmp_path, monkeypatch):
         profile = tmp_path / "profile"
         (profile / "home").mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(profile))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
         monkeypatch.setenv("HOME", str(profile / "home"))
         monkeypatch.setattr(fs, "_hermes_home_path", lambda: profile)
         monkeypatch.setattr(fs, "_hermes_root_path", lambda: profile.parent)

@@ -540,7 +540,7 @@ describe('the mention middleware', () => {
   })
 })
 
-describe('the local default when a real hermes profile exists', () => {
+describe('the local default when a real a2assistant profile exists', () => {
   const RAW = ['default', 'hermes', 'researcher'].map(name => ({
     connectionId: 'local',
     connectionKind: 'local',
@@ -575,7 +575,7 @@ describe('the local default when a real hermes profile exists', () => {
     const toDefault = (await handler({ text: 'please ask @default to review' })).text
     const toHermes = (await handler({ text: 'please ask @hermes to review' })).text
 
-    // message_agent maps 'hermes' to the real hermes profile, so the default must never be handed it.
+    // message_agent maps 'hermes' to the real a2assistant profile, so the default must never be handed it.
     expect(toDefault).toMatch(/@default = agent profile "default"/)
     expect(toDefault).not.toMatch(/message_agent target: "hermes"/)
     expect(toHermes).toMatch(/@hermes = agent profile "hermes"/)

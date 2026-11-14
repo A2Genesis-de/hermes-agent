@@ -393,7 +393,7 @@ test("a pool/profile hold reaches the screen when the primary shows none; the pr
   assert.equal(board.shown(), null)
 })
 
-// Review K132345 (#122206 fast exit): until the lock PR lands, `hermes update`
+// Review K132345 (#122206 fast exit): until the lock PR lands, `a2assistant update`
 // writes v1 markers, which read live on a bare alive (possibly recycled) pid for
 // 20 minutes. A failed receipt finished after the marker started ends the wait.
 describe('a live v1 marker and the latest failed receipt', () => {

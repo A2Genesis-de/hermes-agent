@@ -1,10 +1,10 @@
 """Shared harness for the classic-CLI tmux suites (``display.interface: cli``).
 
 A real ``python -m hermes_cli.main`` runs in a private tmux server (own ``-L`` socket) with a
-hermetic fake HOME / HERMES_HOME and a config that routes the model to a loopback
+hermetic fake HOME / A2ASSISTANT_HOME and a config that routes the model to a loopback
 ``FakeLLMServer``. The CLI is a thin client of the profile's gateway daemon, which it spawns on
 first connect; cleanup stops that daemon and then kills anything left whose environ carries this
-run's exact ``HERMES_HOME`` (never a pattern kill).
+run's exact ``A2ASSISTANT_HOME`` (never a pattern kill).
 
 Driver rule (the CLI reads an Enter processed within 50 ms of the last buffer change as a pasted
 newline): type with ``send-keys -l``, wait until the composer shows the text, pause, then send
@@ -49,12 +49,12 @@ def require_tmux() -> None:
     """Skip without tmux, except in the CI E2E lane, where a skip is green over zero coverage.
 
     The release/dispatch ``e2e`` job (``.github/workflows/tests.yml``) sets
-    ``HERMES_E2E_REQUIRE_TUI=1`` and GitHub sets ``CI``; under both, a missing tmux fails.
+    ``A2ASSISTANT_E2E_REQUIRE_TUI=1`` and GitHub sets ``CI``; under both, a missing tmux fails.
     """
     if shutil.which("tmux") is not None:
         return
-    if os.environ.get("CI") and os.environ.get("HERMES_E2E_REQUIRE_TUI") == "1":
-        pytest.fail("tmux missing in the CI e2e lane (HERMES_E2E_REQUIRE_TUI=1): install it in the e2e job")
+    if os.environ.get("CI") and os.environ.get("A2ASSISTANT_E2E_REQUIRE_TUI") == "1":
+        pytest.fail("tmux missing in the CI e2e lane (A2ASSISTANT_E2E_REQUIRE_TUI=1): install it in the e2e job")
     pytest.skip("needs tmux")
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
@@ -74,8 +74,8 @@ def new_needle(needles: list[str], before: str, after: str) -> str | None:
 
 
 def home_pids(hermes_home: Path) -> set[int]:
-    """PIDs (never this one) whose environ carries exactly ``HERMES_HOME=<hermes_home>``."""
-    needle = f"HERMES_HOME={hermes_home}".encode()
+    """PIDs (never this one) whose environ carries exactly ``A2ASSISTANT_HOME=<hermes_home>``."""
+    needle = f"A2ASSISTANT_HOME={hermes_home}".encode()
     found: set[int] = set()
     for entry in os.listdir("/proc"):
         if not entry.isdigit() or int(entry) == os.getpid():
@@ -170,14 +170,14 @@ class ClassicHome:
         return self
 
     def env(self) -> dict[str, str]:
-        """Allowlisted child env: no inherited HERMES_*, provider keys, display or TMUX variables."""
+        """Allowlisted child env: no inherited A2ASSISTANT_*, provider keys, display or TMUX variables."""
         keep = ("PATH", "LANG", "USER", "LOGNAME", "SHELL", "TMPDIR")
         env = {k: os.environ[k] for k in keep if k in os.environ}
         env.update({
             "LC_ALL": "C.UTF-8", "LANG": "C.UTF-8", "TERM": "xterm-256color", "TZ": "UTC",
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
+            "HOME": str(self.home), "A2ASSISTANT_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
             # The child's state.db IS this tmp home's db; the live-DB guard would refuse it under pytest.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1", "PYTHONFAULTHANDLER": "1", "NO_GCE_CHECK": "True",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1", "PYTHONFAULTHANDLER": "1", "NO_GCE_CHECK": "True",
         })
         env.update(self.extra_env)
         return env

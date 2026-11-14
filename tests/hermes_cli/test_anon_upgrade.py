@@ -1,4 +1,4 @@
-"""``hermes auth upgrade``: the plain device-code sign-in, then the free tier's apps move over.
+"""``a2assistant auth upgrade``: the plain device-code sign-in, then the free tier's apps move over.
 
 Driven through a fake portal covering the device-code endpoints plus the free tier's claim
 endpoint, so the wire contract (device code, token grant persisted over the guest singleton, one
@@ -98,9 +98,9 @@ class FakePortal:
 @pytest.fixture
 def portal(monkeypatch, tmp_path):
     fake = FakePortal()
-    monkeypatch.setenv("HERMES_PORTAL_BASE_URL", PORTAL)
-    monkeypatch.setenv("HERMES_ANON_API_SECRET", "test-secret")
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared-store"))
+    monkeypatch.setenv("A2ASSISTANT_PORTAL_BASE_URL", PORTAL)
+    monkeypatch.setenv("A2ASSISTANT_ANON_API_SECRET", "test-secret")
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(tmp_path / "shared-store"))
     for var in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "NOUS_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     from hermes_cli import auth_nous
@@ -263,4 +263,4 @@ class TestSignInCompletionSettlesTheModel:
         assert model_cfg["base_url"] == INFERENCE.rstrip("/")
         out = capsys.readouterr().out
         assert "Default model is now" not in out
-        assert "run `hermes model` to pick one" in out
+        assert "run `a2assistant model` to pick one" in out

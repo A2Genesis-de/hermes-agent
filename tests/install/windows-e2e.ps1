@@ -23,7 +23,7 @@
 #                            target sha, marker cleanup, result JSON (when
 #                            the script path wrote one), working hermes,
 #                            and the relaunched app window.
-#                 update     run `hermes update` from the installed command
+#                 update     run `a2assistant update` from the installed command
 #                            (the CLI route a GUI user might take).
 #                 installer  re-run the bootstrap installer over the
 #                            existing install (download Hermes-Setup.exe
@@ -35,7 +35,7 @@
 #   canonical repo URLs, via a driver-owned gitconfig selected with
 #   GIT_CONFIG_GLOBAL. (NOT GIT_CONFIG_COUNT/KEY_n/VALUE_n env config --
 #   install.ps1 sets those itself and silently clobbers them.) The
-#   installer's `git clone` and `hermes update`'s `git fetch origin`
+#   installer's `git clone` and `a2assistant update`'s `git fetch origin`
 #   transparently hit OUR bare repo. Its `main` serves OLD for the install
 #   phase; the update phase advances it to HEAD -- an update becomes
 #   available exactly the way it does for a real user. Installer and
@@ -107,12 +107,12 @@ param(
     # Repo checkout whose HEAD is the update target.
     [string]$RepoRoot = "",
 
-    [string]$WorkRoot = $(if ($env:HERMES_E2E_WORKROOT) { $env:HERMES_E2E_WORKROOT } else { Join-Path $env:TEMP "hermes-desktop-gui-e2e" }),
+    [string]$WorkRoot = $(if ($env:A2ASSISTANT_E2E_WORKROOT) { $env:A2ASSISTANT_E2E_WORKROOT } else { Join-Path $env:TEMP "hermes-desktop-gui-e2e" }),
 
     [string]$SetupExeUrl = "https://hermes-assets.nousresearch.com/Hermes-Setup.exe",
 
     # Driver dependencies come from the current checkout lockfile.
-    [string]$DriverNode = $env:HERMES_E2E_NODE
+    [string]$DriverNode = $env:A2ASSISTANT_E2E_NODE
 )
 
 $ErrorActionPreference = "Stop"
@@ -123,27 +123,27 @@ $env:PYTHONIOENCODING = "utf-8"
 [Console]::OutputEncoding = New-Object System.Text.UTF8Encoding $false
 $OutputEncoding = [Console]::OutputEncoding
 
-# One PM tool store per leg. setup-pm exports HERMES_RUNTIME_DIR (its own
-# store) and HERMES_PYTHON for this job's tooling. A user's machine has one
-# store, <HERMES_HOME>\tools, and the desktop smoke already launches the app
-# that way (smoke-env.mjs drops every HERMES_* override). When install.ps1
-# and `hermes update` saw the job's store while the smoke did not, a leg
+# One PM tool store per leg. setup-pm exports A2ASSISTANT_RUNTIME_DIR (its own
+# store) and A2ASSISTANT_PYTHON for this job's tooling. A user's machine has one
+# store, <A2ASSISTANT_HOME>\tools, and the desktop smoke already launches the app
+# that way (smoke-env.mjs drops every A2ASSISTANT_* override). When install.ps1
+# and `a2assistant update` saw the job's store while the smoke did not, a leg
 # settled onto two stores and the update rewrote its own running launcher
 # ("source launcher publication failed"). No product step (installer, app,
 # update, chat) sees the job's variables; the driver keeps setup-pm only
 # through $DriverPython. PATH keeps setup-pm's tools, as older installers
 # expect uv/ripgrep there.
-$DriverPython = if ($env:HERMES_PYTHON) { $env:HERMES_PYTHON } else { (Get-Command python.exe -ErrorAction Stop).Source }
-foreach ($jobOnly in @('HERMES_RUNTIME_DIR', 'HERMES_PYTHON', 'VIRTUAL_ENV')) {
+$DriverPython = if ($env:A2ASSISTANT_PYTHON) { $env:A2ASSISTANT_PYTHON } else { (Get-Command python.exe -ErrorAction Stop).Source }
+foreach ($jobOnly in @('A2ASSISTANT_RUNTIME_DIR', 'A2ASSISTANT_PYTHON', 'VIRTUAL_ENV')) {
     if (Test-Path -LiteralPath "env:$jobOnly") { Remove-Item -LiteralPath "env:$jobOnly" }
 }
 
 if (-not $RepoRoot) {
     $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..\..")).Path
 }
-# The workflow's HERMES_E2E_WORKROOT is "<workspace>\..\hermes-desktop-gui-e2e".
-# Everything below derives HERMES_HOME (and so the PM store) from it, and a
-# user's HERMES_HOME has no ".." segment. With one, Windows reports the store
+# The workflow's A2ASSISTANT_E2E_WORKROOT is "<workspace>\..\hermes-desktop-gui-e2e".
+# Everything below derives A2ASSISTANT_HOME (and so the PM store) from it, and a
+# user's A2ASSISTANT_HOME has no ".." segment. With one, Windows reports the store
 # Python's sys.executable normalized while PM names it with the "..", and
 # prepare_launch() relaunched into the same interpreter forever (#122513).
 $WorkRoot = [System.IO.Path]::GetFullPath($WorkRoot)
@@ -156,8 +156,8 @@ $ProofRoot   = Join-Path $WorkRoot "proof"
 $AhkDir      = Join-Path $WorkRoot "ahk"
 $AssetsDir   = Join-Path $PSScriptRoot "e2e-assets"
 if (-not $DriverNode) { $DriverNode = (Get-Command node.exe -ErrorAction Stop).Source }
-$env:HERMES_E2E_NODE = $DriverNode
-$env:HERMES_DESKTOP_USER_DATA_DIR = Join-Path $WorkRoot 'electron-user-data'
+$env:A2ASSISTANT_E2E_NODE = $DriverNode
+$env:A2ASSISTANT_DESKTOP_USER_DATA_DIR = Join-Path $WorkRoot 'electron-user-data'
 $script:ChatMock = $null
 $script:ChatFailure = $false
 . (Join-Path $AssetsDir 'desktop-smoke-windows.ps1')
@@ -179,7 +179,7 @@ function Invoke-DesktopCheckpoint([string]$ChatPhase, [string]$Commit, [string]$
     # The app must be able to detach its gateway, as from a user's launch (see Invoke-OutsideRunnerJob).
     $chatExit = Invoke-OutsideRunnerJob "desktop-$ChatPhase" $WorkRoot $DriverNode @(
         (Join-Path $AssetsDir 'source-desktop-smoke.mjs'),
-        '--root', $InstallDir, '--home', $HermesHome, '--user-data', $env:HERMES_DESKTOP_USER_DATA_DIR,
+        '--root', $InstallDir, '--home', $HermesHome, '--user-data', $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR,
         '--out', $ProofRoot, '--phase', $ChatPhase, '--expect-commit', $Commit, '--desktop', $script:ExpectedDesktop, '--method', $Method)
     if ($chatExit -ne 0) { throw "Mandatory desktop chat $ChatPhase failed (exit $chatExit)" }
     $script:ChatFailure = $false
@@ -257,7 +257,7 @@ function Set-GitRedirect {
     $env:GIT_CONFIG_GLOBAL = $gitCfg
     # serve.git publishes commits on main, not releases: HEAD's installer would otherwise
     # install the latest stable release its tags name. Older installers ignore the variable.
-    $env:HERMES_INSTALL_CHANNEL = 'main'
+    $env:A2ASSISTANT_INSTALL_CHANNEL = 'main'
 
     # check it worked
     $actualGitUrl = Invoke-Git @("-C", $RepoRoot, "remote", "get-url", "origin")
@@ -281,7 +281,7 @@ function Set-GitRedirect {
         # the shim below is on PATH, `git` reports the official origin for
         # `remote get-url origin` (so fork detection sees it); any check that must
         # see the file:// redirect instead has to bypass the shim via this path.
-        $env:HERMES_E2E_REAL_GIT = $realGit
+        $env:A2ASSISTANT_E2E_REAL_GIT = $realGit
 
     if ($script:FreshMachine) {
         # A fresh Windows box has no git. install.ps1's Get-PinnedGit returns
@@ -404,7 +404,7 @@ function Test-HermesRuns([string]$Label) {
     try {
         $hermesExe = Get-SourceHermes $InstallDir
     } catch {
-        # A pre-handoff release cannot complete inside `hermes update`: its
+        # A pre-handoff release cannot complete inside `a2assistant update`: its
         # update path reaches no retired-hook seam, so the update ends with the
         # tree at HEAD and no published launcher. The NEXT ordinary startup
         # completes it (hermes_bootstrap -> prepare_launch -> sync PM, publish
@@ -433,21 +433,21 @@ function Test-HermesRuns([string]$Label) {
     }
     & $DriverPython -B (Join-Path $AssetsDir 'source_driver.py') --root $InstallDir --launcher $hermesExe --desktop $script:ExpectedDesktop
     Assert-True ($LASTEXITCODE -eq 0) "$Label -- read-only install verification (no repair)"
-    $prevLazy = $env:HERMES_DISABLE_LAZY_INSTALLS
+    $prevLazy = $env:A2ASSISTANT_DISABLE_LAZY_INSTALLS
     $prevBytecode = $env:PYTHONDONTWRITEBYTECODE
     $prevEap = $ErrorActionPreference
     try {
-        $env:HERMES_DISABLE_LAZY_INSTALLS = '1'
+        $env:A2ASSISTANT_DISABLE_LAZY_INSTALLS = '1'
         $env:PYTHONDONTWRITEBYTECODE = '1'
         $ErrorActionPreference = 'Continue'
-        & $hermesExe --version 2>&1 | ForEach-Object { Write-Host "    hermes --version| $_" }
+        & $hermesExe --version 2>&1 | ForEach-Object { Write-Host "    a2assistant --version| $_" }
         $versionExit = $LASTEXITCODE
     } finally {
-        $env:HERMES_DISABLE_LAZY_INSTALLS = $prevLazy
+        $env:A2ASSISTANT_DISABLE_LAZY_INSTALLS = $prevLazy
         $env:PYTHONDONTWRITEBYTECODE = $prevBytecode
         $ErrorActionPreference = $prevEap
     }
-    Assert-True ($versionExit -eq 0) "$Label -- hermes --version exits 0"
+    Assert-True ($versionExit -eq 0) "$Label -- a2assistant --version exits 0"
 }
 
 # ----------------------------------------------------------------------------
@@ -542,15 +542,15 @@ function Invoke-HermesUpdate {
         $ErrorActionPreference = $prevEap
         Stop-HangWatchdog $watchdog
     }
-    Write-LogGroup "hermes update transcript" $log
+    Write-LogGroup "a2assistant update transcript" $log
     if (Test-Path -LiteralPath $hangLog) {
-        Write-LogGroup "hermes update hang evidence (process table, Python stacks)" $hangLog
-        throw "E2E ASSERTION FAILED: hermes update was still running after $UpdateDeadlineMinutes minutes (its output pipe never closed); the process table above shows which process held it"
+        Write-LogGroup "a2assistant update hang evidence (process table, Python stacks)" $hangLog
+        throw "E2E ASSERTION FAILED: a2assistant update was still running after $UpdateDeadlineMinutes minutes (its output pipe never closed); the process table above shows which process held it"
     }
-    Assert-True ($updateExit -eq 0) "hermes update exited $updateExit (expected 0)"
+    Assert-True ($updateExit -eq 0) "a2assistant update exited $updateExit (expected 0)"
 }
 
-# install.ps1 (with -IncludeDesktop) and `hermes update` normally finish in
+# install.ps1 (with -IncludeDesktop) and `a2assistant update` normally finish in
 # under 25 minutes. Past these deadlines the watchdog records every process
 # (pid, parent, start time, command line) plus a py-spy stack of each Python
 # process, then stops this leg's processes, so a hang fails with evidence --
@@ -584,7 +584,7 @@ function Start-HangWatchdog([int]$Minutes, [string]$EvidencePath) {
         })
         $lines = @("still running after $minutes minutes", '', "== descendants of the driver (pid $driverPid) ==")
         $lines += @($tree | ForEach-Object { & $row $_ })
-        $lines += @('', "== processes naming this leg's HERMES_HOME ==")
+        $lines += @('', "== processes naming this leg's A2ASSISTANT_HOME ==")
         $lines += @($leg | ForEach-Object { & $row $_ })
         $lines += @('', '== every process, oldest first ==')
         $lines += @($all | Sort-Object CreationDate | ForEach-Object { & $row $_ })
@@ -613,7 +613,7 @@ function Stop-HangWatchdog($Job) {
 function Invoke-ManualCardUpdate([string]$ReceiptPath, [string]$TargetSha) {
     Assert-True (Test-Path -LiteralPath $ReceiptPath) "manual update card produced a receipt"
     $manual = Get-Content -LiteralPath $ReceiptPath -Raw | ConvertFrom-Json
-    Assert-True ($manual.command -match '^hermes update(?:\s|$)') "manual update card instructed hermes update"
+    Assert-True ($manual.command -match '^a2assistant update(?:\s|$)') "manual update card instructed a2assistant update"
     Invoke-HermesUpdate
     Assert-True ((Get-InstalledHead) -eq $TargetSha) "manual update landed on target commit"
     Test-HermesRuns "post-manual-update"
@@ -672,7 +672,7 @@ function Clear-HistoricalInstallerChurn {
 }
 
 function Invoke-HermesDesktopAppUpdate([string]$TargetSha) {
-    # The hermes-desktop launch surface: `hermes desktop` runs its whole
+    # The hermes-desktop launch surface: `a2assistant desktop` runs its whole
     # real pipeline; the driver intercepts the product's final spawn
     # (argv/cwd/env captured by e2e-assets/launch-capture/sitecustomize.py)
     # and re-executes it under Playwright, which clicks Update now.
@@ -683,9 +683,9 @@ function Invoke-HermesDesktopAppUpdate([string]$TargetSha) {
 
     $capDir = Join-Path $AssetsDir "launch-capture"
     $prevPy = $env:PYTHONPATH
-    $prevCap = $env:HERMES_E2E_CAPTURE_LAUNCH
+    $prevCap = $env:A2ASSISTANT_E2E_CAPTURE_LAUNCH
     $env:PYTHONPATH = if ($prevPy) { "$capDir;$prevPy" } else { $capDir }
-    $env:HERMES_E2E_CAPTURE_LAUNCH = $spec
+    $env:A2ASSISTANT_E2E_CAPTURE_LAUNCH = $spec
     $prevEap = $ErrorActionPreference; $ErrorActionPreference = "Continue"
     Push-Location $InstallDir
     try {
@@ -703,10 +703,10 @@ function Invoke-HermesDesktopAppUpdate([string]$TargetSha) {
         Pop-Location
         $ErrorActionPreference = $prevEap
         $env:PYTHONPATH = $prevPy
-        $env:HERMES_E2E_CAPTURE_LAUNCH = $prevCap
+        $env:A2ASSISTANT_E2E_CAPTURE_LAUNCH = $prevCap
     }
-    Write-LogGroup "hermes desktop (launch capture) transcript" $log
-    Assert-True ($capExit -eq 0) "hermes desktop exited 0 during launch capture"
+    Write-LogGroup "a2assistant desktop (launch capture) transcript" $log
+    Assert-True ($capExit -eq 0) "a2assistant desktop exited 0 during launch capture"
     Assert-True (Test-Path -LiteralPath "$spec.captured") "a launch was actually captured (exit 0 without a launch must not pass)"
     Clear-HistoricalInstallerChurn
 
@@ -721,7 +721,7 @@ function Invoke-HermesDesktopAppUpdate([string]$TargetSha) {
         # runs the historical venv->PM takeover plus a full Desktop rebuild
         # (9m43s measured), like the 35 min open-app-update wait below.
         & $node (Join-Path $AssetsDir "launch-from-spec.mjs") --spec $spec `
-            --old-sha (Read-State).old --chat-out $chatOut --mock-url $env:HERMES_E2E_MOCK_URL `
+            --old-sha (Read-State).old --chat-out $chatOut --mock-url $env:A2ASSISTANT_E2E_MOCK_URL `
             --result (Join-Path $HermesHome ".hermes-update-result.json") `
             --expect-sha $TargetSha --repo-dir $InstallDir --timeout-ms 1800000 2>&1 |
             ForEach-Object { Write-Host "  pw| $_" }
@@ -736,7 +736,7 @@ function Invoke-HermesDesktopAppUpdate([string]$TargetSha) {
         Invoke-ManualCardUpdate $manualReceipt $TargetSha
         return
     }
-    Assert-True ($driveExit -eq 0) "app driven via captured hermes desktop spec; update completed"
+    Assert-True ($driveExit -eq 0) "app driven via captured a2assistant desktop spec; update completed"
 
     # The production updater relaunches Hermes. Close that verified window
     # normally so the test-owned checkpoint starts and owns its own backend.
@@ -1008,7 +1008,7 @@ function Invoke-PhaseInstallGui {
     # relative to the script dir).
     Copy-Item -Path (Join-Path $AssetsDir "install-and-launch.ahk"), (Join-Path $AssetsDir "install-button.png"), (Join-Path $AssetsDir "launch-button.png") -Destination $AhkDir -Force
 
-    $env:HERMES_HOME = $HermesHome
+    $env:A2ASSISTANT_HOME = $HermesHome
     New-Item -ItemType Directory -Path $HermesHome -Force | Out-Null
     # The installer launches the app, and a fresh desktop install opens the first-run
     # onboarding chat with a live model turn that can hold the window open past the
@@ -1025,17 +1025,17 @@ function Invoke-PhaseInstallGui {
 
         # Launch the real headed installer. Scope the paired script source to
         # this process only so later product launches cannot inherit it.
-        $previousSetupSource = $env:HERMES_SETUP_DEV_REPO_ROOT
-        $env:HERMES_SETUP_DEV_REPO_ROOT = $bootstrapRoot
+        $previousSetupSource = $env:A2ASSISTANT_SETUP_DEV_REPO_ROOT
+        $env:A2ASSISTANT_SETUP_DEV_REPO_ROOT = $bootstrapRoot
         try {
             $installer = Start-Process -FilePath $setupExe -PassThru
         }
         finally {
             if ($null -eq $previousSetupSource) {
-                Remove-Item Env:HERMES_SETUP_DEV_REPO_ROOT -ErrorAction SilentlyContinue
+                Remove-Item Env:A2ASSISTANT_SETUP_DEV_REPO_ROOT -ErrorAction SilentlyContinue
             }
             else {
-                $env:HERMES_SETUP_DEV_REPO_ROOT = $previousSetupSource
+                $env:A2ASSISTANT_SETUP_DEV_REPO_ROOT = $previousSetupSource
             }
         }
         Write-Host "  Hermes-Setup.exe launched (pid $($installer.Id))"
@@ -1105,10 +1105,10 @@ function Invoke-PhaseInstallGui {
     # default OpenRouter choice and override the mock on the checkpoint relaunch.
     # Reset only this driver-owned pre-checkpoint state; OLD -> HEAD keeps the
     # state created by the checkpoint itself.
-    if (Test-Path -LiteralPath $env:HERMES_DESKTOP_USER_DATA_DIR) {
-        Remove-Item -LiteralPath $env:HERMES_DESKTOP_USER_DATA_DIR -Recurse -Force
+    if (Test-Path -LiteralPath $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR) {
+        Remove-Item -LiteralPath $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR -Recurse -Force
     }
-    New-Item -ItemType Directory -Path $env:HERMES_DESKTOP_USER_DATA_DIR -Force | Out-Null
+    New-Item -ItemType Directory -Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR -Force | Out-Null
     $chatPhase = if ($Mode -eq 'install') { 'old' } else { 'new' }
     @{ phase=$chatPhase; launch='post-installer-launch'; handoffProof=$proof } | ConvertTo-Json |
         Set-Content (Join-Path $ProofRoot "desktop-chat-$chatPhase-launch.json")
@@ -1123,7 +1123,7 @@ function Invoke-GuiUpdateDesktopRoute([string]$TargetSha) {
     $proof = Join-Path $ProofRoot "update-gui"
     New-Item -ItemType Directory -Path $proof -Force | Out-Null
 
-    $env:HERMES_HOME = $HermesHome
+    $env:A2ASSISTANT_HOME = $HermesHome
 
     # The update becomes available the way it does for a real user: the
     # remote's main moves forward. (Install ran against main = OLD.)
@@ -1167,7 +1167,7 @@ function Invoke-GuiUpdateDesktopRoute([string]$TargetSha) {
         Assert-True ($driveExit -eq 0) "GUI driver clicked Update now and the app quit for hand-off"
 
         # The detached updater (spawned by the app, NOT by us) now runs
-        # `hermes update` + desktop rebuild + relaunch. Which updater depends
+        # `a2assistant update` + desktop rebuild + relaunch. Which updater depends
         # on the installed checkout, and BOTH are production paths:
         #   * checkouts shipping scripts/desktop-update.ps1 -> that script,
         #     which writes .hermes-update-result.json on every exit;
@@ -1346,14 +1346,14 @@ function Invoke-UserStateActions {
         # leg has a genuinely configured provider rather than a dummy key.
         $script:ChatMock = Start-DesktopJourneyMock $DriverNode $AssetsDir $WorkRoot $HermesHome $ProofRoot
     }
-    $prevLazy = $env:HERMES_DISABLE_LAZY_INSTALLS
+    $prevLazy = $env:A2ASSISTANT_DISABLE_LAZY_INSTALLS
     $prevEap = $ErrorActionPreference
     try {
-        $env:HERMES_DISABLE_LAZY_INSTALLS = '1'
+        $env:A2ASSISTANT_DISABLE_LAZY_INSTALLS = '1'
         $ErrorActionPreference = 'Continue'
 
         # Probe, do not assume (the harness rule for old refs).
-        $chatHelp = (& $hermes chat --help 2>&1 | Out-String)
+        $chatHelp = (& $a2assistant chat --help 2>&1 | Out-String)
         if (-not ($chatHelp -match '(^|\s)-q(\s|,|$)' -or $chatHelp -match '--quiet')) {
             throw 'the installed CLI has no one-shot chat flag; this leg cannot produce a session through the user path'
         }
@@ -1369,7 +1369,7 @@ function Invoke-UserStateActions {
         # a console screen buffer: piping the CLI's stdout into the log takes that away
         # and the turn dies with NoConsoleScreenBufferError. Run it under a real
         # pseudoconsole (pty-run.py) and keep the capture.
-        & $DriverPython -B (Join-Path $AssetsDir 'pty-run.py') --out $log --timeout 300 -- $hermes chat -q "Reply with the single word: ok" @oneshot
+        & $DriverPython -B (Join-Path $AssetsDir 'pty-run.py') --out $log --timeout 300 -- $a2assistant chat -q "Reply with the single word: ok" @oneshot
         $chatExit = $LASTEXITCODE
         Write-LogGroup 'first real chat turn' $log
         if ($chatExit -eq 124) {
@@ -1389,9 +1389,9 @@ function Invoke-UserStateActions {
         if (-not (Test-Path -LiteralPath (Join-Path $HermesHome 'auth.json'))) {
             # A starting tag may not have this subcommand yet: a harness
             # limitation, not a preservation failure.
-            & $hermes auth add --help *> $null
+            & $a2assistant auth add --help *> $null
             if ($LASTEXITCODE -ne 0) {
-                Write-Host '  SKIP hermes auth add does not exist on this ref; auth.json is not covered by this leg'
+                Write-Host '  SKIP a2assistant auth add does not exist on this ref; auth.json is not covered by this leg'
             }
             else {
             # The provider id and the flags are vintage surfaces, so probe them
@@ -1402,13 +1402,13 @@ function Invoke-UserStateActions {
             # first provider the installed CLI accepts.
             $authLog = Join-Path $WorkRoot 'logs\user-state-auth.log'
             $labelFlags = @()
-            if ((& $hermes auth add --help 2>&1 | Out-String) -match '--label') {
+            if ((& $a2assistant auth add --help 2>&1 | Out-String) -match '--label') {
                 $labelFlags = @('--label', 'e2e-preservation')
             }
             $added = $false
             foreach ($provider in @('openrouter', 'anthropic')) {
-                Add-Content -LiteralPath $authLog -Value "=== hermes auth add $provider ==="
-                & $hermes auth add $provider --type api-key `
+                Add-Content -LiteralPath $authLog -Value "=== a2assistant auth add $provider ==="
+                & $a2assistant auth add $provider --type api-key `
                     --api-key 'e2e-preservation-not-a-real-key' @labelFlags 2>&1 |
                     Out-File -Encoding UTF8 -Append $authLog
                 if (Test-Path -LiteralPath (Join-Path $HermesHome 'auth.json')) {
@@ -1417,7 +1417,7 @@ function Invoke-UserStateActions {
                 }
             }
             if (-not $added) {
-                throw "hermes auth add failed for openrouter and anthropic; see $authLog"
+                throw "a2assistant auth add failed for openrouter and anthropic; see $authLog"
             }
             Write-Host '  a pooled credential exists (auth.json)'
             }
@@ -1427,16 +1427,16 @@ function Invoke-UserStateActions {
             # Same vintage surface as auth add above: a starting tag may predate
             # the profile command entirely, and that is a harness limitation,
             # not a preservation failure.
-            & $hermes profile create --help *> $null
+            & $a2assistant profile create --help *> $null
             if ($LASTEXITCODE -ne 0) {
-                Write-Host '  SKIP hermes profile create does not exist on this ref; profiles/e2e-second is not covered by this leg'
+                Write-Host '  SKIP a2assistant profile create does not exist on this ref; profiles/e2e-second is not covered by this leg'
             }
             else {
-            & $hermes profile create e2e-second 2>&1 |
+            & $a2assistant profile create e2e-second 2>&1 |
                 Out-File -Encoding UTF8 (Join-Path $WorkRoot 'logs\user-state-profile.log')
-            if ($LASTEXITCODE -ne 0) { throw 'hermes profile create failed' }
+            if ($LASTEXITCODE -ne 0) { throw 'a2assistant profile create failed' }
             if (-not (Test-Path -LiteralPath (Join-Path $HermesHome 'profiles\e2e-second'))) {
-                throw 'hermes profile create produced no profile dir'
+                throw 'a2assistant profile create produced no profile dir'
             }
             # Factory templates migrate intentionally; preserve an authored profile instead.
             Add-Content -LiteralPath (Join-Path $HermesHome 'profiles\e2e-second\SOUL.md') `
@@ -1446,7 +1446,7 @@ function Invoke-UserStateActions {
         }
     }
     finally {
-        $env:HERMES_DISABLE_LAZY_INSTALLS = $prevLazy
+        $env:A2ASSISTANT_DISABLE_LAZY_INSTALLS = $prevLazy
         $ErrorActionPreference = $prevEap
     }
 }
@@ -1479,7 +1479,7 @@ function Invoke-UserStateVerify {
 }
 
 function Assert-RedirectIsTransportOnly {
-    # The redirect must stay at TRANSPORT level: `hermes update` resolves its
+    # The redirect must stay at TRANSPORT level: `a2assistant update` resolves its
     # channel from the release archive and validates the record against
     # `git config --get remote.origin.url`. If the configured URL ever looked
     # like the rehearsal source, channel resolution would fail and this leg
@@ -1488,7 +1488,7 @@ function Assert-RedirectIsTransportOnly {
                   'git@github.com:NousResearch/hermes-agent.git')
     $configured = (Invoke-Git @('-C', $InstallDir, 'config', '--get', 'remote.origin.url') | Out-String).Trim()
     Assert-True ($official -contains $configured) "origin stays configured as an official URL (got '$configured')"
-    $real = if ($env:HERMES_E2E_REAL_GIT) { $env:HERMES_E2E_REAL_GIT } else { 'git' }
+    $real = if ($env:A2ASSISTANT_E2E_REAL_GIT) { $env:A2ASSISTANT_E2E_REAL_GIT } else { 'git' }
     $observed = (& $real -C $InstallDir remote get-url origin 2>$null | Out-String).Trim()
     Assert-True ($observed -match 'serve\.git|^file://') "git transport is redirected to the staged repo (got '$observed')"
 }
@@ -1537,7 +1537,7 @@ function Invoke-PhaseInstall {
     # looks like a fork to the updater, whose "add the official repo as
     # upstream?" prompt would hang a headless run - the marker is the
     # product's own suppression mechanism.
-    $env:HERMES_HOME = $HermesHome
+    $env:A2ASSISTANT_HOME = $HermesHome
     New-Item -ItemType Directory -Path $HermesHome -Force | Out-Null
     switch ($InstallMethod) {
         "desktop-installer@latest" {
@@ -1569,7 +1569,7 @@ function Invoke-PhaseUpdate {
     $script:ExpectedDesktop = if ($InstallMethod -ne 'installer-script' -or $Route -in @(
         'installer-script+desktop', 'desktop-installer@latest', 'open-app-update', 'hermes-desktop-app-update'
     )) { 'present' } else { 'absent' }
-    $env:HERMES_HOME = $HermesHome
+    $env:A2ASSISTANT_HOME = $HermesHome
     # Match the POSIX driver's explicit opt-out when a detached updater bypasses
     # the PATH shim and sees our local transport as a fork.
     New-Item -ItemType File -Path (Join-Path $HermesHome ".skip_upstream_prompt") -Force | Out-Null
@@ -1695,7 +1695,7 @@ function Invoke-PhaseVerifyStamp {
     # (epoch seconds) instead of "completedAt", and a null pinnedCommit when git
     # is not on PATH. #125053 fixed the writer, but the installer .exe is not
     # rebuilt, so every Desktop-installer machine carries this receipt until the
-    # next `hermes update` rewrites it (hermes_cli/source_stamp.py). No reader
+    # next `a2assistant update` rewrites it (hermes_cli/source_stamp.py). No reader
     # depends on those two fields: Desktop's launch gate is runtime usability,
     # and the receipt's other readers check only that it exists. So the contract
     # for that shape is: exactly those two FAIL lines, an integer

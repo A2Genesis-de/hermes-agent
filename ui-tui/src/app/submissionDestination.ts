@@ -2,6 +2,8 @@ import { realpathSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { basename, dirname, join, resolve } from 'node:path'
 
+import { defaultHome } from '@hermes/shared/legacy-names'
+
 import { getUiState } from './uiStore.js'
 
 export interface SubmissionDestination {
@@ -30,11 +32,11 @@ function canonicalHome(path: string): string {
 
 export function captureDestination(): SubmissionDestination {
   const { sid, info } = getUiState()
-  const profileHome = canonicalHome(resolve(process.env.HERMES_HOME ?? join(homedir(), '.hermes')))
-  // An explicit HERMES_TUI_GATEWAY_URL may serve another home or machine: its receipts name the
-  // owner's profile_id (from the session snapshot), not this client's HERMES_HOME (C22). The local
+  const profileHome = canonicalHome(resolve(defaultHome(homedir())))
+  // An explicit A2ASSISTANT_TUI_GATEWAY_URL may serve another home or machine: its receipts name the
+  // owner's profile_id (from the session snapshot), not this client's A2ASSISTANT_HOME (C22). The local
   // home still keys the offline journal and image cache.
-  const owner = process.env.HERMES_TUI_GATEWAY_URL?.trim() ? (info as { profile_id?: unknown } | null)?.profile_id : undefined
+  const owner = process.env.A2ASSISTANT_TUI_GATEWAY_URL?.trim() ? (info as { profile_id?: unknown } | null)?.profile_id : undefined
 
   return Object.freeze({
     sid,

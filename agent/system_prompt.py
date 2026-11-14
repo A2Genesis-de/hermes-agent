@@ -77,9 +77,9 @@ _TUI_EMBEDDED_PANE_CLARIFIER = (
 
 
 def _tui_embedded_pane_clarifier(hint: str) -> str:
-    """Append the desktop embedded-terminal clarifier when ``HERMES_DESKTOP_TERMINAL``
+    """Append the desktop embedded-terminal clarifier when ``A2ASSISTANT_DESKTOP_TERMINAL``
     is set (only the desktop's TUI PTY, never the chat backend). Idempotent."""
-    if not hint or _TUI_EMBEDDED_PANE_CLARIFIER in hint or not is_truthy_value(os.getenv("HERMES_DESKTOP_TERMINAL")):
+    if not hint or _TUI_EMBEDDED_PANE_CLARIFIER in hint or not is_truthy_value(os.getenv("A2ASSISTANT_DESKTOP_TERMINAL")):
         return hint
     return hint + _TUI_EMBEDDED_PANE_CLARIFIER
 
@@ -107,7 +107,7 @@ def _ambient_plugin_profile_name() -> str:
 
 def _active_profile_name(agent: Any, ambient) -> str:
     """Profile name from the agent's OWN home, else *ambient()*; "default" on any
-    failure. Ambient resolution misreports on threads that lost the HERMES_HOME
+    failure. Ambient resolution misreports on threads that lost the A2ASSISTANT_HOME
     ContextVar, which is why the agent's home is preferred."""
     try:
         home = _agent_home(agent)
@@ -230,7 +230,7 @@ def _session_start_like(agent: Any, now: Any) -> Any:
 
 def _agent_home(agent: Any) -> Optional[Path]:
     """The agent's OWN profile home, or None to use ambient resolution.
-    A bound HERMES_HOME ContextVar override wins (the gateway multiplexes
+    A bound A2ASSISTANT_HOME ContextVar override wins (the gateway multiplexes
     profiles over one shared session DB and binds the home per turn); else the
     parent of ``_session_db.db_path`` — ground truth on threads that lost the
     ContextVar, where ambient resolution would leak the launch profile.
@@ -322,7 +322,7 @@ def _skills_prompt(agent: Any) -> str:
 
 def _auto_load_parts(agent: Any) -> list[str]:
     """``skills.auto_load`` blocks, resolved once per agent lifecycle (config, skill files and
-    HERMES_IGNORE_RULES are read on the first build only) so the prompt stays byte-stable
+    A2ASSISTANT_IGNORE_RULES are read on the first build only) so the prompt stays byte-stable
     across model switches, compression and static-prefix restoration.
 
     Same gate as ``_skills_prompt``: nothing without the skills toolset, and nothing for agents that skip
@@ -334,7 +334,7 @@ def _auto_load_parts(agent: Any) -> list[str]:
     if not getattr(agent, "_auto_load_skills_resolved", False):
         result: tuple[str, list[str], list[str]] = ("", [], [])
         try:
-            if not is_truthy_value(os.environ.get("HERMES_IGNORE_RULES")):
+            if not is_truthy_value(os.environ.get("A2ASSISTANT_IGNORE_RULES")):
                 from agent.skill_commands import build_auto_load_prompt
                 result = build_auto_load_prompt(task_id=getattr(agent, "session_id", None), home_override=_agent_home(agent))
             if result[2]:
@@ -377,8 +377,8 @@ def _ambient_file_safety_profile_name() -> str:
 
 
 def _active_profile_line(agent: Any) -> str:
-    """Name the running profile so the agent doesn't conflate ``~/.hermes/skills``
-    (default) with ``~/.hermes/profiles/<active>/skills``.  Resolved from the
+    """Name the running profile so the agent doesn't conflate ``~/.a2assistant/skills``
+    (default) with ``~/.a2assistant/profiles/<active>/skills``.  Resolved from the
     agent's OWN home first (a build thread that lost the ContextVar would
     otherwise print "default" for a bot profile)."""
     _agent_home_path = _agent_home(agent)
@@ -452,7 +452,7 @@ def _cron_delivery_hint(agent: Any) -> str:
     into the session ContextVar before the agent runs (same seam ``send_message`` routes by).
     """
     from gateway.session_context import get_session_env
-    deliver_key = get_session_env("HERMES_CRON_AUTO_DELIVER_PLATFORM", "").lower().strip()
+    deliver_key = get_session_env("A2ASSISTANT_CRON_AUTO_DELIVER_PLATFORM", "").lower().strip()
     if not deliver_key or deliver_key == "cron":
         return ""
     hint = _resolve_platform_hint(

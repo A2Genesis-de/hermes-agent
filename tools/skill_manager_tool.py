@@ -2,7 +2,7 @@
 """Skill Manager Tool — agent-managed skill creation & editing.
 
 Skills are the agent's procedural memory (narrow "how to do X"; MEMORY.md/USER.md are
-broad, declarative). New skills land in ~/.hermes/skills/ (or ``skills.create_dir``);
+broad, declarative). New skills land in ~/.a2assistant/skills/ (or ``skills.create_dir``);
 existing skills (bundled, hub, user) are modified in place. Layout:
 ``<skills>/[category/]<skill>/SKILL.md`` + optional ``references/ templates/ scripts/ assets/``.
 """
@@ -72,10 +72,10 @@ _SKILLS_DIR_AT_IMPORT = SKILLS_DIR
 
 def _skills_dir() -> Path:
     """Active profile's skills dir at call time (multi-profile runtimes rebind per session).
-    An explicitly patched module-level ``SKILLS_DIR`` (tests) wins over the live HERMES_HOME.
+    An explicitly patched module-level ``SKILLS_DIR`` (tests) wins over the live A2ASSISTANT_HOME.
 
     Long-lived multi-profile runtimes (Dashboard/TUI/Desktop backend, cron, kanban workers) import this
-    module once under the launch HERMES_HOME and later bind a different profile per session (#40677).
+    module once under the launch A2ASSISTANT_HOME and later bind a different profile per session (#40677).
     """
     configured = Path(SKILLS_DIR)
     return configured if configured != _SKILLS_DIR_AT_IMPORT else get_hermes_home() / "skills"
@@ -352,12 +352,12 @@ def _skill_not_found_error(name: str, suffix: str = "") -> str:
         other_profile, other_path = others[0]
         base += (
             f" A skill by that name exists in profile '{other_profile}' ({other_path}). To edit "
-            f"it, switch profiles (`hermes -p {other_profile}`) or edit the file directly "
+            f"it, switch profiles (`a2assistant -p {other_profile}`) or edit the file directly "
             f"(file tools / terminal).")
     elif others:
         names = ", ".join(f"'{p}'" for p, _ in others)
         base += (
-            f" Skills by that name exist in other profiles: {names}. Switch profiles (`hermes -p "
+            f" Skills by that name exist in other profiles: {names}. Switch profiles (`a2assistant -p "
             f"<name>`) to edit there, or edit the files directly (file tools / terminal).")
     else:
         base += " Use skills_list() to see available skills."

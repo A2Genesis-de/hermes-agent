@@ -20,7 +20,7 @@ import { buildAppEnv, createSandbox, launchDesktop } from './fixtures'
 import { allowErrorBanners, expect, test } from './test'
 
 const outPath = (file: string): string =>
-  process.env.HERMES_E2E_OUT ? path.join(process.env.HERMES_E2E_OUT, file) : test.info().outputPath(file)
+  process.env.A2ASSISTANT_E2E_OUT ? path.join(process.env.A2ASSISTANT_E2E_OUT, file) : test.info().outputPath(file)
 
 interface FakeSocket {
   send: (data: string) => void
@@ -150,10 +150,12 @@ test('a removed saved gateway stays removed after relaunch with a stale connecti
   const keeper = await startFakeGateway('keeper')
   const sandbox = createSandbox('gw-removal')
   const v1File = path.join(sandbox.userDataDir, 'connection.json')
+
   const staleV1 = JSON.stringify({
     mode: 'remote',
     remote: { url: old.url, authMode: 'token', token: { encoding: 'plain', value: 'old' } }
   })
+
   fs.writeFileSync(v1File, staleV1, { mode: 0o600 })
   fs.writeFileSync(
     path.join(sandbox.userDataDir, 'connections.json'),
@@ -179,7 +181,7 @@ test('a removed saved gateway stays removed after relaunch with a stale connecti
     { mode: 0o600 }
   )
 
-  const env = buildAppEnv(sandbox, { HERMES_DESKTOP_DEV_SERVER: '' })
+  const env = buildAppEnv(sandbox, { A2ASSISTANT_DESKTOP_DEV_SERVER: '' })
   const report: string[] = []
   const store = path.join(sandbox.hermesHome, 'gateway-connections.json')
   const ids = (registry: any) => registry.connections.map((c: any) => c.id).join(',')

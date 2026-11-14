@@ -480,7 +480,7 @@ _SKILL_REVIEW_PROMPT = (
     "new learning, PATCH that one first (re-load it with skill_view during this review — see "
     "Read-before-write below). It is the skill that was in play, so it's the right one to extend — "
     "whoever wrote it: hand-written, installed, bundled, and pinned skills are all yours to "
-    "improve. The one exception is a skill the user LOCKED (`hermes curator lock`): skill_manage "
+    "improve. The one exception is a skill the user LOCKED (`a2assistant curator lock`): skill_manage "
     "refuses it — do not retry and do not recreate it under another name; put the suggested "
     "change in your summary instead.\n"
     "  2. UPDATE AN EXISTING UMBRELLA (via skills_list + skill_view). If no loaded skill fits but "
@@ -762,7 +762,7 @@ def build_memory_write_metadata(
         "execution_context": execution_context or getattr(agent, "_memory_write_context", "foreground"),
         "session_id": agent.session_id or "",
         "parent_session_id": agent._parent_session_id or "",
-        "platform": agent.platform or os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+        "platform": agent.platform or os.environ.get("A2ASSISTANT_SESSION_SOURCE", "cli"),
         "tool_name": "memory",
         "task_id": task_id or None,
         "tool_call_id": tool_call_id or None,

@@ -208,7 +208,7 @@ def test_mcp_server_runs_on_the_managed_node_and_an_abi_mismatch_names_the_rebui
     assert not ran_js, f"the user's node ({USER_NODE_VERSION}) ran the MCP server instead of A2Assistant's: {ran_js}"
     assert managed.startswith(str(sb.home / ".hermes")), (
         f"the MCP server did not run on A2Assistant's managed node (ran on {managed!r}):\n" + I.describe(probe))
-    assert probe.returncode == 1, "`hermes mcp test` passed for a server that died at startup:\n" + I.describe(probe)
+    assert probe.returncode == 1, "`a2assistant mcp test` passed for a server that died at startup:\n" + I.describe(probe)
     # The failure reaches the user with the remedy: drop the npx entry, or rebuild with Hermes's own npm
     # under Hermes's own node (never "point the server at your node").
     assert "NODE_MODULE_VERSION 127" in out and f"rm -rf {sb.home / NPX_ENTRY}" in out, (

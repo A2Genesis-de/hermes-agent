@@ -40,9 +40,9 @@ def test_home_layout_joins_sibling_union(tmp_path, monkeypatch, layout):
     root = tmp_path / (".hermes" if layout == "default" else "data-root")
     active = root / "profiles/active" if layout == "profile" else root
     if layout == "default":
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     else:
-        monkeypatch.setenv("HERMES_HOME", str(active))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(active))
     active.mkdir(parents=True, exist_ok=True)
     sibling = root / "profiles/sibling"
     _write_enabled(sibling, ["dep-plug"])

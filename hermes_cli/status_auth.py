@@ -1,4 +1,4 @@
-"""Credential sections of `hermes status`, run through ``status._SECTIONS`` with its shared context.
+"""Credential sections of `a2assistant status`, run through ``status._SECTIONS`` with its shared context.
 Origin helpers (``_row``, ``_first_env_value``, ...) are resolved through the ``hermes_cli.status``
 module object so tests that monkeypatch that module keep working."""
 
@@ -54,8 +54,8 @@ _FILE_REFRESH_ROWS = (
 
 _OAUTH_BLOCKS = (
     # (row name, auth getter, login hint, detail rows)
-    ("OpenAI Codex", "get_codex_auth_status", "hermes model", _FILE_REFRESH_ROWS),
-    ("xAI OAuth", "get_xai_oauth_auth_status", "hermes auth add xai-oauth", _FILE_REFRESH_ROWS))
+    ("OpenAI Codex", "get_codex_auth_status", "a2assistant model", _FILE_REFRESH_ROWS),
+    ("xAI OAuth", "get_xai_oauth_auth_status", "a2assistant auth add xai-oauth", _FILE_REFRESH_ROWS))
 
 # Nous Tool Gateway per-feature state: first matching (predicate(feature, nous_auth), text(feature)).
 _FEATURE_STATES = (
@@ -116,7 +116,7 @@ def _render_auth_providers(ctx):
     nous_error = nous_status.get("error")
     _status._row("Nous Portal", logged_in,
          "logged in" if logged_in else "not logged in (Nous inference key configured)" if inference
-         else "not logged in (run: hermes portal)")
+         else "not logged in (run: a2assistant portal)")
     portal_url = nous_status.get("portal_base_url") or "(unknown)"
     inference_url = nous_status.get("inference_base_url") or (info.inference_base_url if info else None)
     for label, value, show in (

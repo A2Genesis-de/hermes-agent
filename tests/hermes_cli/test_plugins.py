@@ -61,9 +61,9 @@ def _make_plugin_dir(base: Path, name: str, *, register_body: str = "pass",
     given explicitly.
 
     Pass *home* explicitly whenever the target Hermes home for this
-    plugin isn't necessarily the current ``HERMES_HOME`` env var — e.g.
+    plugin isn't necessarily the current ``A2ASSISTANT_HOME`` env var — e.g.
     when writing fixtures for two profiles up front and only switching
-    ``HERMES_HOME``/``set_hermes_home_override()`` per-profile afterwards
+    ``A2ASSISTANT_HOME``/``set_hermes_home_override()`` per-profile afterwards
     (as multi-profile regression tests do). Relying on the *current* env
     var here is a bug: if the caller hasn't switched homes yet (or is
     using the context-local override instead of the env var, which this
@@ -91,7 +91,7 @@ def _make_plugin_dir(base: Path, name: str, *, register_body: str = "pass",
             hermes_home = Path(home)
         else:
             import os
-            hermes_home_str = os.environ.get("HERMES_HOME")
+            hermes_home_str = os.environ.get("A2ASSISTANT_HOME")
             if hermes_home_str:
                 hermes_home = Path(hermes_home_str)
             else:
@@ -170,7 +170,7 @@ class TestPluginDiscovery:
             json.dumps({
                 "$schema": PLUGIN_SCHEMA_V1,
                 "name": "portable.test",
-                "extensions": {"com.nousresearch.hermes": {"servers": {"worker": {
+                "extensions": {"de.a2genesis.a2assistant": {"servers": {"worker": {
                     "app": {"darwin": {"presence": "executable", "location": str(app)}},
                     "requires": {"app": True},
                     "liveness": {"kind": "static"},
@@ -203,7 +203,7 @@ class TestPluginDiscovery:
         empty_bundled = tmp_path / "bundled"
         empty_bundled.mkdir()
         monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
 
         manager = PluginManager()
@@ -252,7 +252,7 @@ class TestPluginDiscovery:
         empty_bundled = tmp_path / "bundled"
         empty_bundled.mkdir()
         monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
 
         manager = PluginManager()
@@ -285,7 +285,7 @@ class TestPluginDiscovery:
         empty_bundled = tmp_path / "bundled"
         empty_bundled.mkdir()
         monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
 
         manager = PluginManager()
@@ -318,8 +318,8 @@ class TestPluginDiscovery:
         )
         bundled = tmp_path / "bundled"
         bundled.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.setenv("HERMES_BUNDLED_PLUGINS", str(bundled))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_BUNDLED_PLUGINS", str(bundled))
 
         manager = PluginManager()
         manifests = manager._collect_directory_manifests()
@@ -361,7 +361,7 @@ class TestPluginDiscovery:
                 "lambda **kw: {'args': {**kw['args'], 'mw': True}})"
             ),
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -409,7 +409,7 @@ class TestPluginDiscovery:
         """
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "retry_plugin")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
 
@@ -423,7 +423,7 @@ class TestPluginDiscovery:
 
         # A later call (with discovery healthy again) must do the real scan.
         monkeypatch.undo()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes_test"))
         mgr.discover_and_load()
         assert mgr._discovered is True
         non_bundled = {
@@ -443,7 +443,7 @@ class TestPluginDiscovery:
         """
         hermes_home = tmp_path / "hermes_test"
         hermes_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         # Entry-point plugins load only when opted into plugins.enabled.
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["fn_plugin"]}})
@@ -561,7 +561,7 @@ class TestPluginLoading:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -623,7 +623,7 @@ class TestPluginLoading:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace_ep"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -673,7 +673,7 @@ class TestPluginLoading:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["fakeprovider"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -753,7 +753,7 @@ class TestPluginLoading:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace_dup"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(
             "plugins.memory._get_user_plugins_dir", lambda: plugins_dir
         )
@@ -828,7 +828,7 @@ class TestPluginLoading:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["mempalace_dotted"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -862,7 +862,7 @@ class TestPluginHooks:
                 'lambda **kw: {"action": "skip", "reason": "test"})'
             ),
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -887,7 +887,7 @@ class TestPluginHooks:
                 '"mc": kw.get("message_count"), "tc": kw.get("tool_count")})'
             ),
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -1206,7 +1206,7 @@ class TestForceReloadSymmetry:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"hook_callback_timeout": 0.12}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         import hermes_cli.config as config_mod
 
@@ -1610,18 +1610,18 @@ class TestForceReloadSymmetry:
         import agent.shell_hooks as shell_hooks_mod
 
         cfg = {"hooks": {"on_session_start": [{"command": "/bin/true"}]}}
-        monkeypatch.setenv("HERMES_ACCEPT_HOOKS", "1")
+        monkeypatch.setenv("A2ASSISTANT_ACCEPT_HOOKS", "1")
         monkeypatch.setattr("hermes_cli.config.load_config", lambda: cfg)
         monkeypatch.setattr(
             PluginManager, "_discover_and_load_inner", lambda self_inner: None,
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "profile-a"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "profile-a"))
         mgr_a = PluginManager()
         plugins_mod._plugin_manager = mgr_a
         shell_hooks_mod.register_from_config(cfg, accept_hooks=True)
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "profile-b"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "profile-b"))
         mgr_b = PluginManager()
         plugins_mod._plugin_manager = mgr_b
         shell_hooks_mod.register_from_config(cfg, accept_hooks=True)
@@ -1639,7 +1639,7 @@ class TestForceReloadSymmetry:
         # B's later adapter reconnect re-runs register_from_config(); its
         # idempotence key must still be intact, so this must be a no-op
         # rather than appending a second callback to B's live manager.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "profile-b"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "profile-b"))
         second = shell_hooks_mod.register_from_config(cfg, accept_hooks=True)
 
         assert second == []
@@ -2072,7 +2072,7 @@ class TestPluginContext:
             (hermes_home / "config.yaml").write_text(
                 yaml.safe_dump({"plugins": {"enabled": ["evil_override_plugin"]}})
             )
-            monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
             mgr = PluginManager()
             # PluginManager catches and logs the registration error, so the
@@ -2146,7 +2146,7 @@ class TestPluginContext:
             (hermes_home / "config.yaml").write_text(
                 yaml.safe_dump({"plugins": {"enabled": ["delayed_override_plugin"]}})
             )
-            monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
             mgr = PluginManager()
             mgr.discover_and_load()
@@ -2203,7 +2203,7 @@ class TestPluginToolVisibility:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["vis_plugin"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -2245,7 +2245,7 @@ class TestPluginManagerList:
         plugins_dir = tmp_path / "hermes_test" / "plugins"
         _make_plugin_dir(plugins_dir, "zulu")
         _make_plugin_dir(plugins_dir, "alpha")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -2264,7 +2264,7 @@ class TestPluginManagerList:
         already-loaded plugins, so when a later plugin registered a hook name
         an earlier plugin had already used, the shared name was attributed to
         the first plugin only and the later plugin reported 0 hooks in
-        `hermes plugins list`. Attribution now counts what each plugin's own
+        `a2assistant plugins list`. Attribution now counts what each plugin's own
         register() added (per-registration delta), so both get credit.
         """
         plugins_dir = tmp_path / "hermes_test" / "plugins"
@@ -2276,7 +2276,7 @@ class TestPluginManagerList:
             plugins_dir, "second_hooker",
             register_body='ctx.register_hook("post_tool_call", lambda **kw: None)',
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_test"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes_test"))
 
         mgr = PluginManager()
         mgr.discover_and_load()
@@ -2349,7 +2349,7 @@ class TestPluginCommands:
         (hermes_home / "config.yaml").write_text(
             yaml.safe_dump({"plugins": {"enabled": ["engine-plugin"]}})
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         import hermes_cli.plugins as plugins_mod
 
@@ -2363,11 +2363,11 @@ class TestPluginCommands:
 
         This is the production path used by the gateway multiplexer
         (``gateway/run.py``'s ``_profile_scope`` context manager) and by
-        subagent/embedded callers: it swaps ``HERMES_HOME`` via a
+        subagent/embedded callers: it swaps ``A2ASSISTANT_HOME`` via a
         context-local ContextVar, which — per
         ``hermes_constants.set_hermes_home_override`` — deliberately does
         NOT touch ``os.environ``. A regression test that only flips the
-        ``HERMES_HOME`` env var never exercises this path.
+        ``A2ASSISTANT_HOME`` env var never exercises this path.
         """
         from hermes_constants import set_hermes_home_override, reset_hermes_home_override
         import hermes_cli.plugins as plugins_mod
@@ -2385,7 +2385,7 @@ class TestPluginCommands:
                     "    from agent.context_engine import ContextEngine\n\n"
                     "    class HomeEngine(ContextEngine):\n"
                     "        def __init__(self):\n"
-                    "            self.home = os.environ.get('HERMES_HOME')\n\n"
+                    "            self.home = os.environ.get('A2ASSISTANT_HOME')\n\n"
                     "        @property\n"
                     "        def name(self):\n"
                     "            return 'home-engine'\n\n"
@@ -2581,7 +2581,7 @@ class TestPluginDispatchTool:
 
 
 class TestPluginContextProfileName:
-    """ctx.profile_name resolves from HERMES_HOME in every context."""
+    """ctx.profile_name resolves from A2ASSISTANT_HOME in every context."""
 
     def _ctx(self):
         mgr = PluginManager()
@@ -2589,19 +2589,19 @@ class TestPluginContextProfileName:
         return PluginContext(manifest, mgr)
 
     def test_default_profile(self, tmp_path, monkeypatch):
-        """HERMES_HOME at the root resolves to 'default'."""
+        """A2ASSISTANT_HOME at the root resolves to 'default'."""
         home = tmp_path / ".hermes"
         home.mkdir()
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         assert self._ctx().profile_name == "default"
 
     def test_named_profile(self, tmp_path, monkeypatch):
-        """HERMES_HOME under profiles/<name> resolves to that name."""
+        """A2ASSISTANT_HOME under profiles/<name> resolves to that name."""
         prof = tmp_path / ".hermes" / "profiles" / "coder"
         prof.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(prof))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(prof))
         assert self._ctx().profile_name == "coder"
 
 

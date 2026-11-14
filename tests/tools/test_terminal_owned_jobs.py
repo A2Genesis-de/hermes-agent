@@ -70,7 +70,7 @@ def _read(path):
 def _run_owners(tmp_path, roles):
     script = tmp_path / "disposable owner.py"
     script.write_text(_OWNER, encoding="utf-8")
-    env = dict(os.environ, HOME=str(tmp_path), HERMES_HOME=str(tmp_path / "home"),
+    env = dict(os.environ, HOME=str(tmp_path), A2ASSISTANT_HOME=str(tmp_path / "home"),
                PYTHONPATH=str(Path(__file__).resolve().parents[2]))
     env.pop("_HERMES_GATEWAY", None)
     log = (tmp_path / "owners.log").open("w", encoding="utf-8")

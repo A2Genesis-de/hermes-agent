@@ -537,7 +537,7 @@ def _bootstrap_session_db(home: str, done: threading.Event) -> None:
 
 
 def _get_session_db() -> Optional[Any]:
-    """Cached SessionDB per HERMES_HOME (profile switches pick the right DB); None on any failure.
+    """Cached SessionDB per A2ASSISTANT_HOME (profile switches pick the right DB); None on any failure.
 
     Never constructs SessionDB on an event-loop thread: a cache miss there kicks a one-shot background
     bootstrap and waits a bounded grace window (the kick call waits ``_DB_BOOTSTRAP_INIT_WAIT_S`` so a
@@ -1081,7 +1081,7 @@ def _decision(status, should_continue: bool, prompt: Optional[str], verdict: str
 
 
 _JUDGE_CONFIG_HINT = (
-    "~/.hermes/config.yaml:\n  auxiliary:\n    goal_judge:\n      provider: {provider}\n      model: {model}\n"
+    "~/.a2assistant/config.yaml:\n  auxiliary:\n    goal_judge:\n      provider: {provider}\n      model: {model}\n"
     "Then /goal resume to continue."
 )
 

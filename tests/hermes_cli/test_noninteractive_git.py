@@ -43,9 +43,9 @@ class TestNoninteractiveGitEnv:
         assert env["GCM_INTERACTIVE"] == "Never"
 
     def test_defaults_to_process_environ_copy(self, monkeypatch):
-        monkeypatch.setenv("HERMES_TEST_SENTINEL", "xyz")
+        monkeypatch.setenv("A2ASSISTANT_TEST_SENTINEL", "xyz")
         env = noninteractive_git_env()
-        assert env["HERMES_TEST_SENTINEL"] == "xyz"
+        assert env["A2ASSISTANT_TEST_SENTINEL"] == "xyz"
         assert env["GIT_TERMINAL_PROMPT"] == "0"
         # Never mutates the live process environment.
         assert "GCM_INTERACTIVE" not in os.environ or os.environ["GCM_INTERACTIVE"] == env["GCM_INTERACTIVE"]

@@ -2,7 +2,7 @@
 reconciliation that recreates per-profile gateway s6 service slots
 from the persistent profiles directory.
 
-These tests run against a fake $HERMES_HOME under tmp_path; no real
+These tests run against a fake $A2ASSISTANT_HOME under tmp_path; no real
 s6 supervision tree is required. The in-container integration test
 covering end-to-end "docker restart" survival lives in
 tests/docker/test_container_restart.py.
@@ -90,7 +90,7 @@ def _seed_default_root(
     with_pid: bool = False,
 ) -> None:
     """Populate gateway_state.json / stale runtime files at the
-    HERMES_HOME root (the implicit default profile)."""
+    A2ASSISTANT_HOME root (the implicit default profile)."""
     if state is not None:
         (hermes_home / "gateway_state.json").write_text(json.dumps({
             "gateway_state": state, "timestamp": 1234567890,
@@ -153,7 +153,7 @@ def test_the_retired_opt_out_cannot_boot_a_second_gateway_in_the_container(
     scandir.mkdir()
     _make_profile(tmp_path, "coder", state="running")
     (tmp_path / "config.yaml").write_text(f"multiplex_profiles: {config_value}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     if env_value is None:
         monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     else:
@@ -270,7 +270,7 @@ def test_main_skips_reconcile_in_dashboard_container_s6v3(
 
     scandir = tmp_path / "run-service"; scandir.mkdir()
     _make_profile(tmp_path, "worker", state="running")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setenv("S6_PROFILE_GATEWAY_SCANDIR", str(scandir))
     monkeypatch.setattr(
         container_boot,
@@ -304,7 +304,7 @@ def test_main_skips_reconcile_in_dashboard_container_s6v3(
 
 
 def test_a_named_slots_autostart_intent_boots_the_root_slot(tmp_path: Path) -> None:
-    """An image only ever driven as `hermes -p coder gateway start` has no root state at all.
+    """An image only ever driven as `a2assistant -p coder gateway start` has no root state at all.
     Named slots are now registered DOWN unconditionally (one gateway per container), so without
     the root slot inheriting their intent the container boots with ZERO gateways while every
     action reports "registered" — healthy-looking and completely dark."""

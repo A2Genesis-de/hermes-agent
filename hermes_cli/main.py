@@ -3,8 +3,8 @@
 
 Usage:
     hermes                     # Interactive chat (default)
-    hermes chat / gateway / setup / status / cron / doctor / update / ...
-    hermes --version           # Show version and update status
+    a2assistant chat / gateway / setup / status / cron / doctor / update / ...
+    a2assistant --version           # Show version and update status
     hermes <cmd> --help        # Per-command help
 """
 
@@ -45,6 +45,8 @@ _bootstrap_root = os.path.realpath(os.path.join(os.path.dirname(__file__), os.pa
 if _bootstrap_root not in sys.path:
     sys.path.insert(0, _bootstrap_root)
 from hermes_cli import _startup_fast
+from hermes_cli.branding import CLI_COMMAND
+from hermes_constants import unset_env
 import itertools
 
 # A literal ``~``/``$VAR`` in HERMES_HOME (fish, or any quoted value) must become absolute
@@ -132,7 +134,7 @@ def _set_process_title() -> None:
     try:
         import setproctitle  # type: ignore[import-untyped]
 
-        setproctitle.setproctitle("hermes")
+        setproctitle.setproctitle(CLI_COMMAND)
         return
     except ImportError:
         pass
@@ -144,10 +146,10 @@ def _set_process_title() -> None:
         system = platform.system()
         if system == "Linux":
             libc = ctypes.CDLL("libc.so.6", use_errno=True)
-            libc.prctl(15, b"hermes", 0, 0, 0)  # PR_SET_NAME = 15
+            libc.prctl(15, CLI_COMMAND.encode(), 0, 0, 0)
         elif system == "Darwin":
             libc = ctypes.CDLL("libc.dylib", use_errno=True)
-            libc.pthread_setname_np(b"hermes")
+            libc.pthread_setname_np(CLI_COMMAND.encode())
     except Exception:
         pass
 
@@ -164,10 +166,11 @@ _EARLY_INTERFACE_CACHE: tuple[str, str] | None = None
 
 def _early_interface_config_path() -> str:
     """config.yaml of the home this process is currently pointed at."""
-    home = os.environ.get("HERMES_HOME")
+    home = os.environ.get("A2ASSISTANT_HOME")
     if home:
         return os.path.join(home, "config.yaml")
-    return os.path.join(os.path.expanduser("~"), ".hermes", "config.yaml")
+    from hermes_constants import default_home_in
+    return os.path.join(default_home_in(Path.home()), "config.yaml")
 
 
 def _config_default_interface_early() -> str:
@@ -196,7 +199,7 @@ def _config_default_interface_early() -> str:
 def _wants_tui_early(argv: list[str] | None = None) -> bool:
     """Earliest TUI decision, usable before argparse/config imports.
 
-    Precedence: ``--cli`` wins, then ``--tui``/``HERMES_TUI=1``, then a
+    Precedence: ``--cli`` wins, then ``--tui``/``A2ASSISTANT_TUI=1``, then a
     real-TTY gate, then ``display.interface``. The TTY gate is load-bearing
     for headless spawners (kanban workers, cron, pipes running ``chat -q``):
     a ``display.interface: tui`` default used to boot the TUI here, whose
@@ -207,7 +210,7 @@ def _wants_tui_early(argv: list[str] | None = None) -> bool:
         argv = sys.argv[1:]
     if "--cli" in argv:
         return False
-    if os.environ.get("HERMES_TUI") == "1" or any(flag in argv for flag in ("--tui", "--native", "--tui-native")):
+    if os.environ.get("A2ASSISTANT_TUI") == "1" or any(flag in argv for flag in ("--tui", "--native", "--tui-native")):
         return True
     try:
         if not (sys.stdin.isatty() and sys.stdout.isatty()):
@@ -224,7 +227,7 @@ def _wants_tui_early(argv: list[str] | None = None) -> bool:
 # `resetTerminalModes()` is the later cousin. ``HERMES_TUI_NO_EARLY_DISABLE``
 # escapes the behaviour for diagnostics.
 def _suppress_mouse_residue_early() -> None:
-    if os.environ.get("HERMES_TUI_NO_EARLY_DISABLE") == "1":
+    if os.environ.get("A2ASSISTANT_TUI_NO_EARLY_DISABLE") == "1":
         return
     if not _wants_tui_early():
         return
@@ -349,7 +352,7 @@ _explicit_cli_profile: str | None = None
 
 
 def _inside_mcp_add_args(argv: list, index: int) -> bool:
-    """True once argv reaches `hermes mcp add ... --args <command argv>`.
+    """True once argv reaches `a2assistant mcp add ... --args <command argv>`.
 
     ``mcp add --args`` is command-argv passthrough. Flags after that point
     belong to the child MCP command (for example Docker MCP Toolkit's
@@ -364,10 +367,10 @@ def _inside_mcp_add_args(argv: list, index: int) -> bool:
 
 
 def _looks_like_hermes_invocation() -> bool:
-    """False when ``sys.argv`` belongs to a test runner rather than a ``hermes`` run.
+    """False when ``sys.argv`` belongs to a test runner rather than a ``a2assistant`` run.
 
     pytest's own ``-p no:xdist`` reaches ``_scan_profile_flag`` through ``sys.argv`` at import
-    time; it must stay a silent skip, while a real ``hermes -p 'Work Bot'`` must fail loudly.
+    time; it must stay a silent skip, while a real ``a2assistant -p 'Work Bot'`` must fail loudly.
     """
     return "pytest" not in (sys.argv[0] or "")
 
@@ -376,7 +379,7 @@ def _exit_invalid_profile_name(value: str) -> None:
     from hermes_cli.profiles import _invalid_profile_name_error
 
     print(f"Error: {_invalid_profile_name_error(value)}", file=sys.stderr)
-    print("Run `hermes profile list` to see your profiles.", file=sys.stderr)
+    print("Run `a2assistant profile list` to see your profiles.", file=sys.stderr)
     sys.exit(2)
 
 
@@ -389,15 +392,15 @@ def _looks_like_option_value(value: str) -> bool:
 def _scan_profile_flag(argv: list) -> tuple:
     """Find -p/--profile/--profile= in argv -> (name, tokens_consumed, index).
 
-    Historically the flag worked even after the subcommand (`hermes chat -p
+    Historically the flag worked even after the subcommand (`a2assistant chat -p
     coder`), so scan broadly; stop at ``--`` and at the `mcp add --args`
     passthrough region. The value is normalised (strip + casefold, matching
     ``profiles.normalize_profile_name``) before validation so ``-p Work`` selects
     ``work``. A value that cannot be a profile name is rejected so
     resolve_profile_env never sys.exits on it; the rejection is explained (exit 2)
     only when the flag comes BEFORE the first subcommand token under a real
-    ``hermes`` run — after a subcommand, ``-p`` may belong to that subcommand or a
-    plugin (`hermes kanban ... -p 8080`), and option-looking values (``no:xdist``,
+    ``a2assistant`` run — after a subcommand, ``-p`` may belong to that subcommand or a
+    plugin (`a2assistant kanban ... -p 8080`), and option-looking values (``no:xdist``,
     ``--flag``) are always a silent skip.
     """
     from hermes_cli._parser import top_level_value_flag_sets
@@ -430,7 +433,7 @@ def _scan_profile_flag(argv: list) -> tuple:
 
 
 def _resolve_sudo_user_profile_env(name: str) -> str | None:
-    """Resolve `sudo hermes -p <name>` against the invoking user's home.
+    """Resolve `sudo a2assistant -p <name>` against the invoking user's home.
 
     This runs before argparse, so `--run-as-user` is not available yet. For
     sudo invocations the best signal is SUDO_USER: root is only doing the
@@ -451,30 +454,30 @@ def _under_gateway_supervisor(argv: list) -> bool:
     """A supervisor-launched gateway child must NOT follow the sticky active_profile.
 
     Each supervised slot has a fixed profile identity: named slots pass
-    ``-p <name>`` or pin HERMES_HOME to the profile dir; a bare invocation
-    means "the root HERMES_HOME profile". If a supervised default-profile
+    ``-p <name>`` or pin A2ASSISTANT_HOME to the profile dir; a bare invocation
+    means "the root A2ASSISTANT_HOME profile". If a supervised default-profile
     child read active_profile, switching the active profile (dashboard,
-    ``hermes profile use``) would silently redirect the default gateway into
+    ``a2assistant profile use``) would silently redirect the default gateway into
     that profile — adopting its credentials and double-polling a Telegram
     token already owned by that profile's own gateway (#74872).
 
     Markers (see gateway/restart.py ``is_gateway_supervisor_process``):
-    HERMES_SUPERVISED_CHILD (systemd unit / launchd plist / Windows task),
-    HERMES_S6_SUPERVISED_CHILD (legacy s6 container), INVOCATION_ID (systemd
+    A2ASSISTANT_SUPERVISED_CHILD (systemd unit / launchd plist / Windows task),
+    A2ASSISTANT_S6_SUPERVISED_CHILD (legacy s6 container), INVOCATION_ID (systemd
     service children only — consulted ONLY for gateway commands because it is
     inherited by every descendant of a systemd-launched process, e.g.
-    self-hosted CI runners), HERMES_GATEWAY_EXTERNAL_SUPERVISOR (explicit
-    opt-in) and HERMES_GATEWAY_PROFILE_PIN (its tool children's copy, which is
+    self-hosted CI runners), A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR (explicit
+    opt-in) and A2ASSISTANT_GATEWAY_PROFILE_PIN (its tool children's copy, which is
     no supervisor claim). XPC_SERVICE_NAME is deliberately NOT consulted:
     interactive macOS terminals set it too.
     """
-    if os.environ.get("HERMES_SUPERVISED_CHILD") or os.environ.get("HERMES_S6_SUPERVISED_CHILD"):
+    if os.environ.get("A2ASSISTANT_SUPERVISED_CHILD") or os.environ.get("A2ASSISTANT_S6_SUPERVISED_CHILD"):
         return True
     is_gateway_cmd = next((a for a in argv if not a.startswith("-")), None) == "gateway"
     if is_gateway_cmd and os.environ.get("INVOCATION_ID"):
         return True
     return any(os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
-               for name in ("HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "HERMES_GATEWAY_PROFILE_PIN"))
+               for name in ("A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR", "A2ASSISTANT_GATEWAY_PROFILE_PIN"))
 
 
 def _s6_supervised_gateway_run(argv: list) -> bool:
@@ -489,7 +492,7 @@ def _s6_supervised_gateway_run(argv: list) -> bool:
     words = [a for a in argv if not a.startswith("-")]
     if words[:2] != ["gateway", "run"] or "--no-supervise" in argv:
         return False
-    if os.environ.get("HERMES_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes"):
+    if os.environ.get("A2ASSISTANT_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes"):
         return False
     from hermes_cli.service_manager import _s6_running
     return _s6_running()
@@ -505,7 +508,7 @@ def explicit_cli_profile() -> str | None:
 
 
 def _apply_profile_override() -> None:
-    """Pre-parse --profile/-p and set HERMES_HOME before imports."""
+    """Pre-parse --profile/-p and set A2ASSISTANT_HOME before imports."""
     global _explicit_cli_profile
     _explicit_cli_profile = None
     argv = sys.argv[1:]
@@ -517,7 +520,7 @@ def _apply_profile_override() -> None:
     # points at the hermes root (systemd hardcodes HERMES_HOME=/root/.hermes)
     # we must still read active_profile — the user may have run
     # `hermes profile use` and the gateway should honour it (#22502).
-    hermes_home_env = os.environ.get("HERMES_HOME", "")
+    hermes_home_env = os.environ.get("A2ASSISTANT_HOME", "")
     if profile_name is None and hermes_home_env and Path(hermes_home_env).parent.name == "profiles":
         return
 
@@ -556,7 +559,7 @@ def _apply_profile_override() -> None:
                     file=sys.stderr,
                 )
             else:
-                error = f"Saved profile '{profile_name}' no longer exists. Switch back with: hermes profile use default"
+                error = f"Saved profile '{profile_name}' no longer exists. Switch back with: a2assistant profile use default"
         if not hermes_home:
             print(f"Error: {error}", file=sys.stderr)
             sys.exit(1)
@@ -567,7 +570,7 @@ def _apply_profile_override() -> None:
         # A bug in profiles.py must NEVER prevent hermes from starting
         print(f"Warning: profile override failed ({exc}), using default", file=sys.stderr)
         return
-    os.environ["HERMES_HOME"] = hermes_home
+    os.environ["A2ASSISTANT_HOME"] = hermes_home
     if consume > 0:
         _explicit_cli_profile = profile_name
     # Strip the flag from argv so argparse doesn't choke
@@ -638,12 +641,12 @@ try:
     _cfg_path = get_hermes_home() / "config.yaml"
     if config_exists(_cfg_path):
         _early_cfg_raw = _load_effective_early(_cfg_path)
-        if "HERMES_REDACT_SECRETS" not in os.environ:
+        if "A2ASSISTANT_REDACT_SECRETS" not in os.environ:
             _early_sec_cfg = _early_cfg_raw.get("security", {})
             if isinstance(_early_sec_cfg, dict):
                 _early_redact = _early_sec_cfg.get("redact_secrets")
                 if _early_redact is not None:
-                    os.environ["HERMES_REDACT_SECRETS"] = str(_early_redact).lower()
+                    os.environ["A2ASSISTANT_REDACT_SECRETS"] = str(_early_redact).lower()
         _early_net_cfg = _early_cfg_raw.get("network", {})
         if isinstance(_early_net_cfg, dict) and _early_net_cfg.get("force_ipv4"):
             _FORCE_IPV4_EARLY = True
@@ -915,7 +918,7 @@ def _termux_bundled_skills_stamp_path() -> Path:
 def _termux_bundled_skills_sync_needed() -> bool:
     if not _is_termux_startup_environment():
         return True
-    if os.environ.get("HERMES_TERMUX_FORCE_SKILLS_SYNC") == "1":
+    if os.environ.get("A2ASSISTANT_TERMUX_FORCE_SKILLS_SYNC") == "1":
         return True
     try:
         stamp = _termux_bundled_skills_stamp_path()
@@ -955,11 +958,11 @@ def _sync_bundled_skills_for_startup() -> bool:
 def _termux_should_prefetch_update_check() -> bool:
     if not _is_termux_startup_environment():
         return True
-    return os.environ.get("HERMES_TERMUX_PREFETCH_UPDATES") == "1"
+    return os.environ.get("A2ASSISTANT_TERMUX_PREFETCH_UPDATES") == "1"
 
 
 def _dotenv_has_provider_key(env_file: Path, provider_env_vars: set) -> bool:
-    """True if ~/.hermes/.env assigns a non-empty value to any provider key."""
+    """True if ~/.a2assistant/.env assigns a non-empty value to any provider key."""
     if not env_file.exists():
         return False
     try:
@@ -1236,7 +1239,7 @@ def _resolve_last_session(source: str = "cli") -> Optional[str]:
     """Look up the most recently-used session ID for a source.
 
     Scoped to the current workspace first (git repo root, else cwd) so
-    ``hermes -c`` from repo A continues repo A's last session rather than the
+    ``a2assistant -c`` from repo A continues repo A's last session rather than the
     global MRU. Falls back to the unscoped MRU when no session matches the
     current workspace, preserving the old behaviour for fresh directories.
     """
@@ -1341,7 +1344,7 @@ def _resolve_continue_arg(args, *, use_tui: bool) -> None:
             else:
                 print(f"No session found matching '{continue_val}'.", file=sys.stderr)
                 print(
-                    "Use 'hermes sessions list' to see available sessions, or "
+                    "Use 'a2assistant sessions list' to see available sessions, or "
                     "pass --create-if-missing to start a new session with that title.",
                     file=sys.stderr,
                 )
@@ -1374,7 +1377,7 @@ def _resolve_continue_arg(args, *, use_tui: bool) -> None:
                     kind = "TUI" if use_tui else "CLI"
                     print(
                         f"No previous {kind} session to continue. Start a new one with "
-                        "`hermes`, or list sessions with `hermes sessions list`.",
+                        "`a2assistant`, or list sessions with `a2assistant sessions list`.",
                         file=sys.stderr,
                     )
                     sys.exit(1)
@@ -1432,7 +1435,7 @@ def _resolve_chat_session_args(args, use_tui: bool) -> None:
         else:
             kind = "TUI" if use_tui else "CLI"
             print(f"No previous {kind} session found to resume.")
-            print("Use 'hermes sessions list' to see available sessions.")
+            print("Use 'a2assistant sessions list' to see available sessions.")
             sys.exit(1)
 
     _resolve_continue_arg(args, use_tui=use_tui)
@@ -1483,7 +1486,7 @@ def _warn_retired_xai_models() -> None:
             for _ref in _retired_xai_refs:
                 sys.stderr.write(f"  \033[33m⚠\033[0m {format_issue(_ref)}\n")
             sys.stderr.write(f"  \033[2mMigration guide: {MIGRATION_GUIDE_URL}\033[0m\n")
-            sys.stderr.write("  \033[2mRun 'hermes doctor' for details.\033[0m\n\n")
+            sys.stderr.write("  \033[2mRun 'a2assistant doctor' for details.\033[0m\n\n")
     except Exception:
         pass
 
@@ -1495,7 +1498,7 @@ def _start_chat_background_prefetch() -> None:
     foreground and competes for CPU on single-core devices). The skills sync
     is idempotent and hash-gated (~120-170ms of rglob/hashing) so it normally
     runs in a daemon thread — skill loading happens at agent init, long after.
-    The ONE exception is an unseeded ~/.hermes/skills: there the banner
+    The ONE exception is an unseeded ~/.a2assistant/skills: there the banner
     prefetch races the sync and caches an empty index ("No skills installed"
     on the very first launch), so the first run syncs in the foreground and
     drops the banner's skills cache.
@@ -1540,13 +1543,13 @@ def _start_chat_background_prefetch() -> None:
 
 
 def _first_run_setup_guard(args) -> None:
-    """No provider configured: offer `hermes setup` (TTY) or exit 1 with guidance."""
+    """No provider configured: offer `a2assistant setup` (TTY) or exit 1 with guidance."""
     print()
     print(
         "It looks like A2Assistant isn't configured yet -- no API keys or providers found."
     )
     print()
-    print("  Run:  hermes setup")
+    print("  Run:  a2assistant setup")
     print()
 
     from hermes_cli.setup import (
@@ -1568,7 +1571,7 @@ def _first_run_setup_guard(args) -> None:
         cmd_setup(args)
         return
     print()
-    print("You can run 'hermes setup' at any time to configure.")
+    print("You can run 'a2assistant setup' at any time to configure.")
     sys.exit(1)
 
 
@@ -1614,17 +1617,17 @@ def cmd_chat(args):
     # before tool imports freeze _YOLO_MODE_FROZEN. This is a safety net for
     # callers that invoke cmd_chat directly (e.g. subcommand dispatch).
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["A2ASSISTANT_YOLO_MODE"] = "1"
     # --ignore-rules: skip AGENTS.md/SOUL.md/.cursorrules injection, memory
     # entries and preloaded skills (AIAgent(skip_context_files, skip_memory)).
     if getattr(args, "ignore_rules", False):
-        os.environ["HERMES_IGNORE_RULES"] = "1"
+        os.environ["A2ASSISTANT_IGNORE_RULES"] = "1"
     # --source: tag session source for filtering (e.g. 'tool' for integrations)
     if getattr(args, "source", None):
-        os.environ["HERMES_SESSION_SOURCE"] = args.source
+        os.environ["A2ASSISTANT_SESSION_SOURCE"] = args.source
         # Explicit flag, not a label inherited from a parent TUI/Desktop session — one-shot
         # runs must keep it (see agent.session_source.session_source_for).
-        os.environ["HERMES_SESSION_SOURCE_EXPLICIT"] = "1"
+        os.environ["A2ASSISTANT_SESSION_SOURCE_EXPLICIT"] = "1"
 
     _pin_kanban_board_env()
     _confirm_startup_expensive_model_override(args)
@@ -1819,8 +1822,8 @@ def _resolve_active_provider(config, model_cfg, effective_provider, custom_provi
                 )
         else:
             from hermes_cli.left_core_migration import provider_install_hint
-            hint = provider_install_hint(effective_provider) or ("Check 'hermes model' for available providers, or run "
-                                                                  "'hermes doctor' to diagnose config issues.")
+            hint = provider_install_hint(effective_provider) or ("Check 'a2assistant model' for available providers, or run "
+                                                                  "'a2assistant doctor' to diagnose config issues.")
             print(f"Warning: Unknown provider '{effective_provider}'. {hint} Falling back to auto provider detection.")
     if not active:
         try:
@@ -1869,7 +1872,7 @@ def _pick_provider(config, active, provider_labels, custom_provider_map):
 def select_provider_and_model(args=None):
     """Core provider selection + model picking logic.
 
-    Shared by ``cmd_model`` (``hermes model``) and the setup wizard
+    Shared by ``cmd_model`` (``a2assistant model``) and the setup wizard
     (``setup_model_provider`` in setup.py).  Handles the full flow:
     provider picker, credential prompting, model selection, and config
     persistence.
@@ -1884,7 +1887,7 @@ def select_provider_and_model(args=None):
     # Effective provider the same way the CLI resolves it at startup:
     # config.yaml model.provider > env var > auto-detect
     config_provider = model_cfg.get("provider") if isinstance(model_cfg, dict) else None
-    effective_provider = config_provider or os.getenv("HERMES_INFERENCE_PROVIDER") or "auto"
+    effective_provider = config_provider or os.getenv("A2ASSISTANT_INFERENCE_PROVIDER") or "auto"
 
     # User-defined custom providers from config.yaml: key → {name, base_url, api_key}
     _custom_provider_map = _named_custom_provider_map(config)
@@ -2032,7 +2035,7 @@ def cmd_verify(args):
 
 
 def cmd_security(args):
-    """Dispatch `hermes security <subcmd>`."""
+    """Dispatch `a2assistant security <subcmd>`."""
     sub = getattr(args, "security_command", None)
     if sub in ("audit", None):
         from hermes_cli.security_audit import cmd_security_audit
@@ -2045,7 +2048,7 @@ def cmd_security(args):
 
 
 def cmd_approvals(args):
-    """Dispatch `hermes approvals <subcmd>`."""
+    """Dispatch `a2assistant approvals <subcmd>`."""
     from hermes_cli.approvals_suggest import approvals_command
 
     status = approvals_command(args)
@@ -2235,21 +2238,17 @@ from hermes_cli.update_receipt import update_receipt_scope
 @update_receipt_scope()
 def cmd_update(args):
     """Update Hermes Agent: hangup protection + update lock around ``_cmd_update_impl``."""
-    # Marks this frame as the CURRENT updater for
-    # _old_updater.in_historical_update(); historical on-disk updaters do not
-    # declare this local, so only they hand off through retired shims.
     _hermes_current_updater_frame = True
     from hermes_cli.update_owning_install import retarget_to_owning_install
 
     retarget_to_owning_install(PROJECT_ROOT)
+    from hermes_cli.home_migration_cli import migrate_before_update
+    migrate_before_update(Path(PROJECT_ROOT), gateway_mode=getattr(args, "gateway", False))
     if _update_preflight_handled(args):
         return
     gateway_mode = getattr(args, "gateway", False)
 
     _update_io_state = _install_hangup_protection(gateway_mode=gateway_mode)
-    # Cross-process mutual exclusion: dashboard Update button, Tauri updater
-    # and this command all mutate one checkout; two at once strand it
-    # half-updated. Shares the marker the Tauri/Electron updaters already use.
     from hermes_cli.update_lock import (
         UPDATE_EXIT_CONCURRENT,
         UpdateLock,
@@ -2315,7 +2314,7 @@ def cmd_update(args):
 
 
 def _coalesce_session_name_args(argv: list) -> list:
-    """Join unquoted multi-word session names after -c/--continue and -r/--resume: ``hermes -c Pokemon
+    """Join unquoted multi-word session names after -c/--continue and -r/--resume: ``a2assistant -c Pokemon
     Agent Dev`` → ``['-c', 'Pokemon Agent Dev']``, up to the next flag or known top-level subcommand."""
     _SUBCOMMANDS = {
         "chat", "model", "gateway", "setup", "login", "logout",
@@ -2369,7 +2368,7 @@ def _dashboard_lifecycle_flags(args, token_file) -> None:
 
         own_home = str(get_hermes_home())
         if not _find_stale_dashboard_pids(scope_home=own_home):
-            print("No hermes dashboard processes running for this profile.")
+            print("No a2assistant dashboard processes running for this profile.")
             sys.exit(0)
         # Reuse the same SIGTERM-grace-SIGKILL path used after `hermes update`;
         # it prints outcomes itself. Exit 1 only if a pid was unkillable — judged
@@ -2384,31 +2383,31 @@ def _dashboard_lifecycle_flags(args, token_file) -> None:
 def _dashboard_sanitize_desktop_env(headless_backend) -> None:
     """Strip Desktop-inherited env that hijacks a standalone launch.
 
-    Desktop Electron spawns its backend with HERMES_DESKTOP=1 plus
-    HERMES_WEB_DIST=<packaged app.asar[/unpacked]/dist> (and often
-    HERMES_SERVE_HEADLESS=1). A shell inheriting those then running
-    `hermes dashboard` would serve the desktop renderer ("Desktop IPC bridge
+    Desktop Electron spawns its backend with A2ASSISTANT_DESKTOP=1 plus
+    A2ASSISTANT_WEB_DIST=<packaged app.asar[/unpacked]/dist> (and often
+    A2ASSISTANT_SERVE_HEADLESS=1). A shell inheriting those then running
+    `a2assistant dashboard` would serve the desktop renderer ("Desktop IPC bridge
     is unavailable", #52945) or disable the SPA. Only Electron-packaged
     WEB_DIST contamination is stripped from browser dashboards — caller-managed
     overrides (dev / custom builds) must still work, while headless `serve`
     keeps the packaged path used by the Desktop backend. Headless `serve`
-    re-sets HERMES_SERVE_HEADLESS itself.
+    re-sets A2ASSISTANT_SERVE_HEADLESS itself.
 
     The Desktop's legacy fallback spawn (`dashboard --no-open`, taken when the
     `serve --help` probe times out on a cold host) is not headless yet must keep
     its packaged dist: it is told apart by the per-spawn
-    HERMES_DASHBOARD_SESSION_TOKEN, which the terminal pane never receives and
+    A2ASSISTANT_DASHBOARD_SESSION_TOKEN, which the terminal pane never receives and
     the terminal tool's env policy strips from agent children.
     """
     desktop_owned_child = _is_desktop_owned_backend()
     if (
         not headless_backend
         and not desktop_owned_child
-        and _is_electron_packaged_web_dist(os.environ.get("HERMES_WEB_DIST", ""))
+        and _is_electron_packaged_web_dist(os.environ.get("A2ASSISTANT_WEB_DIST", ""))
     ):
-        os.environ.pop("HERMES_WEB_DIST", None)
+        unset_env(os.environ, "WEB_DIST")
     if not headless_backend:
-        os.environ.pop("HERMES_SERVE_HEADLESS", None)
+        unset_env(os.environ, "SERVE_HEADLESS")
 
 
 def _require_dashboard_web_deps() -> None:
@@ -2694,7 +2693,7 @@ _AGENT_SUBCOMMANDS = {"cron": ("cron_command", {"run", "tick"}), "gateway": ("ga
 def _is_tui_chat_launch(args) -> bool:
     if _bypass_chat_launch(args):
         return False
-    if getattr(args, "tui", False) or os.environ.get("HERMES_TUI") == "1":
+    if getattr(args, "tui", False) or os.environ.get("A2ASSISTANT_TUI") == "1":
         return True
     # The chat path decides TUI-vs-classic via _resolve_use_tui (--cli/--tui
     # flags, TTY gate, HERMES_TUI env, display.interface config). Bare
@@ -2720,7 +2719,7 @@ def _should_background_mcp_startup(args) -> bool:
 
 
 def _chat_runs_at_gateway(args) -> bool:
-    """Every ``hermes`` / ``hermes chat`` turn (classic view, ``-q``, ``-z``, TUI) executes in the
+    """Every ``a2assistant`` / ``a2assistant chat`` turn (classic view, ``-q``, ``-z``, TUI) executes in the
     gateway, which discovers and owns MCP servers itself. Discovery in this client only spawns a
     second copy of every server and holds the cross-process discovery lock the cold-starting gateway
     then waits on (measured 2.0 s with one stdio server) for tools nothing here ever calls."""
@@ -2735,7 +2734,7 @@ def _prepare_agent_startup(args) -> None:
     # here directly, so the guarantee lives where the import is triggered.
     # See #7994.
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["A2ASSISTANT_YOLO_MODE"] = "1"
     if args.command in {None, "chat"} and _bypass_chat_launch(args):
         # Bypass launches are frozen by the gateway owner and executed out of process. This
         # client is a transport: no env mutation (it would ride into an authority spawn),
@@ -2777,7 +2776,7 @@ def _prepare_agent_startup(args) -> None:
     # TUI launches background MCP discovery with a bounded join; acp/gateway/cron do their own.
     if _chat_runs_at_gateway(args):  # chat turns run in the gateway: it owns MCP, hooks, webhooks
         if _accept_hooks:  # rides session.create (env_launch_flags) and the classic CLI's consent check
-            os.environ["HERMES_ACCEPT_HOOKS"] = "1"
+            os.environ["A2ASSISTANT_ACCEPT_HOOKS"] = "1"
         return
     if _should_background_mcp_startup(args):
         try:
@@ -2813,15 +2812,15 @@ def _prepare_agent_startup(args) -> None:
 def _apply_safe_mode(args) -> None:
     if not getattr(args, "safe_mode", False):
         return
-    os.environ["HERMES_SAFE_MODE"] = "1"
-    os.environ["HERMES_IGNORE_USER_CONFIG"] = "1"
-    os.environ["HERMES_IGNORE_RULES"] = "1"
+    os.environ["A2ASSISTANT_SAFE_MODE"] = "1"
+    os.environ["A2ASSISTANT_IGNORE_USER_CONFIG"] = "1"
+    os.environ["A2ASSISTANT_IGNORE_RULES"] = "1"
 
 
 def _apply_user_config_bypass(args) -> None:
     """Apply the explicit config bypass before any startup config reads."""
     if getattr(args, "ignore_user_config", False):
-        os.environ["HERMES_IGNORE_USER_CONFIG"] = "1"
+        os.environ["A2ASSISTANT_IGNORE_USER_CONFIG"] = "1"
 
 
 def _guard_noninteractive_user_config(args) -> None:
@@ -2909,7 +2908,7 @@ def _try_fast_serve_launch() -> bool:
     thousands of filesystem-backed lookups on Windows. Unknown or global
     arguments fall back to normal parsing so error reporting is unchanged.
     """
-    if os.environ.get("HERMES_DISABLE_FAST_SERVE_LAUNCH") == "1":
+    if os.environ.get("A2ASSISTANT_DISABLE_FAST_SERVE_LAUNCH") == "1":
         return False
 
     argv = sys.argv[1:]
@@ -2950,7 +2949,7 @@ def _try_fast_chat_launch() -> bool:
     ``_try_termux_fast_cli_launch`` minus the Termux deferred startup; kept
     separate so phone-tuned behavior doesn't leak to desktops.
     """
-    if os.environ.get("HERMES_DISABLE_FAST_CHAT_LAUNCH") == "1":
+    if os.environ.get("A2ASSISTANT_DISABLE_FAST_CHAT_LAUNCH") == "1":
         return False
     argv = sys.argv[1:]
     if "-h" in argv or "--help" in argv:
@@ -2982,7 +2981,7 @@ def _try_fast_chat_launch() -> bool:
 
     _enable_cpu_profile(args)
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["A2ASSISTANT_YOLO_MODE"] = "1"
     _prepare_agent_startup(args)
 
     if getattr(args, "oneshot", None):
@@ -2998,7 +2997,7 @@ def _try_termux_fast_cli_launch() -> bool:
     """Run obvious Termux non-TUI chat/oneshot/version paths on a light parser."""
     if not _is_termux_startup_environment():
         return False
-    if os.environ.get("HERMES_TERMUX_DISABLE_FAST_CLI") == "1":
+    if os.environ.get("A2ASSISTANT_TERMUX_DISABLE_FAST_CLI") == "1":
         return False
 
     argv = sys.argv[1:]
@@ -3037,10 +3036,10 @@ def _try_termux_fast_cli_launch() -> bool:
         if not getattr(args, "query", None) and not getattr(args, "image", None):  # interactive prompt
             # Reach the prompt first; agent-only discovery on the first turn.
             args.compact = True
-            os.environ["HERMES_DEFER_AGENT_STARTUP"] = "1"
-            os.environ["HERMES_FAST_STARTUP_BANNER"] = "1"
+            os.environ["A2ASSISTANT_DEFER_AGENT_STARTUP"] = "1"
+            os.environ["A2ASSISTANT_FAST_STARTUP_BANNER"] = "1"
             if getattr(args, "accept_hooks", False):
-                os.environ["HERMES_ACCEPT_HOOKS"] = "1"
+                os.environ["A2ASSISTANT_ACCEPT_HOOKS"] = "1"
         else:
             _prepare_agent_startup(args)
         cmd_chat(args)
@@ -3052,7 +3051,7 @@ def _try_termux_fast_cli_launch() -> bool:
 def _try_termux_fast_tui_launch() -> bool:
     """Launch obvious Termux TUI invocations before building every subparser.
 
-    `hermes --tui` is the hot path on phones and the TUI immediately execs
+    `a2assistant --tui` is the hot path on phones and the TUI immediately execs
     Node, so the full parser's command-module imports are pure waste there.
     """
     if not _is_termux_startup_environment():
@@ -3090,7 +3089,7 @@ def _advertise_agent_env() -> None:
 
     ``AI_AGENT`` is the cross-agent standard (huggingface_hub reads it); the
     value must be our id in the public agent-harness registry
-    (``hermes-agent``) — matching is exact. ``HERMES_AGENT`` is the
+    (``hermes-agent``) — matching is exact. ``A2ASSISTANT_AGENT`` is the
     Hermes-specific marker. setdefault: never clobber an outer harness.
 
     ``AI_AGENT`` is the emerging cross-agent standard (huggingface_hub's agent detection reads it; pi and
@@ -3098,7 +3097,7 @@ def _advertise_agent_env() -> None:
     harness that spawned them. Hermes running inside another agent's terminal).
     """
     os.environ.setdefault("AI_AGENT", "hermes-agent")
-    os.environ.setdefault("HERMES_AGENT", "true")
+    os.environ.setdefault("A2ASSISTANT_AGENT", "true")
 
 
 def _attach_plugin_cli_command(subparsers, cmd_info) -> None:
@@ -3146,9 +3145,9 @@ def _register_plugin_cli_commands(subparsers) -> None:
 
 
 def _build_cli_parser():
-    """Build the full ``hermes`` argparse tree -> ``(parser, subparsers)``.
+    """Build the full ``a2assistant`` argparse tree -> ``(parser, subparsers)``.
 
-    Registration ORDER is the ``hermes --help`` order; keep it stable. Groups
+    Registration ORDER is the ``a2assistant --help`` order; keep it stable. Groups
     live in ``hermes_cli/subcommands/<group>.py`` with handlers injected so
     those modules never import main.
     """
@@ -3260,7 +3259,7 @@ def _parse_cli_args(parser, subparsers, argv):
     On Python <3.11 argparse fails to route subcommand tokens when the parent
     has nargs='?' optionals (--continue): "unrecognized arguments: model". When
     argv holds a known subcommand token, set subparsers.required=True to force
-    routing; if that fails (``hermes -c model`` — 'model' is the session name)
+    routing; if that fails (``a2assistant -c model`` — 'model' is the session name)
     fall back to the default behaviour.
     """
     import io as _io
@@ -3390,7 +3389,7 @@ def main():
     # --yolo must be set *before* plugin discovery: tools.approval freezes
     # _YOLO_MODE_FROZEN at import; set later (inside cmd_chat) it does nothing.
     if getattr(args, "yolo", False):
-        os.environ["HERMES_YOLO_MODE"] = "1"
+        os.environ["A2ASSISTANT_YOLO_MODE"] = "1"
 
     # Plugin discovery + shell hooks once, gated so introspection commands
     # (hooks list, cron list, gateway status, ...) pay no discovery cost and

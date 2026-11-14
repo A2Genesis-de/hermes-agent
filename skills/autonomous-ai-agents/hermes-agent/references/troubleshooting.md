@@ -56,13 +56,13 @@ Blunt instruments: `web.cache_ttl_minutes: 1` (min) or
 ### Gateway issues
 Check logs first:
 ```bash
-grep -i "failed to send\|error" ~/.hermes/logs/gateway.log | tail -20
+grep -i "failed to send\|error" ~/.a2assistant/logs/gateway.log | tail -20
 ```
 
 Common gateway problems:
 - **Gateway dies on SSH logout**: Enable linger: `sudo loginctl enable-linger $USER`
 - **Gateway dies on WSL2 close**: WSL2 requires `systemd=true` in `/etc/wsl.conf` for systemd services to work. Without it, gateway falls back to `nohup` (dies when session closes).
-- **Gateway crash loop**: Reset the failed state: `systemctl --user reset-failed hermes-gateway`
+- **Gateway crash loop**: Reset the failed state: `systemctl --user reset-failed a2assistant-gateway`
 
 ### Platform-specific issues
 - **Windows-specific issues** (`Alt+Enter` newline, WinError 10106, UTF-8 BOM config, line endings): see `references/windows-quirks.md`.
@@ -70,8 +70,8 @@ Common gateway problems:
 ### Auxiliary models not working
 If `auxiliary` tasks (vision, compression, session_search) fail silently, the `auto` provider can't find a backend. Either set `OPENROUTER_API_KEY` or `GOOGLE_API_KEY`, or explicitly configure each auxiliary task's provider:
 ```bash
-hermes config set auxiliary.vision.provider <your_provider>
-hermes config set auxiliary.vision.model <model_name>
+a2assistant config set auxiliary.vision.provider <your_provider>
+a2assistant config set auxiliary.vision.model <model_name>
 ```
 
 ### "Reset permissions" / auto-approving everything

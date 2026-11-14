@@ -324,7 +324,7 @@ def test_switch_sandbox_image_decides_only_a_pending_switch(monkeypatch, tmp_pat
     from hermes_cli import sandbox_image_switch as sw
     from tools.bot_desktop import runtime
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(sw, "pending", lambda: None)
     resp = _call(server, "display.switchSandboxImage", {"approve": True})
     assert "error" in resp and "pending" in resp["error"]["message"]

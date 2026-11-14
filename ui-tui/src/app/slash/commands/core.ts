@@ -189,7 +189,7 @@ export const coreCommands: SlashCommand[] = [
       }
 
       ctx.transcript.sys(t('slashCmd.core.update.exiting'))
-      // Exit code 42 signals the Python wrapper to exec `hermes update`.
+      // Exit code 42 signals the Python wrapper to exec `a2assistant update`.
       // Use dieWithCode for proper cleanup (gateway kill + Ink unmount).
       setTimeout(() => ctx.session.dieWithCode(42), 100)
     }
@@ -406,7 +406,7 @@ export const coreCommands: SlashCommand[] = [
 
       // T10: the owner's config.get `full` is the redacted presentation projection (display,
       // approvals, voice keybinding) — never provider/MCP/terminal config, which can hold secrets.
-      // The client renders it; the classic CLI's full dump stays `hermes config`.
+      // The client renders it; the classic CLI's full dump stays `a2assistant config`.
       ctx.gateway
         .rpc<ConfigFullResponse>('config.get', { key: 'full', ...(ctx.sid ? { session_id: ctx.sid } : {}) })
         .then(
@@ -698,10 +698,10 @@ export const coreCommands: SlashCommand[] = [
       const { filename, format, redact } = parseSaveArgs(arg)
 
       if (ctx.gateway.gw?.isCanonical) {
-        // The user's folder, fixed now: a local session's cwd, else the launch HERMES_CWD (a remote
+        // The user's folder, fixed now: a local session's cwd, else the launch A2ASSISTANT_CWD (a remote
         // session's folder names the gateway host's disk, not this one).
-        const remote = Boolean(process.env.HERMES_TUI_GATEWAY_URL?.trim())
-        const cwd = (remote ? process.env.HERMES_CWD : sessionCwd()) || process.cwd()
+        const remote = Boolean(process.env.A2ASSISTANT_TUI_GATEWAY_URL?.trim())
+        const cwd = (remote ? process.env.A2ASSISTANT_CWD : sessionCwd()) || process.cwd()
 
         // The write is the user's accepted request: it runs even when another slash has started
         // since (the stale-flight guard drops only the success notice; a failure always shows).
@@ -725,7 +725,7 @@ export const coreCommands: SlashCommand[] = [
           .catch(ctx.guardedErr)
       }
 
-      // A listener without session.export (HERMES_TUI_GATEWAY_URL on an older or non-authority
+      // A listener without session.export (A2ASSISTANT_TUI_GATEWAY_URL on an older or non-authority
       // gateway): its session.save writes default-named, unredacted JSON on the gateway host, so
       // only a plain /save may use it, as the CLI and Desktop do.
       if (redact || filename || !LEGACY_SAVE_FORMATS.has(format.toLowerCase())) {

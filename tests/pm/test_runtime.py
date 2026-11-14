@@ -19,13 +19,13 @@ def test_pm_runtime_discovers_plugins_without_application_dependencies(tmp_path,
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(home / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(home / "tools"))
     (home / "config.yaml").write_text("plugins:\n  enabled: []\n", encoding="utf-8")
     repo = Path(__file__).resolve().parents[2]
     python = prepare_runtime(Path(uv), Path(sys.executable), tmp_path / "runtime")
     env = {k: v for k, v in os.environ.items() if not k.startswith(("PYTHON", "UV_"))}
-    env.update(HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(home / "tools"))
+    env.update(A2ASSISTANT_HOME=str(home), A2ASSISTANT_RUNTIME_DIR=str(home / "tools"))
     # Import real PM, including its production plugin-discovery chain.
     code = f"""
 import importlib.util, json, sys
@@ -66,8 +66,8 @@ def test_cold_worker_bootstrap_reuses_the_requests_cache(tmp_path, monkeypatch):
     cache = tmp_path / "shared-cache"
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
     monkeypatch.setenv("USERPROFILE", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home/.hermes"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home/.hermes"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
     monkeypatch.setattr("pm.paths.repo_root", lambda: tmp_path / "project")
     monkeypatch.setattr("pm._uv._toolchain", lambda **kwargs: tools)
     monkeypatch.setattr(client, "is_runtime", lambda: False)
@@ -139,7 +139,7 @@ def test_sealed_worker_command_uses_only_its_recorded_site(tmp_path, monkeypatch
 
 
 def test_one_store_through_symlinked_homes_keeps_one_pm_runtime(tmp_path, monkeypatch):
-    """#123798: a store reached through symlinks (a per-task HERMES_HOME whose tools/ links back,
+    """#123798: a store reached through symlinks (a per-task A2ASSISTANT_HOME whose tools/ links back,
     a home under /home -> /var/home) is ONE PM runtime: every spelling reuses the selected
     generation, and a record written before canonicalization is not re-staged."""
     from pm import runtime

@@ -1567,7 +1567,7 @@ def _rebind_session_context(session_id: str) -> None:
         from gateway.session_context import set_current_session_id
         set_current_session_id(session_id)
     except Exception:
-        os.environ["HERMES_SESSION_ID"] = session_id
+        os.environ["A2ASSISTANT_SESSION_ID"] = session_id
     with contextlib.suppress(Exception):
         from hermes_logging import set_session_context
         set_session_context(session_id)
@@ -2062,7 +2062,7 @@ def check_compression_model_feasibility(agent: Any) -> None:
             else:
                 msg = (
                     "⚠ No auxiliary LLM provider configured: A2Assistant has no helper model for summarising "
-                    "long chats, so older messages will be cut without a summary. Run `hermes setup` to add one."
+                    "long chats, so older messages will be cut without a summary. Run `a2assistant setup` to add one."
                 )
             _emit_feasibility_notice(agent, msg)
             logger.warning("No auxiliary LLM provider for compression — summaries will be unavailable.")
@@ -2733,7 +2733,7 @@ def _acquire_compression_lease(
                 agent._last_compression_lock_error_sid = _lock_sid
                 logger.warning(
                     "compression lock subsystem unavailable for session=%s — proceeding without lock. This usually means a stale "
-                    "in-memory module after an update; restart the process (or `hermes update`) to resync.",
+                    "in-memory module after an update; restart the process (or `a2assistant update`) to resync.",
                     _lock_sid,
                 )
             _lock_acquired = True  # acquired-but-unlocked compatibility path

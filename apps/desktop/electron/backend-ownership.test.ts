@@ -33,7 +33,7 @@ function identity(overrides: Partial<BackendIdentity> = {}): BackendIdentity {
 }
 
 function ownershipEntry(overrides: Partial<BackendIdentity> = {}) {
-  return { command: 'hermes serve --port 0', ...identity(overrides) }
+  return { command: 'a2assistant serve --port 0', ...identity(overrides) }
 }
 
 function stored(entries: object[]): string {
@@ -305,7 +305,7 @@ test('backend identity check matches only serve and dashboard invocation shapes'
   assert.equal(backendCommandMatches('python -m hermes_cli.main dashboard --no-open'), true)
   assert.equal(backendCommandMatches('/venv/bin/hermes --profile work serve --port 0'), true)
   assert.equal(backendCommandMatches('"C:\\Hermes Runtime\\hermes.exe" dashboard --no-open'), true)
-  assert.equal(backendCommandMatches('hermes chat --query serve'), false)
+  assert.equal(backendCommandMatches('a2assistant chat --query serve'), false)
   assert.equal(backendCommandMatches('unrelated dashboard'), false)
 })
 

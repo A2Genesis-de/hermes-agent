@@ -1,7 +1,7 @@
 """A ``webapp:`` block that asks for the Webapp but cannot be used says why.
 
 A malformed block keeps the Webapp off (the listener stays private), and the reason reaches the user:
-``webapp_settings`` returns it, the gateway reports the Webapp unavailable with it, and ``hermes webapp``
+``webapp_settings`` returns it, the gateway reports the Webapp unavailable with it, and ``a2assistant webapp``
 prints it instead of telling the user to set ``webapp.enabled: true`` when it is already set.
 """
 import asyncio
@@ -108,7 +108,7 @@ def _gateway(monkeypatch, tmp_path, config):
     from gateway.control_socket import GatewayControlServer
 
     home = _home(tmp_path, config)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     async def start(runner, *, host="127.0.0.1", port=0, webapp=None):
         return SimpleNamespace(api_origin=f"http://127.0.0.1:{port or 50001}")

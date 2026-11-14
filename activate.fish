@@ -4,7 +4,7 @@
 #
 # The fish counterpart of ./activate: applies the composed pm env to the
 # CURRENT shell, with save/restore (`deactivate` undoes exactly what activation
-# changed), makes `hermes` a function for this checkout, and prefixes the prompt
+# changed), makes `a2assistant` a function for this checkout, and prefixes the prompt
 # with the worktree name. Scripts and other processes run under
 # `scripts/run-in-hermes-env` instead.
 #
@@ -50,7 +50,7 @@ for name in $__hermes_keys
 end
 string join \n -- $composed | source
 
-# This checkout, not whichever `hermes` PATH finds. A function beats PATH.
+# This checkout, not whichever `a2assistant` PATH finds. A function beats PATH.
 set -g __hermes_worktree $repo
 # The branch names the worktree. A checkout cannot share a branch with another.
 set -g __hermes_worktree_name (git -C $repo rev-parse --abbrev-ref HEAD 2>/dev/null)
@@ -64,9 +64,9 @@ function __hermes_worktree_here
     test (path resolve $top) = (path resolve $__hermes_worktree)
 end
 
-function hermes --description 'hermes of the activated checkout'
+function a2assistant --description 'a2assistant of the activated checkout'
     if not __hermes_worktree_here
-        echo "hermes: $PWD is outside $__hermes_worktree; refusing (the installed command is hidden while this checkout is active)" >&2
+        echo "a2assistant: $PWD is outside $__hermes_worktree; refusing (the installed command is hidden while this checkout is active)" >&2
         return 1
     end
     set -l python python
@@ -82,6 +82,10 @@ function hermes --description 'hermes of the activated checkout'
     set -l code $status
     popd >/dev/null
     return $code
+end
+
+function hermes --description "deprecated alias of a2assistant"
+    a2assistant $argv
 end
 
 functions -c fish_prompt __hermes_saved_fish_prompt
@@ -107,5 +111,5 @@ function deactivate --description 'undo activate.fish'
     functions -c __hermes_saved_fish_prompt fish_prompt
     functions -e __hermes_saved_fish_prompt
     set -eg __hermes_keys __hermes_worktree __hermes_worktree_name
-    functions -e deactivate hermes __hermes_worktree_here
+    functions -e deactivate a2assistant hermes __hermes_worktree_here
 end

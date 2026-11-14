@@ -24,7 +24,7 @@ def webapp_client(monkeypatch, tmp_path):
     """The loopback Webapp's API: the browser credential in the session header, no files root."""
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", raising=False)
     monkeypatch.setenv("HOME", str(home))
     for key, value in (("auth_required", False), ("bound_host", None), ("ui_surface", "webapp")):
         monkeypatch.setattr(web_server.app.state, key, value, raising=False)

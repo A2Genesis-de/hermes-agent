@@ -7,6 +7,7 @@ late-bound via ``_kb`` (import-cycle breaking) so monkeypatching
 
 from __future__ import annotations
 
+from hermes_constants import unset_env
 import contextlib
 import os
 import re
@@ -158,7 +159,7 @@ def describe_suppression(results: Iterable[Optional[DispatchResult]]) -> str:
     memory_pressure=critical`` — the respawn-guard reasons counted per task
     plus the tick-level holds. Feeds the "dispatcher stuck" warnings of the
     CLI daemon and the embedded gateway dispatcher, which otherwise report a
-    bare zero-spawn count while ``hermes kanban tail`` is the only place the
+    bare zero-spawn count while ``a2assistant kanban tail`` is the only place the
     guard reason is written (#111910).
     """
     counts: dict[str, int] = {}
@@ -1771,7 +1772,7 @@ def _dispatch_profile_allowlist(normalize_profile_name) -> Optional[frozenset]:
 def dispatch_profile_allowlist_summary() -> str:
     """Human-readable resolution of ``kanban.dispatch_profiles`` for this home.
 
-    Surfaced by ``hermes kanban diagnostics`` so an operator on a shared board
+    Surfaced by ``a2assistant kanban diagnostics`` so an operator on a shared board
     can see what a home believes it may claim (#113620): ``any`` (key absent),
     the sorted allowed names, or ``none (fail-closed: ...)``.
     """
@@ -1926,7 +1927,7 @@ def count_running_tasks_other_boards(board: Optional[str] = None) -> int:
 
     Caps bound the HOST, but each board's tick only sees its own DB; without
     this a derived cap of N gets multiplied by the number of active boards.
-    Boards are matched by resolved DB path, so ``HERMES_KANBAN_DB`` (pins every
+    Boards are matched by resolved DB path, so ``A2ASSISTANT_KANBAN_DB`` (pins every
     board to one file) yields 0. Fails open per board.
     """
     try:
@@ -2466,7 +2467,7 @@ def _positive_int(value: Any, default: int, *, minimum: int = 1) -> int:
 
 def _module_hermes_argv() -> list[str]:
     """Interpreter-bound Hermes CLI invocation (``hermes_cli.main`` is the
-    console-script target — there is no top-level ``hermes`` package)."""
+    console-script target — there is no top-level ``a2assistant`` package)."""
     return [sys.executable, "-m", "hermes_cli.main"]
 
 
@@ -2529,21 +2530,21 @@ def _hermes_path_argv(path: str) -> list[str]:
 
 
 def _resolve_hermes_argv() -> list[str]:
-    """Resolve the ``hermes`` invocation as argv for ``Popen``: ``$HERMES_BIN``
+    """Resolve the ``a2assistant`` invocation as argv for ``Popen``: ``$A2ASSISTANT_BIN``
     (path-like -> absolute; bare names keep PATH semantics, never a
     same-directory file), then the running interpreter's ``sys.executable -m
     hermes_cli.main`` (exactly this install; also covers shim-less cron,
     systemd ``User=``, launchd), then ``which("hermes")`` (Windows: safe PATH
     search, batch shims fall back to the module form) only when ``hermes_cli``
     is not importable. The module argv must win over PATH: a PATH-first lookup
-    lets an attacker-planted ``hermes`` shadow the running install (#111569).
+    lets an attacker-planted ``a2assistant`` shadow the running install (#111569).
     Mirrors ``gateway.run._resolve_hermes_bin``; local because ``hermes_cli``
     sits below ``gateway`` in the dependency order.
     """
     import importlib.util
     import shutil
 
-    env_bin = os.environ.get("HERMES_BIN", "").strip()
+    env_bin = os.environ.get("A2ASSISTANT_BIN", "").strip()
     if env_bin:
         if _looks_like_path(env_bin):
             return _hermes_path_argv(env_bin)
@@ -2558,7 +2559,9 @@ def _resolve_hermes_argv() -> list[str]:
     except Exception:
         pass
 
-    hermes_bin = _safe_which_no_cwd("hermes") if _kb._IS_WINDOWS else shutil.which("hermes")
+    from hermes_cli.service_names import CLI_COMMANDS
+    which = _safe_which_no_cwd if _kb._IS_WINDOWS else shutil.which
+    hermes_bin = next(filter(None, map(which, CLI_COMMANDS)), None)
     if hermes_bin:
         return _hermes_path_argv(hermes_bin)
     return _module_hermes_argv()
@@ -2646,7 +2649,7 @@ def _resolve_worker_cli_toolsets(hermes_home: Optional[str]) -> Optional[list[st
     worker startup cannot fall back to a stale root/active-profile config or a
     profile whose top-level ``toolsets`` is only the kanban orchestrator
     surface. ``model_tools`` still appends the task-scoped kanban lifecycle
-    tools when ``HERMES_KANBAN_TASK`` is set.
+    tools when ``A2ASSISTANT_KANBAN_TASK`` is set.
     """
     if not hermes_home:
         return None
@@ -2660,7 +2663,7 @@ def _resolve_worker_cli_toolsets(hermes_home: Optional[str]) -> Optional[list[st
         return toolsets or None
     except Exception as exc:
         _kb._log.debug(
-            "kanban worker: could not resolve CLI toolsets for HERMES_HOME=%r (%s)",
+            "kanban worker: could not resolve CLI toolsets for A2ASSISTANT_HOME=%r (%s)",
             hermes_home,
             exc,
         )
@@ -2703,7 +2706,7 @@ def _worker_argv(task: Task, profile_arg: str, hermes_home: Optional[str]) -> li
 def _open_worker_log(task: Task, board: Optional[str]):
     """Append-mode per-task log (a re-run on unblock appends, never overwrites),
     rotated first. Anchored at the board root (not the shared kanban root) so
-    `hermes kanban log` reads its own file and boards sharing task ids don't
+    `a2assistant kanban log` reads its own file and boards sharing task ids don't
     collide."""
     log_dir = _kb.worker_logs_dir(board=board)
     log_dir.mkdir(parents=True, exist_ok=True)
@@ -2752,12 +2755,12 @@ def _restart_safe_worker_argv(task: Task, command: list[str]) -> list[str]:
 
 
 def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -> Optional[int]:
-    """Fire-and-forget ``hermes -p <profile> chat -q ...`` subprocess.
+    """Fire-and-forget ``a2assistant -p <profile> chat -q ...`` subprocess.
 
     Returns the child's PID so the dispatcher can detect crashes before the
     claim TTL expires; completion is still observed via the worker's own
     ``complete`` / ``block`` transitions. ``board`` pins the child's
-    ``HERMES_KANBAN_DB`` / ``HERMES_KANBAN_BOARD`` / workspaces_root to the
+    ``A2ASSISTANT_KANBAN_DB`` / ``A2ASSISTANT_KANBAN_BOARD`` / workspaces_root to the
     board the task was claimed from, so workers cannot see other boards.
     """
     if not task.assignee:
@@ -2802,17 +2805,17 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
     # profile root because `hermes -p` applies its override before
     # hermes_constants is imported.
     if profile_home:
-        env["HERMES_HOME"] = profile_home
+        env["A2ASSISTANT_HOME"] = profile_home
         # A multiplexer dispatching for another profile must not hand it the launch
         # profile's .env settings / TERMINAL_* policy — a standalone dispatcher never would.
         strip_launch_profile_env(env, profile_home)
     if task.tenant:
-        env["HERMES_TENANT"] = task.tenant
-    env["HERMES_KANBAN_TASK"] = task.id
-    env["HERMES_KANBAN_WORKSPACE"] = workspace
+        env["A2ASSISTANT_TENANT"] = task.tenant
+    env["A2ASSISTANT_KANBAN_TASK"] = task.id
+    env["A2ASSISTANT_KANBAN_WORKSPACE"] = workspace
     # Tag the session `kanban` so session-browsing surfaces filter it out by
     # source instead of rendering one sidebar row per attempt.
-    env["HERMES_SESSION_SOURCE"] = "kanban"
+    env["A2ASSISTANT_SESSION_SOURCE"] = "kanban"
     # TERMINAL_CWD takes precedence over process cwd in file_tools and
     # build_context_files_prompt; without it relative writes land in the gateway
     # user's home and workers load the gateway's AGENTS.md. file_tools rejects
@@ -2827,39 +2830,35 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
     if workspace and os.path.isabs(workspace) and os.path.isdir(workspace):
         env["TERMINAL_CWD"] = workspace
     if task.branch_name:
-        env["HERMES_KANBAN_BRANCH"] = task.branch_name
+        env["A2ASSISTANT_KANBAN_BRANCH"] = task.branch_name
     if task.current_run_id is not None:
-        env["HERMES_KANBAN_RUN_ID"] = str(task.current_run_id)
+        env["A2ASSISTANT_KANBAN_RUN_ID"] = str(task.current_run_id)
     if task.claim_lock:
-        env["HERMES_KANBAN_CLAIM_LOCK"] = task.claim_lock
+        env["A2ASSISTANT_KANBAN_CLAIM_LOCK"] = task.claim_lock
     # Goal-loop mode (Ralph-style /goal judge loop in cli.py quiet-mode path).
     # Only set when enabled so non-goal tasks keep a clean env.
     if task.goal_mode:
-        env["HERMES_KANBAN_GOAL_MODE"] = "1"
+        env["A2ASSISTANT_KANBAN_GOAL_MODE"] = "1"
         if task.goal_max_turns is not None:
-            env["HERMES_KANBAN_GOAL_MAX_TURNS"] = str(int(task.goal_max_turns))
+            env["A2ASSISTANT_KANBAN_GOAL_MAX_TURNS"] = str(int(task.goal_max_turns))
     for var in ("TERMINAL_TIMEOUT", "TERMINAL_MAX_FOREGROUND_TIMEOUT"):
         override = _worker_terminal_timeout_env(task.max_runtime_seconds, env.get(var))
         if override is not None:
             env[var] = override
     # Pin the board DB + workspaces root so the worker's kanban paths still
     # match after `hermes -p` rewrites HERMES_HOME (symlink / Docker layouts).
-    env["HERMES_KANBAN_DB"] = str(_kb.kanban_db_path(board=board))
-    env["HERMES_KANBAN_WORKSPACES_ROOT"] = str(_kb.workspaces_root(board=board))
+    env["A2ASSISTANT_KANBAN_DB"] = str(_kb.kanban_db_path(board=board))
+    env["A2ASSISTANT_KANBAN_WORKSPACES_ROOT"] = str(_kb.workspaces_root(board=board))
     # Board slug — defense-in-depth pin if a path is resolved without the
     # DB / workspaces env vars.
-    env["HERMES_KANBAN_BOARD"] = _kb._normalize_board_slug(board) or _kb.get_current_board()
-    # kanban_comment reads HERMES_PROFILE for its default author; `-p` alone
-    # doesn't set the env var.
-    env["HERMES_PROFILE"] = profile_arg
+    env["A2ASSISTANT_KANBAN_BOARD"] = _kb._normalize_board_slug(board) or _kb.get_current_board()
+    env["A2ASSISTANT_PROFILE"] = profile_arg
     # This is the grant boundary: the dispatcher assigned this new worker's task.
     from agent.delegation_context import DELEGATED_CHILD_ENV_MARKER
     env.pop(DELEGATED_CHILD_ENV_MARKER, None)
-    # `--cli` is the highest-precedence TUI override; dropping HERMES_TUI covers
-    # older hermes builds on PATH that predate the flag's precedence.
-    env.pop("HERMES_TUI", None)
+    unset_env(env, "TUI")
 
-    cmd = _worker_argv(task, profile_arg, env.get("HERMES_HOME"))
+    cmd = _worker_argv(task, profile_arg, env.get("A2ASSISTANT_HOME"))
     # The worker is `-m hermes_cli.kanban_worker_client`: Hermes itself, with no console-script
     # bootstrap. The routed-profile scrub above strips Hermes-owned PYTHONPATH entries (user
     # children must not see our tree), so a PYTHONPATH-launched dispatcher spawned a child that
@@ -2888,7 +2887,7 @@ def _default_spawn(task: Task, workspace: str, *, board: Optional[str] = None) -
     except FileNotFoundError:
         log_f.close()
         raise RuntimeError(
-            "`hermes` executable not found on PATH. "
+            "`a2assistant` executable not found on PATH. "
             "Install A2Assistant or activate its venv before running the kanban dispatcher."
         )
     # Intentionally NOT closing log_f: the child keeps writing after return;
@@ -2915,7 +2914,7 @@ def run_daemon(
     Calls :func:`dispatch_once` every ``interval`` seconds; exits cleanly on
     SIGINT / SIGTERM so it is systemd-friendly. ``stop_event`` and ``on_tick``
     are test hooks. Each tick resolves ``kanban.max_in_progress`` exactly like
-    the gateway dispatcher and ``hermes kanban dispatch`` — the standalone
+    the gateway dispatcher and ``a2assistant kanban dispatch`` — the standalone
     daemon must not be the one uncapped entry point.
     """
     import threading

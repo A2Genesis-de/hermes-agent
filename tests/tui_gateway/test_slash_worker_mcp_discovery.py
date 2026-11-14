@@ -69,7 +69,7 @@ def test_profile_local_mcp_tool_is_visible_in_slash_worker(tmp_path):
     for key in list(env):
         if key.endswith("_API_KEY") or key.endswith("_TOKEN"):
             env.pop(key)
-    env["HERMES_HOME"] = str(profile_home)
+    env["A2ASSISTANT_HOME"] = str(profile_home)
     env["PYTHONPATH"] = str(Path(__file__).resolve().parents[2])
     proc = subprocess.Popen(
         [

@@ -19,7 +19,7 @@ from hermes_cli import web_server
 @pytest.fixture
 def connection(monkeypatch, tmp_path):
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     return store.save_connection({"kind": "ssh", "label": "Fixture SSH", "host": "fixture.example",
                                   "user": "fixture", "remoteProfile": "research"})[0]
 

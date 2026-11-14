@@ -523,7 +523,7 @@ interface GatewayErrorLike {
   message?: unknown
 }
 
-/** "This session does not exist" from either backend: 4007 from a `hermes serve`
+/** "This session does not exist" from either backend: 4007 from a `a2assistant serve`
  *  socket, a 4001 refusal whose reason is `not_found` from the gateway that owns
  *  local sessions (gateway/session_controls.py). Only this answer may lead to
  *  minting a fresh member session; every other failure fails closed. The

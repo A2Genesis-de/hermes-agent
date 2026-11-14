@@ -1,4 +1,4 @@
-"""Gateway runtime status helpers: PID/lock/marker files under ``{HERMES_HOME}`` (one set per
+"""Gateway runtime status helpers: PID/lock/marker files under ``{A2ASSISTANT_HOME}`` (one set per
 home/profile) that tell whether the gateway daemon is running."""
 
 import asyncio
@@ -27,6 +27,7 @@ from gateway.status_inline_source import (
     inline_bootstrap_argv,
     inline_source_flag_index,
 )
+from hermes_cli.service_names import CLI_COMMANDS, SYSTEMD_GATEWAY_UNITS
 from hermes_constants import _get_platform_default_hermes_home, get_hermes_home, get_process_hermes_home
 from hermes_cli._subprocess_compat import pid_exists_stdlib
 from gateway.status_lock_dir import unusable_lock_dir, unusable_lock_dir_recovered
@@ -238,19 +239,19 @@ def record_start_and_check_storm(
 
 
 def _get_process_hermes_home() -> Path:
-    """Launch-home HERMES_HOME for identity files (PID, lock, status, markers):
+    """Launch-home A2ASSISTANT_HOME for identity files (PID, lock, status, markers):
     ``get_hermes_home()`` honors the per-session ``_HERMES_HOME_OVERRIDE`` and would misroute
     them."""
     return get_process_hermes_home()
 
 
 def _canonical_hermes_home(path: Path | str) -> Path:
-    """Stable absolute HERMES_HOME path for persisted identity data."""
+    """Stable absolute A2ASSISTANT_HOME path for persisted identity data."""
     return Path(path).expanduser().resolve(strict=False)
 
 
 def _same_hermes_home(left: Path | str, right: Path | str) -> bool:
-    """Compare HERMES_HOME paths with the host platform's case semantics."""
+    """Compare A2ASSISTANT_HOME paths with the host platform's case semantics."""
     left_c = os.path.normcase(str(_canonical_hermes_home(left)))
     return left_c == os.path.normcase(str(_canonical_hermes_home(right)))
 
@@ -258,7 +259,7 @@ def _same_hermes_home(left: Path | str, right: Path | str) -> bool:
 def recorded_gateway_home_conflicts(
     record: Optional[dict[str, Any]], *, expected_home: Optional[Path | str] = None
 ) -> bool:
-    """True when a persisted gateway record names a DIFFERENT HERMES_HOME (cross-profile kill guard:
+    """True when a persisted gateway record names a DIFFERENT A2ASSISTANT_HOME (cross-profile kill guard:
     profile B's stop must never SIGTERM profile A). ``expected_home`` overrides the comparison base.
     Legacy records without ``hermes_home`` prove nothing -> False; a comparison failure fails
     closed -> True."""
@@ -319,15 +320,15 @@ def _get_runtime_status_path() -> Path:
 
 
 def _get_lock_dir() -> Path:
-    """Cross-profile rendezvous dir for machine-local locks; ``HERMES_GATEWAY_LOCK_DIR`` overrides.
+    """Cross-profile rendezvous dir for machine-local locks; ``A2ASSISTANT_GATEWAY_LOCK_DIR`` overrides.
 
     Scope is the **OS user**, not the kernel host: separate users have separate ``$HOME``s,
-    separate ``~/.hermes`` profile roots and separate credentials, so "one gateway per host"
+    separate ``~/.a2assistant`` profile roots and separate credentials, so "one gateway per host"
     means "one per host per OS user". Holds the token-scoped locks (:func:`acquire_scoped_lock`)
     and the host-role lock + rendezvous record (``gateway/host_rendezvous.py``); the per-home
-    ``gateway.pid``/``gateway.lock`` above deliberately stay under each profile's HERMES_HOME.
+    ``gateway.pid``/``gateway.lock`` above deliberately stay under each profile's A2ASSISTANT_HOME.
     """
-    override = os.getenv("HERMES_GATEWAY_LOCK_DIR")
+    override = os.getenv("A2ASSISTANT_GATEWAY_LOCK_DIR")
     if override:
         return Path(override)
     # XDG spec: a relative $XDG_STATE_HOME is INVALID and must be ignored. Honouring one made the
@@ -382,11 +383,11 @@ def retained_gateway_state(runtime: Any) -> str:
     ``"startup_failed"`` (or a watchdog-stamped ``"degraded"``) only while the operator still
     wants it running, else ``"stopped"``.
 
-    ``hermes gateway stop`` keeps the last ``startup_failed`` + ``exit_reason`` on disk for
+    ``a2assistant gateway stop`` keeps the last ``startup_failed`` + ``exit_reason`` on disk for
     diagnostics and records the durable stop intent as ``desired_state``; a profile the operator
     stopped is "stopped", not a current failure. A watchdog exit (``degraded`` + an exit_reason in
     ``WATCHDOG_EXIT_REASONS``) is the same kind of current failure as ``startup_failed`` and is kept
-    under the same rule, so the dashboard agrees with ``hermes gateway status``. Any other retained
+    under the same rule, so the dashboard agrees with ``a2assistant gateway status``. Any other retained
     state of a dead process (``running``, ``starting``, missing) is just "stopped". Shared by
     ``/api/status`` and ``/api/messaging/platforms`` so the sidebar strip and the Channels page
     cannot disagree."""
@@ -579,17 +580,13 @@ def _gateway_command_subcommand(command: str | None) -> str | None:
         return "run"
     if any(tokens[i] == "-m" and tokens[i + 1] == "gateway.run" for i in range(len(tokens) - 1)):
         return "run"
-    # Atomic Hermes' bundled desktop runner shares HERMES_HOME with the CLI; without this,
-    # `gateway run --replace` does not recognise it as a running gateway, skips the
-    # terminate-and-scoped-lock-handoff path, and collides with its still-held scoped locks
-    # (e.g. the Discord bot-token lock). See #22418.
     if any(b == "desktop-gateway.py" for b in basenames):
         return "run"
-    if any(b in ("hermes-gateway", "hermes-gateway.exe") for b in basenames):
+    if any(b.removesuffix(".exe") in SYSTEMD_GATEWAY_UNITS for b in basenames):
         return "run"
     joined = " ".join(tokens)
     if "hermes_cli.main" not in joined and "hermes_cli/main.py" not in joined and not any(
-        b in ("hermes", "hermes.exe") for b in basenames
+        b.removesuffix(".exe") in CLI_COMMANDS for b in basenames
     ):
         return None
     # Drop --profile X / -p X / --profile=X / -p=X (consumes a VALUE of "gateway" too).
@@ -686,15 +683,15 @@ def profile_flag_value(command: str) -> Optional[str]:
     return None
 
 
-_HERMES_HOME_ASSIGNMENT_RE = re.compile(r"(?:^|\s)hermes_home=(?:\"([^\"]*)\"|'([^']*)'|(\S+))")
+_HERMES_HOME_ASSIGNMENT_RE = re.compile(r"(?:^|\s)(?:hermes|a2assistant)_home=(?:\"([^\"]*)\"|'([^']*)'|(\S+))")
 
 
 def hermes_home_assignments(command: str) -> list[str]:
-    """Values of every ``HERMES_HOME=<value>`` assignment in ``command`` (the caller lowercases
+    """Values of every ``A2ASSISTANT_HOME=<value>`` assignment in ``command`` (the caller lowercases
     and normalizes separators). Values are token-bounded, quotes stripped: the substring test
-    this replaces let ``HERMES_HOME=/root/profiles/ops`` claim a ``/root/profiles/ops2`` gateway.
+    this replaces let ``A2ASSISTANT_HOME=/root/profiles/ops`` claim a ``/root/profiles/ops2`` gateway.
     The name is token-bounded too (``FOO=hermes_home=/x`` is not an assignment), and a trailing
-    separator on the value is stripped -- ``HERMES_HOME=/root/.hermes/`` (systemd ``Environment=``
+    separator on the value is stripped -- ``A2ASSISTANT_HOME=/root/.hermes/`` (systemd ``Environment=``
     or a shell wrapper spelling) is the same home as ``/root/.hermes``; callers strip the profile
     home the same way."""
     return [
@@ -704,20 +701,20 @@ def hermes_home_assignments(command: str) -> list[str]:
 
 
 def command_line_names_hermes_home(command_lc: str, home_lc: str) -> bool:
-    """True when ``command_lc`` carries ``HERMES_HOME=<home_lc>`` (both lowercased, ``/``-separated,
+    """True when ``command_lc`` carries ``A2ASSISTANT_HOME=<home_lc>`` (both lowercased, ``/``-separated,
     no trailing separator). Argv reaches us space-joined, so an unquoted value with a space in it
-    (``HERMES_HOME=C:/Users/John Doe/.hermes``) is cut at the space by the token parser; a
+    (``A2ASSISTANT_HOME=C:/Users/John Doe/.hermes``) is cut at the space by the token parser; a
     token-bounded literal match of the whole home recovers that spelling."""
     if home_lc in hermes_home_assignments(command_lc):
         return True
-    return re.search(rf"(?:^|\s)hermes_home={re.escape(home_lc)}/?(?=\s|$)", command_lc) is not None
+    return re.search(rf"(?:^|\s)(?:hermes|a2assistant)_home={re.escape(home_lc)}/?(?=\s|$)", command_lc) is not None
 
 
 def _command_line_belongs_to_profile(command: str, profile_home: Path) -> bool:
     """True when a gateway command line belongs to ``profile_home`` (mirrors
     ``hermes_cli.gateway._matches_current_profile``): a stale state file can record a PID recycled
     onto ANOTHER profile's live gateway. Named profiles carry ``-p``/``--profile <name>`` or
-    ``HERMES_HOME=`` on argv; the default gateway runs bare. Separators normalized."""
+    ``A2ASSISTANT_HOME=`` on argv; the default gateway runs bare. Separators normalized."""
     command_lc = command.lower().replace("\\", "/")
     profile_name = _profile_name_for_home(profile_home)
     home_lc = str(profile_home).lower().replace("\\", "/").rstrip("/")
@@ -801,7 +798,7 @@ def _get_code_identity_fields() -> dict[str, Any]:
     Lazy import keeps ``gateway.status`` free of ``hermes_cli`` at import time. Never raises.
 
     A gateway keeps serving the module versions it imported at startup, so stamping the identity into
-    ``gateway_state.json`` lets `hermes update` (and the dashboard) prove whether a running gateway actually
+    ``gateway_state.json`` lets `a2assistant update` (and the dashboard) prove whether a running gateway actually
     picked up new code after the restart phase — instead of assuming it did (#88654, #69754). Never raises;
     degrades to absent fields.
     """
@@ -816,7 +813,7 @@ def _get_code_identity_fields() -> dict[str, Any]:
 
 def _pid_record_belongs_to_current_profile(record: Optional[dict[str, Any]]) -> bool:
     """True when the record's ``hermes_home`` matches the current process (legacy records: True);
-    another HERMES_HOME's record must be ignored or the default gateway assumes its identity."""
+    another A2ASSISTANT_HOME's record must be ignored or the default gateway assumes its identity."""
     if not isinstance(record, dict):
         return False
     record_home = record.get("hermes_home")
@@ -1298,7 +1295,7 @@ def multiplexer_liveness_for_profile(profile_dir: Path) -> Optional[tuple[int, d
     resolving from the host rendezvous record (``gateway/host_topology.py``) is what lets it be
     reported as SERVED rather than only as owner. A served profile owns no
     ``gateway.pid``/``gateway_state.json`` (#97120), so every PID-file rung of the dashboard ladder
-    reports it stopped while ``hermes -p X status`` says running — the two must agree.
+    reports it stopped while ``a2assistant -p X status`` says running — the two must agree.
     """
     name = profile_name_for_home(Path(profile_dir))
     if not name:
@@ -1626,7 +1623,7 @@ def _pid_marker_names_self(target_pid: int, target_start_time: Any) -> bool:
     times known -> must match; either unknown -> PID equality decides (bounded by the marker TTL):
     ``_get_process_start_time`` is None without /proc (macOS, native Windows -- where the
     planned-stop watcher matters most) and requiring a match there would misclassify a legitimate
-    ``hermes gateway stop`` as an unexpected exit revived by the service manager."""
+    ``a2assistant gateway stop`` as an unexpected exit revived by the service manager."""
     if target_pid != os.getpid():
         return False
     our_start_time = _get_process_start_time(target_pid)

@@ -162,12 +162,12 @@ def test_write_text_file_respects_safe_root(client, tmp_path):
     safe_root.mkdir()
     outside = tmp_path / "outside.txt"
 
-    with patch.dict(os.environ, {"HERMES_WRITE_SAFE_ROOT": str(safe_root)}, clear=False):
+    with patch.dict(os.environ, {"A2ASSISTANT_WRITE_SAFE_ROOT": str(safe_root)}, clear=False):
         response = _dispatch(client, _request("fs/write_text_file", {"path": str(outside), "content": "should-not-write"}),
                              cwd=str(tmp_path))
 
     assert "error" in response
-    assert "HERMES_WRITE_SAFE_ROOT" in str(response["error"])
+    assert "A2ASSISTANT_WRITE_SAFE_ROOT" in str(response["error"])
     assert not outside.exists()
 
 
@@ -449,11 +449,11 @@ def test_run_prompt_preserves_real_home_when_profile_home_available(monkeypatch,
     real_home = tmp_path / "real-home"
     real_home.mkdir()
     monkeypatch.setenv("HOME", str(real_home))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     # Hermeticity: an ambient HERMES_REAL_HOME / TERMINAL_HOME_MODE outranks HOME in the candidate
     # ladder, and a containerized runner flips get_subprocess_home()'s auto mode; the host branch is
     # the contract under test.
-    monkeypatch.delenv("HERMES_REAL_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_REAL_HOME", raising=False)
     monkeypatch.delenv("TERMINAL_HOME_MODE", raising=False)
     monkeypatch.setattr("hermes_constants.is_container", lambda: False)
     captured = {}
@@ -465,12 +465,12 @@ def test_run_prompt_preserves_real_home_when_profile_home_available(monkeypatch,
         _launch_client(tmp_path)._run_prompt("hello", timeout_seconds=1)
 
     assert captured["kwargs"]["env"]["HOME"] == str(real_home)
-    assert captured["kwargs"]["env"]["HERMES_REAL_HOME"] == str(real_home)
+    assert captured["kwargs"]["env"]["A2ASSISTANT_REAL_HOME"] == str(real_home)
 
 
 def test_run_prompt_passes_home_when_parent_env_is_clean(monkeypatch, tmp_path):
     monkeypatch.delenv("HOME", raising=False)
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     captured = {}
 
     with patch("agent.acp_client.subprocess.run", side_effect=FileNotFoundError), \

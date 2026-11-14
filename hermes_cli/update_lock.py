@@ -12,7 +12,7 @@ Two artifacts, one authority each:
   An owner is live while its pid is alive and its creation time still matches: never by age
   (the 20-minute ceiling only ages out v1 markers, which carry no creation time).
 * The checkout lock ``<git common dir>/hermes-update.lock`` (``<install root>/.hermes-update.lock``
-  for a ZIP install with no ``.git``) — a kernel lock (flock / msvcrt) that ``hermes update``
+  for a ZIP install with no ``.git``) — a kernel lock (flock / msvcrt) that ``a2assistant update``
   holds for its whole process tree, so two updates of one checkout started from different
   homes exclude each other and a killed updater whose completion child still runs keeps the
   checkout locked until that child exits. In the git dir it is never a worktree file: no
@@ -64,7 +64,7 @@ GIT_CHECKOUT_LOCK_NAME = "hermes-update.lock"
 # spawning `hermes update` as a child stage; the parent holds the marker for its whole run,
 # so without this the child would refuse its own parent's lock. Keep in sync with
 # update_child_env in apps/bootstrap-installer/src-tauri/src/update.rs.
-HANDOFF_PID_ENV = "HERMES_UPDATE_HANDOFF_PID"
+HANDOFF_PID_ENV = "A2ASSISTANT_UPDATE_HANDOFF_PID"
 
 # Bound on the parent chain walked by _is_ancestor_pid. Real ancestries are a
 # handful of links (init -> desktop -> staged updater -> shim -> us); the cap
@@ -91,14 +91,16 @@ _FILETIME_UNIX_EPOCH = 116444736000000000
 def update_marker_path() -> Path:
     """Path of the shared update marker: always the profile-tree ROOT home.
 
-    A sticky or ``-p`` profile re-homes ``HERMES_HOME`` to ``<root>/profiles/<p>``; the Desktop,
+    A sticky or ``-p`` profile re-homes ``A2ASSISTANT_HOME`` to ``<root>/profiles/<p>``; the Desktop,
     the hand-off scripts and the Tauri updater all look at the root, so a profile-scoped marker
     would be one the other owners never see.
     """
     try:
         from hermes_constants import get_default_hermes_root
     except ImportError:  # a partial tree (an -I -S completion child of a stubbed checkout)
-        home = Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes")
+        home = Path(os.environ.get("A2ASSISTANT_HOME") or os.environ.get("HERMES_HOME") or next(
+            (path for path in (Path.home() / ".a2assistant", Path.home() / ".hermes") if path.is_dir()),
+            Path.home() / ".a2assistant"))
         root = home.parent.parent if home.parent.name == "profiles" else home
         return root / MARKER_NAME
     return get_default_hermes_root() / MARKER_NAME
@@ -469,7 +471,7 @@ def _stdlib_parent_pid(pid: int) -> int | None:
 def _is_ancestor_pid(pid: int) -> bool:
     """True when ``pid`` is a live ancestor of this process.
 
-    The orchestrating updater spawns ``hermes update`` as a (grand)child, so a live marker
+    The orchestrating updater spawns ``a2assistant update`` as a (grand)child, so a live marker
     owned by one of our ancestors can only be the claim we are already running under — an
     unrelated concurrent updater is never in our parent chain. This heals the fleet of staged
     ``hermes-setup`` binaries that predate the HANDOFF_PID_ENV export and can never send it.
@@ -547,7 +549,7 @@ def _runtime_host_below(holder_pid: int) -> bool:
     """True when a Hermes gateway/serve/dashboard sits between us and *holder_pid* (or anywhere
     above us when the holder is not reached).
 
-    Such a host is relaunched BY an update and outlives its stages; a ``hermes update`` its agent
+    Such a host is relaunched BY an update and outlives its stages; a ``a2assistant update`` its agent
     or ``/update`` starts is an independent update that must not run under the first one's claim
     (cli §7 V9). Unreadable command lines count as not-a-host (the legacy adoption stands).
     """
@@ -1000,7 +1002,7 @@ def describe_holder(holder: UpdateHolder | None) -> str:
             "  Updating without the lock could let two updates corrupt the install, or run\n"
             "  under a Desktop app, gateway or installer that cannot see it. Make that path\n"
             "  writable (fix its owner or permissions, or remount a read-only filesystem\n"
-            "  read-write), or run `hermes update` as the user that owns the install."
+            "  read-write), or run `a2assistant update` as the user that owns the install."
         )
     minutes, seconds = divmod(int(max(0 if holder is None else holder.age_seconds, 0)), 60)
     elapsed = f"{minutes}m {seconds}s" if minutes else f"{seconds}s"
@@ -1011,8 +1013,8 @@ def describe_holder(holder: UpdateHolder | None) -> str:
         f"✗ Another A2Assistant update is already running (started {elapsed} ago{who}).\n"
         "\n"
         "  Running two at once would corrupt the install. Wait for it to finish\n"
-        "  (watch `hermes logs`), or close the Desktop/dashboard window that\n"
-        "  started it, then run `hermes update` again."
+        "  (watch `a2assistant logs`), or close the Desktop/dashboard window that\n"
+        "  started it, then run `a2assistant update` again."
     )
 
 
@@ -1154,7 +1156,7 @@ def _lock_holder(fd_or_path) -> UpdateHolder:
 
 def _open_lock_file(path: Path) -> tuple[int | None, object]:
     """``(fd, True)`` read-write; ``(fd, False)`` read-only for an existing lock file we may not
-    write (left root-owned by a ``sudo hermes update``: the kernel lock works on a read-only fd,
+    write (left root-owned by a ``sudo a2assistant update``: the kernel lock works on a read-only fd,
     contract A5; POSIX only — a Windows owner needs its record); ``(None, reason)`` when neither opens."""
     # Never follow a link planted at the name: the holder record is written into this file.
     binary = getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
@@ -1252,7 +1254,7 @@ def _lock_with_contention_wait(fd: int, path: Path) -> bool:
 
 def _held_by_our_windows_ancestor(path: Path) -> bool:
     """Windows: the checkout lock's holder record names a LIVE incarnation of one of our
-    ancestors (the ``hermes update`` whose completion/build children we are)."""
+    ancestors (the ``a2assistant update`` whose completion/build children we are)."""
     if sys.platform != "win32":
         return False
     record = _parse_marker(_read_bytes(path) or b"")

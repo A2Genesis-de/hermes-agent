@@ -56,8 +56,8 @@ import { isRedoShortcut, isUndoShortcut } from '@/app/chat/composer/undo-history
 import { chipTypedUrlOnSpace, linkifyUrls } from '@/app/chat/composer/url-refs'
 import { type DropFailure, dropWarning } from '@/app/chat/hooks/drop-warning'
 import {
+  A2ASSISTANT_PATHS_MIME,
   extractDroppedFiles,
-  HERMES_PATHS_MIME,
   isImagePath,
   partitionDroppedFiles,
   stageDroppedFilePath
@@ -538,7 +538,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
   }, [])
 
   const handleDragEnter = (event: ReactDragEvent<HTMLElement>) => {
-    if (!dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!dragHasAttachments(event.dataTransfer, A2ASSISTANT_PATHS_MIME)) {
       return
     }
 
@@ -551,7 +551,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
   }
 
   const handleDragOver = (event: ReactDragEvent<HTMLElement>) => {
-    if (!dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!dragHasAttachments(event.dataTransfer, A2ASSISTANT_PATHS_MIME)) {
       return
     }
 
@@ -569,7 +569,7 @@ export const UserEditComposer: FC<UserEditComposerProps> = ({ cwd, gateway, sess
   }
 
   const handleDrop = (event: ReactDragEvent<HTMLElement>) => {
-    if (!dragHasAttachments(event.dataTransfer, HERMES_PATHS_MIME)) {
+    if (!dragHasAttachments(event.dataTransfer, A2ASSISTANT_PATHS_MIME)) {
       // A plain text drag within the editor mutates the DOM without a
       // React-visible beforeinput (insertFromDrop), so the undo snapshot has
       // to be banked here — before Chromium applies the move.

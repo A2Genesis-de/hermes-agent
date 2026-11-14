@@ -126,7 +126,7 @@ export function applyBargeInThresholdFromConfig(config: ConfigPayload) {
 // default 3.0 (hermes_cli/config_defaults.py), honoured by the CLI/TUI/gateway
 // capture paths (cli_voice_mixin.py, tui_gateway/methods_voice.py) but
 // previously hardcoded to 1.25 s in the desktop renderer's mic loop, so a
-// mid-thought pause cut the turn off and `hermes config set` had no effect.
+// mid-thought pause cut the turn off and `a2assistant config set` had no effect.
 // Stored in ms because that is what the loop's timers consume.
 //
 // `/api/config` merges DEFAULT_CONFIG, so an untouched install reports the

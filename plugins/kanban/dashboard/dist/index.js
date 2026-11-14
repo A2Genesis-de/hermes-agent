@@ -2,7 +2,7 @@
  * Hermes Kanban — Dashboard Plugin
  *
  * Board view for the multi-agent collaboration board backed by
- * ~/.hermes/kanban.db. Calls the plugin's backend at /api/plugins/kanban/
+ * ~/.a2assistant/kanban.db. Calls the plugin's backend at /api/plugins/kanban/
  * and tails task_events over a WebSocket for live updates.
  *
  * Plain IIFE, no build step. Uses window.__HERMES_PLUGIN_SDK__ for React +
@@ -1908,7 +1908,7 @@
     // Mode pill — always visible (collapsed or expanded). One click flips
     // between Auto and Manual. Auto = dispatcher decomposes new triage tasks
     // every tick. Manual = pre-PR behavior, the user clicks ⚗ Decompose on
-    // each triage card (or runs `hermes kanban decompose <id>`) and tasks
+    // each triage card (or runs `a2assistant kanban decompose <id>`) and tasks
     // stay in triage until then.
     const autoOn = !!(settings && settings.auto_decompose);
     const modePillTitle = settings === null
@@ -3208,7 +3208,7 @@
               }),
             ),
             h("span", { className: "hermes-kanban-card-id",
-                        title: `Task id: ${t.id}. Use this id with kanban_show, /kanban show, or hermes kanban show.` }, t.id),
+                        title: `Task id: ${t.id}. Use this id with kanban_show, /kanban show, or a2assistant kanban show.` }, t.id),
             t.warnings && t.warnings.count > 0
               ? h("span", {
                   className: cn(

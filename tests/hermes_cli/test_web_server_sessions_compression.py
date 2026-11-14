@@ -10,7 +10,7 @@ import pytest
 
 
 class _SessionsCompressionEndpoints:
-    """Shared harness: TestClient pair against the isolated HERMES_HOME store."""
+    """Shared harness: TestClient pair against the isolated A2ASSISTANT_HOME store."""
 
     @pytest.fixture(autouse=True)
     def _setup_test_client(self, monkeypatch, _isolate_hermes_home):

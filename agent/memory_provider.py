@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 def ctx_bound(fn: Callable[..., Any]) -> Callable[..., Any]:
     """Bind ``fn`` to the CALLER's contextvars for another thread/executor. Profile isolation
-    is a ContextVar-scoped HERMES_HOME override plus the per-turn secret scope; a worker started
+    is a ContextVar-scoped A2ASSISTANT_HOME override plus the per-turn secret scope; a worker started
     with an empty context silently lands on the default profile (or fails closed on secrets)."""
     ctx = contextvars.copy_context()
     return lambda *args, **kwargs: ctx.run(fn, *args, **kwargs)
@@ -96,7 +96,7 @@ class MemoryProvider(ABC):
 
     The manager runs tool calls and lifecycle hooks only from the profile the instance was initialized
     for (refusing callers that name another profile, or none on a multiplexed process), runs its
-    background hooks under that profile's ``HERMES_HOME``, and passes ``hermes_home`` /
+    background hooks under that profile's ``A2ASSISTANT_HOME``, and passes ``hermes_home`` /
     ``agent_identity`` / ``caller_gsk`` to ``handle_tool_call`` when it accepts ``**kwargs``. Those
     keywords name the same profile the instance is bound to; they are not a reason to rebind. Core
     cannot see inside a provider: one that keeps a process-wide binding still breaks this contract.
@@ -122,7 +122,7 @@ class MemoryProvider(ABC):
         """Initialize once at agent startup (connections, resources, threads).
 
         kwargs always include ``hermes_home`` (profile-scoped storage; never hardcode
-        ``~/.hermes``) and ``platform``; may include ``agent_context`` ("primary" |
+        ``~/.a2assistant``) and ``platform``; may include ``agent_context`` ("primary" |
         "subagent" | "cron" | "flush" — skip writes for non-primary contexts),
         ``agent_identity``, ``agent_workspace``, ``parent_session_id``, ``user_id``, ``user_id_alt``.
         Agent builds also pass ``resumed`` (bool: an earlier turn of this session id ran) and
@@ -213,7 +213,7 @@ class MemoryProvider(ABC):
         """PARENT-side observation of a completed delegation (the subagent has no provider session)."""
 
     def get_config_schema(self) -> list[dict[str, Any]]:
-        """Setup fields for ``hermes memory setup`` ([] if none): ``key``, ``description``,
+        """Setup fields for ``a2assistant memory setup`` ([] if none): ``key``, ``description``,
         optional ``secret`` (goes to .env), ``required``, ``default``, ``choices``, ``type``
         (text | integer | number | boolean), ``minimum``/``maximum``/``step``, ``url``,
         ``env_var`` (explicit secret env var; default auto-generated)."""
@@ -234,7 +234,7 @@ class MemoryProvider(ABC):
         """
 
     def backup_paths(self) -> list[str]:
-        """Absolute paths of provider state OUTSIDE HERMES_HOME for ``hermes backup``/``import``
+        """Absolute paths of provider state OUTSIDE A2ASSISTANT_HOME for ``a2assistant backup``/``import``
         (paths outside the home dir are skipped). MUST work without ``initialize()`` or network."""
         return []
 

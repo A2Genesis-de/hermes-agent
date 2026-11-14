@@ -52,4 +52,4 @@ def update_plugin(target: Path, **_options: Any) -> str:
     from hermes_cli.plugins_cmd import PluginOperationError
 
     raise PluginOperationError(
-        f"Plugin '{target.name}' is not updated in place; reinstall it with `hermes plugins install --force`.")
+        f"Plugin '{target.name}' is not updated in place; reinstall it with `a2assistant plugins install --force`.")

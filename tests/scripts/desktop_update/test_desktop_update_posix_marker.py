@@ -44,11 +44,11 @@ receipt = os.environ.get('HANDOFF_RECEIPT')  # outcome[,correlation][,unfinished
 if receipt and sys.argv[1:2] == ['update']:
     import json
     outcome, correlation, finished = (receipt.split(',') + ['', ''])[:3]
-    path = Path(os.environ['HERMES_HOME']) / 'logs' / 'update_receipts' / 'latest.json'
+    path = Path(os.environ['A2ASSISTANT_HOME']) / 'logs' / 'update_receipts' / 'latest.json'
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({
         'stages': [{'name': 'apply', 'outcome': 'failed'}],  # nested keys are never read
-        'correlation_id': correlation or os.environ.get('HERMES_UPDATE_CORRELATION_ID'),
+        'correlation_id': correlation or os.environ.get('A2ASSISTANT_UPDATE_CORRELATION_ID'),
         'outcome': outcome, 'finished_at': None if finished else '2026-10-05T12:00:00.000001+00:00',
     }, indent=2) + '\\n', encoding='utf-8')
 hold = os.environ.get('HANDOFF_HOLD')
@@ -103,10 +103,10 @@ def _install(tmp_path: Path, *, legacy: bool = False) -> tuple[Path, Path]:
 
 
 def _run(tmp_path: Path, home: Path, install: Path, *args: str, **env: str) -> subprocess.CompletedProcess:
-    full_env = {**os.environ, "HOME": str(tmp_path), "TMPDIR": str(tmp_path), "HERMES_HOME": str(home),
-                "HANDOFF_CAPTURE": str(tmp_path / "calls.txt"), "HERMES_RUNTIME_DIR": str(tmp_path / "store"),
-                "HERMES_UPDATE_SHIM_GRACE_SECONDS": "0", **env}
-    for key in ("PYTHONPATH", "PYTHONHOME", "HERMES_UPDATE_STARTED_AT"):
+    full_env = {**os.environ, "HOME": str(tmp_path), "TMPDIR": str(tmp_path), "A2ASSISTANT_HOME": str(home),
+                "HANDOFF_CAPTURE": str(tmp_path / "calls.txt"), "A2ASSISTANT_RUNTIME_DIR": str(tmp_path / "store"),
+                "A2ASSISTANT_UPDATE_SHIM_GRACE_SECONDS": "0", **env}
+    for key in ("PYTHONPATH", "PYTHONHOME", "A2ASSISTANT_UPDATE_STARTED_AT"):
         full_env.pop(key, None)
     full_env.update(env)
     return subprocess.run(["bash", str(POSIX), "--daemonized", "--no-ui", "--install-root", str(install), *args],
@@ -244,7 +244,7 @@ def test_committed_update_with_failed_followup_is_ok_with_warnings(tmp_path):
 
 @pytest.mark.parametrize(("outcome", "code"), [("interrupted", "130"), ("partial", "1"), ("success", "1")])
 def test_nonzero_exit_after_the_commit_point_is_installed_with_a_followup(tmp_path, outcome, code):
-    """Contract C3: `hermes update` exits 130 (Ctrl-C after the code moved) or 1 (a parked
+    """Contract C3: `a2assistant update` exits 130 (Ctrl-C after the code moved) or 1 (a parked
     autostash) AFTER its commit point. Its own receipt says so; the result must report the
     update installed with an owed follow-up, never ok:false / "still on the previous version"."""
     home, install = _install(tmp_path)
@@ -264,11 +264,11 @@ def test_handoff_interrupted_while_a_committed_update_finishes_is_still_installe
     passed the commit point. The hand-off's own interruption is then an owed follow-up."""
     home, install = _install(tmp_path)
     hold = tmp_path / "release-update"
-    env = {**os.environ, "HOME": str(tmp_path), "TMPDIR": str(tmp_path), "HERMES_HOME": str(home),
-           "HANDOFF_CAPTURE": str(tmp_path / "calls.txt"), "HERMES_RUNTIME_DIR": str(tmp_path / "store"),
-           "HERMES_UPDATE_SHIM_GRACE_SECONDS": "0", "HANDOFF_HOLD": str(hold), "HANDOFF_EXIT": "130",
+    env = {**os.environ, "HOME": str(tmp_path), "TMPDIR": str(tmp_path), "A2ASSISTANT_HOME": str(home),
+           "HANDOFF_CAPTURE": str(tmp_path / "calls.txt"), "A2ASSISTANT_RUNTIME_DIR": str(tmp_path / "store"),
+           "A2ASSISTANT_UPDATE_SHIM_GRACE_SECONDS": "0", "HANDOFF_HOLD": str(hold), "HANDOFF_EXIT": "130",
            "HANDOFF_RECEIPT": "interrupted"}
-    for key in ("PYTHONPATH", "PYTHONHOME", "HERMES_UPDATE_STARTED_AT"):
+    for key in ("PYTHONPATH", "PYTHONHOME", "A2ASSISTANT_UPDATE_STARTED_AT"):
         env.pop(key, None)
     script = subprocess.Popen(["bash", str(POSIX), "--daemonized", "--no-ui", "--install-root", str(install)],
                               env=env, cwd=tmp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -315,7 +315,7 @@ def test_failed_update_carries_the_updaters_own_output(tmp_path, output):
     assert result.returncode == 1, result.stdout + result.stderr
     outcome = json.loads((home / ".hermes-update-result.json").read_text(encoding="utf-8-sig"))
     assert (outcome["ok"], outcome["exit_code"]) == (False, 1), outcome
-    assert outcome["message"].startswith("Update failed (exit 1). Run hermes debug share"), outcome
+    assert outcome["message"].startswith("Update failed (exit 1). Run a2assistant debug share"), outcome
     if output:
         assert "Last output: sweeping the venv ERROR: the autostash cannot be re-applied" in outcome["message"], outcome
     else:
@@ -354,16 +354,16 @@ def _ancestry(pid: int) -> list[int]:
 
 
 def test_script_killed_right_after_spawning_the_update_leaves_a_live_marker(tmp_path):
-    """C1 rule 6, written by the script itself: posix.sh dies (SIGKILL) while its `hermes update`
+    """C1 rule 6, written by the script itself: posix.sh dies (SIGKILL) while its `a2assistant update`
     child is only starting up and has not taken the update lock. The marker must still read LIVE
     through the child named on line 4, and turn dead once that child is gone."""
     home, install = _install(tmp_path)
     hold = tmp_path / "release-update"
     marker = home / ".hermes-update-in-progress"
-    env = {**os.environ, "HOME": str(tmp_path), "TMPDIR": str(tmp_path), "HERMES_HOME": str(home),
-           "HANDOFF_CAPTURE": str(tmp_path / "calls.txt"), "HERMES_RUNTIME_DIR": str(tmp_path / "store"),
-           "HERMES_UPDATE_SHIM_GRACE_SECONDS": "0", "HANDOFF_HOLD": str(hold)}
-    for key in ("PYTHONPATH", "PYTHONHOME", "HERMES_UPDATE_STARTED_AT"):
+    env = {**os.environ, "HOME": str(tmp_path), "TMPDIR": str(tmp_path), "A2ASSISTANT_HOME": str(home),
+           "HANDOFF_CAPTURE": str(tmp_path / "calls.txt"), "A2ASSISTANT_RUNTIME_DIR": str(tmp_path / "store"),
+           "A2ASSISTANT_UPDATE_SHIM_GRACE_SECONDS": "0", "HANDOFF_HOLD": str(hold)}
+    for key in ("PYTHONPATH", "PYTHONHOME", "A2ASSISTANT_UPDATE_STARTED_AT"):
         env.pop(key, None)
     script = subprocess.Popen(["bash", str(POSIX), "--daemonized", "--no-ui", "--install-root", str(install)],
                               env=env, cwd=tmp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -418,7 +418,7 @@ def test_desktop_still_alive_at_the_exit_ceiling_refuses_without_updating(tmp_pa
     _write_bridge(home, desktop.pid)
     started = time.monotonic()
 
-    result = _run(tmp_path, home, install, "--desktop-pid", str(desktop.pid), HERMES_UPDATE_DESKTOP_EXIT_SECONDS="2")
+    result = _run(tmp_path, home, install, "--desktop-pid", str(desktop.pid), A2ASSISTANT_UPDATE_DESKTOP_EXIT_SECONDS="2")
 
     assert result.returncode == 4, result.stdout + result.stderr
     assert time.monotonic() - started < 30
@@ -430,7 +430,7 @@ def test_desktop_that_exits_inside_the_ceiling_lets_the_update_run(tmp_path):
     desktop = subprocess.Popen(["sleep", "3"])
     _write_bridge(home, desktop.pid)
 
-    result = _run(tmp_path, home, install, "--desktop-pid", str(desktop.pid), HERMES_UPDATE_DESKTOP_EXIT_SECONDS="20")
+    result = _run(tmp_path, home, install, "--desktop-pid", str(desktop.pid), A2ASSISTANT_UPDATE_DESKTOP_EXIT_SECONDS="20")
     desktop.wait()
 
     assert result.returncode == 0, result.stdout + result.stderr

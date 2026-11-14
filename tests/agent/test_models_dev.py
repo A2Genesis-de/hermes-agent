@@ -1274,7 +1274,7 @@ class TestModelOverrides:
             "      context_window: 524288\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
         # Reset caches that memoize config paths (the override layer has
         # no local cache — it rides load_config_readonly's mtime cache).

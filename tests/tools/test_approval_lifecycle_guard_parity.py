@@ -7,14 +7,14 @@ from tools.approval import detect_dangerous_command
 # does not stop a live job on its own, but it is what makes an unload survive
 # a reboot, so it belongs to the same family.
 GATEWAY_LIFECYCLE_LAUNCHCTL = (
-    "launchctl kickstart -k gui/501/ai.hermes.gateway",
-    "launchctl unload ~/Library/LaunchAgents/ai.hermes.gateway.plist",
-    "launchctl load ~/Library/LaunchAgents/ai.hermes.gateway.plist",
-    "launchctl stop ai.hermes.gateway",
-    "launchctl restart ai.hermes.gateway",
-    "launchctl bootout gui/501/ai.hermes.gateway",
-    "launchctl remove ai.hermes.gateway",
-    "launchctl disable gui/501/ai.hermes.gateway",
+    "launchctl kickstart -k gui/501/de.a2genesis.a2assistant.gateway",
+    "launchctl unload ~/Library/LaunchAgents/de.a2genesis.a2assistant.gateway.plist",
+    "launchctl load ~/Library/LaunchAgents/de.a2genesis.a2assistant.gateway.plist",
+    "launchctl stop de.a2genesis.a2assistant.gateway",
+    "launchctl restart de.a2genesis.a2assistant.gateway",
+    "launchctl bootout gui/501/de.a2genesis.a2assistant.gateway",
+    "launchctl remove de.a2genesis.a2assistant.gateway",
+    "launchctl disable gui/501/de.a2genesis.a2assistant.gateway",
 )
 
 

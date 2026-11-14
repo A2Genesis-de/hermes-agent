@@ -74,7 +74,7 @@ def test_seeded_config_rows_need_no_plugin():
 
 
 def test_config_check_accepts_seeded_rows_of_uninstalled_plugin_platforms():
-    """`hermes config check` and the update-time check judge the same rows the same way: Home Assistant's
+    """`a2assistant config check` and the update-time check judge the same rows the same way: Home Assistant's
     catalog plugin is not installed here, and its seeded row is inert, not an unknown toolset."""
     from hermes_cli.toolset_validation import saved_toolset_resolver, validate_platform_toolsets
 
@@ -88,7 +88,7 @@ def test_config_check_accepts_seeded_rows_of_uninstalled_plugin_platforms():
 
 def test_misspelt_platform_key_naming_its_own_bundle_still_warns(caplog):
     """Only a KNOWN platform's own bundle is exempt: ``telegarm: [hermes-telegarm]`` is a typo of the key,
-    and both the session-time check and `hermes config check` still report it."""
+    and both the session-time check and `a2assistant config check` still report it."""
     from hermes_cli.tools_config import _get_platform_tools
     from hermes_cli.toolset_validation import saved_toolset_resolver, validate_platform_toolsets
 

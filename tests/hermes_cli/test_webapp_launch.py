@@ -71,7 +71,7 @@ def test_macos_launch_handoff_fails_closed_without_consuming_child_window_author
 
 
 def test_a_link_for_the_user_to_open_by_hand_spends_once_without_a_peer_check(monkeypatch):
-    """Where nothing identifies the connection's owner (macOS, the BSDs, WSL), ``hermes webapp`` prints a
+    """Where nothing identifies the connection's owner (macOS, the BSDs, WSL), ``a2assistant webapp`` prints a
     link for the user to open by hand. On every host its ticket spends without consulting the peer
     check, once and within 60 seconds, as a window ticket does. (That an argv launch ticket never
     spends there is the platforms("macos") test above.)"""
@@ -140,7 +140,7 @@ def test_windows_spends_a_launch_ticket_without_a_peer_check():
 
 @pytest.mark.platforms("windows")
 def test_on_windows_the_launcher_opens_the_launch_link_and_its_browser_spends_it(tmp_path, monkeypatch):
-    """On Windows ``hermes webapp`` gets a launch link to open itself (not marked private), and the
+    """On Windows ``a2assistant webapp`` gets a launch link to open itself (not marked private), and the
     browser it opens spends the ticket without a peer check."""
     client, link = _launch_link(tmp_path, monkeypatch)
     assert link["private"] is False
@@ -149,7 +149,7 @@ def test_on_windows_the_launcher_opens_the_launch_link_and_its_browser_spends_it
 
 @pytest.mark.platforms("macos")
 def test_on_macos_the_launch_link_is_printed_and_spends_without_a_peer_check(tmp_path, monkeypatch):
-    """On macOS nothing identifies who owns the browser's connection: ``hermes webapp`` gets a link
+    """On macOS nothing identifies who owns the browser's connection: ``a2assistant webapp`` gets a link
     marked private, to print for the user to open by hand, and it spends without the peer check."""
     client, link = _launch_link(tmp_path, monkeypatch)
     assert link["private"] is True
@@ -181,7 +181,7 @@ def test_on_linux_the_peer_check_names_the_owner_of_a_real_loopback_connection()
 @pytest.mark.parametrize("page", ["/webapp/launch", "/webapp/window"])
 def test_a_handoff_page_keeps_the_credential_out_of_every_url(monkeypatch, page):
     """The browser records every address a tab navigates to in its history (and syncs it), and the
-    credential a handoff page receives lasts until ``hermes webapp --sign-out``. So the launch and
+    credential a handoff page receives lasts until ``a2assistant webapp --sign-out``. So the launch and
     child-window pages put it in this tab's sessionStorage, under the key the Webapp reads at boot,
     and then replace themselves with the Webapp's own address: no URL they navigate to carries it.
     Each page is uncached and sends no Referer."""
@@ -204,7 +204,7 @@ def test_a_handoff_page_keeps_the_credential_out_of_every_url(monkeypatch, page)
 
 def _launch_link(tmp_path, monkeypatch):
     """The loopback Webapp of a gateway serving *tmp_path*, and the ``webapp-launch`` answer its control
-    socket gives ``hermes webapp``."""
+    socket gives ``a2assistant webapp``."""
     import json
     from types import SimpleNamespace
 
@@ -242,7 +242,7 @@ def _spend(client, link):
 def test_under_wsl_the_launch_link_is_printed_and_the_windows_browser_spends_it(tmp_path, monkeypatch):
     """Under WSL2 the Windows browser reaches the gateway's loopback port through WSL's localhost relay,
     so inside Linux its connection belongs to root (uid 0, measured live), and any Windows account can
-    reach that port. Nothing identifies the user's own browser, so, as on macOS, ``hermes webapp`` gets
+    reach that port. Nothing identifies the user's own browser, so, as on macOS, ``a2assistant webapp`` gets
     a link marked private, to print for the user to open by hand, and that link spends without the
     peer check instead of being refused every time."""
     from hermes_cli.web_routers import webapp
@@ -257,7 +257,7 @@ def test_under_wsl_the_launch_link_is_printed_and_the_windows_browser_spends_it(
 
 @pytest.mark.platforms("linux")
 def test_native_linux_keeps_the_peer_check_on_the_launch_link(tmp_path, monkeypatch):
-    """Outside WSL, Linux names the owner of the browser's loopback connection: ``hermes webapp`` opens
+    """Outside WSL, Linux names the owner of the browser's loopback connection: ``a2assistant webapp`` opens
     the link itself, and a connection another user owns cannot spend it."""
     import os
 

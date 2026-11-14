@@ -10,10 +10,10 @@ const DEFAULT_PROBE_TIMEOUT_MS = 15_000
 
 /**
  * Resolve the backend probe timeout (ms).
- * Honours HERMES_PROBE_TIMEOUT_MS when it parses as a positive integer.
+ * Honours A2ASSISTANT_PROBE_TIMEOUT_MS when it parses as a positive integer.
  */
 function resolveProbeTimeoutMs(env: NodeJS.ProcessEnv = process.env): number {
-  const raw = env.HERMES_PROBE_TIMEOUT_MS
+  const raw = env.A2ASSISTANT_PROBE_TIMEOUT_MS
 
   if (raw == null || raw === '') {
     return DEFAULT_PROBE_TIMEOUT_MS
@@ -136,9 +136,9 @@ async function canImportHermesCli(
 /**
  * Return true iff `<hermesCommand> --version` exits 0.
  *
- * Used to gate the "existing `hermes` on PATH" rung. Without this, a
+ * Used to gate the "existing `a2assistant` on PATH" rung. Without this, a
  * stale hermes.cmd shim left behind by an uninstalled pip install (or
- * a half-built venv whose `hermes` entry-point points at a deleted
+ * a half-built venv whose `a2assistant` entry-point points at a deleted
  * Python) survives findOnPath() and gets selected as the backend.
  *
  * We intentionally avoid invoking the command with the dashboard args

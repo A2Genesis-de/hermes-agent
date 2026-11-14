@@ -42,7 +42,7 @@ _REPLAYED_UNREMOVABLE: set[Path] = set()
 
 
 def _get_flush_dir():
-    """Return the pending-messages flush directory under the active HERMES_HOME."""
+    """Return the pending-messages flush directory under the active A2ASSISTANT_HOME."""
     from hermes_constants import get_hermes_home
     flush_dir = get_hermes_home() / "pending_messages"
     from hermes_constants import assert_named_profile_home_live
@@ -443,7 +443,7 @@ def _recover_one_payload(session_db, path: Path, payload: dict[str, Any], *,
 def recover_gateway_pending(runner) -> int:
     """Replay every ``pending_messages`` spool this gateway owns into state.db; return the count.
 
-    ``_get_flush_dir`` follows the active HERMES_HOME, so a routed turn on a multiplexed gateway spools
+    ``_get_flush_dir`` follows the active A2ASSISTANT_HOME, so a routed turn on a multiplexed gateway spools
     its stalled transcript backlog under ``profiles/<name>/`` and the runtime drain forgets it on
     restart. After the launch home, replay each served profile inside its own home so the default
     store ``recover_pending_spool`` opens is that profile's state.db (#123584). The sessions a pass

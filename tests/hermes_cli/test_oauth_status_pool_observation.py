@@ -1,7 +1,7 @@
 """A status snapshot observes the credential pool; it never leases (refreshes / rotates) an entry.
 
 ``get_codex_auth_status`` / ``get_xai_oauth_auth_status`` back every credential-gated listing
-(``/model`` picker, ``hermes doctor``, dashboard cards). When that read ran ``pool.select()`` it
+(``/model`` picker, ``a2assistant doctor``, dashboard cards). When that read ran ``pool.select()`` it
 refreshed an expiring single-use token, and a *transient* failure of that speculative POST benched
 the entry with a persisted cooldown — the picker then rendered the provider as unconfigured
 ("needs setup" / "0 models") while the runtime resolver kept serving the same credential.
@@ -28,7 +28,7 @@ def _jwt_with_exp(offset_seconds: int) -> str:
 
 
 def _pool_only_codex_home(tmp_path, monkeypatch, *, access_tokens: list):
-    """HERMES_HOME whose only Codex credentials live in ``credential_pool.openai-codex``; the token
+    """A2ASSISTANT_HOME whose only Codex credentials live in ``credential_pool.openai-codex``; the token
     endpoint is a transient failure (the credential itself is still good)."""
     from hermes_cli import auth
     from hermes_cli import codex_models
@@ -43,7 +43,7 @@ def _pool_only_codex_home(tmp_path, monkeypatch, *, access_tokens: list):
     ]
     (home / "auth.json").write_text(
         json.dumps({"version": 1, "credential_pool": {"openai-codex": entries}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no-codex-cli"))
     monkeypatch.setattr(codex_models, "_fetch_models_from_api", lambda access_token: [])
     refresh_calls: list = []
@@ -134,7 +134,7 @@ def test_read_only_resolver_never_probes_or_mutates_an_exhausted_pool(tmp_path, 
 
 
 def _singleton_only_codex_home(tmp_path, monkeypatch, *, tokens: dict, codex_cli_tokens: dict):
-    """HERMES_HOME whose Codex credentials are the ``providers.openai-codex`` singleton only, with a
+    """A2ASSISTANT_HOME whose Codex credentials are the ``providers.openai-codex`` singleton only, with a
     valid Codex CLI login sitting beside it in ``CODEX_HOME``."""
     home, codex_home = tmp_path / "hermes", tmp_path / "codex"
     home.mkdir()
@@ -143,7 +143,7 @@ def _singleton_only_codex_home(tmp_path, monkeypatch, *, tokens: dict, codex_cli
         "version": 1, "active_provider": "openai-codex",
         "providers": {"openai-codex": {"tokens": tokens, "auth_mode": "chatgpt"}}}), encoding="utf-8")
     (codex_home / "auth.json").write_text(json.dumps({"tokens": codex_cli_tokens}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
     return home
 
@@ -154,7 +154,7 @@ def _singleton_tokens(home) -> dict:
 
 def test_status_snapshot_never_adopts_codex_cli_tokens(tmp_path, monkeypatch):
     """#68004: a Hermes store missing its refresh_token is recovery-eligible on the runtime path, but
-    ``hermes status`` / ``hermes doctor`` must not import the Codex CLI's single-use token family."""
+    ``a2assistant status`` / ``a2assistant doctor`` must not import the Codex CLI's single-use token family."""
     from hermes_cli.auth import resolve_codex_runtime_credentials
 
     stale = {"access_token": _jwt_with_exp(-60)}

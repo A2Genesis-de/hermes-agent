@@ -1,6 +1,6 @@
 """Plugin-mirrored ``PROVIDER_REGISTRY`` rows are per profile home.
 
-One process serves many profiles (multiplex gateway, Desktop ``serve``). A ``$HERMES_HOME`` plugin
+One process serves many profiles (multiplex gateway, Desktop ``serve``). A ``$A2ASSISTANT_HOME`` plugin
 mirrors its profile into the process-wide auth registry, so after profile A served a turn, profile B
 (no such plugin) auto-detected that provider from a stray env token and handed the raw token to the
 plugin's endpoint through the generic env ladder. A home with no profile for a slug must see the slug
@@ -44,7 +44,7 @@ def homes(tmp_path, monkeypatch):
     plugin.mkdir(parents=True)
     (plugin / "__init__.py").write_text(_PLUGIN, encoding="utf-8")
     bare_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(bare_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(bare_home))
     monkeypatch.setenv("FAKE_AMBIENT_GH_TOKEN", TOKEN)
     monkeypatch.setenv("OPENAI_API_KEY", "sk-proj-" + "a1" * 20)
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))

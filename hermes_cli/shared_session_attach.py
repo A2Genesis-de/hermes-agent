@@ -48,7 +48,7 @@ def discover_attach_url(session_id: str, *, registry_home: str | Path | None = N
     if not isinstance(endpoint, str) or not endpoint:
         raise ValueError("This chat is open in another A2Assistant window/terminal, and attaching "
                          "this terminal to it is not available in this build. Close the chat "
-                         "there and run hermes --resume " + session_id + " here to take it over.\n"
+                         "there and run a2assistant --resume " + session_id + " here to take it over.\n"
                          + session_owner_details(session_id, owner))
     origin = _local_origin(endpoint, "http")
     parts = urlsplit(endpoint)
@@ -72,7 +72,7 @@ def discover_attach_url(session_id: str, *, registry_home: str | Path | None = N
         # Never include a remote body or authenticated URL in diagnostics.
         raise ValueError("This chat is open in another A2Assistant window/terminal, and attaching "
                          "this terminal to it just failed. Use the chat where it is open, or "
-                         "close it there and run hermes --resume " + session_id + " here.\n"
+                         "close it there and run a2assistant --resume " + session_id + " here.\n"
                          + session_owner_details(session_id, owner)) from exc
     if not isinstance(reply, dict) or any(reply.get(key) != value for key, value in {
         "session_id": session_id, "lease_id": owner["lease_id"], "profile_home": str(home),
@@ -88,8 +88,8 @@ def discover_attach_url(session_id: str, *, registry_home: str | Path | None = N
 def configure_tui_attachment(env: dict[str, str], session_id: str | None, *,
                              registry_home: str | Path | None = None) -> None:
     """Retain an explicit transport, otherwise attach a resumed owner's runtime."""
-    if not session_id or env.get("HERMES_TUI_GATEWAY_URL", "").strip():
+    if not session_id or env.get("A2ASSISTANT_TUI_GATEWAY_URL", "").strip():
         return
     url = discover_attach_url(session_id, registry_home=registry_home)
     if url is not None:
-        env["HERMES_TUI_GATEWAY_URL"] = url
+        env["A2ASSISTANT_TUI_GATEWAY_URL"] = url

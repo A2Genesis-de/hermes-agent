@@ -33,7 +33,7 @@ def _envelope(text: str) -> dict:
 
 
 def test_oversized_multimodal_text_part_is_spilled_and_recoverable(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr("hermes_constants.get_hermes_home", lambda: tmp_path, raising=False)
     big = "x" * 760_396
     agent = _make_agent()
@@ -51,7 +51,7 @@ def test_oversized_multimodal_text_part_is_spilled_and_recoverable(tmp_path, mon
 
 
 def test_normal_multimodal_result_is_unchanged(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     small = "snapshot ok"
     (tool_msg,) = _run_sequential(_make_agent(), _envelope(small))
     assert tool_msg["content"][0] == {"type": "text", "text": small + "\nscreenshot captured"}

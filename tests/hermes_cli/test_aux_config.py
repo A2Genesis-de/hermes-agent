@@ -1,4 +1,4 @@
-"""Tests for the auxiliary-model configuration UI in ``hermes model``.
+"""Tests for the auxiliary-model configuration UI in ``a2assistant model``.
 
 Covers the helper functions:
   - ``_save_aux_choice`` writes to config.yaml without touching main model config
@@ -24,7 +24,7 @@ from hermes_cli.main_provider_setup import _DELEGATION_TASK_KEY, _delegation_cfg
 def test_save_aux_choice_persists_to_config_yaml(tmp_path, monkeypatch):
     """Saving a task writes provider/model/base_url/api_key to auxiliary.<task>."""
     from pathlib import Path
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     (tmp_path / ".hermes").mkdir(exist_ok=True)
 
@@ -47,7 +47,7 @@ def test_save_aux_choice_persists_to_config_yaml(tmp_path, monkeypatch):
 def _isolate_home(tmp_path, monkeypatch):
     from pathlib import Path
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     (tmp_path / ".hermes").mkdir(exist_ok=True)
 

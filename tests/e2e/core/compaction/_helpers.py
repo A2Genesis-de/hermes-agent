@@ -500,7 +500,7 @@ class TurnRecord:
 
 @dataclass
 class Scenario:
-    """One session: its own HERMES_HOME, state.db and agent against the shared provider."""
+    """One session: its own A2ASSISTANT_HOME, state.db and agent against the shared provider."""
 
     server: FakeLLMServer
     dispatch: Dispatch

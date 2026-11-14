@@ -1,10 +1,10 @@
 """A Webapp whose bundle is not built is reported unavailable, with how to build it.
 
 The gateway serves the Webapp from its built bundle (``apps/desktop/dist-webapp``). Until that bundle
-has its ``index.html`` the gateway reports the Webapp unavailable, says to run ``hermes webapp`` (which
+has its ``index.html`` the gateway reports the Webapp unavailable, says to run ``a2assistant webapp`` (which
 builds it), mints no launch link and answers ``/`` with that instruction rather than the dashboard's
 build command. The listener picks the bundle up as soon as it is built, without a restart. A bundle
-``hermes update`` could not rebuild is reported the same way until ``hermes webapp`` rebuilds it. The
+``a2assistant update`` could not rebuild is reported the same way until ``a2assistant webapp`` rebuilds it. The
 live cases run a real gateway listener in a child process (``fixtures/webapp_fallback_peer.py``).
 """
 import pytest
@@ -24,16 +24,16 @@ def test_an_unbuilt_webapp_is_unavailable_and_says_how_to_build_it(unbuilt):
     assert unbuilt["start_error"] is None, unbuilt.get("start_traceback")
     status = unbuilt["status"]
     assert (status["state"], status["url"]) == ("unavailable", None)
-    assert "hermes webapp" in status["reason"] and "index.html" in status["reason"]
+    assert "a2assistant webapp" in status["reason"] and "index.html" in status["reason"]
 
 
 def test_an_unbuilt_webapp_mints_no_launch_link(unbuilt):
-    assert "hermes webapp" in unbuilt["launch"]["refused"]
+    assert "a2assistant webapp" in unbuilt["launch"]["refused"]
 
 
 def test_an_unbuilt_webapp_page_names_the_webapps_build(unbuilt):
     assert unbuilt["index"]["status"] == 404
-    assert "hermes webapp" in unbuilt["index"]["body"]
+    assert "a2assistant webapp" in unbuilt["index"]["body"]
     assert "npm run build" not in unbuilt["index"]["body"]
 
 
@@ -49,17 +49,17 @@ def update_failed(tmp_path_factory):
 
 
 def test_a_bundle_hermes_update_could_not_rebuild_is_unavailable_and_says_how_to_rebuild_it(update_failed):
-    """``hermes update`` keeps the previous bundle when it cannot rebuild it, built for the code
+    """``a2assistant update`` keeps the previous bundle when it cannot rebuild it, built for the code
     before the update. The gateway then reports the Webapp unavailable with what to run (``hermes
     webapp``, which rebuilds it) rather than serving that bundle as current: no launch link, and
     ``/`` answers with the same instruction instead of the old page."""
     assert update_failed["start_error"] is None, update_failed.get("start_traceback")
     status = update_failed["status"]
     assert (status["state"], status["url"]) == ("unavailable", None)
-    assert status["reason"].startswith(webapp_listener.NOT_BUILT) and "hermes webapp" in status["reason"]
-    assert "hermes webapp" in update_failed["launch"]["refused"]
+    assert status["reason"].startswith(webapp_listener.NOT_BUILT) and "a2assistant webapp" in status["reason"]
+    assert "a2assistant webapp" in update_failed["launch"]["refused"]
     assert update_failed["index"]["status"] == 503
-    assert "hermes webapp" in update_failed["index"]["body"]
+    assert "a2assistant webapp" in update_failed["index"]["body"]
     assert "WEBAPP_BUNDLE" not in update_failed["index"]["body"]
 
 

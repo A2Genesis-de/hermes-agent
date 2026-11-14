@@ -1860,7 +1860,7 @@ class TestSessionTitleLineage:
     def test_projected_tip_inherits_root_title_when_untitled(self, db):
         """A rotation that ended the root before the title carry ran leaves the name on the
         root only; the projected lineage row must still surface it (exact-title lookups such as
-        `hermes peer dm` -> canonical "Bot Chat", #106165). A titled tip keeps its own title."""
+        `a2assistant peer dm` -> canonical "Bot Chat", #106165). A titled tip keeps its own title."""
         import time as _time
         self._make_compression_chain(db, _time.time() - 3600)
         db.set_session_title("root", "Bot Chat")
@@ -2273,7 +2273,7 @@ class TestFtsRebuildLoopWithoutTrigram:
     single ``SessionDB`` open, holding the write lock, and never converged.
 
     The v23 repair also clears the deferred-rebuild resume markers, so an
-    interrupted ``hermes sessions optimize-storage`` silently lost its place
+    interrupted ``a2assistant sessions optimize-storage`` silently lost its place
     every time the store was reopened.
     """
 
@@ -5216,7 +5216,7 @@ def test_peer_fallback_never_adopts_a_sibling_profiles_row(tmp_path, monkeypatch
 
     root = tmp_path / "hermes"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH)
     store = SessionDB(db_path=root / "state.db")  # owner: default
     try:
@@ -5253,7 +5253,7 @@ def test_peer_fallback_reset_boundary_is_profile_fenced(tmp_path, monkeypatch):
 
     root = tmp_path / "hermes"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH)
     store = SessionDB(db_path=root / "state.db")  # owner: default
     try:
@@ -6333,7 +6333,7 @@ class TestPerformancePragmasEndToEnd:
         )
         home = tmp_path / "hermes_home"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         if config_text is not None:
             (home / "config.yaml").write_text(config_text)
         return home

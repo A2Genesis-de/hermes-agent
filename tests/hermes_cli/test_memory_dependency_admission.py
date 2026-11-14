@@ -55,8 +55,8 @@ def test_setup_requires_dependencies_and_keeps_the_existing_union(tmp_path, monk
         'name: other-plugin\npython_dependencies: ["other_dep==1.0"]\n', encoding='utf-8')
     other_config = other_home / 'config.yaml'
     other_config.write_text('plugins:\n  enabled: [other-plugin]\n', encoding='utf-8')
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.setenv('HERMES_RUNTIME_DIR', str(tmp_path / 'tools'))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_RUNTIME_DIR', str(tmp_path / 'tools'))
     monkeypatch.setattr(paths, 'repo_root', lambda: core)
     ensure = importlib.import_module('pm.install')
     monkeypatch.setattr(ensure, 'lazy_installs_allowed', lambda: True)

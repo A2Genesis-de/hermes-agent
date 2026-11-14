@@ -126,7 +126,7 @@ test('simpleGitHostEnv forwards the allow-listed git variables and drops the oth
     GIT_ASKPASS: '/usr/bin/askpass',
     SSH_ASKPASS: '/usr/bin/ssh-askpass',
     GIT_TERMINAL_PROMPT: '1',
-    HERMES_GIT_ARGV0: '"git"'
+    A2ASSISTANT_GIT_ARGV0: '"git"'
   })
 })
 
@@ -179,7 +179,7 @@ test.skipIf(process.platform === 'win32')(
 )
 
 const HOST_PYTHON =
-  process.env.HERMES_PYTHON || process.env.UV_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
+  process.env.A2ASSISTANT_PYTHON || process.env.UV_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
 
 test.skipIf(process.platform === 'win32')(
   "gitFor's Windows host-tuple path forwards GIT_SSH_COMMAND and does not throw on inherited guarded variables",

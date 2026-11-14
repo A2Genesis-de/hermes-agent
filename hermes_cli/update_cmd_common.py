@@ -1,4 +1,4 @@
-"""Shared leaf helpers for the ``hermes update`` modules (no Hermes imports; no cycle)."""
+"""Shared leaf helpers for the ``a2assistant update`` modules (no Hermes imports; no cycle)."""
 
 import logging
 import sys

@@ -15,7 +15,7 @@ from hermes_constants import get_hermes_home
 
 @pytest.fixture
 def host_lock_dir(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
     from gateway import host_rendezvous as hr
     hr._lock_handles.clear()
     yield tmp_path
@@ -206,7 +206,7 @@ async def test_a_replace_unit_that_replaced_nothing_is_still_refused_when_it_los
     from gateway.restart import GATEWAY_SERVICE_RESTART_EXIT_CODE
     from gateway.run import start_gateway
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     (tmp_path / "home").mkdir()
 
     class _RunnerMustNotStart:

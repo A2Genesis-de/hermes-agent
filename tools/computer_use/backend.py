@@ -163,6 +163,6 @@ class ComputerUseProvider(ProviderBase):
         return True
 
     def doctor(self) -> Optional[int]:
-        """``hermes computer-use doctor`` for this backend: print findings, return the exit code.
+        """``a2assistant computer-use doctor`` for this backend: print findings, return the exit code.
         ``None`` (default) means the backend ships no doctor."""
         return None

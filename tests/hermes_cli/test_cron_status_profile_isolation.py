@@ -1,9 +1,9 @@
 """Regression guard for #98790 — profile isolation in cron status.
 
-Issue #98790: `hermes cron status` in profile B reports profile A's gateway
+Issue #98790: `a2assistant cron status` in profile B reports profile A's gateway
 PID as proof that B's jobs will fire. Root causes:
 
-1. systemd branch of ``_get_service_pids()`` returns every hermes-gateway*
+1. systemd branch of ``_get_service_pids()`` returns every a2assistant-gateway*
    unit's MainPID even when ``all_profiles=False``, contradicting its
    docstring («Default-scope callers keep seeing only the current profile's
    service») and ``find_gateway_pids()``'s contract.
@@ -49,29 +49,29 @@ class TestGetServicePidsProfileScope:
             cmd_str = " ".join(str(a) for a in args)
             if "list-units" in cmd_str:
                 # systemctl now filters: return only the unit that matches the pattern
-                if "hermes-gateway-jarvis" in cmd_str:
-                    stdout = "hermes-gateway-jarvis.service loaded active running\n"
-                elif "hermes-gateway-coder" in cmd_str:
-                    stdout = "hermes-gateway-coder.service loaded active running\n"
-                elif "hermes-gateway*" in cmd_str:
+                if "a2assistant-gateway-jarvis" in cmd_str:
+                    stdout = "a2assistant-gateway-jarvis.service loaded active running\n"
+                elif "a2assistant-gateway-coder" in cmd_str:
+                    stdout = "a2assistant-gateway-coder.service loaded active running\n"
+                elif "a2assistant-gateway*" in cmd_str:
                     stdout = (
-                        "hermes-gateway-jarvis.service loaded active running\n"
-                        "hermes-gateway-coder.service loaded active running\n"
+                        "a2assistant-gateway-jarvis.service loaded active running\n"
+                        "a2assistant-gateway-coder.service loaded active running\n"
                     )
                 else:
                     stdout = ""
                 return MagicMock(returncode=0, stdout=stdout, stderr="")
             if "show" in cmd_str and "MainPID" in cmd_str:
-                if "hermes-gateway-jarvis" in cmd_str:
+                if "a2assistant-gateway-jarvis" in cmd_str:
                     return MagicMock(returncode=0, stdout="123\n", stderr="")
-                elif "hermes-gateway-coder" in cmd_str:
+                elif "a2assistant-gateway-coder" in cmd_str:
                     return MagicMock(returncode=0, stdout="456\n", stderr="")
             return MagicMock(returncode=0, stdout="", stderr="")
 
         with (
             patch("hermes_cli.gateway.is_macos", return_value=False),
             patch("hermes_cli.gateway.supports_systemd_services", return_value=True),
-            patch("hermes_cli.gateway.get_service_name", return_value="hermes-gateway-jarvis"),
+            patch("hermes_cli.gateway.get_service_name", return_value="a2assistant-gateway-jarvis"),
             patch("subprocess.run", side_effect=_run_side_effect),
         ):
             pids = gateway_mod._get_service_pids()
@@ -87,22 +87,22 @@ class TestGetServicePidsProfileScope:
                 return MagicMock(
                     returncode=0,
                     stdout=(
-                        "hermes-gateway.service loaded active running\n"
-                        "hermes-gateway-profile-b.service loaded active running\n"
+                        "a2assistant-gateway.service loaded active running\n"
+                        "a2assistant-gateway-profile-b.service loaded active running\n"
                     ),
                     stderr="",
                 )
             if "show" in cmd_str and "MainPID" in cmd_str:
-                if "hermes-gateway.service" in " ".join(args):
+                if "a2assistant-gateway.service" in " ".join(args):
                     return MagicMock(returncode=0, stdout="111\n", stderr="")
-                elif "hermes-gateway-profile-b.service" in " ".join(args):
+                elif "a2assistant-gateway-profile-b.service" in " ".join(args):
                     return MagicMock(returncode=0, stdout="222\n", stderr="")
             return MagicMock(returncode=0, stdout="", stderr="")
 
         with (
             patch("hermes_cli.gateway.is_macos", return_value=False),
             patch("hermes_cli.gateway.supports_systemd_services", return_value=True),
-            patch("hermes_cli.gateway.get_service_name", return_value="hermes-gateway"),
+            patch("hermes_cli.gateway.get_service_name", return_value="a2assistant-gateway"),
             patch("subprocess.run", side_effect=_run_side_effect),
         ):
             pids = gateway_mod._get_service_pids(all_profiles=True)

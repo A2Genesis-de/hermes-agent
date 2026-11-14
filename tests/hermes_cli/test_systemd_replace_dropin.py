@@ -20,7 +20,7 @@ HERMES_DROPIN = (
 
 
 def _current_unit_with_dropin(tmp_path, monkeypatch, dropin_text: str):
-    unit = tmp_path / "hermes-gateway.service"
+    unit = tmp_path / "a2assistant-gateway.service"
     unit.write_text("[Unit]\nDescription=current\n", encoding="utf-8")
     monkeypatch.setattr(gateway_cli, "get_systemd_unit_path", lambda system=False: unit)
     monkeypatch.setattr(gateway_cli, "generate_systemd_unit", lambda **_: "[Unit]\nDescription=current\n")

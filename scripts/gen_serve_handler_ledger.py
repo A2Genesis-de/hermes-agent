@@ -1,8 +1,8 @@
 #!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
 """Regenerate tests/hermes_cli/serve_handler_ledger.json from the code.
 
-One row per handler ``hermes serve`` exposes: every HTTP/WebSocket route of the shared FastAPI app
-(``hermes_cli.web_server.app``, imported the way ``serve`` imports it, ``HERMES_SERVE_HEADLESS=1``)
+One row per handler ``a2assistant serve`` exposes: every HTTP/WebSocket route of the shared FastAPI app
+(``hermes_cli.web_server.app``, imported the way ``serve`` imports it, ``A2ASSISTANT_SERVE_HEADLESS=1``)
 and every JSON-RPC method a ``/api/ws`` client can call (the legacy ``tui_gateway.server._methods``
 table plus the verbs the session authority serves). ``gateway.ping``, the ``/api/ws`` heartbeat, is
 answered by the transport before dispatch and has no row. Dashboard-plugin API routes depend on which
@@ -112,12 +112,12 @@ def _collect() -> dict:
 
 def _facts() -> dict:
     """:func:`_collect` in a child interpreter with ``serve``'s import environment and a throwaway
-    HERMES_HOME, so the route set never depends on the caller's process state or real profile."""
+    A2ASSISTANT_HOME, so the route set never depends on the caller's process state or real profile."""
     with tempfile.TemporaryDirectory(prefix="serve-ledger-") as scratch:
         # The facts go to a file: importing tui_gateway.server takes over stdout for its JSON-RPC.
         home, out = Path(scratch) / "home", Path(scratch) / "facts.json"
         home.mkdir()
-        env = {**os.environ, "HERMES_HOME": str(home), "HERMES_SERVE_HEADLESS": "1"}
+        env = {**os.environ, "A2ASSISTANT_HOME": str(home), "A2ASSISTANT_SERVE_HEADLESS": "1"}
         proc = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--collect", str(out)], cwd=ROOT,
                               env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, check=False,
                               timeout=300)

@@ -31,11 +31,11 @@ def test_hermes_help(built_image: str) -> None:
         check=False,
     )
     assert r.returncode == 0, (
-        f"hermes --help failed (exit {r.returncode}): "
+        f"a2assistant --help failed (exit {r.returncode}): "
         f"stdout={r.stdout[-2000:]!r} stderr={r.stderr[-2000:]!r}"
     )
     assert "Traceback" not in r.stderr, (
-        f"hermes --help produced a traceback: {r.stderr[-2000:]!r}"
+        f"a2assistant --help produced a traceback: {r.stderr[-2000:]!r}"
     )
 
 
@@ -53,7 +53,7 @@ def test_dashboard_subcommand_present(built_image: str) -> None:
         check=False,
     )
     assert r.returncode == 0, (
-        f"hermes dashboard --help failed (exit {r.returncode}): "
+        f"a2assistant dashboard --help failed (exit {r.returncode}): "
         f"stdout={r.stdout[-2000:]!r} stderr={r.stderr[-2000:]!r}"
     )
     combined = (r.stdout + r.stderr).lower()
@@ -82,9 +82,9 @@ def test_hermes_help_under_wrapped_init(built_image: str) -> None:
         f"stderr={r.stderr[-2000:]!r}"
     )
     assert r.returncode == 0, (
-        f"hermes --help failed under `docker run --init` (exit {r.returncode}): "
+        f"a2assistant --help failed under `docker run --init` (exit {r.returncode}): "
         f"stdout={r.stdout[-2000:]!r} stderr={r.stderr[-2000:]!r}"
     )
     assert "Traceback" not in r.stderr, (
-        f"hermes --help produced a traceback under --init: {r.stderr[-2000:]!r}"
+        f"a2assistant --help produced a traceback under --init: {r.stderr[-2000:]!r}"
     )

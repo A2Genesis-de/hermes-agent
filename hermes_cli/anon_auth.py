@@ -18,7 +18,7 @@ token acquisition (re-exchange the ``anon_`` credential; there is no refresh tok
 
 Users are never shown the words guest / anonymous / account for this state: surfaces say
 "Nous · free tier". Two user-facing verbs reach the same flow, both keeping the identity's
-connectors: ``hermes auth upgrade`` in a terminal and ``/login`` inside a chat.
+connectors: ``a2assistant auth upgrade`` in a terminal and ``/login`` inside a chat.
 
 Lifecycle lives in ONE primitive, :func:`_reconcile_and_provision`: adopt what the shared store already
 holds, else mint under the shared-store lock. :func:`ensure_portal_identity` (connectors) and the
@@ -50,19 +50,19 @@ GUEST_MODEL = "nous/welcome"
 ANON_SECRET_HEADER = "x-anonymous-api-secret"
 # The shared secret gates the anonymous surface during its integration phase. It is a deployment
 # secret (Sid's), read from the environment only.
-ANON_SECRET_ENV = "HERMES_ANON_API_SECRET"
+ANON_SECRET_ENV = "A2ASSISTANT_ANON_API_SECRET"
 # Preview cohort for the free tier's connector set, sent once on account creation so the account
 # service can record it on the account. "1" / "true" send true and "0" / "false" send false; anything
 # else (unset included) omits the field and the service applies its default. Self-reported and
 # baked into desktop bundles in plain text: the service must treat it as a preference, never proof.
-PREVIEW_FULL_CONNECTORS_ENV = "HERMES_PREVIEW_FULL_CONNECTORS"
+PREVIEW_FULL_CONNECTORS_ENV = "A2ASSISTANT_PREVIEW_FULL_CONNECTORS"
 GUEST_MINT_TIMEOUT_SECONDS = 5.0
 # Copy shared by every surface that names the free tier (R-USR-1): never guest / anonymous / account.
 FREE_TIER_LABEL = "Nous · free tier"
-UPGRADE_HINT = "Run `hermes auth upgrade` to sign in with a Nous account, or /login inside a chat."
+UPGRADE_HINT = "Run `a2assistant auth upgrade` to sign in with a Nous account, or /login inside a chat."
 FREE_TIER_NOT_SIGNED_IN = (
     "You're not signed in. Free inference and connectors are always on. "
-    "Run `hermes auth` to sign in with a Nous account.")
+    "Run `a2assistant auth` to sign in with a Nous account.")
 
 
 class AnonCredentialDead(AuthError):
@@ -248,11 +248,11 @@ WELCOME_HOSTS = frozenset({"welcome-api.nousresearch.com"})
 # ``127.0.0.1`` while ``NOUS_INFERENCE_BASE_URL`` points at a local stand-in). Read from the
 # environment, which the user controls, so it sits at the same trust level as the URL override
 # itself; it never widens the NETWORK-side allowlist in ``auth_nous``.
-EXTRA_WELCOME_HOSTS_ENV = "HERMES_EXTRA_WELCOME_HOSTS"
+EXTRA_WELCOME_HOSTS_ENV = "A2ASSISTANT_EXTRA_WELCOME_HOSTS"
 
 
 def welcome_hosts() -> frozenset[str]:
-    """``WELCOME_HOSTS`` plus any ``HERMES_EXTRA_WELCOME_HOSTS`` entries (lowercased hostnames)."""
+    """``WELCOME_HOSTS`` plus any ``A2ASSISTANT_EXTRA_WELCOME_HOSTS`` entries (lowercased hostnames)."""
     raw = os.environ.get(EXTRA_WELCOME_HOSTS_ENV) or ""
     extra = {part.strip().lower() for part in raw.split(",") if part.strip()}
     return WELCOME_HOSTS | frozenset(extra) if extra else WELCOME_HOSTS
@@ -808,9 +808,9 @@ _WELCOME_ROUTE_COPY = {
 }
 # The sign-in door, phrased for a chat surface (slash command) and for a terminal.
 _SIGNIN_CHAT = "To sign in: /login."
-_SIGNIN_TERMINAL = "To sign in: `hermes auth upgrade`."
+_SIGNIN_TERMINAL = "To sign in: `a2assistant auth upgrade`."
 _MODEL_HINT_CHAT = "Run /model and pick the Nous row again."
-_MODEL_HINT_TERMINAL = "Run `hermes model` and pick the Nous row again."
+_MODEL_HINT_TERMINAL = "Run `a2assistant model` and pick the Nous row again."
 # Terminal copy for a free-model outage once the retries are spent (5xx, transport failure).
 FREE_TIER_OUTAGE_COPY = ("The free model is having trouble responding right now. "
                          "Try sending your message again in a minute.")
@@ -933,7 +933,7 @@ def apply_model_switch(agent: Any) -> Optional[str]:
 
     Runs once per recorded header, between calls. The conversation keeps its history; only the id
     the next request carries changes, so a promoted account stops relying on the gateway's reverse
-    map. The config write is the same one a sign-in completion uses, so ``hermes model`` and the
+    map. The config write is the same one a sign-in completion uses, so ``a2assistant model`` and the
     gateway's config re-read agree with the live session.
     """
     pending = getattr(agent, "_nous_pending_model_switch", None)
@@ -1058,7 +1058,7 @@ def settle_after_upgrade(account_state: dict[str, Any]) -> dict[str, Any]:
     same pick as ``GET /api/model/recommended-default``), through the same config write a plain Nous
     login uses. A config on the user's own model and host is left alone.
 
-    Every sign-in completion (CLI ``hermes auth upgrade``, the desktop poller) calls this once, after
+    Every sign-in completion (CLI ``a2assistant auth upgrade``, the desktop poller) calls this once, after
     ``persist_nous_credentials``. Returns ``{"model": str, "changed": bool}``: ``model`` is the default
     the config now carries (``""`` when it carries none); ``changed`` says whether this call wrote it.
     Never raises: a failed pick or write is logged and reported as ``changed: False`` so the sign-in

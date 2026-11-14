@@ -31,7 +31,7 @@ from hermes_cli import update_lock as _lock
 _repo, _real = Path(_lock.__file__).resolve().parents[1], _lock.checkout_lock_path
 def checkout_lock_path(install_root=None):
     root = Path(install_root) if install_root else _repo
-    return Path(os.environ["HERMES_TEST_CHECKOUT_LOCK"]) if root.resolve() == _repo else _real(install_root)
+    return Path(os.environ["A2ASSISTANT_TEST_CHECKOUT_LOCK"]) if root.resolve() == _repo else _real(install_root)
 _lock.checkout_lock_path = checkout_lock_path
 """
 
@@ -52,11 +52,11 @@ def _reap_children():
 
 
 def _child(code: str, *argv: str, env: dict) -> subprocess.Popen:
-    shim = Path(env["HERMES_HOME"]) / "checkout-lock-shim"
+    shim = Path(env["A2ASSISTANT_HOME"]) / "checkout-lock-shim"
     shim.mkdir(exist_ok=True)
     (shim / "sitecustomize.py").write_text(_PRIVATE_CHECKOUT_LOCK, encoding="utf-8")
     env = {**os.environ, "PYTHONPATH": os.pathsep.join((str(shim), str(REPO))),
-           "HERMES_TEST_CHECKOUT_LOCK": str(shim / "hermes-update.lock"), **env}
+           "A2ASSISTANT_TEST_CHECKOUT_LOCK": str(shim / "hermes-update.lock"), **env}
     child = subprocess.Popen([sys.executable, "-c", textwrap.dedent(code), *argv], cwd=REPO,
                              stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, text=True, env=env)
     _SPAWNED.append(child)
@@ -70,20 +70,20 @@ def _orphaned_profiles(home: Path) -> dict | None:
         from hermes_cli import update_pause_record as r
         found = r.orphans()
         print(json.dumps(found[0][1]["token"]["profiles"] if found else None))
-    """, env={"HERMES_HOME": str(home)})
+    """, env={"A2ASSISTANT_HOME": str(home)})
     out, _ = probe.communicate(timeout=60)
     return json.loads(out.strip().splitlines()[-1])
 
 
 def test_record_written_by_a_killed_updater_is_orphaned_only_after_its_death(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     owner = _child("""
         import sys, time
         from hermes_cli import update_pause_record as r
         r.write(r.stamp_tree({"resume_needed": True, "profiles": {"default": 4242}}), owner=r.identity())
         print("written", flush=True)
         time.sleep(120)
-    """, env={"HERMES_HOME": str(tmp_path)})
+    """, env={"A2ASSISTANT_HOME": str(tmp_path)})
     try:
         assert owner.stdout.readline().strip() == "written"
         body = pause_record.read()
@@ -159,7 +159,7 @@ def test_an_update_adopting_an_orphan_never_certifies_the_tree_it_left_torn(tmp_
     (root / "a.py").write_text("v1\n", encoding="utf-8")
     _git(root, "add", ".")
     _git(root, "commit", "-qm", "v1")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(pause_record, "install_root", lambda: root)
     pause_record.write(pause_record.stamp_tree({"resume_needed": True, "profiles": {"default": 4242}}),
                        owner=pause_record.UNOWNED)
@@ -181,7 +181,7 @@ def test_an_adopted_baseline_never_replaces_this_runs_own(tmp_path, monkeypatch)
     (root / "a.py").write_text("v1\n", encoding="utf-8")
     _git(root, "add", ".")
     _git(root, "commit", "-qm", "X")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(pause_record, "install_root", lambda: root)
     pause_record.write(pause_record.stamp_tree({"resume_needed": True, "profiles": {"default": 4242}}),
                        owner=pause_record.UNOWNED)
@@ -198,14 +198,14 @@ def test_an_adopted_baseline_never_replaces_this_runs_own(tmp_path, monkeypatch)
 
 
 def _orphan(tmp_path: Path, profiles: dict) -> None:
-    """A record whose owner — a real ``hermes update`` stand-in — was SIGKILLed after writing it."""
+    """A record whose owner — a real ``a2assistant update`` stand-in — was SIGKILLed after writing it."""
     owner = _child(f"""
         import time
         from hermes_cli import update_pause_record as r
         r.write(r.stamp_tree({{"resume_needed": True, "profiles": {profiles!r}}}), owner=r.identity())
         print("written", flush=True)
         time.sleep(120)
-    """, env={"HERMES_HOME": str(tmp_path)})
+    """, env={"A2ASSISTANT_HOME": str(tmp_path)})
     assert owner.stdout.readline().strip() == "written"
     owner.send_signal(signal.SIGKILL)  # windows-footgun: ok — module skips on Windows
     owner.wait(timeout=10)
@@ -232,7 +232,7 @@ _RECOVER = """
 @pytest.mark.live_system_guard_bypass
 def test_a_launch_killed_mid_recovery_leaves_the_set_to_the_next_launch(tmp_path):
     _orphan(tmp_path, {"default": 4242})
-    env = {"HERMES_HOME": str(tmp_path)}
+    env = {"A2ASSISTANT_HOME": str(tmp_path)}
     first = _child(_RECOVER, "hang", env=env)
     try:
         assert first.stdout.readline().strip() == "resume ['default']"
@@ -270,7 +270,7 @@ _UPDATE_AFTER_CLAIM = """
 @pytest.mark.live_system_guard_bypass
 def test_recovery_never_starts_gateways_under_an_update_that_took_the_checkout(tmp_path):
     _orphan(tmp_path, {"default": 4242})
-    env = {"HERMES_HOME": str(tmp_path)}
+    env = {"A2ASSISTANT_HOME": str(tmp_path)}
     out, _ = _child(_UPDATE_AFTER_CLAIM, "ok", env=env).communicate(timeout=60)
     assert out.strip() == "done", f"gateways restarted while an update owned the checkout: {out}"
     out, _ = _child(_RECOVER, "ok", env=env).communicate(timeout=60)
@@ -292,7 +292,7 @@ def test_startup_recovery_follows_the_parsed_command_not_raw_argv(tmp_path, argv
             main()
         except SystemExit:
             pass
-    """, *argv, env={"HERMES_HOME": str(tmp_path), "HOME": str(tmp_path / "home")})
+    """, *argv, env={"A2ASSISTANT_HOME": str(tmp_path), "HOME": str(tmp_path / "home")})
     out, _ = cli.communicate(timeout=120)
     assert (_record_files(tmp_path) == []) is recovers, out
 
@@ -327,7 +327,7 @@ print(subprocess.run([sys.executable, "-c", probe], capture_output=True, text=Tr
 def test_update_started_from_a_relaunched_gateway_does_not_share_the_claim(tmp_path, host_argv, adopts):
     script = tmp_path / "host.py"
     script.write_text(_HOST, encoding="utf-8")
-    holder = _child(_HOLDER, str(script), *host_argv, env={"HERMES_HOME": str(tmp_path)})
+    holder = _child(_HOLDER, str(script), *host_argv, env={"A2ASSISTANT_HOME": str(tmp_path)})
     out, _ = holder.communicate(timeout=60)
     assert holder.returncode == 0, out
     assert out.strip() == ("True False" if adopts else "False True"), out
@@ -370,7 +370,7 @@ def _launches(tmp_path: Path, n: int) -> list[list[str]]:
     """What each of *n* successive fresh launches resumed."""
     seen = []
     for _ in range(n):
-        out, _ = _child(_AT_LINE + _RESUMES, env={"HERMES_HOME": str(tmp_path)}).communicate(timeout=60)
+        out, _ = _child(_AT_LINE + _RESUMES, env={"A2ASSISTANT_HOME": str(tmp_path)}).communicate(timeout=60)
         seen.append([line for line in out.splitlines() if line.startswith("resume")])
     return seen
 
@@ -382,7 +382,7 @@ def _record_files(tmp_path: Path) -> list[str]:
 
 @pytest.mark.live_system_guard_bypass
 def test_a_claim_in_transfer_cannot_be_taken_by_a_second_launch(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(pause_record, "_MUTEX_WAIT_S", 0.5)
     _orphan(tmp_path, {"default": 4242})
     src = pause_record.record_path()
@@ -392,7 +392,7 @@ def test_a_claim_in_transfer_cannot_be_taken_by_a_second_launch(tmp_path, monkey
     won = r.claim(Path(sys.argv[1]))
     sys.settrace(None)
     print(json.dumps(won and str(won[0])), flush=True)
-    """, str(src), str(flag), env={"HERMES_HOME": str(tmp_path)})
+    """, str(src), str(flag), env={"A2ASSISTANT_HOME": str(tmp_path)})
     try:
         assert first.stdout.readline().strip() == "paused"
         rivals = [pause_record.claim(p) for p in (src, *pause_record._claims(src))]
@@ -410,7 +410,7 @@ def test_a_launch_killed_between_claim_and_retire_resumes_the_set_once(tmp_path)
     killed = _child(_AT_LINE + """
     stop_at(r.claim, "src.unlink()", "kill")
     r.recover(["status"])
-    """, env={"HERMES_HOME": str(tmp_path)})
+    """, env={"A2ASSISTANT_HOME": str(tmp_path)})
     killed.wait(timeout=60)
     assert killed.returncode == 71 and len(_record_files(tmp_path)) == 2, "premise: killed after publishing the claim"
     assert _launches(tmp_path, 2) == [["resume ['default']"], []]
@@ -424,7 +424,7 @@ def test_an_update_killed_after_publishing_its_record_never_restarts_a_set_twice
     adopted, claims = r.adopt_orphans()
     stop_at(r.record_pause, "release_claims(claims)", "kill")
     r.record_pause({"resume_needed": True, "profiles": {"beta": 99}}, adopted, claims)
-    """, env={"HERMES_HOME": str(tmp_path)})
+    """, env={"A2ASSISTANT_HOME": str(tmp_path)})
     killed.wait(timeout=60)
     assert killed.returncode == 71 and len(_record_files(tmp_path)) == 2, "premise: killed before retiring the claim"
     assert _launches(tmp_path, 2) == [["resume ['beta', 'default']"], []]
@@ -450,7 +450,7 @@ _DRAINING = """
 @pytest.mark.live_system_guard_bypass
 def test_a_gateway_draining_after_the_stop_request_keeps_its_restart_debt(tmp_path):
     flag = tmp_path / "drained"
-    gateway = _child(_DRAINING, str(flag), env={"HERMES_HOME": str(tmp_path)})
+    gateway = _child(_DRAINING, str(flag), env={"A2ASSISTANT_HOME": str(tmp_path)})
     assert gateway.stdout.readline().strip() == "up"
     updater = _child(_AT_LINE + """
     pid = int(sys.argv[1])
@@ -461,7 +461,7 @@ def test_a_gateway_draining_after_the_stop_request_keeps_its_restart_debt(tmp_pa
     os.kill(pid, 15)
     print("asked", flush=True)
     time.sleep(120)
-    """, str(gateway.pid), env={"HERMES_HOME": str(tmp_path)})
+    """, str(gateway.pid), env={"A2ASSISTANT_HOME": str(tmp_path)})
     try:
         assert updater.stdout.readline().strip() == "asked"
         assert gateway.stdout.readline().strip() == "stopping"
@@ -480,7 +480,7 @@ def test_a_gateway_draining_after_the_stop_request_keeps_its_restart_debt(tmp_pa
 
 @pytest.mark.live_system_guard_bypass
 def test_a_gateway_never_asked_to_stop_is_not_restarted(tmp_path):
-    gateway = _child(_DRAINING, str(tmp_path / "unused"), env={"HERMES_HOME": str(tmp_path)})
+    gateway = _child(_DRAINING, str(tmp_path / "unused"), env={"A2ASSISTANT_HOME": str(tmp_path)})
     assert gateway.stdout.readline().strip() == "up"
     updater = _child(_AT_LINE + """
     pid = int(sys.argv[1])
@@ -488,7 +488,7 @@ def test_a_gateway_never_asked_to_stop_is_not_restarted(tmp_path):
                     "identities": {str(pid): r.identity(pid)["ct"]}}, None, [])
     print("recorded", flush=True)
     time.sleep(120)
-    """, str(gateway.pid), env={"HERMES_HOME": str(tmp_path)})
+    """, str(gateway.pid), env={"A2ASSISTANT_HOME": str(tmp_path)})
     try:
         assert updater.stdout.readline().strip() == "recorded"
         updater.send_signal(signal.SIGKILL)  # windows-footgun: ok — killed before its first stop request
@@ -504,7 +504,7 @@ def test_a_gateway_never_asked_to_stop_is_not_restarted(tmp_path):
 def test_a_stop_intended_but_never_issued_leaves_a_serving_gateway_alone_and_a_later_user_stop_final(tmp_path):
     """The updater recorded its intent, then died before the request (N1): the gateway was never
     asked, keeps serving and owes nothing; when the user stops it later, no launch restarts it."""
-    gateway = _child(_DRAINING, str(tmp_path / "unused"), env={"HERMES_HOME": str(tmp_path)})
+    gateway = _child(_DRAINING, str(tmp_path / "unused"), env={"A2ASSISTANT_HOME": str(tmp_path)})
     assert gateway.stdout.readline().strip() == "up"
     updater = _child(_AT_LINE + """
     pid = int(sys.argv[1])
@@ -513,7 +513,7 @@ def test_a_stop_intended_but_never_issued_leaves_a_serving_gateway_alone_and_a_l
     r.mark_stop_requested(token, [pid])
     print("intended", flush=True)
     time.sleep(120)
-    """, str(gateway.pid), env={"HERMES_HOME": str(tmp_path)})
+    """, str(gateway.pid), env={"A2ASSISTANT_HOME": str(tmp_path)})
     try:
         assert updater.stdout.readline().strip() == "intended"
         updater.send_signal(signal.SIGKILL)  # windows-footgun: ok — killed between the intent and the request
@@ -532,7 +532,7 @@ def test_a_request_on_disk_is_owed_even_before_it_is_recorded_sent(tmp_path):
     gateway acts on it, so it is owed; a marker the USER's stop wrote is no evidence."""
     marker = tmp_path / "profile" / ".gateway-planned-stop.json"
     marker.parent.mkdir()
-    gateway = _child(_DRAINING, str(tmp_path / "unused"), env={"HERMES_HOME": str(tmp_path)})
+    gateway = _child(_DRAINING, str(tmp_path / "unused"), env={"A2ASSISTANT_HOME": str(tmp_path)})
     assert gateway.stdout.readline().strip() == "up"
     updater = _child(_AT_LINE + """
     pid, marker = int(sys.argv[1]), Path(sys.argv[2])
@@ -543,7 +543,7 @@ def test_a_request_on_disk_is_owed_even_before_it_is_recorded_sent(tmp_path):
     assert _write_update_planned_stop_marker(marker.parent, pid)
     print("requested", flush=True)
     time.sleep(120)
-    """, str(gateway.pid), str(marker), env={"HERMES_HOME": str(tmp_path)})
+    """, str(gateway.pid), str(marker), env={"A2ASSISTANT_HOME": str(tmp_path)})
     try:
         assert updater.stdout.readline().strip() == "requested"
         updater.send_signal(signal.SIGKILL)  # windows-footgun: ok — killed before mark_stop_sent
@@ -570,7 +570,7 @@ def _checkout_copy(root: Path) -> Path:
 
 @pytest.mark.live_system_guard_bypass
 def test_another_checkouts_writer_never_imports_or_relabels_this_checkouts_debt(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     _orphan(tmp_path, {"alpha": 4242})
     other = _checkout_copy(tmp_path / "other")
     writer = _child("""
@@ -579,7 +579,7 @@ def test_another_checkouts_writer_never_imports_or_relabels_this_checkouts_debt(
         b = importlib.util.module_from_spec(spec); spec.loader.exec_module(b)
         b.write(b.stamp_tree({"resume_needed": True, "profiles": {"beta": 1}}), owner=b.UNOWNED)
         print(json.dumps([len(b.orphans()), b.read()]), flush=True)
-    """, str(other / "hermes_cli" / "update_pause_record.py"), env={"HERMES_HOME": str(tmp_path)})
+    """, str(other / "hermes_cli" / "update_pause_record.py"), env={"A2ASSISTANT_HOME": str(tmp_path)})
     out, _ = writer.communicate(timeout=60)
     seen, theirs = json.loads(out.strip().splitlines()[-1])
     assert seen == 1 and sorted(theirs["token"]["profiles"]) == ["beta"], f"imported this checkout's set: {theirs}"
@@ -610,7 +610,7 @@ def test_a_record_naming_our_pid_without_a_creation_time_is_a_previous_incarnati
 def test_an_unreadable_retired_list_claims_nothing_and_forgets_nothing(tmp_path, monkeypatch):
     """Mode 000 on the real list stands in for a Windows read refusal (a sharing violation, an AV
     scanner): which obligations are complete is then unknown, never "none"."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     src = pause_record.record_path()
     retired = src.with_suffix(".retired")
     done = "a" * 32  # completed earlier; Windows kept its record file
@@ -655,7 +655,7 @@ def _unreadable(path: Path, how: str) -> None:
 def test_an_unreadable_newer_carrier_never_lets_its_older_copy_execute(tmp_path, monkeypatch, how):
     """Partial progress left the newer claim owing only beta beside an older alpha+beta copy of the
     same obligation (its unlink was refused). That claim becoming unreadable must not resurrect alpha."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     src = pause_record.record_path()
     pause_id = "d" * 32
     pause_record.write({"pause_id": pause_id, "resume_needed": True, "profiles": {"alpha": 11, "beta": 12}},
@@ -683,7 +683,7 @@ def test_an_unreadable_newer_carrier_never_lets_its_older_copy_execute(tmp_path,
 @pytest.mark.skipif(hasattr(os, "geteuid") and os.geteuid() == 0, reason="root reads a mode-000 file")
 @pytest.mark.parametrize("how", ["refused", "malformed"])
 def test_an_unreadable_orphan_is_never_overwritten_by_a_new_pause(tmp_path, monkeypatch, how):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     src = pause_record.record_path()
     pause_record.write({"pause_id": "e" * 32, "resume_needed": True, "profiles": {"alpha": 11}}, owner=pause_record.UNOWNED)
     saved = src.read_bytes()
@@ -716,7 +716,7 @@ def test_an_accepted_stop_the_record_could_not_checkpoint_outlives_the_request_t
     from gateway import status
     root, home = tmp_path / "root", tmp_path / "root" / "profiles" / "p"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     pid = os.getpid()
     marker = status._get_planned_stop_marker_path()
     token = pause_record.record_pause({"resume_needed": True, "profiles": {"p": pid},
@@ -755,7 +755,7 @@ def test_a_refused_publish_leaves_no_temp_beside_the_record(tmp_path, monkeypatc
 def test_the_record_mutex_excludes_other_threads_of_this_process(tmp_path, monkeypatch):
     import threading
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     held, release = threading.Event(), threading.Event()
 
     def holder():
@@ -777,7 +777,7 @@ def test_the_record_mutex_excludes_other_threads_of_this_process(tmp_path, monke
 
 
 def test_a_malformed_retired_list_is_set_aside_only_when_nothing_refers_to_it(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     retired = pause_record._retired_path(pause_record.record_path())
     retired.write_text("{trunc", encoding="utf-8")
     assert pause_record.adopt_orphans() == (None, []), "a corrupt history aborted the update"
@@ -850,7 +850,7 @@ def test_a_moved_head_holds_gateways_for_dependencies_only_where_a_launch_syncs_
     _git(root, "commit", "-qm", "v1")
     token = pause_record.stamp_tree({"resume_needed": True}, root)
     _git(root, "commit", "-q", "--allow-empty", "-m", "v2")  # the update moved HEAD
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(steward, "read_install_stamp", lambda r: {"updateMechanism": mechanism} if mechanism else {})
     monkeypatch.setattr(pm, "venv_is_current", probe)
     whole, why = pause_record.tree_is_whole(token, root)
@@ -905,7 +905,7 @@ def _cloned_checkout(tmp_path: Path) -> tuple[Path, Path]:
 def test_a_later_fetch_never_certifies_bytes_an_earlier_recorded_move_left(tmp_path, monkeypatch):
     """Review D: the move's target goes on the record before git writes; a later fetch whose refs
     no longer touch a.py must not turn the gate from false to true on the same partial bytes."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     origin, root = _cloned_checkout(tmp_path)
     token = pause_record.stamp_tree({"resume_needed": True, "profiles": {"default": 4242}}, root)
     _git(root, "fetch", "-q", "origin")
@@ -926,7 +926,7 @@ def test_a_later_fetch_never_certifies_bytes_an_earlier_recorded_move_left(tmp_p
 def test_an_autostashed_edit_vouches_only_for_its_own_bytes(tmp_path, monkeypatch):
     """Review D / F3: a.py was dirty at pause, the update stashed it and its move wrote a.py partly.
     The pathname alone no longer admits the different bytes; the restored edit itself still passes."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     _origin, root = _cloned_checkout(tmp_path)
     (root / "a.py").write_text("user edit\n", encoding="utf-8")
     token = pause_record.stamp_tree({"resume_needed": True, "profiles": {"default": 4242}}, root)

@@ -10,7 +10,7 @@ from tests.gateway.test_authority_cold_route_recovery import _cold, _compressed_
 
 @pytest.fixture(autouse=True)
 def _home(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
 
 
 @pytest.mark.asyncio

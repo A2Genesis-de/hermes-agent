@@ -244,7 +244,7 @@ def test_concurrent_commands_keep_acknowledged_enables(plugin_world, sibling_pro
             )
             processes.append(subprocess.Popen([sys.executable, "-I", "-B", "-c", script],
                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-                env={**os.environ, "HERMES_HOME": str(home)}))
+                env={**os.environ, "A2ASSISTANT_HOME": str(home)}))
         # Both commands have reached the worker launch (after the old stale
         # read). Release one all the way through publication, then the other.
         ready = queue.Queue()

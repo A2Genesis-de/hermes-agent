@@ -1,4 +1,4 @@
-"""`hermes sessions optimize-storage` runs in the foreground behind the held-store refusal, so it must
+"""`a2assistant sessions optimize-storage` runs in the foreground behind the held-store refusal, so it must
 report real progress in every phase, never idle between chunks, and end (not spin) when a chunk
 cannot succeed."""
 

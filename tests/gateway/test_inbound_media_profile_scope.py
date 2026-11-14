@@ -23,12 +23,12 @@ from tools.credential_files import from_agent_visible_cache_path, get_cache_dire
 
 @pytest.fixture
 def two_homes(tmp_path, monkeypatch):
-    """Launch home A (HERMES_HOME, local backend) and routed profile B (docker backend)."""
+    """Launch home A (A2ASSISTANT_HOME, local backend) and routed profile B (docker backend)."""
     a = tmp_path / ".hermes"
     b = a / "profiles" / "b"
     b.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(a))
     for name, home in (("a", a), ("b", b)):
         (home / "config.yaml").write_text(
             yaml.safe_dump({"terminal": {"backend": "local" if name == "a" else "docker"}}), encoding="utf-8")

@@ -1,13 +1,13 @@
 """Tests for the configurable default interface (cli vs tui).
 
-`hermes` launches the classic prompt_toolkit REPL by default, but users can
+`a2assistant` launches the classic prompt_toolkit REPL by default, but users can
 flip ``display.interface: tui`` in config.yaml to make the modern Ink TUI the
-default for bare ``hermes`` / ``hermes chat``. Explicit flags always win:
+default for bare ``a2assistant`` / ``a2assistant chat``. Explicit flags always win:
 
     --cli                forces the classic REPL (highest precedence)
     --tui                forces the TUI
     (no TTY)             forces the classic REPL — ambient prefs don't apply
-    HERMES_TUI=1         the env default
+    A2ASSISTANT_TUI=1         the env default
     display.interface    the configured default
     (unset)              classic REPL
 
@@ -42,7 +42,7 @@ def _reset_early_cache(monkeypatch):
     # The early resolver memoizes the config read; clear it so each test sees
     # a fresh value, and make sure no stray HERMES_TUI leaks in.
     monkeypatch.setattr(m, "_EARLY_INTERFACE_CACHE", None)
-    monkeypatch.delenv("HERMES_TUI", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI", raising=False)
     yield
     monkeypatch.setattr(m, "_EARLY_INTERFACE_CACHE", None)
 
@@ -101,7 +101,7 @@ class TestWantsTuiEarly:
             (tmp_path / "config.yaml").write_text(
                 f"display:\n  interface: {interface}\n"
             )
-            monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
             monkeypatch.setattr(m, "_EARLY_INTERFACE_CACHE", None)
 
         return _make
@@ -113,14 +113,14 @@ class TestWantsTuiEarly:
 
     def test_missing_config_defaults_to_cli(self, tmp_path, monkeypatch):
         # HERMES_HOME points at an empty dir — no config.yaml.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(m, "_EARLY_INTERFACE_CACHE", None)
         assert m._wants_tui_early([]) is False
 
     def test_unreadable_config_defaults_to_cli(self, tmp_path, monkeypatch):
         # Garbage YAML must not crash the hot path; falls back to cli.
         (tmp_path / "config.yaml").write_text("this: : : not valid yaml\n")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(m, "_EARLY_INTERFACE_CACHE", None)
         assert m._wants_tui_early([]) is False
 
@@ -139,12 +139,12 @@ class TestWantsTuiEarly:
 
         # The import-time read, on the home the process starts in.
         _fake_tty(monkeypatch, True)
-        monkeypatch.setenv("HERMES_HOME", str(default_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
         m._suppress_mouse_residue_early()
         assert m._config_default_interface_early() == "cli"
 
         # What `-p coder` does, after that read already happened.
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
         assert m._config_default_interface_early() == "tui"
         assert m._wants_tui_early([]) is True
 

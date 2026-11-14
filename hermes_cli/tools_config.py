@@ -178,7 +178,7 @@ def _get_plugin_toolset_keys() -> set:
 
 
 def _checklist_toolset_keys(platform: str) -> set[str]:
-    """Toolset keys the ``hermes tools`` checklist offers for ``platform`` (mirrors ``_prompt_toolset_checklist``);
+    """Toolset keys the ``a2assistant tools`` checklist offers for ``platform`` (mirrors ``_prompt_toolset_checklist``);
     read-time-resolved toolsets (recovered composites, MCP names) are NOT here."""
     return {
         ts_key for ts_key, _, _ in _get_effective_configurable_toolsets()
@@ -459,7 +459,7 @@ def _context_engine_active(config: dict) -> bool:
 def _coerce_platform_toolsets_value(value, platform: str):
     """Read a list-literal string saved for ``platform_toolsets.<platform>`` as the list it encodes.
 
-    The parser is shared with ``hermes doctor`` and ``hermes plugins`` (``toolset_validation``
+    The parser is shared with ``a2assistant doctor`` and ``a2assistant plugins`` (``toolset_validation``
     ``parse_platform_toolsets_value``) so every surface agrees on the user's selection (#115866).
     Any other non-list value is warned about once (naming the expected shape) and left as-is, so
     the default fallback below is loud rather than silent.
@@ -474,7 +474,7 @@ def _coerce_platform_toolsets_value(value, platform: str):
         logger.warning(
             "platform_toolsets.%s is %r, expected a YAML list of toolset names "
             "(e.g. [terminal, file, web]) - falling back to the platform default. "
-            "Run `hermes tools` to reconfigure.", platform, value)
+            "Run `a2assistant tools` to reconfigure.", platform, value)
     return value
 
 
@@ -574,7 +574,7 @@ def _prune_toolsets_stripped_by_disabled(enabled_toolsets: set[str], disabled_na
 
     The agent subtracts ``agent.disabled_toolsets`` at TOOL granularity (``model_tools._select_tool_names``),
     so disabling a composite like ``debugging`` removes the terminal/web/file tools even though those names
-    never appear in the list. A name-only subtraction here left inspection surfaces (``hermes tools
+    never appear in the list. A name-only subtraction here left inspection surfaces (``a2assistant tools
     --summary``, banner, ``/tools``) showing toolsets as enabled that no session could call (#97015).
     Passthrough entries (MCP server names) and toolsets with no static tools (``context_engine``) are kept.
     """
@@ -605,7 +605,7 @@ def toolsets_partially_stripped(config: dict, enabled_toolsets: set[str]) -> dic
     that ``agent.disabled_toolsets`` cuts down without removing (``web`` minus ``web_search`` via ``search``,
     #134593). ``_prune_toolsets_stripped_by_disabled`` keeps such a toolset "enabled" because some of its
     tools survive, so inspection surfaces need this to say which ones did not. The hint offers
-    ``hermes tools enable`` only when that save clears every entry (``_save_platform_tools`` coverage)."""
+    ``a2assistant tools enable`` only when that save clears every entry (``_save_platform_tools`` coverage)."""
     from agent.skill_utils import parse_config_string_list
     from model_tools import _apply_toolset_selection
     from toolsets import resolve_toolset, validate_toolset
@@ -623,7 +623,7 @@ def toolsets_partially_stripped(config: dict, enabled_toolsets: set[str]) -> dic
         if by:
             entries = sorted(by)
             clears = all(_disabled_entry_tools(e) <= tools for e in entries)
-            hint = (f"run `hermes tools enable {name}` to restore" if clears
+            hint = (f"run `a2assistant tools enable {name}` to restore" if clears
                     else f"remove {', '.join(entries)} from agent.disabled_toolsets to restore")
             report[name] = (sorted(set().union(*by.values())), entries, hint)
     return report
@@ -677,9 +677,9 @@ def _merge_mcp_servers(
 
 
 def _warn_all_invalid_platform_toolsets(platform: str, explicit: list, config: dict) -> None:
-    """Warn once when an explicit platform list has only invalid names (``hermes`` for ``hermes-cli`` → no
+    """Warn once when an explicit platform list has only invalid names (``a2assistant`` for ``hermes-cli`` → no
     native tools), at session tool resolution rather than only in update/doctor. Names are judged the way
-    ``hermes config check`` judges them, and a known platform's own ``hermes-<platform>`` bundle always
+    ``a2assistant config check`` judges them, and a known platform's own ``hermes-<platform>`` bundle always
     counts (``is_known_platform_bundle``): a plugin platform has no sessions to leave toolless until its
     plugin loads, and once it loads the registry resolves the bundle.
     The own-bundle and registered-toolset checks run first because this is reached on every schema build
@@ -700,7 +700,7 @@ def _warn_all_invalid_platform_toolsets(platform: str, explicit: list, config: d
         _warned_invalid_platform_toolsets.add(platform)
         logger.warning(
             "platform '%s' has no valid toolsets configured (unknown "
-            "name(s): %s) - tools will be unavailable. Run `hermes tools` "
+            "name(s): %s) - tools will be unavailable. Run `a2assistant tools` "
             "to reconfigure. See issue #38798.",
             platform, ", ".join(named))
 
@@ -934,7 +934,7 @@ def _platform_menu_label(config: dict, pkey: str) -> str:
 
 
 def _print_tools_summary(config: dict, enabled_platforms: list[str]) -> None:
-    """``hermes tools --summary``: enabled toolsets per platform, non-interactive."""
+    """``a2assistant tools --summary``: enabled toolsets per platform, non-interactive."""
     total = len(_get_effective_configurable_toolsets())
     print(color("☤ Tool Summary", Colors.CYAN, Colors.BOLD))
     print()
@@ -1033,7 +1033,7 @@ def _configure_platforms(config: dict, platform_keys: list[str], *, all_platform
 
 
 def tools_command(args=None, first_install: bool = False, config: dict | None = None):
-    """Entry point for `hermes tools` / `hermes setup tools`. ``first_install`` skips the menu (checklist + key
+    """Entry point for `a2assistant tools` / `a2assistant setup tools`. ``first_install`` skips the menu (checklist + key
     prompts); a wizard-passed ``config`` receives platform_toolsets so its final save_config() keeps them."""
     if config is None:
         config = load_config()

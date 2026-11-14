@@ -42,7 +42,7 @@ def test_activate_applies_the_environment_and_deactivate_restores_the_shell(tmp_
         or exit 10
         # The sentinel and the tool variables must reach child processes.
         bash -c 'test -n "$__HERMES_ACTIVATED"'; or exit 11
-        test (bash -c 'printf %s "$HERMES_PM_ACTIVATE_CANARY"') = env-ok; or exit 12
+        test (bash -c 'printf %s "$A2ASSISTANT_PM_ACTIVATE_CANARY"') = env-ok; or exit 12
         # PYTHONPATH stays a list: the checkout first, then the selected environment.
         printf '%s\\n' $PYTHONPATH
 
@@ -55,7 +55,7 @@ def test_activate_applies_the_environment_and_deactivate_restores_the_shell(tmp_
         test "$PYTHONPATH" = caller-original; or exit 21
         test "$VIRTUAL_ENV" = caller-venv; or exit 22
         set -q __HERMES_ACTIVATED; and exit 23
-        set -q HERMES_PM_ACTIVATE_CANARY; and exit 24
+        set -q A2ASSISTANT_PM_ACTIVATE_CANARY; and exit 24
         functions -q deactivate; and exit 25
         functions -q hermes; and exit 26
         functions -q __hermes_saved_fish_prompt; and exit 27

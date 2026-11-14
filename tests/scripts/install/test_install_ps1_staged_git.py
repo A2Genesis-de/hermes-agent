@@ -30,8 +30,8 @@ def test_stage_processes_restore_pinned_git_and_never_fall_back(tmp_path):
 
     home = tmp_path / "home"
     store = tmp_path / "tools"
-    env = dict(os.environ, HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(store),
-               HERMES_REPO_URL=str(origin))
+    env = dict(os.environ, A2ASSISTANT_HOME=str(home), A2ASSISTANT_RUNTIME_DIR=str(store),
+               A2ASSISTANT_REPO_URL=str(origin))
 
     def stage(name):
         result = subprocess.run([powershell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",

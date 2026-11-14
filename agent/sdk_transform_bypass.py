@@ -23,7 +23,7 @@ RESPONSES_BYPASS_FIELDS = ("input", "tools")
 CHAT_COMPLETIONS_BYPASS_FIELDS = ("messages", "tools")
 
 # One hatch for both API families (established by #93650); restores the typed SDK path.
-ESCAPE_HATCH_ENV = "HERMES_CODEX_SDK_TRANSFORM"
+ESCAPE_HATCH_ENV = "A2ASSISTANT_CODEX_SDK_TRANSFORM"
 
 
 def _is_plain_json_data(value: Any) -> bool:

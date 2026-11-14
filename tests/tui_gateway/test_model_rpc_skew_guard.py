@@ -2,7 +2,7 @@
 
 The Desktop's Models page reaches the same inventory through ``model.options`` /
 ``model.save_key`` that the browser dashboard reaches through the guarded
-``/api/model/options``; a backend kept alive across ``hermes update`` serves stale
+``/api/model/options``; a backend kept alive across ``a2assistant update`` serves stale
 ``sys.modules`` and would resolve a post-update model string against them (the
 reporter's ``agent_init_failed``). Both RPCs must answer the same "restart" error
 the gateway's ``/model`` switch already returns, and never reach the payload build.
@@ -40,7 +40,7 @@ def test_stale_model_save_key_refuses_instead_of_writing(tmp_path, monkeypatch):
     from gateway import code_skew
 
     monkeypatch.setattr(code_skew, "detect_code_skew", lambda: ("abc1234567", "def4567890"))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     resp = _call("model.save_key", {"slug": "zai", "api_key": "sk-canary"})
     assert resp.get("error") is not None, resp

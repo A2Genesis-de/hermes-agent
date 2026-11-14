@@ -24,7 +24,7 @@ describe('WSLg launch arguments', () => {
       '--ozone-platform-hint=x11',
       '--ozone-platform=x11'
     ])
-    expect(wslgLaunchArgs([], { ...env, HERMES_DESKTOP_DISABLE_GPU: 'true' }, 'linux')).toEqual([
+    expect(wslgLaunchArgs([], { ...env, A2ASSISTANT_DESKTOP_DISABLE_GPU: 'true' }, 'linux')).toEqual([
       '--ozone-platform=wayland'
     ])
     expect(wslgLaunchArgs([], { ...env, ELECTRON_OZONE_PLATFORM_HINT: 'x11' }, 'linux')).toEqual([

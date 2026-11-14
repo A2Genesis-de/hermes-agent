@@ -142,7 +142,7 @@ def test_remote_command_survives_the_ssh_remote_shell_reparse():
 def isolated_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(runtime, "state_dir", lambda: home / "bot-desktop" / "default")
     return home
 
@@ -234,7 +234,7 @@ def test_sandbox_screen_that_cannot_come_up_is_an_error_not_a_host_browser(monke
 
 
 def test_start_adopting_a_screen_the_sandbox_kept_records_the_marker(monkeypatch, isolated_home):
-    """Host state can vanish while the sandbox keeps its Xvnc (fresh HERMES_HOME, a stop() whose kill missed
+    """Host state can vanish while the sandbox keeps its Xvnc (fresh A2ASSISTANT_HOME, a stop() whose kill missed
     the launcher). start() finding the display already published must record it like a fresh launch, or
     status/thumbnail/stop never learn the screen is ours (found live against an ssh sandbox)."""
     from tools.bot_desktop import sandbox_host

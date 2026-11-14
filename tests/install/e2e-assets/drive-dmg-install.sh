@@ -42,8 +42,8 @@ SETUP_PID=$!
 log "launched $APP_BIN (pid $SETUP_PID)"
 cleanup() {
   kill "$SETUP_PID" 2>/dev/null || true
-  if [ -d "$HOME/.hermes/logs" ]; then
-    cp -R "$HOME/.hermes/logs" "$PROOF_DIR/bootstrap-logs"
+  if [ -d "$HOME/.a2assistant/logs" ]; then
+    cp -R "$HOME/.a2assistant/logs" "$PROOF_DIR/bootstrap-logs"
   fi
 }
 trap cleanup EXIT
@@ -115,7 +115,7 @@ installed_app() {
   done
   return 1
 }
-BOOTSTRAP_LOG="$HOME/.hermes/logs/bootstrap-installer.log"
+BOOTSTRAP_LOG="$HOME/.a2assistant/logs/bootstrap-installer.log"
 bootstrap_completed() {
   [ -f "$BOOTSTRAP_LOG" ] || return 1
   local line

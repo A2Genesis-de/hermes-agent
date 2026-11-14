@@ -40,7 +40,7 @@ def _entry(
     return entry
 
 def _load(tmp_path, monkeypatch, entries: list[dict]):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     _write_auth_store(
         tmp_path,

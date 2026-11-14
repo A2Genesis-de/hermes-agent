@@ -79,7 +79,7 @@ def test_loaded_wake_defaults_resolve_supported_provider(tmp_path, monkeypatch, 
 
     from pm.extras import extra_supported
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     path = tmp_path / "config.yaml"
     if saved is not None:
         path.write_text(saved, encoding="utf-8")
@@ -230,7 +230,7 @@ def test_loaded_provider_requirements_preserve_choices_and_require_keys(tmp_path
 
     from pm.extras import extra_supported
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.delenv("PORCUPINE_ACCESS_KEY", raising=False)
     saved = f"wake_word:\n  provider: {provider}\n  capture: client\n"
     path = tmp_path / "config.yaml"
@@ -357,7 +357,7 @@ def test_requirements_lazy_disabled_returns_remedy_not_nameerror(monkeypatch):
     r = ww.check_wake_word_requirements({"provider": "openwakeword"})
     assert r["available"] is False
     assert r["deps_available"] is False
-    assert "hermes pm install --extra wake-openwakeword" in r["hint"]
+    assert "a2assistant pm install --extra wake-openwakeword" in r["hint"]
 
 
 def test_requirements_deps_present_but_no_audio_hint(monkeypatch):

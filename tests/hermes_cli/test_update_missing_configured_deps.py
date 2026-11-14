@@ -67,7 +67,7 @@ def configured_update(source_launch, tmp_path, monkeypatch):
         "mcp_servers:\n  fixture:\n    command: must-not-run\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
     # A stale positive verdict in the updater must not conceal missing child SDKs.
     from types import ModuleType
     monkeypatch.setitem(sys.modules, "mcp", ModuleType("mcp"))
@@ -82,7 +82,7 @@ def test_update_names_missing_configured_features_from_selected_child(configured
     out = capfd.readouterr().out
     assert "fail to load them on restart" in out
     assert "MCP servers" in out
-    assert "hermes pm" in out
+    assert "a2assistant pm" in out
     target = json.loads(next(line.removeprefix("TARGET=") for line in out.splitlines() if line.startswith("TARGET=")))
     assert Path(target["prefix"]) == selected
     assert Path(target["python"]).parent.parent == selected

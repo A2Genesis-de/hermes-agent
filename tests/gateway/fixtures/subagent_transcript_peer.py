@@ -2,7 +2,7 @@
 with ``subagent_id``; adapted from #140477's ``subagent.transcript`` fixture).
 
 Real gateway runner, session authority, ticketed WebSocket and the profile's own ``state.db``
-under a temp HERMES_HOME; no inference. Child rows are written the way a delegated child writes
+under a temp A2ASSISTANT_HOME; no inference. Child rows are written the way a delegated child writes
 them (``source='subagent'``, ``_delegate_from`` + ``_subagent_id`` markers, messages as it runs).
 Every reply lands in ``receipt.json`` for the test to judge.
 """
@@ -73,7 +73,7 @@ async def probe():
     from tools.delegate_tool_registry import _unregister_subagent
     from websockets.asyncio.client import connect
 
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['A2ASSISTANT_HOME'])
     (home / 'config.yaml').write_text('gateway:\n  multiplex_profiles: false\nmodel:\n  provider: custom\n  default: no-inference\n  base_url: http://127.0.0.1:1/v1\nauxiliary:\n  title_generation:\n    enabled: false\n')
     runner = GatewayRunner()
     authority = await initialize_session_authority(runner, profile_id=str(home), instance_id='subagent-transcript')

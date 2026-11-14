@@ -260,7 +260,7 @@ def test_manifest_goal_is_redacted():
 # ---------------------------------------------------------------------------
 
 def test_explicit_home_pins_transcripts_across_raw_thread_boundary(tmp_path, monkeypatch):
-    """Ambient resolve falls through to process HERMES_HOME when the session's
+    """Ambient resolve falls through to process A2ASSISTANT_HOME when the session's
     ContextVar override is dropped by a raw threading.Thread boundary; an
     explicit home keeps transcripts + manifest under the originating profile."""
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
@@ -270,7 +270,7 @@ def test_explicit_home_pins_transcripts_across_raw_thread_boundary(tmp_path, mon
     process_home.mkdir()
     session_home.mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(process_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(process_home))
     token = set_hermes_home_override(session_home)
     out = {}
     try:
@@ -300,7 +300,7 @@ def test_manifest_update_uses_same_explicit_home(tmp_path, monkeypatch):
     explicit home create used, or the status write is silently lost."""
     ambient_home = tmp_path / "other-profile"
     ambient_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(ambient_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(ambient_home))
 
     home = tmp_path / "own-profile"
     home.mkdir()
@@ -394,7 +394,7 @@ def test_prune_sweeps_the_pinned_root_not_ambient(tmp_path, monkeypatch):
     pinned_home = tmp_path / "pinned"
     ambient_home.mkdir()
     pinned_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(ambient_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(ambient_home))
 
     stale_age = time.time() - (dll.LIVE_RETENTION_DAYS + 1) * 86400
     stale_pinned = pinned_home / "cache" / "delegation" / "live" / "old-deleg"

@@ -37,7 +37,7 @@ test('terminalScriptEnv drops PATH in any casing and keeps the rest', () => {
     '/home/b/.hermes'
   )
 
-  assert.deepEqual(env, { PYTHONPATH: '/repo', PYTHONUTF8: '1', HERMES_HOME: '/home/b/.hermes' })
+  assert.deepEqual(env, { PYTHONPATH: '/repo', PYTHONUTF8: '1', A2ASSISTANT_HOME: '/home/b/.hermes' })
 })
 
 test('terminalScriptEnv skips empty values and an absent home', () => {

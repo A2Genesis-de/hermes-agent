@@ -28,7 +28,7 @@
  */
 
 // Relative, not `@hermes/shared`: esbuild bundles electron/ without tsconfig paths.
-import { HERMES_CLOUD_MANAGED, isHermesCloudUrl } from '../../shared/src/hermes-cloud'
+import { A2ASSISTANT_CLOUD_MANAGED, isHermesCloudUrl } from '../../shared/src/hermes-cloud'
 
 import {
   hostLabelFromBaseUrl,
@@ -528,7 +528,7 @@ function normalizedSshTarget(route: { host?: unknown; port?: unknown; user?: unk
  * route's REMOTE descriptor — so the forced-local child pools under the
  * `conn:local::<profile>` form instead (colons are invalid in profile names,
  * so it cannot collide). A concrete named profile that does not exist on
- * this machine is refused instead of spawned. `default` is `$HERMES_HOME`
+ * this machine is refused instead of spawned. `default` is `$A2ASSISTANT_HOME`
  * itself, so it always exists here and is never refused. A per-profile
  * remote override still delegates to the legacy profile route.
  */
@@ -556,7 +556,7 @@ export function resolveRegistryLocalRoute(
     // A concrete named profile that does not exist on this machine is
     // remote-only. Spawning it locally is the #90477 loop, so refuse. An
     // unprofiled call is enumeration, not a dial. `default` lives at
-    // $HERMES_HOME, not profiles/default, so This device -> default always
+    // $A2ASSISTANT_HOME, not profiles/default, so This device -> default always
     // force-locals. A profile that exists locally still force-locals so
     // "This device" does not dial the remote.
     if (concrete && profileKey !== 'default' && opts.localProfileExists === false) {
@@ -751,7 +751,7 @@ export function shouldRetrySshInventory(
 
 const PROFILE_NAME_RE = /^[a-zA-Z0-9][a-zA-Z0-9_-]{0,63}$/
 
-/** Turn `ls ~/.hermes/profiles` output into roster names. Always includes
+/** Turn `ls ~/.a2assistant/profiles` output into roster names. Always includes
  *  `default`. Drops rollback snapshots and junk lines. */
 export function parseRemoteProfileListing(text: string): string[] {
   const names = new Set<string>(['default'])
@@ -897,18 +897,18 @@ function pickCanonicalConnection<T extends { connection: RegistryConnection; ord
 export interface UpdateEligibility {
   eligible: boolean
   /** Present when not eligible: 'cloud-managed' (platform updates it). */
-  reason?: typeof HERMES_CLOUD_MANAGED
+  reason?: typeof A2ASSISTANT_CLOUD_MANAGED
 }
 
 /**
  * Whether "Update all instances" may drive this connection. Hermes Cloud
- * instances are platform-managed — we never run `hermes update` against them,
+ * instances are platform-managed — we never run `a2assistant update` against them,
  * including one saved as a plain URL remote. Local, remote, and ssh sources
  * are all eligible (reachability and busy checks happen at dispatch time).
  */
 export function updateEligibility(connection: RegistryConnection): UpdateEligibility {
   if (connection.kind === 'cloud' || isHermesCloudUrl(connection.url)) {
-    return { eligible: false, reason: HERMES_CLOUD_MANAGED }
+    return { eligible: false, reason: A2ASSISTANT_CLOUD_MANAGED }
   }
 
   return { eligible: true }

@@ -14,16 +14,16 @@ from tests.waiting import wait_until
 # (SWEEP_daemon-launch-env.md): consent, Kanban worker pins, the launching turn's session identity,
 # human-presence and one-shot markers, a bot-to-bot turn author, a terminal's systemd markers, and the
 # launchd/external-supervisor markers every process below a service-managed gateway inherits.
-SUPERVISOR_LEAKS = {'XPC_SERVICE_NAME': 'ai.hermes.gateway', 'LAUNCHD_SOCKET': '/tmp/launchd-x/Listeners',
-                    'HERMES_LAUNCHD_LABEL': 'ai.hermes.gateway', 'HERMES_GATEWAY_EXTERNAL_SUPERVISOR': '1',
-                    'HERMES_SUPERVISED_CHILD': '1'}
-PIN = 'HERMES_GATEWAY_PROFILE_PIN'
-LEAKS = {**SUPERVISOR_LEAKS, 'HERMES_ACCEPT_HOOKS': '1', 'HERMES_KANBAN_TASK': 't_1', 'HERMES_KANBAN_BOARD': 'other',
-         'HERMES_KANBAN_DB': '/x/kanban.db', 'HERMES_SESSION_SOURCE': 'kanban', 'TERMINAL_CWD': '/x',
-         'HERMES_TENANT': 'acme', 'HERMES_SESSION_SOURCE_EXPLICIT': '1', 'HERMES_TURN_AUTHOR': '{"handle":"x"}',
-         'HERMES_INTERACTIVE': '1', 'HERMES_GATEWAY_SESSION': '1', 'HERMES_SINGLE_QUERY_SESSION': '1',
-         'HERMES_SESSION_ID': 'launching-turn', 'HERMES_SESSION_KEY': 'agent:main:tui:x',
-         'HERMES_SESSION_PLATFORM': 'tui', 'HERMES_SESSION_CHAT_ID': 'c1', 'HERMES_CRON_SESSION': '1',
+SUPERVISOR_LEAKS = {'XPC_SERVICE_NAME': 'de.a2genesis.a2assistant.gateway', 'LAUNCHD_SOCKET': '/tmp/launchd-x/Listeners',
+                    'A2ASSISTANT_LAUNCHD_LABEL': 'de.a2genesis.a2assistant.gateway', 'A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR': '1',
+                    'A2ASSISTANT_SUPERVISED_CHILD': '1'}
+PIN = 'A2ASSISTANT_GATEWAY_PROFILE_PIN'
+LEAKS = {**SUPERVISOR_LEAKS, 'A2ASSISTANT_ACCEPT_HOOKS': '1', 'A2ASSISTANT_KANBAN_TASK': 't_1', 'A2ASSISTANT_KANBAN_BOARD': 'other',
+         'A2ASSISTANT_KANBAN_DB': '/x/kanban.db', 'A2ASSISTANT_SESSION_SOURCE': 'kanban', 'TERMINAL_CWD': '/x',
+         'A2ASSISTANT_TENANT': 'acme', 'A2ASSISTANT_SESSION_SOURCE_EXPLICIT': '1', 'A2ASSISTANT_TURN_AUTHOR': '{"handle":"x"}',
+         'A2ASSISTANT_INTERACTIVE': '1', 'A2ASSISTANT_GATEWAY_SESSION': '1', 'A2ASSISTANT_SINGLE_QUERY_SESSION': '1',
+         'A2ASSISTANT_SESSION_ID': 'launching-turn', 'A2ASSISTANT_SESSION_KEY': 'agent:main:tui:x',
+         'A2ASSISTANT_SESSION_PLATFORM': 'tui', 'A2ASSISTANT_SESSION_CHAT_ID': 'c1', 'A2ASSISTANT_CRON_SESSION': '1',
          # A terminal running under a systemd service: not the daemon's own supervisor.
          'INVOCATION_ID': 'terminal-scope', 'JOURNAL_STREAM': '8:1',
          # A process below a Type=notify gateway: the unit's notify socket and watchdog are its main PID's.
@@ -41,11 +41,11 @@ def test_daemon_does_not_inherit_hook_consent_or_worker_pins(tmp_path, monkeypat
     executable.write_text(
         '#!' + sys.executable + '\nimport json, os\n'
         + f'open({str(witness)!r}, "w").write(json.dumps('
-        + '{k: os.environ.get(k) for k in ' + repr([*LEAKS, 'HERMES_INFERENCE_MODEL', PIN]) + '}))\n',
+        + '{k: os.environ.get(k) for k in ' + repr([*LEAKS, 'A2ASSISTANT_INFERENCE_MODEL', PIN]) + '}))\n',
         encoding='utf-8')
     executable.chmod(0o700)
     monkeypatch.setattr(sys, 'executable', str(executable))
-    for key, value in {**LEAKS, 'HERMES_INFERENCE_MODEL': 'fallback'}.items():
+    for key, value in {**LEAKS, 'A2ASSISTANT_INFERENCE_MODEL': 'fallback'}.items():
         monkeypatch.setenv(key, value)
     child = start.spawn_unmanaged_gateway(home, deadline=time.monotonic() + 5)
     try:
@@ -57,8 +57,8 @@ def test_daemon_does_not_inherit_hook_consent_or_worker_pins(tmp_path, monkeypat
     seen = json.loads(Path(witness).read_text())
     # The supervisor markers go, but the daemon's own tool children stay on its profile (#74872).
     assert seen.pop(PIN) == '1'
-    assert seen == {**dict.fromkeys(LEAKS), 'HERMES_INFERENCE_MODEL': 'fallback'}
-    assert os.environ['HERMES_ACCEPT_HOOKS'] == '1'  # the launching process keeps its own policy
+    assert seen == {**dict.fromkeys(LEAKS), 'A2ASSISTANT_INFERENCE_MODEL': 'fallback'}
+    assert os.environ['A2ASSISTANT_ACCEPT_HOOKS'] == '1'  # the launching process keeps its own policy
 
 
 @pytest.mark.platforms("macos")
@@ -84,7 +84,7 @@ def test_daemon_started_below_a_launchd_gateway_is_unsupervised(tmp_path, monkey
     monkeypatch.setattr(sys, 'executable', str(executable))
     for key, value in SUPERVISOR_LEAKS.items():
         monkeypatch.setenv(key, value)
-    for key in ('INVOCATION_ID', 'HERMES_DESKTOP_MANAGED', 'HERMES_S6_SUPERVISED_CHILD'):
+    for key in ('INVOCATION_ID', 'A2ASSISTANT_DESKTOP_MANAGED', 'A2ASSISTANT_S6_SUPERVISED_CHILD'):
         monkeypatch.delenv(key, raising=False)
     child = start.spawn_unmanaged_gateway(home, deadline=time.monotonic() + 5, idle_exit=True)
     try:

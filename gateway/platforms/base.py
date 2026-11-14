@@ -201,7 +201,7 @@ def build_auto_tts_output_path(platform) -> str:
     """Unique temp output path for gateway auto-TTS: ``.ogg`` for ``OPUS_VOICE_PLATFORMS``
     (the tool's ``_repair_ogg_container`` then guarantees real Opus bytes), else ``.mp3``.
     Platform-awareness lives HERE because ``_clear_session_env`` wipes the TTS tool's
-    ``HERMES_SESSION_PLATFORM`` contextvar before the post-handler auto-TTS block runs.
+    ``A2ASSISTANT_SESSION_PLATFORM`` contextvar before the post-handler auto-TTS block runs.
 
     Platforms whose native voice bubbles require Ogg/Opus (``tools.tts_tool.OPUS_VOICE_PLATFORMS`` — the
     single source of truth) get an explicit ``.ogg`` path; the tool's central container repair
@@ -447,7 +447,7 @@ if TYPE_CHECKING:
 
 GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE = (
     "Secure secret entry is not supported over messaging. "
-    "Load this skill in the local CLI to be prompted, or add the key to ~/.hermes/.env manually.")
+    "Load this skill in the local CLI to be prompted, or add the key to ~/.a2assistant/.env manually.")
 
 # One sentence for every "you may not press/run this" refusal on every platform (slash commands,
 # approval buttons, pickers, prompts). ``{platform}`` is the ``Platform.value`` for the
@@ -455,7 +455,7 @@ GATEWAY_SECRET_CAPTURE_UNSUPPORTED_MESSAGE = (
 # Kept under 200 chars: Telegram's answerCallbackQuery truncates longer text.
 UNAUTHORIZED_ACTION_NOTICE = (
     "This bot is private and you're not on its allowed list. If you own it, run "
-    "`hermes pairing approve {platform} <request-id>` on the host (`hermes pairing list` shows the id).")
+    "`a2assistant pairing approve {platform} <request-id>` on the host (`a2assistant pairing list` shows the id).")
 
 
 def unauthorized_action_notice(platform: Any) -> str:
@@ -561,8 +561,8 @@ def _secure_media_cache_dir(cache_dir: Path) -> None:
     Inbound media (photos, voice notes, documents a user sent through a
     messaging platform) is user content, not regenerable cache: the
     umask-derived 0755 these dirs inherited made them readable by every other
-    local account whenever ``HERMES_HOME`` is traversable — the documented
-    ``HERMES_HOME_MODE=0701`` web-server hatch. The mode is passed to ``mkdir``
+    local account whenever ``A2ASSISTANT_HOME`` is traversable — the documented
+    ``A2ASSISTANT_HOME_MODE=0701`` web-server hatch. The mode is passed to ``mkdir``
     so it is set at creation, then reconciled by the house policy helper
     ``hermes_cli.config._secure_dir`` (managed/NixOS installs keep their
     group-share design: these lazily-created dirs are not covered by the
@@ -729,12 +729,12 @@ _CACHE_DIR_IMPORT_DEFAULTS = {
 # enumerated at check time), never for the credential DENY side — see _credential_home_roots.
 _HERMES_HOME = get_hermes_home()
 _HERMES_ROOT = get_default_hermes_root()
-MEDIA_DELIVERY_ALLOW_DIRS_ENV = "HERMES_MEDIA_ALLOW_DIRS"
-MEDIA_DELIVERY_TRUST_RECENT_ENV = "HERMES_MEDIA_TRUST_RECENT_FILES"
-MEDIA_DELIVERY_TRUST_RECENT_SECONDS_ENV = "HERMES_MEDIA_TRUST_RECENT_SECONDS"
+MEDIA_DELIVERY_ALLOW_DIRS_ENV = "A2ASSISTANT_MEDIA_ALLOW_DIRS"
+MEDIA_DELIVERY_TRUST_RECENT_ENV = "A2ASSISTANT_MEDIA_TRUST_RECENT_FILES"
+MEDIA_DELIVERY_TRUST_RECENT_SECONDS_ENV = "A2ASSISTANT_MEDIA_TRUST_RECENT_SECONDS"
 # Strict mode = allowlist+recency validation; off by default (the denylist still blocks
 # credential / system paths). Set true on public-facing gateways.
-MEDIA_DELIVERY_STRICT_ENV = "HERMES_MEDIA_DELIVERY_STRICT"
+MEDIA_DELIVERY_STRICT_ENV = "A2ASSISTANT_MEDIA_DELIVERY_STRICT"
 # Canonical cache subdirs of deliverable artifacts; also enumerates per-profile cache roots.
 _MEDIA_DELIVERY_CACHE_SUBDIRS = (
     "images", "audio", "videos", "documents", "screenshots", GENERATED_SUBDIR)
@@ -780,9 +780,9 @@ _ROOT_CREDENTIAL_PATHS = (
 
 def _profile_cache_roots() -> list[Path]:
     """Per-profile cache roots ``<root>/profiles/<name>/cache/{images,...}`` and every home's connector
-    downloads dir (the static safe roots cover only the launch HERMES_HOME). Enumerated at check
+    downloads dir (the static safe roots cover only the launch A2ASSISTANT_HOME). Enumerated at check
     time so profiles created after startup count, and allowlisted BEFORE the ``/root`` denylist,
-    which otherwise wins when HERMES_HOME is symlinked under a denied prefix (#31733).
+    which otherwise wins when A2ASSISTANT_HOME is symlinked under a denied prefix (#31733).
     """
     return [*(p / "cache" / subdir for p in _profile_dirs() for subdir in _MEDIA_DELIVERY_CACHE_SUBDIRS),
             *(p / CONNECTOR_DOWNLOADS_SUBDIR for p in (get_hermes_home(), *_profile_dirs()))]
@@ -798,7 +798,7 @@ def _profile_dirs() -> list[Path]:
 
 def _credential_home_roots() -> list[Path]:
     """Every Hermes home whose credential stores the denylist must cover: the ACTIVE home
-    (the per-turn HERMES_HOME override under ``gateway.multiplex_profiles``), the shared root
+    (the per-turn A2ASSISTANT_HOME override under ``gateway.multiplex_profiles``), the shared root
     and every ``<root>/profiles/*``. Enumerated at check time like ``_profile_cache_roots`` on
     the allow side — a denylist frozen at import covers only the launch profile, so a
     ``MEDIA:<root>/profiles/<other>/.env`` emitted in any profile's turn would upload it."""
@@ -807,7 +807,7 @@ def _credential_home_roots() -> list[Path]:
 
 def _kanban_root() -> Path:
     """Kanban is root-shared across profiles by design (``kanban_db.kanban_home``)."""
-    return Path(os.environ.get("HERMES_KANBAN_HOME", "").strip() or _HERMES_ROOT).expanduser()
+    return Path(os.environ.get("A2ASSISTANT_KANBAN_HOME", "").strip() or _HERMES_ROOT).expanduser()
 
 
 def _kanban_board_dirs() -> list[Path]:
@@ -820,7 +820,7 @@ def _kanban_board_dirs() -> list[Path]:
 
 def _kanban_attachment_roots() -> list[Path]:
     """Return durable Kanban attachment roots without importing kanban_db."""
-    override = os.environ.get("HERMES_KANBAN_ATTACHMENTS_ROOT", "").strip()
+    override = os.environ.get("A2ASSISTANT_KANBAN_ATTACHMENTS_ROOT", "").strip()
     if override:
         return [Path(override).expanduser()]
     roots = [_kanban_root() / "kanban" / "attachments"]
@@ -879,7 +879,7 @@ def _path_under_denied_prefix(resolved: Path) -> bool:
     """True if ``resolved`` lives under a deny-listed system path — except a denied prefix that
     IS the running user's own home: ``/root`` is listed so a non-root gateway can't deliver
     another user's home, but a root-run gateway's own deliverables live under ``$HOME=/root``.
-    Credential sub-dirs (``~/.ssh``, ``~/.hermes/.env``) stay blocked (more-specific entries)."""
+    Credential sub-dirs (``~/.ssh``, ``~/.a2assistant/.env``) stay blocked (more-specific entries)."""
     home = _resolve_path(Path(os.path.expanduser("~")))
     for denied in _media_delivery_denied_paths():
         resolved_denied = _resolve_path(denied, expand=True)
@@ -1042,8 +1042,8 @@ def _translate_docker_container_media_path(
 def validate_media_delivery_path(path: str, session_key: str = "") -> Optional[str]:
     """Safe absolute file path for native media delivery, else None. Default: any existing
     regular file outside the credential / system denylist (symmetric with inbound). Strict
-    (``HERMES_MEDIA_DELIVERY_STRICT=1``, public bots where prompt injection must not exfiltrate
-    host secrets): MUST be under a Hermes cache, an operator root (``HERMES_MEDIA_ALLOW_DIRS``),
+    (``A2ASSISTANT_MEDIA_DELIVERY_STRICT=1``, public bots where prompt injection must not exfiltrate
+    host secrets): MUST be under a Hermes cache, an operator root (``A2ASSISTANT_MEDIA_ALLOW_DIRS``),
     or freshly produced within the recency window. Symlinks are resolved before any check."""
     candidate = _normalize_media_tag_path(path)
     if not candidate:
@@ -2125,7 +2125,7 @@ class BasePlatformAdapter(ABC):
                 raise
 
     def _acquire_platform_lock(self, scope: str, identity: str, resource_desc: str) -> bool:
-        """Acquire a scoped lock for this adapter; True on success. A live cross-HERMES_HOME
+        """Acquire a scoped lock for this adapter; True on success. A live cross-A2ASSISTANT_HOME
         holder is replaced only when the runner armed this adapter for its initial
         ``--replace`` connect (the status module validates ownership and terminates)."""
         from gateway.status import acquire_scoped_lock, scoped_lock_owner_label, take_over_scoped_lock_holder
@@ -2170,7 +2170,7 @@ class BasePlatformAdapter(ABC):
         owner_profile = scoped_lock_owner_label(existing)
         pid_part = f" (PID {owner_pid})" if owner_pid else ""
         holder = f" by the '{owner_profile}' profile gateway{pid_part}" if owner_profile else pid_part
-        remedy = (f" Stop that gateway first (hermes --profile {owner_profile} gateway stop)."
+        remedy = (f" Stop that gateway first (a2assistant --profile {owner_profile} gateway stop)."
                   if owner_profile else " Stop the other gateway first.")
         message = f"{resource_desc} already in use{holder}.{remedy}"
         logger.error('[%s] %s', self.name, message)
@@ -4080,7 +4080,7 @@ class BasePlatformAdapter(ABC):
 
     async def _synthesize_auto_tts(self, text_content: str) -> tuple[list[str], Optional[str]]:
         """Synthesize auto-TTS audio -> ``(existing_paths, requested_path)``; empty/None on failure
-        (logged, never raised). Path built platform-aware HERE: HERMES_SESSION_PLATFORM is cleared
+        (logged, never raised). Path built platform-aware HERE: A2ASSISTANT_SESSION_PLATFORM is cleared
         post-handler."""
         paths: list[str] = []
         requested_path = None

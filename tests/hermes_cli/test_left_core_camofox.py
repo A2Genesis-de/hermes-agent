@@ -22,7 +22,7 @@ def _fresh(monkeypatch, tmp_path):
         monkeypatch.delenv(name, raising=False)
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     from hermes_cli import memory_provider_migration as mpm
     shipped = {"camofox"}
     monkeypatch.setattr(mpm, "catalog_source", lambda name: name if name in shipped else None)
@@ -89,7 +89,7 @@ def test_managed_env_url_counts(tmp_path):
 def test_process_env_url_counts_only_for_the_launch_home(tmp_path, monkeypatch):
     launch = _home(tmp_path, "launch")
     secondary = _home(tmp_path, "profiles/work")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("CAMOFOX_URL", "http://localhost:9377")
     assert lcm.camofox_in_use(launch) is False
     assert lcm.camofox_in_use(launch, process_env=True) is True
@@ -135,8 +135,8 @@ def test_browser_becomes_camofox_where_core_carried_it(tmp_path, monkeypatch):
 
 def _boot(home: Path, monkeypatch, said: list | None = None) -> list[str]:
     """Agent start for *home* (``recover_at_startup``), the plugin install a stand-in."""
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(lcm, "_install_into", lambda target, consent=None: _installer(target, []))
     return lcm.recover_at_startup(say=said.append if said is not None else lambda _m: None)
 
@@ -225,9 +225,9 @@ _SPLIT_TOOLSETS = {"cli": ["terminal", "browser", "file"]}
 
 
 def test_upgrade_converts_after_the_config_step(tmp_path, monkeypatch):
-    """`hermes update` / Desktop migrate config.yaml to v52 before the left-core pass: the v52 step
+    """`a2assistant update` / Desktop migrate config.yaml to v52 before the left-core pass: the v52 step
     records the core-era Camofox use, so the pass still converts the home."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "launch"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "launch"))
     home = _home(tmp_path, env=_SPLIT_ENV, config={"_config_version": 51, "platform_toolsets": _SPLIT_TOOLSETS})
     _migrate_config(home)
     assert _config(home)["_config_version"] == DEFAULT_CONFIG["_config_version"]
@@ -242,7 +242,7 @@ def test_upgrade_converts_after_the_config_step(tmp_path, monkeypatch):
 def test_home_from_after_the_split_keeps_browser_exec(tmp_path, monkeypatch, stamp):
     """A home that crossed v52 without Camofox (or started at v52) and sets up the camofox plugin later
     runs both side by side: the row never turns browser_exec off for it."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "launch"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "launch"))
     home = _home(tmp_path, config={"_config_version": stamp, "platform_toolsets": _SPLIT_TOOLSETS})
     _migrate_config(home)
     (home / "plugins" / "camofox").mkdir(parents=True)
@@ -256,7 +256,7 @@ def test_home_from_after_the_split_keeps_browser_exec(tmp_path, monkeypatch, sta
 def test_an_unversioned_camofox_home_is_converted(tmp_path, monkeypatch, config):
     """Main ran Camofox for a home with no config.yaml (CAMOFOX_URL in .env alone) or an unstamped one, and
     Hermes always stamps a config.yaml it creates: such a home ran the core feature and is converted."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "launch"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "launch"))
     home = _home(tmp_path, env=_SPLIT_ENV, config=config)
     calls = []
     assert lcm.migrate_home(home, install=_installer(home, calls), say=lambda _m: None) == ["camofox"]
@@ -287,11 +287,11 @@ def test_the_config_yaml_an_env_only_conversion_creates_is_stamped(tmp_path, mon
 
 
 def test_a_plain_save_stamping_an_unversioned_camofox_home_keeps_its_conversion(tmp_path, monkeypatch):
-    """Any config write before the first left-core pass (`hermes config set`, a model switch) stamps an
+    """Any config write before the first left-core pass (`a2assistant config set`, a model switch) stamps an
     unstamped config.yaml at the current version without running the v52 step; the home still converts."""
     from hermes_cli.config import load_config, save_config
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "launch"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "launch"))
     home = _home(tmp_path, env=_SPLIT_ENV, config={"platform_toolsets": _SPLIT_TOOLSETS})
     token = set_hermes_home_override(home)
     try:
@@ -308,13 +308,13 @@ def test_a_stamped_camofox_home_without_the_plugin_is_told_where_it_went(tmp_pat
     """A Nix-managed config.yaml carries the package's stamp (52) from activation, so neither the stamp nor
     the v52 step shows this home ran core's Camofox. It is told where Camofox went (once per backoff window
     at start) and nothing about it changes."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "launch"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "launch"))
     home = _home(tmp_path, env=_SPLIT_ENV, config={"_config_version": 52, "platform_toolsets": _SPLIT_TOOLSETS})
     before = (home / "config.yaml").read_bytes()
     said = []
     assert lcm.migrate_home(home, install=lambda name: pytest.fail("nothing is installed"), say=said.append) == []
     assert len(said) == 1
-    assert "Camofox browser backend moved out of core" in said[0] and "hermes plugins install camofox" in said[0]
+    assert "Camofox browser backend moved out of core" in said[0] and "a2assistant plugins install camofox" in said[0]
     assert (home / "config.yaml").read_bytes() == before
 
     assert lcm._pending(home, say=said.append, backoff=True) == []
@@ -327,7 +327,7 @@ def test_catalog_miss_names_the_install_command(tmp_path, _fresh):
     said = []
     assert lcm.migrate_home(home, install=lambda name: pytest.fail("no catalog entry"), say=said.append) == []
     assert "cannot find in the plugin catalog yet" in said[0]
-    assert "hermes plugins install camofox" in said[0]
+    assert "a2assistant plugins install camofox" in said[0]
 
 
 def test_camofox_env_stays_out_of_children():

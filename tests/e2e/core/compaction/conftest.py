@@ -25,7 +25,7 @@ def provider():
 
 @pytest.fixture
 def make_scenario(provider, tmp_path, monkeypatch):
-    """Build a Scenario with its own HERMES_HOME/state.db; closes every agent + DB at teardown."""
+    """Build a Scenario with its own A2ASSISTANT_HOME/state.db; closes every agent + DB at teardown."""
     server, dispatch = provider
     made: list[Scenario] = []
 
@@ -34,7 +34,7 @@ def make_scenario(provider, tmp_path, monkeypatch):
         # The hermetic root conftest already isolates HERMES_HOME per test; HOME stays put because the
         # state.db live-system guard treats $HOME/.hermes as production.
         hermes_home = tmp_path / name
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         import hermes_state
 
         monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_home / "state.db")

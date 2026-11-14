@@ -11,7 +11,7 @@ import pytest
 
 @pytest.fixture
 def external_home(tmp_path, monkeypatch):
-    """HERMES_HOME with one external dir configured and one external skill in it.
+    """A2ASSISTANT_HOME with one external dir configured and one external skill in it.
 
     The external skill is ALSO reachable from the profile skills tree via a symlinked
     SKILL.md — the common mounting style — because that is the shape the journey graph
@@ -28,7 +28,7 @@ def external_home(tmp_path, monkeypatch):
     (home / "skills" / "ext-linked").mkdir()
     (home / "skills" / "ext-linked" / "SKILL.md").symlink_to(ext_dir / "ext-skill" / "SKILL.md")
     (home / "config.yaml").write_text(f"skills:\n  external_dirs:\n    - {ext_dir}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     from agent import skill_utils
     skill_utils._external_dirs_cache_clear()

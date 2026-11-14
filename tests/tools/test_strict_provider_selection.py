@@ -1,11 +1,11 @@
-"""Strict tool-provider selection: the `hermes tools` choice always wins.
+"""Strict tool-provider selection: the `a2assistant tools` choice always wins.
 
 Policy (owner decision): the provider string stored in config.yaml is what
 runs at call time. "nous" → managed Nous Tool Gateway only; a vendor name →
 that vendor direct with the user's own credentials; no key ever written →
 today's credential autodetect. Credential presence must NEVER select or
 reroute; a selected-but-broken provider produces an honest error naming the
-selection and pointing at `hermes tools`.
+selection and pointing at `a2assistant tools`.
 
 Per category these tests pin the three strict behaviors:
   (a) managed selection + direct key present ⇒ managed route (key ignored)
@@ -120,7 +120,7 @@ class TestSttStrictSelection:
                 tt._resolve_openai_audio_client_config()
         gw.assert_not_called()
         assert "stt is configured to use openai" in str(exc.value)
-        assert "hermes tools" in str(exc.value)
+        assert "a2assistant tools" in str(exc.value)
 
     def test_never_configured_keeps_legacy_ladder(self):
         from tools import transcription_tools as tt

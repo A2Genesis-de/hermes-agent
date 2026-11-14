@@ -42,7 +42,7 @@ def main(argv=None) -> int:
         snapshot(ROOT, args.ref, source)
         # The staging interpreter need not be a Hermes runtime; render icons on one.
         icon_python = prepare_icon_environment(source, products / "icon-environment", args.cache)
-        env = {**os.environ, "HERMES_PYTHON": str(icon_python)}
+        env = {**os.environ, "A2ASSISTANT_PYTHON": str(icon_python)}
         commands = [
             ["scripts/build/node-deps.mjs", "--source", str(source), "--workspace", "ui-tui", "--workspace", "web"],
             ["scripts/generate-icons.mjs", "--source", str(source), "--out", str(products / "icons")],

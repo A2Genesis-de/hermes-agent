@@ -5,7 +5,7 @@
  * maps, while this file owns the security-sensitive ordering and the remote
  * wire protocol:
  *
- *   gate dials -> drain every captured scope -> detached `hermes update`
+ *   gate dials -> drain every captured scope -> detached `a2assistant update`
  *   -> correlated terminal marker + durable receipt -> restore every scope
  *   -> lift the gate
  *
@@ -239,11 +239,11 @@ function buildPosixManagedUpdateLaunch(target: RemoteUpdateTarget, correlationId
   const launcherWord = expandRemotePath(hermesPath)
 
   const updateCommand =
-    `env HERMES_HOME=${homeWord} ` +
-    `HERMES_UPDATE_CORRELATION_ID=${shq(correlation)} ` +
-    'HERMES_UPDATE_ORIGIN_PROFILE=default ' +
-    `HERMES_UPDATE_ORIGIN_HOME=${homeWord} ` +
-    `HERMES_UPDATE_OUTPUT_PATH=${outputWord} ` +
+    `env A2ASSISTANT_HOME=${homeWord} ` +
+    `A2ASSISTANT_UPDATE_CORRELATION_ID=${shq(correlation)} ` +
+    'A2ASSISTANT_UPDATE_ORIGIN_PROFILE=default ' +
+    `A2ASSISTANT_UPDATE_ORIGIN_HOME=${homeWord} ` +
+    `A2ASSISTANT_UPDATE_OUTPUT_PATH=${outputWord} ` +
     `${launcherWord} update --yes`
 
   const inner =
@@ -283,16 +283,16 @@ function buildWindowsManagedUpdateLaunch(target: RemoteUpdateTarget, correlation
 
   const wrapper = [
     '$ErrorActionPreference="Continue"',
-    `$env:HERMES_HOME=${psLiteral(home)}`,
-    `$env:HERMES_UPDATE_CORRELATION_ID=${psLiteral(correlation)}`,
-    '$env:HERMES_UPDATE_ORIGIN_PROFILE="default"',
-    `$env:HERMES_UPDATE_ORIGIN_HOME=${psLiteral(home)}`,
-    `$env:HERMES_UPDATE_OUTPUT_PATH=${psLiteral(outputPath)}`,
+    `$env:A2ASSISTANT_HOME=${psLiteral(home)}`,
+    `$env:A2ASSISTANT_UPDATE_CORRELATION_ID=${psLiteral(correlation)}`,
+    '$env:A2ASSISTANT_UPDATE_ORIGIN_PROFILE="default"',
+    `$env:A2ASSISTANT_UPDATE_ORIGIN_HOME=${psLiteral(home)}`,
+    `$env:A2ASSISTANT_UPDATE_OUTPUT_PATH=${psLiteral(outputPath)}`,
     // The copied Windows coordinator verifies this correlation AND its actual
     // breakaway state before accepting it; the string alone grants nothing.
-    `$env:HERMES_UPDATE_WINDOWS_DETACHED=${psLiteral(correlation)}`,
-    `$env:HERMES_UPDATE_TAURI_OUTCOME_PATH=${psLiteral(statusPath)}`,
-    `$env:HERMES_UPDATE_TAURI_READY_PATH=${psLiteral(readyPath)}`,
+    `$env:A2ASSISTANT_UPDATE_WINDOWS_DETACHED=${psLiteral(correlation)}`,
+    `$env:A2ASSISTANT_UPDATE_TAURI_OUTCOME_PATH=${psLiteral(statusPath)}`,
+    `$env:A2ASSISTANT_UPDATE_TAURI_READY_PATH=${psLiteral(readyPath)}`,
     `$intentTmp=${psLiteral(intentPath)}+"."+$PID+".tmp"`,
     '$intentCreation="windows:"+[string]([Diagnostics.Process]::GetCurrentProcess().StartTime.ToUniversalTime().ToFileTimeUtc())',
     `$intentPayload=[ordered]@{correlation=${psLiteral(correlation)};pid=$PID;creation=$intentCreation}|ConvertTo-Json -Compress`,
@@ -536,7 +536,7 @@ function managedUpdateMessage(
     // Only follow-ups are finished by a rerun; a user action (e.g. a parked
     // stash) is the producer's exact manual instruction, shown verbatim.
     (followups.length
-      ? ` Re-run \`hermes update\` on the remote to finish ${followups.map(step => step.step).join(', ')}.`
+      ? ` Re-run \`a2assistant update\` on the remote to finish ${followups.map(step => step.step).join(', ')}.`
       : '') +
     (userAction?.reason ? ` ${userAction.reason}` : '')
 
@@ -1044,7 +1044,7 @@ function managedSshDrainBlocker(
     reason: DARWIN_DRAIN_UNSUPPORTED,
     message:
       `Skipped: Desktop cannot safely stop its running A2Assistant serve on this macOS remote (${blocked.join(', ')}). ` +
-      'Disconnect it, or run `hermes update` on the remote, then retry.'
+      'Disconnect it, or run `a2assistant update` on the remote, then retry.'
   }
 }
 

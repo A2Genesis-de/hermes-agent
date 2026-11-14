@@ -87,8 +87,8 @@ _SCHEMA_OVERRIDES: dict[str, dict[str, Any]] = {
     "proxy.enabled": {
         "type": "boolean",
         "description": (
-            "Docker-only egress credential firewall. Requires `hermes egress setup` "
-            "and `hermes egress start`; SSH is not wired yet."
+            "Docker-only egress credential firewall. Requires `a2assistant egress setup` "
+            "and `a2assistant egress start`; SSH is not wired yet."
         ),
         "category": "security",
     },
@@ -104,7 +104,7 @@ _SCHEMA_OVERRIDES: dict[str, dict[str, Any]] = {
         "type": "boolean",
         "description": (
             "Borrow and refresh the Codex CLI / Claude Code logins when A2Assistant has no usable login of its own. "
-            "Off: A2Assistant uses only its own logins (`hermes auth add <provider>`)."
+            "Off: A2Assistant uses only its own logins (`a2assistant auth add <provider>`)."
         ),
         "category": "security",
     },
@@ -146,7 +146,7 @@ _SCHEMA_OVERRIDES: dict[str, dict[str, Any]] = {
     "updates.refresh_cua_driver": {
         "type": "boolean",
         "description": (
-            "Refresh an already-installed cua-driver during hermes update. "
+            "Refresh an already-installed cua-driver during a2assistant update. "
             "Disable this on non-admin macOS accounts where /Applications is "
             "not writable."
         ),
@@ -615,7 +615,7 @@ def _plugin_aux_tasks() -> list[dict[str, Any]]:
 
 def _aux_task_slots() -> tuple[str, ...]:
     """Every auxiliary slot the dashboard may read or assign: built-ins first (UI order), then
-    plugin-registered keys. The picker in ``hermes model`` (``main_provider_setup._all_aux_tasks``)
+    plugin-registered keys. The picker in ``a2assistant model`` (``main_provider_setup._all_aux_tasks``)
     folds plugin tasks in the same way; the dashboard must not disagree with it."""
     return _AUX_TASK_SLOTS + tuple(entry["key"] for entry in _plugin_aux_tasks())
 
@@ -623,8 +623,8 @@ def _aux_task_slots() -> tuple[str, ...]:
 def _dashboard_code_skew_guard() -> Optional[str]:
     """Return a "restart required" message when this process runs stale code, else None.
 
-    Long-lived dashboard / Desktop-owned ``hermes serve`` processes freeze ``sys.modules``
-    at boot; after ``hermes update`` replaces the checkout, a first-time lazy import can
+    Long-lived dashboard / Desktop-owned ``a2assistant serve`` processes freeze ``sys.modules``
+    at boot; after ``a2assistant update`` replaces the checkout, a first-time lazy import can
     resolve a fresh consumer module against a stale cached dependency -> ImportError.
     Mirrors the gateway's ``_model_switch_skew_guard``: refuse the risky call with an
     actionable message. Never a false positive (non-git installs return None).
@@ -647,19 +647,19 @@ def _dashboard_code_skew_guard() -> Optional[str]:
 
 def _dashboard_skew_restart_hint() -> str:
     """Restart advice matching how this process is owned — the same app backs the browser
-    dashboard and Desktop-owned ``hermes serve``; naming a systemd unit would mislead
+    dashboard and Desktop-owned ``a2assistant serve``; naming a systemd unit would mislead
     macOS/launchd hosts and Desktop SSH backends.
 
     See #97046.
     """
-    if os.environ.get("HERMES_SERVE_HEADLESS") == "1":
+    if os.environ.get("A2ASSISTANT_SERVE_HEADLESS") == "1":
         return (
             "restart the Desktop-owned backend to load the new code "
             "(use Restart backend in A2Assistant Desktop, or quit and reopen the app)"
         )
     return (
         "restart this A2Assistant process to load the new code "
-        "(hermes dashboard --port <port>, or the equivalent service restart for this install)"
+        "(a2assistant dashboard --port <port>, or the equivalent service restart for this install)"
     )
 
 
@@ -729,7 +729,7 @@ def _endpoint_known_to_config(cfg: dict, base_url: str) -> bool:
 
 def _register_custom_endpoint(base_url: str, api_key: str, model: str) -> None:
     """Register a named ``custom_providers`` entry for a custom/local endpoint (mirrors the
-    ``hermes model`` custom flow) so the picker gets a proper ready row instead of a "needs
+    ``a2assistant model`` custom flow) so the picker gets a proper ready row instead of a "needs
     setup" dead-end. Dedups by base_url; never blocks the already-persisted assignment.
 
     SKIPPED when the endpoint is already a fact in the config (#76324): the CLI gateway setup

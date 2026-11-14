@@ -1,3 +1,5 @@
+import { CLI_COMMAND_ALTERNATION } from '../../shared/src/product-names.mjs'
+
 /** Clean up detached package tools without touching shared runtimes.
  * Package-owned gpg-agent can outlive its parent and pin an MSIX silo,
  * preventing subsequent activation. A root claim never includes the shared
@@ -68,10 +70,14 @@ export interface ReapOutcome {
  * Do not parse argv to decide which Python flags or launcher forms qualify.
  * The updater owns their lifecycle; quit only sweeps detached tools.
  */
+const SHARED_RUNTIME_IMAGE = new RegExp(
+  `^(?:pythonw?(?:[0-9.]+)?|node|(?:${CLI_COMMAND_ALTERNATION})(?:-agent|-acp)?)(?:\\.exe|\\.cmd)?$`
+)
+
 function isSharedRuntime(imagePath: string): boolean {
   const image = imagePath.replace(/^.*[\\/]/, '').toLowerCase()
 
-  return /^(?:pythonw?(?:[0-9.]+)?|node|hermes(?:-agent|-acp)?)(?:\.exe|\.cmd)?$/.test(image)
+  return SHARED_RUNTIME_IMAGE.test(image)
 }
 
 /**

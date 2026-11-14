@@ -81,7 +81,7 @@ if [ "${1:-}" = "--in-container" ]; then
     # pin table drifts from the pool, cmake cannot start and scikit-build-core compiles one from
     # PyPI source, which takes 30 minutes to fail. Say so now.
     cmake -E capabilities >/dev/null 2>&1 \
-        || fail "container cmake cannot start (payload libc++ older than apt's? run: hermes pm update --termux)"
+        || fail "container cmake cannot start (payload libc++ older than apt's? run: a2assistant pm update --termux)"
     # BINARIES, not package names: the rust package provides rustc/cargo
     # (there is no `rust` binary).
     for tool in clang rustc cargo make git; do
@@ -122,8 +122,8 @@ if [ "${1:-}" = "--in-container" ]; then
     mkdir -p "$PREFIX/tmp"
     BUILD_ROOT="$(mktemp -d "$PREFIX/tmp/hermes-build-XXXXXX")"
     BUILD_VENV="$BUILD_ROOT/venv"
-    export HERMES_HOME="$BUILD_ROOT/home"
-    export HERMES_RUNTIME_DIR="$BUILD_ROOT/tools"
+    export A2ASSISTANT_HOME="$BUILD_ROOT/home"
+    export A2ASSISTANT_RUNTIME_DIR="$BUILD_ROOT/tools"
     PYTHONPATH="$(cd "$HERE/../.." && pwd)"
     export PYTHONPATH
     "$PY" "$HERE/build_environment.py" prepare-tools \

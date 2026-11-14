@@ -1,6 +1,6 @@
 """Where the local vault key lives: the 0600 ``vault.key`` file (default) or the OS keychain.
 
-Contracts (temp HERMES_HOME + an in-memory keyring backend; nothing touches a real keychain):
+Contracts (temp A2ASSISTANT_HOME + an in-memory keyring backend; nothing touches a real keychain):
 - keychain mode stores a NEW vault's key in the keychain, one entry per profile, and leaves no key
   file beside the ciphertext;
 - ``migrate_key`` writes the keychain first, proves it decrypts the vault, and only then removes the
@@ -60,7 +60,7 @@ def home(tmp_path, monkeypatch):
         path.mkdir()
         if key_storage:
             (path / "config.yaml").write_text(f"vault:\n  key_storage: {key_storage}\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(path))
         return path
     yield make
     keyring.set_keyring(fail.Keyring())
@@ -137,12 +137,12 @@ def test_missing_key_with_an_existing_vault_explains_recovery_and_mints_nothing(
     with pytest.raises(VaultError) as excinfo:
         VaultStore().list_items()
     message = str(excinfo.value)
-    assert "hermes vault key" in message and "vault.json.enc" in message
+    assert "a2assistant vault key" in message and "vault.json.enc" in message
     assert (h / "vault" / "vault.json.enc").read_bytes() == blob, "the ciphertext must be left alone"
     assert not (h / "vault" / "vault.key").exists(), "no fresh key may be minted over an existing vault"
     assert len(keychain.entries) == 0
     if lose == "keychain entry":  # and a rerun of the move must not report the lost entry as fine
-        with pytest.raises(VaultError, match="hermes vault key"):
+        with pytest.raises(VaultError, match="a2assistant vault key"):
             VaultStore().migrate_key("keychain")
 
 

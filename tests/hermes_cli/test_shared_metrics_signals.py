@@ -22,7 +22,7 @@ from hermes_cli.observability.shared_metrics import SharedMetricsStore
 def marks(tmp_path, monkeypatch):
     captured: list[tuple[str, dict]] = []
     policy = {"on": True}
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(relay_shared_metrics, "enabled", lambda: policy["on"])
     monkeypatch.setattr(relay_shared_metrics, "record_process_mark", lambda mark, data: captured.append((mark, data)))
 

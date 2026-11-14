@@ -10,7 +10,7 @@ from hermes_cli import memory_provider_migration as mig
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("memory:\n  provider: honcho\n  honcho:\n    workspace: keep-me\n")
     monkeypatch.setattr(mig, "provider_present", lambda name, home: (home / "plugins" / name).is_dir())
     return tmp_path
@@ -29,7 +29,7 @@ def test_missing_provider_installs_its_catalog_plugin_and_keeps_config(home, mon
     assert mig.migrate_home(home, install=fake_install, say=said.append) == "honcho"
     assert calls == ["honcho"]
     # Must not imply config.yaml's memory.<name> keys still apply: the plugin reads its own (#124038).
-    assert "memory.honcho" not in said[0] and "hermes memory status" in said[0]
+    assert "memory.honcho" not in said[0] and "a2assistant memory status" in said[0]
     assert "workspace: keep-me" in (home / "config.yaml").read_text()
     # present now → nothing to do, nothing said
     assert mig.migrate_home(home, install=fake_install, say=said.append) is None
@@ -44,7 +44,7 @@ def test_presence_is_checked_in_the_home_being_migrated(tmp_path, monkeypatch):
         h.mkdir(); (h / "config.yaml").write_text("memory:\n  provider: twin\n")
     (b / "plugins" / "twin").mkdir(parents=True)
     (b / "plugins" / "twin" / "__init__.py").write_text("class Twin(MemoryProvider): ...\n")
-    monkeypatch.setenv("HERMES_HOME", str(a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(a))
     monkeypatch.setattr(mig, "catalog_source", lambda name: name)
     installs: list[Path] = []
     assert mig.migrate_home(b, install=lambda n: installs.append(b) or {"ok": True}, say=lambda s: None) is None
@@ -141,7 +141,7 @@ def test_startup_recovery_never_asks_a_dependency_question(tmp_path, monkeypatch
             return True
 
     (tmp_path / "config.yaml").write_text(f"memory:\n  provider: {name}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr("sys.stdin", _Tty())
     monkeypatch.setattr("sys.stdout", _Tty())
     monkeypatch.setattr(mig, "_attempted", set())
@@ -153,7 +153,7 @@ def test_startup_recovery_never_asks_a_dependency_question(tmp_path, monkeypatch
     said: list[str] = []
     mig.recover_at_startup(name, say=said.append)
     assert [kw["assume_deps_consent"] for kw in seen] == ([True] if installs else [])
-    assert installs or f"`hermes plugins install {name}`" in said[-1]
+    assert installs or f"`a2assistant plugins install {name}`" in said[-1]
 
 
 def test_update_asks_once_and_names_each_profile(tmp_path, monkeypatch):
@@ -166,7 +166,7 @@ def test_update_asks_once_and_names_each_profile(tmp_path, monkeypatch):
     for profile_home in homes:
         profile_home.mkdir(parents=True, exist_ok=True)
         (profile_home / "config.yaml").write_text("memory:\n  provider: twin\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
     monkeypatch.setattr("pm.plugins_state.dependency_homes", lambda: homes)
     monkeypatch.setattr(mig, "provider_present", lambda name, home: (home / "plugins" / name).is_dir())
@@ -195,8 +195,8 @@ def test_update_asks_once_and_names_each_profile(tmp_path, monkeypatch):
         assert len(prompts) == 1
         if answer == "n":
             assert "[profile 'default']" in said[1] and "dependency install declined" in said[1]
-            assert "hermes -p work-a plugins install twin" in said[2]
-            assert "hermes -p work-b plugins install twin" in said[2]
+            assert "a2assistant -p work-a plugins install twin" in said[2]
+            assert "a2assistant -p work-b plugins install twin" in said[2]
             assert not any((h / "plugins").exists() for h in homes)
         else:
             assert [line.split("]")[0] for line in said[1:]] == [
@@ -209,7 +209,7 @@ def _profile_homes(tmp_path, monkeypatch, *names):
     for profile_home in homes:
         profile_home.mkdir(parents=True, exist_ok=True)
         (profile_home / "config.yaml").write_text("memory:\n  provider: twin\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
     monkeypatch.setattr(mig, "provider_present", lambda name, home: (home / "plugins" / name).is_dir())
     monkeypatch.setattr(mig, "catalog_source", lambda name: name)
@@ -245,16 +245,16 @@ def test_unattended_update_refusal_in_one_profile_does_not_skip_the_others(tmp_p
 
 
 def test_startup_hint_installs_into_the_profile_that_printed_it(tmp_path, monkeypatch):
-    """A bare `hermes plugins install` from a shell targets the sticky profile, so the hint an agent
-    started for a named profile (Desktop, gateway, `hermes -p`) prints must carry `-p`."""
+    """A bare `a2assistant plugins install` from a shell targets the sticky profile, so the hint an agent
+    started for a named profile (Desktop, gateway, `a2assistant -p`) prints must carry `-p`."""
     from pm import install as pm_install
 
     default, work = _profile_homes(tmp_path, monkeypatch, "work")
     monkeypatch.setattr(pm_install, "lazy_installs_allowed", lambda: False)
-    for profile_home, command in ((work, "hermes -p work plugins install twin"),
-                                  (default, "hermes plugins install twin")):
+    for profile_home, command in ((work, "a2assistant -p work plugins install twin"),
+                                  (default, "a2assistant plugins install twin")):
         monkeypatch.setattr(mig, "_attempted", set())
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
         said: list[str] = []
         assert mig.recover_at_startup("twin", say=said.append) is False
         assert f"`{command}`" in said[0]
@@ -265,19 +265,19 @@ def test_startup_hint_installs_into_the_profile_that_printed_it(tmp_path, monkey
 def test_recovery_copy_without_a_catalog_memory_entry_keeps_the_generic_hint(tmp_path, monkeypatch, capsys):
     from hermes_cli import doctor_state
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))  # not a profile home: no -p to add
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))  # not a profile home: no -p to add
     assert mig.catalog_install_hint("honcho", category="memory") is None
     doctor_state._memory_provider_generic("no-such-provider")
-    assert "run: hermes memory setup" in capsys.readouterr().out
+    assert "run: a2assistant memory setup" in capsys.readouterr().out
 
 
 def test_startup_recovery_backs_off_after_a_failed_install(tmp_path, monkeypatch):
-    """A failed agent-start install is not retried by every following process start (each `hermes chat`,
-    cron run, Desktop restart): one failure, then a quiet hour; `hermes update` still retries."""
+    """A failed agent-start install is not retried by every following process start (each `a2assistant chat`,
+    cron run, Desktop restart): one failure, then a quiet hour; `a2assistant update` still retries."""
     from pm import install as pm_install
 
     (tmp_path / "config.yaml").write_text("memory:\n  provider: hindsight\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(mig, "catalog_source", lambda n: n)
     monkeypatch.setattr(pm_install, "lazy_installs_allowed", lambda: True)
     attempts: list[str] = []
@@ -287,7 +287,7 @@ def test_startup_recovery_backs_off_after_a_failed_install(tmp_path, monkeypatch
         monkeypatch.setattr(mig, "_attempted", set())  # a fresh process each time
         assert mig.recover_at_startup("hindsight", say=said.append) is False
     assert attempts == ["hindsight"]
-    assert "`hermes plugins install hindsight`" in said[-1]  # still told memory is off, and the fix
+    assert "`a2assistant plugins install hindsight`" in said[-1]  # still told memory is off, and the fix
     monkeypatch.setattr(mig, "STARTUP_RETRY_SECONDS", 0.0)
     monkeypatch.setattr(mig, "_attempted", set())
     mig.recover_at_startup("hindsight")

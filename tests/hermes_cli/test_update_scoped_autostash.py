@@ -1,4 +1,4 @@
-"""``hermes update`` moves only the local changes the update would collide with, and asks before stashing.
+"""``a2assistant update`` moves only the local changes the update would collide with, and asks before stashing.
 
 An untracked directory the update never writes (a 55 GB leftover worktree copy) used to be hashed into
 the autostash and deleted from disk on every update; declining the restore then parked it in git stash.

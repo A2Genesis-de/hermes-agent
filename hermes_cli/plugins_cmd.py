@@ -1,4 +1,4 @@
-"""``hermes plugins`` CLI subcommand — install, remove, and list plugins.
+"""``a2assistant plugins`` CLI subcommand — install, remove, and list plugins.
 
 Facade: shared primitives (errors, console/config helpers, manifest reading, discovery, enable/disable
 selection) and the dispatch table live here; each verb family lives in a ``plugins_cmd_<topic>.py``
@@ -418,7 +418,7 @@ def _copy_example_files(plugin_dir: Path, console) -> None:
 
 def _missing_env_specs(manifest: dict) -> list[dict]:
     """``requires_env`` entries (plain names or ``{name, description, url, secret}`` dicts,
-    normalised to dicts; nameless entries dropped) whose variable is unset in ``~/.hermes/.env``."""
+    normalised to dicts; nameless entries dropped) whose variable is unset in ``~/.a2assistant/.env``."""
     env_specs = [
         {"name": entry} if isinstance(entry, str) else entry
         for entry in manifest.get("requires_env") or []
@@ -461,9 +461,9 @@ def _unknown_plugin_message(name: str, *, downloaded_only: bool = False) -> str:
     from hermes_cli.left_core_migration import moved_plugin_hint
     if moved := moved_plugin_hint(name):
         return f"[red]No plugin named '{name}'.[/red] {moved}"
-    return (f"[red]No plugin named '{name}'.[/red] Run `hermes plugins list` to see the exact names "
+    return (f"[red]No plugin named '{name}'.[/red] Run `a2assistant plugins list` to see the exact names "
             f"(nested plugins use their full key, e.g. web/firecrawl).{scope} "
-            "To add one: `hermes plugins install <owner/repo>`.")
+            "To add one: `a2assistant plugins install <owner/repo>`.")
 
 
 # ``plugins.disabled`` is an explicit deny-list that wins over the ``plugins.enabled`` allow-list.
@@ -514,7 +514,7 @@ def _admit_and_save_plugin_sets(
             console.print(f"[red]✗[/red] {action} refused: {exc}")
             console.print(
                 "[dim]config.yaml and the active environment are unchanged. "
-                "Run `hermes pm install` to resolve dependencies, then retry.[/dim]"
+                "Run `a2assistant pm install` to resolve dependencies, then retry.[/dim]"
             )
         raise
 
@@ -526,7 +526,7 @@ _BASIC_AUTH_PLUGIN_KEYS = frozenset({"basic", "dashboard_auth/basic"})
 def ensure_basic_auth_plugin_enabled_in_config(cfg: dict) -> bool:
     """Drop the bundled basic dashboard-auth plugin from ``plugins.disabled`` in *cfg*.
 
-    ``hermes setup`` / ``hermes plugins disable basic`` can park it there while
+    ``a2assistant setup`` / ``a2assistant plugins disable basic`` can park it there while
     ``dashboard.basic_auth`` is configured, and password auth then silently fails.
     Returns True when modified.
     """
@@ -1007,7 +1007,7 @@ def dashboard_set_agent_plugin_enabled(name: str, *, enabled: bool) -> dict[str,
 
 
 def _user_installed_plugin_dir(name: str) -> Optional[Path]:
-    """Resolved path under ``~/.hermes/plugins/<name>`` if it exists, else the user install
+    """Resolved path under ``~/.a2assistant/plugins/<name>`` if it exists, else the user install
     :func:`_find_plugin_entry` resolves *name* to (its manifest or catalog name)."""
     try:
         target = _sanitize_plugin_name(name, _plugins_dir(), allow_subdir=True)
@@ -1077,7 +1077,7 @@ _PLUGIN_ACTIONS = {
 
 
 def plugins_command(args) -> None:
-    """Dispatch hermes plugins subcommands."""
+    """Dispatch a2assistant plugins subcommands."""
     action = getattr(args, "plugins_action", None)
     handler = _PLUGIN_ACTIONS.get(action)
     if handler is None:

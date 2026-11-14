@@ -141,7 +141,7 @@ def _safe_resource_attributes(raw: Any) -> dict[str, str]:
 def _runtime_resource_attributes(config: dict[str, Any], *, telemetry_scope: str) -> dict[str, str]:
     """Build the safe OTLP resource shared by spans, metrics and diagnostic logs."""
     attrs = _safe_resource_attributes(_monitoring_section(config, "gateway_health_export").get("resource_attributes"))
-    attrs["service.name"] = "hermes-gateway"
+    attrs["service.name"] = "a2assistant-gateway"
     attrs["service.instance.id"] = _safe_instance_id(_install_id(config))
     attrs["telemetry.scope"] = telemetry_scope
     return attrs

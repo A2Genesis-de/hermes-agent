@@ -5,7 +5,7 @@
  * idle while the app runs.
  *
  * Desktop no longer owns per-profile backend children: every local profile attaches to the one host
- * gateway (`hermes gateway ensure`). The invariant here: an attached, idle secondary profile keeps
+ * gateway (`a2assistant gateway ensure`). The invariant here: an attached, idle secondary profile keeps
  * the same gateway process(es) and the same endpoint past the retired reaper's 60s idle floor plus
  * two of its 60s ticks, and re-dialing it attaches instead of spawning.
  */

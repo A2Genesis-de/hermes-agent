@@ -115,15 +115,15 @@ class TestKernelLifecycle(unittest.TestCase):
         repo_root = str(Path(__file__).resolve().parents[2])
         host_src = textwrap.dedent(f"""
             import json, os, sys, time
-            os.environ["HERMES_HOME"] = sys.argv[1]
+            os.environ["A2ASSISTANT_HOME"] = sys.argv[1]
             sys.path.insert(0, {repo_root!r})
             from tools.code_kernel import SessionKernel, _spawn
             k = SessionKernel(("parent-death",))
             _spawn(k, task_id="parent-death", child_python=sys.executable,
                    child_cwd="", sandbox_tools=frozenset(), max_tool_calls=1)
             cell = json.dumps({{"id": "x", "code": "import os, time\\n"
-                "assert 'HERMES_KERNEL_PARENT_PROCESS_HANDLE' not in os.environ\\n"
-                "assert 'HERMES_KERNEL_PARENT_DEATH_FD' not in os.environ\\n"
+                "assert 'A2ASSISTANT_KERNEL_PARENT_PROCESS_HANDLE' not in os.environ\\n"
+                "assert 'A2ASSISTANT_KERNEL_PARENT_DEATH_FD' not in os.environ\\n"
                 "time.sleep(300)"}}) + "\\n"
             k.proc.stdin.write(cell.encode()); k.proc.stdin.flush()
             print(k.proc.pid, flush=True)

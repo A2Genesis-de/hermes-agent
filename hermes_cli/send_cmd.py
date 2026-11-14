@@ -1,4 +1,4 @@
-"""CLI subcommand: ``hermes send`` — pipe text from shell scripts to any configured messaging platform
+"""CLI subcommand: ``a2assistant send`` — pipe text from shell scripts to any configured messaging platform
 (Telegram).
 """
 
@@ -36,17 +36,17 @@ def _read_message_body(positional: Optional[str], file_path: Optional[str]) -> O
             return Path(file_path).read_text(encoding="utf-8-sig")
         except UnicodeDecodeError:
             _fail(
-                f"hermes send: {file_path} is not a text file. --file reads the "
+                f"a2assistant send: {file_path} is not a text file. --file reads the "
                 "message *body* (logs, reports, markdown).\n"
                 "To send an image/document/audio file as a native attachment, "
                 "reference it with MEDIA: in the message text instead:\n"
-                f'  hermes send --to telegram "MEDIA:{file_path}"\n'
-                f'  hermes send --to telegram "optional caption MEDIA:{file_path}"\n'
+                f'  a2assistant send --to telegram "MEDIA:{file_path}"\n'
+                f'  a2assistant send --to telegram "optional caption MEDIA:{file_path}"\n'
                 "Add [[as_document]] to deliver an image as an uncompressed file:\n"
-                f'  hermes send --to telegram "[[as_document]] MEDIA:{file_path}"',
+                f'  a2assistant send --to telegram "[[as_document]] MEDIA:{file_path}"',
                 _USAGE_EXIT)
         except OSError as exc:
-            _fail(f"hermes send: cannot read {file_path}: {exc}", _USAGE_EXIT)
+            _fail(f"a2assistant send: cannot read {file_path}: {exc}", _USAGE_EXIT)
 
     # Reading from a TTY would block the user in a half-broken "type your message" state.
     return (sys.stdin.read() or None) if not sys.stdin.isatty() else None
@@ -65,7 +65,7 @@ def _emit_result(result_json: str, *, json_mode: bool, quiet: bool) -> int:
         print(json.dumps(payload, indent=2))
     elif not quiet:
         if payload.get("error"):
-            print(f"hermes send: {payload['error']}", file=sys.stderr)
+            print(f"a2assistant send: {payload['error']}", file=sys.stderr)
         elif payload.get("success"):
             print(payload.get("note") or "sent")
         else:
@@ -81,11 +81,11 @@ def _list_targets(platform_filter: Optional[str], *, json_mode: bool) -> int:
     try:
         from gateway.channel_directory import format_directory_for_display, load_directory
     except Exception as exc:
-        return _fail(f"hermes send: failed to load channel directory: {exc}")
+        return _fail(f"a2assistant send: failed to load channel directory: {exc}")
     try:
         raw = load_directory()
     except Exception as exc:
-        return _fail(f"hermes send: failed to read channel directory: {exc}")
+        return _fail(f"a2assistant send: failed to read channel directory: {exc}")
     platforms = dict(raw.get("platforms") or {})
 
     # Merge in configured-but-undiscovered platforms (e.g. a fresh SimpleX setup used only for
@@ -103,7 +103,7 @@ def _list_targets(platform_filter: Optional[str], *, json_mode: bool) -> int:
         filtered = {k: v for k, v in platforms.items() if k.lower() == key}
         if not filtered:
             return _fail(
-                f"hermes send: no targets found for platform '{platform_filter}'. "
+                f"a2assistant send: no targets found for platform '{platform_filter}'. "
                 f"Configured: {', '.join(sorted(platforms)) or '(none)'}")
         platforms = filtered
     if json_mode:
@@ -111,7 +111,7 @@ def _list_targets(platform_filter: Optional[str], *, json_mode: bool) -> int:
         return _SUCCESS_EXIT
     if not platforms:
         print("No messaging platforms configured or no channels discovered yet.")
-        print("Set one up with `hermes gateway setup`, or run the gateway once so")
+        print("Set one up with `a2assistant gateway setup`, or run the gateway once so")
         from hermes_constants import get_default_hermes_root, get_hermes_home, hermes_home_key
         home, root = get_hermes_home(), get_default_hermes_root()
         print(f"channel discovery can populate {home / 'channel_directory.json'}.")
@@ -139,7 +139,7 @@ def _list_targets(platform_filter: Optional[str], *, json_mode: bool) -> int:
 
 
 def _load_hermes_env() -> None:
-    """Populate the credential environment from ``<HERMES_HOME>/.env`` AND bridge top-level ``config.yaml``
+    """Populate the credential environment from ``<A2ASSISTANT_HOME>/.env`` AND bridge top-level ``config.yaml``
     keys into it so the gateway config loader sees platform credentials and home channels.
 
     The target is ``os.environ`` for the standalone CLI. Inside a multi-profile host (dashboard console
@@ -196,17 +196,17 @@ def cmd_send(args: argparse.Namespace) -> None:
     target = (getattr(args, "to", None) or "").strip()
     if not target:
         _fail(
-            "hermes send: --to PLATFORM[:channel[:thread]] is required\n"
+            "a2assistant send: --to PLATFORM[:channel[:thread]] is required\n"
             "Examples:\n"
-            "  hermes send --to telegram \"hello\"\n"
-            "  hermes send --to telegram:-1001234567890 --file report.md\n"
-            "  hermes send --list      # list available targets",
+            "  a2assistant send --to telegram \"hello\"\n"
+            "  a2assistant send --to telegram:-1001234567890 --file report.md\n"
+            "  a2assistant send --list      # list available targets",
             _USAGE_EXIT)
 
     message = _read_message_body(getattr(args, "message", None), getattr(args, "file", None))
     if message is None or not message.strip():
         _fail(
-            "hermes send: no message provided. Pass text as a positional "
+            "a2assistant send: no message provided. Pass text as a positional "
             "argument, use --file PATH, or pipe data via stdin.",
             _USAGE_EXIT)
 
@@ -239,7 +239,7 @@ _SEND_ARGUMENTS = (
     (("-s", "--subject"), dict(metavar="LINE", default=None, help="Prepend a subject/header line before the message body.")),
 
     (("-l", "--list"), dict(dest="list_targets", action="store_true", default=False,
-                            help="List available targets. Optional positional filter: `hermes send --list telegram`.")),
+                            help="List available targets. Optional positional filter: `a2assistant send --list telegram`.")),
     (("-q", "--quiet"), dict(action="store_true", default=False, help="Suppress stdout on success (exit code only).")),
     (("--json",), dict(action="store_true", default=False, help="Emit raw JSON result instead of human-readable output.")),
 )
@@ -262,12 +262,12 @@ def register_send_subparser(subparsers) -> argparse.ArgumentParser:
         ),
         epilog=(
             "Examples:\n"
-            "  hermes send --to telegram \"deploy finished\"\n"
-            "  echo \"RAM 92%\" | hermes send --to telegram:-1001234567890\n"
-            "  hermes send --to telegram --subject \"[CI]\" --file build.log\n"
-            "  hermes send --to telegram \"MEDIA:./chart.png\"   # send a media attachment\n"
-            "  hermes send --list                  # all platforms\n"
-            "  hermes send --list telegram         # filter by platform\n"
+            "  a2assistant send --to telegram \"deploy finished\"\n"
+            "  echo \"RAM 92%\" | a2assistant send --to telegram:-1001234567890\n"
+            "  a2assistant send --to telegram --subject \"[CI]\" --file build.log\n"
+            "  a2assistant send --to telegram \"MEDIA:./chart.png\"   # send a media attachment\n"
+            "  a2assistant send --list                  # all platforms\n"
+            "  a2assistant send --list telegram         # filter by platform\n"
             "\n"
             "Exit codes: 0 ok, 1 delivery/backend error, 2 usage error."
         ),

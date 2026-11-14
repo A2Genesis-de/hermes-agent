@@ -1,4 +1,4 @@
-"""restart_needed / adopt_selected against real generations: real uv, offline wheels, temp HERMES_HOME."""
+"""restart_needed / adopt_selected against real generations: real uv, offline wheels, temp A2ASSISTANT_HOME."""
 from __future__ import annotations
 
 from tests.hermes_cli.plugin_worker_support import (

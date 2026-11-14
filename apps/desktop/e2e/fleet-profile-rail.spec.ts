@@ -2,8 +2,8 @@
  * E2E: the fleet profile rail with two registered gateways.
  *
  * "This device" is the Electron-managed local backend (mock inference). The
- * second gateway, "Homelab", is a REAL second `hermes serve` this spec spawns
- * with its own HERMES_HOME, profiles and session token, registered in the v2
+ * second gateway, "Homelab", is a REAL second `a2assistant serve` this spec spawns
+ * with its own A2ASSISTANT_HOME, profiles and session token, registered in the v2
  * connections.json as a remote URL connection. A click on an at-rest square
  * therefore performs the same dial → commit → re-home the statusbar switcher
  * does, against a real backend — not a stub.
@@ -81,8 +81,8 @@ function seedProfiles(home: string, names: string[]): void {
 }
 
 /**
- * Spawn a second, fully real `hermes serve` as the remote gateway. Its
- * session token is pinned through HERMES_DASHBOARD_SESSION_TOKEN so the
+ * Spawn a second, fully real `a2assistant serve` as the remote gateway. Its
+ * session token is pinned through A2ASSISTANT_DASHBOARD_SESSION_TOKEN so the
  * registry entry can carry a plaintext token envelope.
  */
 async function startRemoteGateway(root: string, mockUrl: string, profiles: string[]): Promise<RemoteGateway> {
@@ -103,8 +103,8 @@ async function startRemoteGateway(root: string, mockUrl: string, profiles: strin
       detached: true,
       env: {
         ...process.env,
-        HERMES_HOME: home,
-        HERMES_DASHBOARD_SESSION_TOKEN: REMOTE_TOKEN,
+        A2ASSISTANT_HOME: home,
+        A2ASSISTANT_DASHBOARD_SESSION_TOKEN: REMOTE_TOKEN,
       },
       stdio: ['ignore', 'pipe', 'pipe'],
     },
@@ -122,7 +122,7 @@ async function startRemoteGateway(root: string, mockUrl: string, profiles: strin
 
   while (Date.now() < deadline) {
     if (child.exitCode !== null) {
-      throw new Error(`remote hermes serve exited early (${child.exitCode}):\n${log}`)
+      throw new Error(`remote a2assistant serve exited early (${child.exitCode}):\n${log}`)
     }
 
     try {
@@ -141,7 +141,7 @@ async function startRemoteGateway(root: string, mockUrl: string, profiles: strin
   }
 
   if (Date.now() >= deadline) {
-    throw new Error(`remote hermes serve never became ready:\n${log}`)
+    throw new Error(`remote a2assistant serve never became ready:\n${log}`)
   }
 
   return {

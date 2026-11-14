@@ -73,7 +73,7 @@ test('a Desktop build failure during Update now tells the user the app was not r
         /detached update finished with manual action/
       )
       expect(outcome, 'the user is told the Desktop app could not be rebuilt and how to rebuild it').toMatch(
-        /Desktop app could not be rebuilt.*hermes desktop --force-build/
+        /Desktop app could not be rebuilt.*a2assistant desktop --force-build/
       )
       expect(outcome).not.toMatch(/detached update finished OK/)
       // The code committed: "FAILED / still on the previous version" would be false.

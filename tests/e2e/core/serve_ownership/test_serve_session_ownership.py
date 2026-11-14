@@ -1,7 +1,7 @@
-"""Acceptance harness: ``hermes serve`` beside a running gateway that owns the same profile.
+"""Acceptance harness: ``a2assistant serve`` beside a running gateway that owns the same profile.
 
 Refs #145171 (EP-2, EP-3). After #106742 the gateway owns sessions for local surfaces, but
-``hermes serve`` still runs agents in its own process when the gateway's ledger holds no work for
+``a2assistant serve`` still runs agents in its own process when the gateway's ledger holds no work for
 the session. Three gaps, one cell each:
 
 1. a prompt sent through serve's ``/api/ws`` is not admitted through the gateway's session
@@ -12,7 +12,7 @@ the session. Three gaps, one cell each:
 Each gap is a ``known_failure`` (reason ``serve-cutover:``): it XFAILs while main fails exactly that
 way and passes once the serve cutover lands; delete the wrappers then. The control cell proves the
 same observables pass for a turn the gateway's own ``/api/ws`` admits. Real processes: a
-``hermes gateway run`` and a ``hermes serve`` in one hermetic home, a loopback model that holds the
+``a2assistant gateway run`` and a ``a2assistant serve`` in one hermetic home, a loopback model that holds the
 turn open (so "mid-turn" is deterministic) and names the process that called it. Boot failures and
 timeouts fail loudly; they are never mistaken for a gap.
 """
@@ -49,7 +49,7 @@ pytestmark = [pytest.mark.platforms("linux"),  # caller attribution reads /proc/
 BOOT_S = 180.0
 TURN_S = 90.0
 REPLY = "serve-ownership-reply"
-REASON = "serve-cutover: hermes serve still runs turns in-process beside the gateway (#145171 EP-3)"
+REASON = "serve-cutover: a2assistant serve still runs turns in-process beside the gateway (#145171 EP-3)"
 
 
 class _Model(FakeLLMServer):
@@ -206,7 +206,7 @@ def scenario(tmp_path_factory: pytest.TempPathFactory):
                 "XDG_CACHE_HOME", "XDG_RUNTIME_DIR", "DBUS_SESSION_BUS_ADDRESS"):
         env.pop(key, None)
     # Host rendezvous stays inside the tmp root: the developer's live gateway is never seen.
-    env.update(HERMES_GATEWAY_LOCK_DIR=str(root / "locks"), HERMES_GATEWAY_MAX_STARTS="0")
+    env.update(A2ASSISTANT_GATEWAY_LOCK_DIR=str(root / "locks"), A2ASSISTANT_GATEWAY_MAX_STARTS="0")
     out, sinks, facts = open(log, "wb"), [], {}
 
     def spawn(*argv: str, **extra: str) -> subprocess.Popen:
@@ -237,7 +237,7 @@ def scenario(tmp_path_factory: pytest.TempPathFactory):
         # serve beside the owner: one prompt, held at the model, then SIGTERM to serve mid-turn.
         token = secrets.token_urlsafe(24)
         serve = model.procs["serve"] = spawn("serve", "--host", "127.0.0.1", "--port", "0",
-                                             HERMES_DASHBOARD_SESSION_TOKEN=token)
+                                             A2ASSISTANT_DASHBOARD_SESSION_TOKEN=token)
         port = int(_poll(lambda: (m := re.search(rb"backend listening on [\d.]+:(\d+)", log.read_bytes()))
                          and m.group(1) or (serve.poll() is not None and b"-1"), BOOT_S, "serve port", log))
         assert port > 0, f"serve exited rc={serve.returncode}\n{log.read_text(errors='replace')}"

@@ -41,7 +41,7 @@ def homes(tmp_path, monkeypatch):
     plugin_home, bare_home = tmp_path / "with_plugin", tmp_path / "bare"
     plugin_home.mkdir()
     bare_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(bare_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(bare_home))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)

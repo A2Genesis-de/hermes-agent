@@ -1,6 +1,6 @@
 """On the gateway's Webapp behind the sign-in gate, the deployment session token works on its own.
 
-``HERMES_DASHBOARD_SESSION_TOKEN`` (a literal or ``file:<path>``) registers the bundled session-token
+``A2ASSISTANT_DASHBOARD_SESSION_TOKEN`` (a literal or ``file:<path>``) registers the bundled session-token
 provider, which vouches for that token as a bearer and as a socket's ``?token=``. The Webapp's
 listener takes it there too, while a wrong token, a browser login's tokens and the refresh route keep
 main's rules, and with the provider turned off (``dashboard.session_token_auth.enabled: false``) the
@@ -28,9 +28,9 @@ def _provision(monkeypatch, tmp_path, *, form="literal", enabled=True):
     if form == "file":
         secret = tmp_path / "session-token"
         secret.write_text(DEPLOYMENT_TOKEN + "\n")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", f"file:{secret}")
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", f"file:{secret}")
     else:
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", DEPLOYMENT_TOKEN)
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", DEPLOYMENT_TOKEN)
     monkeypatch.setattr(session_token_plugin, "_load_session_token_auth_section",
                         lambda: {} if enabled else {"enabled": False})
     session_token_plugin.register(SimpleNamespace(register_dashboard_auth_provider=register_provider))

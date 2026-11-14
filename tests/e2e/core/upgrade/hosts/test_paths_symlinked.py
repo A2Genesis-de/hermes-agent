@@ -1,11 +1,11 @@
-"""Launches through a symlinked ``~/.hermes`` and a per-task home that links back to it.
+"""Launches through a symlinked ``~/.a2assistant`` and a per-task home that links back to it.
 
-Failure class: path handling. Users keep ``~/.hermes`` on another disk behind a symlink, and
-orchestrators give each task its own HERMES_HOME whose ``tools``/``installs`` link back to the
+Failure class: path handling. Users keep ``~/.a2assistant`` on another disk behind a symlink, and
+orchestrators give each task its own A2ASSISTANT_HOME whose ``tools``/``installs`` link back to the
 main home. The PM runtime identity must not depend on which spelling of the path a launch used,
 or every launch re-runs the source-update completion.
 
-One real install through HEAD's ``scripts/install.sh`` with ``~/.hermes`` a symlink to a directory
+One real install through HEAD's ``scripts/install.sh`` with ``~/.a2assistant`` a symlink to a directory
 on "another volume" (a path with a space and a non-ASCII char). Plain launches through it must be
 current (a precondition), and so must a launch from the per-task home (#123798).
 """
@@ -56,14 +56,14 @@ def _pending_markers(sb: I.Sandbox) -> list[str]:
 
 
 def test_per_task_home_sharing_the_tools_store_by_symlink_is_current(linked_home, provider):
-    """An orchestrator's per-task HERMES_HOME whose ``tools``/``installs`` link back to the main home.
+    """An orchestrator's per-task A2ASSISTANT_HOME whose ``tools``/``installs`` link back to the main home.
 
     Precondition: the main home is itself a symlink, and plain launches through it are current; the
     per-task home's launch must then be current too (#123798).
     """
     sb, first = linked_home["sb"], linked_home["install"]
-    assert sb.hermes_home.is_symlink(), "harness: ~/.hermes is not a symlink"
-    assert first.returncode == 0, "install.sh failed with ~/.hermes behind a symlink:\n" + I.describe(first)
+    assert sb.hermes_home.is_symlink(), "harness: ~/.a2assistant is not a symlink"
+    assert first.returncode == 0, "install.sh failed with ~/.a2assistant behind a symlink:\n" + I.describe(first)
     assert (linked_home["real"] / "hermes-agent" / ".git").exists(), "install did not land on the symlink's target"
     X.configure(sb, provider)
     alt = linked_home["root"] / "per-task home ü"
@@ -74,10 +74,10 @@ def test_per_task_home_sharing_the_tools_store_by_symlink_is_current(linked_home
         shutil.copy(sb.hermes_home / name, alt / name)
     launches = [X.turn(sb, provider, f"turn {i} through the symlinked main home") for i in range(2)]
     reruns = [i for i, cp in enumerate(launches) if X.reran_completion(cp)]
-    assert not reruns, (f"plain launches {reruns} through a symlinked ~/.hermes re-ran the source-update completion:\n"
+    assert not reruns, (f"plain launches {reruns} through a symlinked ~/.a2assistant re-ran the source-update completion:\n"
                         + I.describe(launches[reruns[0]]))
     assert not _pending_markers(sb), f"a plain launch left source-completion-pending markers: {_pending_markers(sb)}"
-    task = X.turn(sb, provider, "turn in a per-task home", env=dict(sb.env, HERMES_HOME=str(alt)))
+    task = X.turn(sb, provider, "turn in a per-task home", env=dict(sb.env, A2ASSISTANT_HOME=str(alt)))
     assert not X.reran_completion(task), (
-        "a per-task HERMES_HOME whose tools/installs symlink to the main home re-ran the source-update "
+        "a per-task A2ASSISTANT_HOME whose tools/installs symlink to the main home re-ran the source-update "
         "completion on a current install:\n" + I.describe(task))

@@ -98,7 +98,7 @@ export function configuredUpdateHosts(
   }
 
   // The npmrc the update's npm and pnpm children read (pm.index_config.user_npmrc): an explicit
-  // userconfig, else the profile's $HERMES_HOME/npmrc, which replaces ~/.npmrc when it exists.
+  // userconfig, else the profile's $A2ASSISTANT_HOME/npmrc, which replaces ~/.npmrc when it exists.
   const hermesNpmrc = hermesHome ? path.join(hermesHome, 'npmrc') : ''
 
   const npmrc =

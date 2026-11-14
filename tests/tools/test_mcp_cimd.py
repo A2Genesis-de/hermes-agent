@@ -95,7 +95,7 @@ def test_document_declares_every_callback_hermes_can_build(tmp_path, monkeypatch
     ``_build_client_metadata`` so pydantic's URL serialization — not an
     f-string that merely resembles it — is what gets compared.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     declared = set(_document()["redirect_uris"])
 
     for host in _CIMD_REDIRECT_HOSTS:
@@ -150,7 +150,7 @@ def test_generated_redirect_uri_is_registered_in_the_document(tmp_path, monkeypa
     be holding all of them; the invariant itself is covered port-by-port,
     without binding, by the document tests above.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     cfg: dict = {}
 
     _configure_callback_port(cfg, HermesTokenStorage("srv"))
@@ -167,7 +167,7 @@ def test_generated_redirect_uri_is_registered_in_the_document(tmp_path, monkeypa
 # ---------------------------------------------------------------------------
 
 def test_eligible_flow_gets_a_pinned_port(tmp_path, monkeypatch, private_ports):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     result = _maybe_use_cimd({}, HermesTokenStorage("srv"))
 
@@ -184,7 +184,7 @@ def test_pinned_port_is_held_until_the_callback_adopts_it(
     bound rather than being probed and released."""
     import tools.mcp_oauth as mod
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     result = _maybe_use_cimd({}, HermesTokenStorage("srv"))
     assert result is not None
@@ -209,7 +209,7 @@ def test_pinned_socket_survives_the_ephemeral_eviction_cap(
     """
     import tools.mcp_oauth as mod
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     result = _maybe_use_cimd({}, HermesTokenStorage("srv"))
     assert result is not None
@@ -232,7 +232,7 @@ def test_pinned_socket_survives_the_ephemeral_eviction_cap(
 def test_concurrent_servers_get_different_pinned_ports(
     tmp_path, monkeypatch, private_ports
 ):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     ports = {
         _maybe_use_cimd({}, HermesTokenStorage(f"srv-{i}"))[1]
@@ -245,7 +245,7 @@ def test_occupied_port_moves_to_the_next_in_the_range(
     tmp_path, monkeypatch, private_ports
 ):
     """Another profile mid-login holds a port; we take a different one."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     squatter = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     try:
         squatter.bind(("127.0.0.1", private_ports[0]))
@@ -264,7 +264,7 @@ def test_occupied_port_moves_to_the_next_in_the_range(
 def test_self_hosted_document_url_overrides_the_default(
     tmp_path, monkeypatch, private_ports
 ):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     cfg = {"client_metadata_url": "https://example.com/my-cimd.json"}
 
     result = _maybe_use_cimd(cfg, HermesTokenStorage("srv"))
@@ -297,14 +297,14 @@ def test_config_that_conflicts_with_the_document_falls_back_to_dcr(
 ):
     """Each of these asks for an identity or a callback the document can't
     present."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     assert _maybe_use_cimd(dict(cfg), HermesTokenStorage("srv")) is None
 
 def test_dashboard_flow_falls_back_to_dcr(tmp_path, monkeypatch, private_ports):
     """The dashboard redirects to its own public URL, which no static
     document can declare — it is per-deployment."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from tools.mcp_dashboard_oauth import DashboardOAuthFlow, dashboard_oauth_flow
 
     flow = DashboardOAuthFlow(
@@ -325,7 +325,7 @@ def test_dashboard_flow_falls_back_to_dcr(tmp_path, monkeypatch, private_ports):
 def test_existing_registration_falls_back_to_dcr(tmp_path, monkeypatch, private_ports):
     """A stored client_id is bound to the redirect URI it registered with;
     switching to CIMD now would invalidate it."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     storage = HermesTokenStorage("srv")
     storage._client_info_path().parent.mkdir(parents=True, exist_ok=True)
     storage._client_info_path().write_text('{"client_id": "dcr-issued"}')
@@ -335,7 +335,7 @@ def test_existing_registration_falls_back_to_dcr(tmp_path, monkeypatch, private_
 def test_exhausted_port_range_falls_back_to_dcr(tmp_path, monkeypatch, private_ports):
     """With every pinned port held elsewhere, the flow reverts to an
     ephemeral port and no CIMD client_id."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     squatters = []
     try:
         for port in private_ports:
@@ -364,7 +364,7 @@ def test_more_servers_than_pinned_ports_all_get_cimd(
     """Providers are built per configured server, well before any browser
     flow runs, so the size of the port range must not cap how many servers
     can use CIMD."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     results = [
         _maybe_use_cimd({}, HermesTokenStorage(f"srv-{i}"))
@@ -400,7 +400,7 @@ def test_cached_metadata_decides_whether_to_pin(
     long after Hermes fixes the redirect URI. Metadata cached by an earlier
     connection closes that gap, so a known DCR-only server keeps the reserved
     ephemeral port it has always used instead of a guessable fixed one."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     storage = HermesTokenStorage("srv")
     _cache_server_metadata(storage, supports_cimd=supports_cimd)
 
@@ -413,7 +413,7 @@ def test_cached_metadata_decides_whether_to_pin(
 def test_unknown_server_still_gets_a_document(tmp_path, monkeypatch, private_ports):
     """No cached metadata means a first-ever connect, where guessing CIMD is
     the only way to ever use it."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     cfg: dict = {}
     _configure_callback_port(cfg, HermesTokenStorage("srv"))
@@ -426,7 +426,7 @@ def test_cached_pinned_port_is_not_handed_to_a_sibling_server(
     """An earlier CIMD login leaves its pinned port in the registration on
     disk. Restoring it must also claim it, or the next server picks the same
     one and the two flows fight over one listener."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     settled = HermesTokenStorage("settled")
     settled._client_info_path().parent.mkdir(parents=True, exist_ok=True)
     settled._client_info_path().write_text(json.dumps({
@@ -448,7 +448,7 @@ def test_cached_pinned_port_is_not_handed_to_a_sibling_server(
 def test_build_oauth_auth_forwards_the_document_url(
     tmp_path, monkeypatch, private_ports
 ):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     _set_interactive_stdin(monkeypatch)
     from tools.mcp_oauth import build_oauth_auth
 
@@ -457,7 +457,7 @@ def test_build_oauth_auth_forwards_the_document_url(
     assert provider.context.client_metadata_url == _CIMD_CLIENT_METADATA_URL
 
 def test_build_oauth_auth_omits_the_url_when_disabled(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     _set_interactive_stdin(monkeypatch)
     from tools.mcp_oauth import build_oauth_auth
 
@@ -485,7 +485,7 @@ def test_sdk_chooses_cimd_only_when_the_server_advertises_it(
 ):
     """Closes the loop on the handoff: feed what Hermes configured into the
     SDK's own branch condition rather than asserting on our side of it."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     _set_interactive_stdin(monkeypatch)
     from mcp.client.auth.utils import should_use_client_metadata_url
     from tools.mcp_oauth import build_oauth_auth
@@ -501,7 +501,7 @@ def test_sdk_chooses_cimd_only_when_the_server_advertises_it(
 
 def test_manager_forwards_the_document_url(tmp_path, monkeypatch, private_ports):
     """The manager is the path live MCP connections actually take."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     _set_interactive_stdin(monkeypatch)
     from tools.mcp_oauth_manager import MCPOAuthManager, reset_manager_for_tests
 
@@ -550,7 +550,7 @@ def _provider_rejected_at_token_endpoint(tmp_path, monkeypatch, client_id):
 def test_rejected_document_stops_being_presented(tmp_path, monkeypatch, private_ports):
     """A server that fetched our document and refused it would loop if we
     kept sending the same client_id, so the retry drops to DCR."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     provider = _provider_rejected_at_token_endpoint(
         tmp_path, monkeypatch, _CIMD_CLIENT_METADATA_URL
@@ -565,7 +565,7 @@ def test_rejected_document_stays_rejected_after_a_restart(
 ):
     """The in-memory drop dies with the process; a fresh one would walk back
     into the same refusal without a marker on disk."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     _provider_rejected_at_token_endpoint(
         tmp_path, monkeypatch, _CIMD_CLIENT_METADATA_URL
@@ -576,8 +576,8 @@ def test_rejected_document_stays_rejected_after_a_restart(
     assert _maybe_use_cimd({}, storage) is None
 
 def test_reauthorizing_clears_the_rejection(tmp_path, monkeypatch, private_ports):
-    """`hermes mcp login` wipes stored state, so a fixed document is retried."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    """`a2assistant mcp login` wipes stored state, so a fixed document is retried."""
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     storage = HermesTokenStorage("srv")
     storage.mark_cimd_rejected()
 
@@ -590,7 +590,7 @@ def test_rejected_dcr_client_leaves_cimd_available(
     tmp_path, monkeypatch, private_ports
 ):
     """A dead DCR registration says nothing about our document."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     provider = _provider_rejected_at_token_endpoint(
         tmp_path, monkeypatch, "dcr-issued-id"

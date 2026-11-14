@@ -290,7 +290,7 @@ def check(world: World, scenario: str, sink: str) -> None:
 
 class LoggingGateway(GatewayProcess):
     """The delivery suite's real GatewayRunner child, with the gateway's file logging installed the way
-    ``start_gateway`` does (agent.log / errors.log / gateway.log under the child's HERMES_HOME)."""
+    ``start_gateway`` does (agent.log / errors.log / gateway.log under the child's A2ASSISTANT_HOME)."""
 
     def start(self) -> LoggingGateway:
         assert self.proc is None

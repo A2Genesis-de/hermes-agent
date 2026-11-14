@@ -99,7 +99,7 @@ def _start_owner(tmp_path: Path, name: str, site: str) -> tuple[subprocess.Popen
     child_script.write_text(_CHILD, encoding="utf-8")
     home = tmp_path / f"home-{name}"
     home.mkdir()
-    env = dict(os.environ, HERMES_HOME=str(home / ".hermes"), HOME=str(home), HERMES_REAL_HOME=str(home),
+    env = dict(os.environ, A2ASSISTANT_HOME=str(home / ".hermes"), HOME=str(home), A2ASSISTANT_REAL_HOME=str(home),
                PYTHONPATH=str(REPO))
     with (tmp_path / f"{name}.err").open("w", encoding="utf-8") as err:
         owner = subprocess.Popen([sys.executable, "-c", _owner_source(site), str(out), str(child_script)],

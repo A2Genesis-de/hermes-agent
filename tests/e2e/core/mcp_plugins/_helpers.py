@@ -1,6 +1,6 @@
 """Shared harness for the MCP + plugin conformance suite.
 
-Every test drives a REAL Hermes process (``hermes chat -q`` or the ``tui_gateway``
+Every test drives a REAL Hermes process (``a2assistant chat -q`` or the ``tui_gateway``
 stdio host) against the recording fake LLM provider and one or more REAL MCP
 servers built with the installed ``mcp`` SDK (``mcp_fixture_server.py``), over
 stdio or streamable HTTP. Fakes sit only at boundaries we do not own (the LLM
@@ -103,7 +103,7 @@ class E2EHome:
     extra_env: dict[str, str] = field(default_factory=dict)
 
     def env(self, extra: dict[str, str] | None = None) -> dict[str, str]:
-        """Hermetic child env: fake HOME (so no ``~/.hermes`` of the real user is reachable)."""
+        """Hermetic child env: fake HOME (so no ``~/.a2assistant`` of the real user is reachable)."""
         import pwd  # the suite is Linux-gated
 
         real_root = Path(pwd.getpwuid(os.getuid()).pw_dir, ".hermes").resolve()  # windows-footgun: ok — module is skipif(not linux)
@@ -113,10 +113,10 @@ class E2EHome:
         env = {k: v for k, v in os.environ.items()
                if (k in _PASSTHROUGH_ENV or k.startswith("LC_")) and not k.endswith(_SECRET_ENV_SUFFIXES)}
         env.update({
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
+            "HOME": str(self.home), "A2ASSISTANT_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1", "NO_COLOR": "1", "TERM": "dumb",
             "PARITY_TREE_TAG": self.tag,  # orphan-scan tag inherited by the whole tree
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",  # child HOME is tmp_path by construction
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",  # child HOME is tmp_path by construction
         })
         env.update(self.extra_env)
         env.update(extra or {})

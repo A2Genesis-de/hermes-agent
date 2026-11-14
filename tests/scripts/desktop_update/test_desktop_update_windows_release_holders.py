@@ -1,6 +1,6 @@
 """#101789 on the real Windows hand-off script: a Desktop swap blocked by a program outside Hermes.
 
-A real ``windows.ps1`` drives a published launcher whose ``hermes update`` is a scripted stand-in
+A real ``windows.ps1`` drives a published launcher whose ``a2assistant update`` is a scripted stand-in
 printing exactly what ``hermes_cli.desktop_release_holders`` prints when Windows refused the
 promotion rename. The result the relaunched Desktop reads must name that program (message and a
 structured ``release_holders`` list), so the Desktop can offer to close exactly it, and the retry
@@ -37,7 +37,7 @@ def main():
     if sys.argv[1:2] != ['update']:
         return 0
     if os.environ.get('CORRELATION_OUT'):   # the id update_receipt and take_consent read
-        Path(os.environ['CORRELATION_OUT']).write_text(os.environ.get('HERMES_UPDATE_CORRELATION_ID', ''))
+        Path(os.environ['CORRELATION_OUT']).write_text(os.environ.get('A2ASSISTANT_UPDATE_CORRELATION_ID', ''))
     print('  Desktop app folder held by: SogouCloud.exe (pid 4242, started 1761470000.125, EXE_PATH)', flush=True)
     print('  Desktop app folder held by: AVHelper.exe (pid 5151, started 1761470001.500, path unreadable)', flush=True)
     print('  Desktop app build owed: desktop app build failed', flush=True)
@@ -63,7 +63,7 @@ def test_blocked_swap_result_names_the_holder_for_the_desktop(tmp_path: Path) ->
         ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(SCRIPT),
          '-InstallRoot', str(install), '-NoUi', '-NoGateway'],
         check=False, cwd=tmp_path, capture_output=True, text=True, timeout=150,
-        env={**os.environ, 'HERMES_HOME': str(home), 'HERMES_RUNTIME_DIR': str(tmp_path / 'empty-store'),
+        env={**os.environ, 'A2ASSISTANT_HOME': str(home), 'A2ASSISTANT_RUNTIME_DIR': str(tmp_path / 'empty-store'),
              'PYTHONIOENCODING': 'utf-8'},
     )
     result_path = home / '.hermes-update-result.json'
@@ -107,7 +107,7 @@ RELAUNCHED_DESKTOP = """
 using System; using System.IO; using System.Threading;
 public static class RelaunchedDesktop {
     public static int Main() {
-        string corr = Environment.GetEnvironmentVariable("HERMES_UPDATE_CORRELATION_ID");
+        string corr = Environment.GetEnvironmentVariable("A2ASSISTANT_UPDATE_CORRELATION_ID");
         File.AppendAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "launches.txt"),
             System.Diagnostics.Process.GetCurrentProcess().Id + " " + (corr ?? "<unset>") + Environment.NewLine);
         Thread.Sleep(120000);
@@ -169,8 +169,8 @@ def test_close_and_retry_runs_under_its_own_run_even_from_a_relaunched_desktop(t
                  '-InstallRoot', str(install), '-NoUi', '-NoGateway', '-DesktopPid', str(desktop.pid),
                  '-HandoffRun', run, '-RelaunchExe', str(relaunch)],
                 cwd=tmp_path, stdout=sink, stderr=subprocess.STDOUT, text=True,
-                env={**os.environ, 'HERMES_HOME': str(home), 'HERMES_RUNTIME_DIR': str(tmp_path / 'empty-store'),
-                     'PYTHONIOENCODING': 'utf-8', 'HERMES_UPDATE_CORRELATION_ID': 'desk-1-previous-run',
+                env={**os.environ, 'A2ASSISTANT_HOME': str(home), 'A2ASSISTANT_RUNTIME_DIR': str(tmp_path / 'empty-store'),
+                     'PYTHONIOENCODING': 'utf-8', 'A2ASSISTANT_UPDATE_CORRELATION_ID': 'desk-1-previous-run',
                      'CORRELATION_OUT': str(corr_out)},
             )
             handoff_env = _env_when_relaunching(proc, launches)
@@ -198,6 +198,6 @@ def test_close_and_retry_runs_under_its_own_run_even_from_a_relaunched_desktop(t
     assert (corr, covered) == (run, True), detail
     # Only the tethered Start-Process rung inherits the hand-off's environment, so check both ends:
     # what the hand-off itself carried while it relaunched, and what the Desktop it started saw.
-    leaked = {k: v for k, v in handoff_env.items() if k.upper() == 'HERMES_UPDATE_CORRELATION_ID'}
+    leaked = {k: v for k, v in handoff_env.items() if k.upper() == 'A2ASSISTANT_UPDATE_CORRELATION_ID'}
     assert leaked == {}, detail
     assert [line.split(' ', 1)[1] for line in launches.read_text(encoding='utf-8').splitlines()] == ['<unset>'], detail

@@ -11,7 +11,7 @@ import pytest
 def test_session_observation_preserves_storage(tmp_path, populated):
     repo = Path(__file__).resolve().parents[2]
     env = {k: os.environ[k] for k in ('PATH', 'SYSTEMROOT', 'LANG', 'TZ') if k in os.environ}
-    env.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path), HERMES_HOME=str(tmp_path / 'profile'), PYTHONPATH=str(repo))
+    env.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path), A2ASSISTANT_HOME=str(tmp_path / 'profile'), PYTHONPATH=str(repo))
     (tmp_path / 'profile').mkdir()
     code = '''
 from pathlib import Path
@@ -20,7 +20,7 @@ from contextlib import redirect_stdout
 import io, os
 from hermes_state import SessionDB
 from hermes_cli.sessions_cmd import cmd_sessions
-path = Path(os.environ['HERMES_HOME']) / 'state.db'
+path = Path(os.environ['A2ASSISTANT_HOME']) / 'state.db'
 if POPULATED:
     with SessionDB(db_path=path) as db:
         db.create_session('observation-fixture', source='cli')

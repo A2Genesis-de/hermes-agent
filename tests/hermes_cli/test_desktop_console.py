@@ -51,7 +51,7 @@ def test_stderr_survives_logging_threshold(caplog, level):
 def test_complete_records_reach_redacted_logs(tmp_path, monkeypatch, caplog, stream):
     import hermes_logging
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     hermes_logging._reset_queued_handlers()
     caplog.set_level(logging.INFO)
     caplog.set_level(logging.INFO, logger="hermes_cli.desktop")

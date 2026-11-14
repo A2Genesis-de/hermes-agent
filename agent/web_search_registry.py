@@ -10,7 +10,7 @@ provider configured as ``web.extract_backend`` falls through):
 1. ``web.search_backend`` / ``web.extract_backend``, then ``web.backend``.
 2. The single capability-eligible provider that is registered AND available.
 3. The preferred bundled provider (``_PREFERENCE``) when it is eligible.
-4. ``None`` — the tool points the user at ``hermes tools``.
+4. ``None`` — the tool points the user at ``a2assistant tools``.
 """
 
 from __future__ import annotations

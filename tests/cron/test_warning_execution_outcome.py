@@ -19,7 +19,7 @@ def delivery_queue_rows():
 @pytest.mark.parametrize("suppress", [False, True])
 @pytest.mark.parametrize("external_worker", [False, True])
 def test_real_run_ledger_and_incident_match_actual_presentation(tmp_path, monkeypatch, mode, suppress, external_worker):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         f"display: {{suppress_warning_notifications: {str(suppress).lower()}}}\n"
     )

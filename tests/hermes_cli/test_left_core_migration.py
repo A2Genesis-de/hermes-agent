@@ -221,7 +221,7 @@ def test_migrate_all_homes_migrates_only_the_profile_that_used_it(tmp_path, monk
 
 def test_startup_honours_lazy_install_opt_out(tmp_path, monkeypatch):
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     import pm.install
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: False)
     monkeypatch.setattr(lcm, "_install_into", lambda h, **_kw: pytest.fail("installed"))
@@ -234,7 +234,7 @@ def test_startup_honours_lazy_install_opt_out(tmp_path, monkeypatch):
 
 def test_gateway_start_outcome_waits_for_the_first_agent(tmp_path, monkeypatch):
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     import pm.install
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     consents = []
@@ -255,7 +255,7 @@ def test_an_agent_start_install_of_a_platform_keeps_the_restart_hint(tmp_path, m
     """An agent start keeps its outcome for the next turn someone sees, with the hint to restart the gateway
     serving the home; the gateway's own start loads the platform right after, so it needs none."""
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     import pm.install
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     monkeypatch.setattr(lcm, "_install_into", lambda h, consent=None: lambda name: {"ok": True})
@@ -263,7 +263,7 @@ def test_an_agent_start_install_of_a_platform_keeps_the_restart_hint(tmp_path, m
     assert lcm.recover_at_startup(gateway_start=gateway_start) == ["homeassistant"]
     kept = lcm._claim_notices(home)
     assert kept[0].startswith("✓ Home Assistant moved out of core")
-    assert any("hermes gateway restart" in message for message in kept) is not gateway_start
+    assert any("a2assistant gateway restart" in message for message in kept) is not gateway_start
 
 
 
@@ -271,7 +271,7 @@ def test_a_malformed_route_url_does_not_abort_the_home_migration(tmp_path, monke
     """`urlparse` raises on an unclosed IPv6 bracket: that one slot is at no host, and the home's other
     features (Home Assistant here) still migrate."""
     home = _home(tmp_path, env="HASS_TOKEN=abc\n", config="model:\n  provider: custom\n  base_url: http://[fe80::1/v1\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     import pm.install
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     monkeypatch.setattr(lcm, "_install_into", lambda h, consent=None: lambda name: {"ok": True})
@@ -279,7 +279,7 @@ def test_a_malformed_route_url_does_not_abort_the_home_migration(tmp_path, monke
 
 
 def test_the_migration_installs_once_so_a_removal_sticks(tmp_path, monkeypatch):
-    """At most one automatic install per home: after `hermes plugins remove`, neither `hermes update`
+    """At most one automatic install per home: after `a2assistant plugins remove`, neither `a2assistant update`
     nor startup reinstalls it. Until an install succeeds (catalog miss, failed install) it retries."""
     import hermes_cli.memory_provider_migration as mpm
     import pm.install
@@ -302,7 +302,7 @@ def test_the_migration_installs_once_so_a_removal_sticks(tmp_path, monkeypatch):
     import shutil
     shutil.rmtree(plugin)  # `hermes plugins remove homeassistant`
     assert lcm.migrate_home(home, install=install, say=quiet) == []
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     monkeypatch.setattr(lcm, "_install_into", lambda h, **_kw: install)
     assert lcm.recover_at_startup(say=quiet) == []
@@ -311,11 +311,11 @@ def test_the_migration_installs_once_so_a_removal_sticks(tmp_path, monkeypatch):
 
 def test_a_failed_startup_install_backs_off_and_reports_one_line(tmp_path, monkeypatch):
     """With the catalog or git unreachable, only the first agent start in a while pays the network
-    round trip, and its notice is one line naming the cause; `hermes update` always retries."""
+    round trip, and its notice is one line naming the cause; `a2assistant update` always retries."""
     import hermes_cli.memory_provider_migration as mpm
     import pm.install
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     lookups = []
     monkeypatch.setattr(mpm, "catalog_source", lambda name: lookups.append(name) or name)
@@ -345,7 +345,7 @@ def test_repeated_startup_failures_back_off_exponentially(tmp_path, monkeypatch)
     import hermes_cli.memory_provider_migration as mpm
     import pm.install
     home = _home(tmp_path, env="HASS_TOKEN=abc\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(pm.install, "lazy_installs_allowed", lambda: True)
     attempts = []
     monkeypatch.setattr(lcm, "_install_into", lambda h, **_kw: lambda n: attempts.append(n) or {"ok": False, "error": "x"})
@@ -392,11 +392,11 @@ def test_spotify_in_use_is_a_stored_login_or_the_toolset(tmp_path, auth_json, co
 
 
 def test_old_spotify_commands_point_at_the_plugin(tmp_path, monkeypatch):
-    """`hermes auth spotify` / `hermes spotify` name the new command and how to get it for this home."""
+    """`a2assistant auth spotify` / `hermes spotify` name the new command and how to get it for this home."""
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    hint = lcm.moved_command_hint("hermes auth", "spotify", "status")
-    assert "`hermes auth status spotify` is now `hermes spotify status`" in hint
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    hint = lcm.moved_command_hint("a2assistant auth", "spotify", "status")
+    assert "`a2assistant auth status spotify` is now `hermes spotify status`" in hint
     assert "plugins install spotify" in hint
     assert "plugins install spotify" in lcm.moved_command_hint("hermes", "spotify")
     (home / "plugins" / "spotify").mkdir(parents=True)  # installed but disabled
@@ -405,23 +405,23 @@ def test_old_spotify_commands_point_at_the_plugin(tmp_path, monkeypatch):
 
 
 def test_old_mcp_serve_spelling_names_the_plugin_command(tmp_path, monkeypatch, capsys):
-    """`hermes mcp serve` (what MCP client configs launch) exits 2 with the new spelling and the install
+    """`a2assistant mcp serve` (what MCP client configs launch) exits 2 with the new spelling and the install
     line on stderr, never on stdout (the MCP wire); once the plugin is installed only the spelling."""
     import sys
 
     from hermes_cli import main as main_mod
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(sys, "argv", ["hermes", "mcp", "serve", "--tools"])
     parser, _ = main_mod._build_cli_parser()
     with pytest.raises(SystemExit) as exc:
         parser.parse_args(["mcp", "serve", "--tools"])
     out, err = capsys.readouterr()
     assert exc.value.code == 2 and out == ""
-    assert "`hermes mcp serve` is now `hermes mcp-serve`" in err
+    assert "`a2assistant mcp serve` is now `hermes mcp-serve`" in err
     assert "plugins install mcp-serve" in err
     (home / "plugins" / "mcp-serve").mkdir(parents=True)
-    hint = lcm.moved_command_hint("hermes mcp", "serve")
+    hint = lcm.moved_command_hint("a2assistant mcp", "serve")
     assert "is now `hermes mcp-serve`" in hint and "install" not in hint
 
 
@@ -434,7 +434,7 @@ def test_mcp_serve_is_never_installed_automatically(tmp_path):
     assert installs == []
 
 
-_LANGFUSE_KEYS_ENV = "HERMES_LANGFUSE_PUBLIC_KEY=pk-lf-x\nHERMES_LANGFUSE_SECRET_KEY=sk-lf-x\n"
+_LANGFUSE_KEYS_ENV = "A2ASSISTANT_LANGFUSE_PUBLIC_KEY=pk-lf-x\nA2ASSISTANT_LANGFUSE_SECRET_KEY=sk-lf-x\n"
 
 
 @pytest.mark.parametrize(("config", "managed", "in_use"), [
@@ -451,7 +451,7 @@ def test_langfuse_in_use_is_the_bundled_plugin_enabled(tmp_path, monkeypatch, co
     managed_dir.mkdir()
     if managed:
         (managed_dir / "config.yaml").write_text(managed, encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed_dir))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed_dir))
     assert lcm.langfuse_in_use(home) is in_use
 
 
@@ -462,11 +462,11 @@ def test_old_langfuse_plugin_key_keeps_naming_the_catalog_plugin(tmp_path, monke
     from hermes_cli.plugins_discovery import IN_BOTH_LISTS, gate_manifest
     from hermes_cli.plugins_manifest import PluginManifest
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     for name in ("observability/langfuse", "langfuse"):
         message = _unknown_plugin_message(name)
         assert "moved out of core into the 'langfuse' plugin" in message
-        assert "hermes plugins install langfuse" in message
+        assert "a2assistant plugins install langfuse" in message
     assert "moved out of core" not in _unknown_plugin_message("nonexistent")
 
     plugin_dir = home / "plugins" / "langfuse"

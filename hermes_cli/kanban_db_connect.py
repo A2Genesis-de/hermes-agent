@@ -52,7 +52,7 @@ def _resolve_busy_timeout_ms() -> int:
     shared cross-profile dispatch bus, so worker stampedes are expected; a
     long timeout lets WAL serialize writers instead of surfacing transient
     ``database is locked`` failures."""
-    return _kb._env_int("HERMES_KANBAN_BUSY_TIMEOUT_MS", DEFAULT_BUSY_TIMEOUT_MS, minimum=1)
+    return _kb._env_int("A2ASSISTANT_KANBAN_BUSY_TIMEOUT_MS", DEFAULT_BUSY_TIMEOUT_MS, minimum=1)
 
 
 def _sqlite_connect(path: Path) -> sqlite3.Connection:
@@ -169,7 +169,7 @@ def _dispatch_tick_lock(db_path: Path):
     gateway's async watcher must never stall; the loser retries next interval.
     Without ``fcntl``/``msvcrt`` it degrades to a no-op (yields ``True``).
 
-    Motivation (issue #35240): a ``hermes gateway run --replace`` / ``gateway restart`` invoked from a shell
+    Motivation (issue #35240): a ``a2assistant gateway run --replace`` / ``gateway restart`` invoked from a shell
     on a systemd/launchd host can leave an orphan gateway whose dispatcher escapes the service cgroup,
     survives ``systemctl restart``, and becomes a *second* long-lived writer on the same ``kanban.db``. The
     startup guard (``_guard_supervised_gateway_conflict``) blocks the common way an orphan is born, but this
@@ -570,7 +570,7 @@ def repair_db(db_path: Optional[Path] = None, *, board: Optional[str] = None) ->
     Same policy as :func:`_guard_existing_db_is_healthy` (quarantine BEFORE
     any mutation; REINDEX under the init flock; anything non-index stays
     corrupt), but returns a :class:`RepairResult` instead of raising so
-    ``hermes kanban repair`` can pick its exit code. ``OperationalError``
+    ``a2assistant kanban repair`` can pick its exit code. ``OperationalError``
     (locked/busy) still propagates raw: a locked healthy DB must not be
     quarantined."""
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
@@ -669,7 +669,7 @@ def _refuse_dead_board_resurrection(path: Path, board: Optional[str]) -> None:
 
     ``board=None`` (or ``default``) is unaffected — except that a None board
     can still *resolve* through the current-board context (``--board`` scope,
-    ``HERMES_KANBAN_BOARD``, the ``current`` file) to a named board dir; an
+    ``A2ASSISTANT_KANBAN_BOARD``, the ``current`` file) to a named board dir; an
     ``archived`` tombstone in that dir gets the same refusal. For any other
     slug whose DB file does not exist yet, opening it would mkdir the board
     directory and leave an empty DB-only stub — exactly how archived boards
@@ -709,7 +709,7 @@ def _refuse_dead_board_resurrection(path: Path, board: Optional[str]) -> None:
     if meta.get("archived"):
         raise ValueError(f"kanban board {slug!r} is archived; refusing to recreate its database")
     if not _kb.board_metadata_path(slug).exists():
-        raise ValueError(f"kanban board {slug!r} does not exist; create it with `hermes kanban boards create {slug}`")
+        raise ValueError(f"kanban board {slug!r} does not exist; create it with `a2assistant kanban boards create {slug}`")
 
 
 def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> sqlite3.Connection:
@@ -717,7 +717,7 @@ def connect(db_path: Optional[Path] = None, *, board: Optional[str] = None) -> s
     every connection so a re-created file stays robust; the first connection
     per path auto-runs :func:`init_db`, later ones skip via
     ``_INITIALIZED_PATHS``. Path: explicit ``db_path``, else ``board``, else
-    :func:`kanban_db_path` (``HERMES_KANBAN_DB`` -> ``HERMES_KANBAN_BOARD`` ->
+    :func:`kanban_db_path` (``A2ASSISTANT_KANBAN_DB`` -> ``A2ASSISTANT_KANBAN_BOARD`` ->
     ``<root>/kanban/current`` -> ``default``)."""
     path = db_path if db_path is not None else _kb.kanban_db_path(board=board)
     from agent.delegation_context import kanban_path_is_fenced

@@ -25,7 +25,7 @@ hermes-agent/
 └── website/              # Docusaurus docs site
 ```
 
-Config: `~/.hermes/config.yaml` (settings), `~/.hermes/.env` (API keys) — both under `$HERMES_HOME` when it is set.
+Config: `~/.a2assistant/config.yaml` (settings), `~/.a2assistant/.env` (API keys) — both under `$A2ASSISTANT_HOME` when it is set.
 
 ### Adding a Tool
 
@@ -59,8 +59,8 @@ registry.register(
 `_HERMES_CORE_TOOLS` (every platform) or to a specific toolset.
 
 All handlers must return JSON strings. Use `get_hermes_home()` for paths,
-never hardcode `~/.hermes`. For custom/local-only tools, write a plugin in
-`~/.hermes/plugins/` instead of editing core — see the developer docs.
+never hardcode `~/.a2assistant`. For custom/local-only tools, write a plugin in
+`~/.a2assistant/plugins/` instead of editing core — see the developer docs.
 
 ### Adding a Slash Command
 
@@ -95,13 +95,13 @@ scripts/run_tests.sh tests/tools/test_x.py    # one file
 scripts/run_tests.sh -v --tb=long             # pass-through pytest flags
 ```
 
-- Tests auto-redirect `HERMES_HOME` to temp dirs — never touch real `~/.hermes/`.
+- Tests auto-redirect `A2ASSISTANT_HOME` to temp dirs — never touch real `~/.a2assistant/`.
 - Prepare Python through the PM developer workflow before building a test environment.
 - Run `python -m pm.build_env --source . --out .venv --group dev --group test`.
   The output must not exist. Stop its processes and intentionally remove only
   that disposable environment before regeneration.
 - The runner probes repository `.venv`, `venv`, and the standard source-install
-  venv before falling back to `HERMES_PYTHON`. Each candidate must contain pytest.
+  venv before falling back to `A2ASSISTANT_PYTHON`. Each candidate must contain pytest.
 - **Windows:** run the same wrapper through Git Bash. See `references/windows-quirks.md`.
 - After editing `pyproject.toml`, run `a2assistant pm lock`, re-source `./activate`, and
   commit `pyproject.toml` with `uv.lock`.

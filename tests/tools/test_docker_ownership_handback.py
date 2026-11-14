@@ -134,7 +134,7 @@ def test_root_container_teardown_hands_every_sandbox_mount_back_before_removal(
     monkeypatch.setenv("TERMINAL_SANDBOX_DIR", str(tmp_path / ("link" if scenario == "persist-reap" else "sandboxes")))
     if scenario == "persist-shared":  # profiles of one Hermes root, each with its default sandbox dir
         monkeypatch.delenv("TERMINAL_SANDBOX_DIR")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "root" / "profiles" / "creator"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "root" / "profiles" / "creator"))
     caps = any(a in user_args for args in _CAP_ARGS.values() for a in args[-1:])
     fail = scenario.rsplit("-", 1)[1] if "fails" in scenario else scenario if scenario == "chown-timeout" else ""
     calls = _fake_docker(monkeypatch, security_options, fail=fail)
@@ -175,7 +175,7 @@ def test_root_container_teardown_hands_every_sandbox_mount_back_before_removal(
     assert env.wait_for_cleanup(5)
     if scenario.startswith("persist"):  # a running container: strip bits/caps in place, give nothing away
         if scenario == "persist-shared":
-            monkeypatch.setenv("HERMES_HOME", str(tmp_path / "root" / "profiles" / "other"))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "root" / "profiles" / "other"))
         monkeypatch.setattr(docker_env.DockerEnvironment, "_find_reusable_container", lambda *a: ("fake-cid", "running"))
         if scenario == "persist-gone":
             docker_env.reap_orphan_containers(max_age_seconds=0)

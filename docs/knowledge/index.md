@@ -3,12 +3,17 @@
 Entry point for decisions, context and pitfalls. Keep it current when something changes.
 
 - [A2 features](a2-features.md): theme `a2`, the `a2-elevation` plugin, the simpler desktop app.
+- [Rename of the internal identifiers](rename.md): new names, the legacy bridge, `a2assistant migrate`
+  and its rollback.
 
 ## History
 
 - 2026-11-11: fork of Hermes Agent v0.23.1 (Nous Research, MIT). `main` was generated from three
   inputs: an upstream release tag, a hand-written A2 layer (branch `a2/layer`) and a generated brand
   commit (`scripts/a2/apply_brand.py` from `a2/brand.yaml`), plus a weekly upstream-sync workflow.
+- 2026-11-14: user-facing identifiers renamed from Hermes to A2Assistant (home, env vars, CLI,
+  LaunchAgent, systemd units, desktop bundle id), with `a2assistant migrate` for existing installs;
+  see [rename.md](rename.md).
 - 2026-11-13: standalone. Joel decided that A2Assistant stays internal and takes no upstream
   releases. The generator, brand overlay, sync workflow, the `upstream` remote and the branches
   `a2/layer`, `upstream-main` and `refactor/brand-overlay` are gone. The current tree is the plain
@@ -117,8 +122,20 @@ Deferred on purpose (scope freeze 2026-11-13):
   - the prompt-surface snapshot needs a regeneration check
   - vendoring advanced-delegation, langfuse and memory-wiki as bundled plugins: possible, but the
     user copies would shadow the bundled ones until deleted
-- **Rename of the internal identifiers:** CLI `hermes`, `~/.hermes`, `HERMES_*`, bundle id,
-  LaunchAgent.
+- **After the rename transition** (once the MacBook has run on the new layout for a while):
+  - remove the `hermes`, `hermes-acp` and `hermes-agent` alias launchers and the `hermes` shell
+    functions in `activate`/`activate.fish`
+  - remove the compat links `~/.hermes` and `~/.a2assistant/hermes-agent`
+  - drop the `HERMES_*` adoption and mirror once the user plugins (langfuse, advanced-delegation,
+    memory-wiki) are vendored or read `A2ASSISTANT_*`; then `unset_env` can become a plain pop
+  - drop the legacy-layout branches (`legacy_layout_active`, `default_home_in`, `service_names`,
+    `legacy-names.mjs`) and the `hermes://` URL scheme
+  - rename the checkout's `.hermes/bin` launcher directory and project-local `.hermes/` dirs
+  - the managed-python signing identifier `com.nousresearch.hermes.managed-python` (renaming it
+    means re-granting macOS permissions for the bundled Python)
+  - Python package/module names (`hermes_cli`, `hermes_constants`, ...) and repo file names, if ever
+  - Windows paths (`%LOCALAPPDATA%\hermes`, MSIX names) and packaging scripts (`scripts/install.*`,
+    `setup-hermes.*`, Nix, Docker) were renamed mechanically but not tested
 
 ## Test status at the standalone merge
 

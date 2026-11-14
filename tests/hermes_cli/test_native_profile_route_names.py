@@ -28,7 +28,7 @@ def root(tmp_path, monkeypatch):
     root = tmp_path / 'root'
     for name in ('active', 'import', 'sessions', 'beta'):
         (root / 'profiles' / name).mkdir(parents=True)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     from hermes_cli import web_server_profiles
     # The profile registry's own name -> dir mapping (validation + existence), rooted here.
     monkeypatch.setattr(web_server_profiles, '_resolve_profile_dir',

@@ -1,4 +1,4 @@
-"""Host-platform checks for hermes doctor: interpreter, SQLite, certificates, macOS TCC, gateway supervision, command install.
+"""Host-platform checks for a2assistant doctor: interpreter, SQLite, certificates, macOS TCC, gateway supervision, command install.
 Split out of ``hermes_cli/doctor.py``, which re-exports every name so ``hermes_cli.doctor.<name>`` keeps resolving (and monkeypatching)."""
 
 from __future__ import annotations
@@ -9,6 +9,7 @@ import ssl
 import subprocess
 import sys
 from pathlib import Path
+from hermes_cli.branding import CLI_COMMAND, DESKTOP_APP_ID
 from hermes_cli.colors import Colors, color
 from hermes_cli.config import is_nix_install_method, recommended_update_command_for_method
 from hermes_cli.desktop_bundle import MACOS_APP_BUNDLE
@@ -29,7 +30,7 @@ def _python_repair_hint() -> str:
     if method in ("docker", "apt"):
         command = recommended_update_command_for_method(method)
         return f"Run `{command}`" + (", then recreate the A2Assistant container" if method == "docker" else "")
-    return "Run `hermes pm repair`, then restart A2Assistant"
+    return "Run `a2assistant pm repair`, then restart A2Assistant"
 
 
 def _system_package_install_cmd(pkg: str) -> str:
@@ -43,7 +44,7 @@ def _sqlite_upgrade_hint(install_method: str | None = None) -> str:
     method = install_method or detect_install_method(PROJECT_ROOT)
     cmd = recommended_update_command_for_method(method)
     action = cmd if is_nix_install_method(method) else {  # nix: prose guidance, not a shell command
-        "docker": f"run `{cmd}`, then recreate all A2Assistant containers", "apt": f"run `{cmd}`"}.get(method, "run `hermes update`")
+        "docker": f"run `{cmd}`, then recreate all A2Assistant containers", "apt": f"run `{cmd}`"}.get(method, "run `a2assistant update`")
     return f"({action}; fixed versions: 3.51.3+ / 3.50.7 / 3.44.6 — see https://sqlite.org/wal.html#walresetbug)"
 
 
@@ -153,7 +154,7 @@ def _report_database_journal_modes(hermes_home: Path | None = None, version_info
                        "(the setting never applied: an existing WAL database is never live-downgraded"
                        + ("; also exposed to the WAL-reset bug" if vulnerable else "")
                        + ". Stop every A2Assistant process for this profile, then run "
-                       f"`hermes sessions set-journal-mode delete{'' if name == 'state.db' else f' --db {path}'}`)")
+                       f"`a2assistant sessions set-journal-mode delete{'' if name == 'state.db' else f' --db {path}'}`)")
             _report_database_holders(name, path)
         elif error is not None:
             if vulnerable:
@@ -168,7 +169,7 @@ def _report_database_journal_modes(hermes_home: Path | None = None, version_info
                 exposed.append(name)
             check_warn(f"{name} is in WAL mode on a cross-VM filesystem (virtiofs/9p, {size})",
                        "(WAL can silently corrupt across the VM boundary; stop every A2Assistant process and run "
-                       f"`hermes sessions set-journal-mode delete{'' if name == 'state.db' else f' --db {path}'}`, then "
+                       f"`a2assistant sessions set-journal-mode delete{'' if name == 'state.db' else f' --db {path}'}`, then "
                        "set `database.journal_mode: delete` — or move the database onto a native/named volume)")
         elif mode == "wal" and vulnerable:
             exposed.append(name)
@@ -208,10 +209,10 @@ def _report_host_gateway_slot(mgr, issues: list[str]) -> None:
     topology = host_gateway_topology()
     if topology is None:
         if not slots:
-            return check_info("No gateway registered yet — run `hermes gateway install`")
+            return check_info("No gateway registered yet — run `a2assistant gateway install`")
         up = [p for p in slots if mgr.is_running(f"gateway-{p}")]
         issues.append("No host gateway owns the gateway role — start the ONE host multiplexer: "
-                      "hermes --profile default gateway start")
+                      "a2assistant --profile default gateway start")
         return check_warn(f"No host gateway owns the gateway role ({len(up)}/{len(slots)} supervision "
                           f"slots up: {', '.join(slots)})", "(nothing is serving these profiles)")
     check_ok(f"Host gateway: {topology.describe()}")
@@ -220,7 +221,7 @@ def _report_host_gateway_slot(mgr, issues: list[str]) -> None:
         check_warn(f"LEGACY per-profile gateway slots still supervised: {', '.join(legacy_up)}",
                    "(multiplex-only: the host gateway already serves every profile from one process)")
         issues.append("Fold the legacy per-profile gateways into the host gateway: "
-                      "hermes --profile default gateway migrate --multiplex")
+                      "a2assistant --profile default gateway migrate --multiplex")
 
 
 def check_certificates(should_fix: bool = False, issues: list | None = None) -> None:
@@ -262,14 +263,15 @@ def _check_gateway_service_linger(issues: list[str]) -> None:
     """
     try:
         from hermes_cli.gateway import (
-            _SERVICE_BASE, get_systemd_linger_status, get_systemd_unit_path, is_linux,
+            get_systemd_linger_status, get_systemd_unit_path, is_linux,
             user_systemd_unit_dir)
+        from hermes_cli.service_names import gateway_systemd_unit_base
         from hermes_cli.service_manager import detect_service_manager
     except Exception as e:
         return check_warn("Gateway service linger", f"(could not import gateway helpers: {e})")
     if not is_linux() or detect_service_manager() == "s6":
         return
-    host_unit = user_systemd_unit_dir() / f"{_SERVICE_BASE}.service"
+    host_unit = user_systemd_unit_dir() / f"{gateway_systemd_unit_base()}.service"
     if not (get_systemd_unit_path().exists() or host_unit.exists()):
         return
     _section("Gateway Service")
@@ -284,11 +286,11 @@ def _check_gateway_service_linger(issues: list[str]) -> None:
 
 _TCC_CDHASH_DETAIL = (
     "the desktop bundle's designated requirement is cdhash-pinned (pre-#73681 build) — rebuilds invalidate "
-    "all permission grants. Run `hermes update` to get the stable identifier-pinned signing identity, "
+    "all permission grants. Run `a2assistant update` to get the stable identifier-pinned signing identity, "
     "then re-grant permissions once.")
 _TCC_STABLE_DETAIL = {
     True: "(certificate-anchored DR; grants survive rebuilds)",
-    False: "(identifier-pinned DR; grants survive rebuilds — for the strongest anchor, see `hermes desktop --setup-tcc-identity`)",
+    False: "(identifier-pinned DR; grants survive rebuilds — for the strongest anchor, see `a2assistant desktop --setup-tcc-identity`)",
 }
 
 
@@ -313,7 +315,7 @@ def check_macos_tcc_grants() -> None:
     # --setup-tcc-identity or notarized build (certificate-anchored) is the strongest anchor.
     check_ok("macOS TCC signing identity is stable", _TCC_STABLE_DETAIL["certificate" in dr.lower()])
     check_info("If macOS still re-prompts for permissions (toggle shows ON): the stored grant is stale — run "
-               "`tccutil reset ScreenCapture com.nousresearch.hermes` (repeat per affected service), toggle it ON in "
+               f"`tccutil reset ScreenCapture {DESKTOP_APP_ID}` (repeat per affected service), toggle it ON in "
                "System Settings, then fully quit & relaunch A2Assistant once.")
 
 
@@ -398,7 +400,7 @@ def _check_security_advisories(should_fix: bool, f: Finding) -> None:
         # Fail row + remediation text indented under it as one section; also into the summary action list.
         _fail_and_issue(f"{hit.advisory.title}", f"({hit.package}=={hit.installed_version})",
                         f"Resolve security advisory {hit.advisory.id}: uninstall {hit.package}=={hit.installed_version} "
-                        f"and rotate credentials, then run `hermes doctor --ack {hit.advisory.id}`.", f.manual_issues)
+                        f"and rotate credentials, then run `a2assistant doctor --ack {hit.advisory.id}`.", f.manual_issues)
         for line in full_remediation_text(hit):
             print(f"    {color(line, Colors.YELLOW)}" if line else "")
     acked_ids = get_acked_ids()  # acked-but-still-installed stays visible
@@ -514,7 +516,7 @@ def _check_windows_gateway_autostart(should_fix: bool, f: Finding) -> None:
     if not should_fix:
         for path in redundant:
             check_warn("Redundant gateway login item", f"({path})")
-        f.issues.append("Remove duplicate Windows gateway autostart entries: hermes doctor --fix")
+        f.issues.append("Remove duplicate Windows gateway autostart entries: a2assistant doctor --fix")
         return
     done, warnings = gateway_windows.reconcile_autostart_launchers()
     for message in done:
@@ -532,7 +534,7 @@ def _check_web_dashboard_import(should_fix: bool, f: Finding) -> None:
     """Import the dashboard web surface in a subprocess so an import-time crash lands in the report.
 
     When starlette is updated past the fastapi pinned beside it (the CVE starlette pin ships in
-    several extras on its own), ``hermes dashboard`` dies constructing ``FastAPI(...)`` with a
+    several extras on its own), ``a2assistant dashboard`` dies constructing ``FastAPI(...)`` with a
     TypeError — not an ImportError — so the module's own lazy-install fallback never fires and the
     process exits before a single log line. Importing in a subprocess keeps a dead web surface
     from taking the doctor down with it; lazy installs stay off so the probe never mutates the
@@ -540,7 +542,7 @@ def _check_web_dashboard_import(should_fix: bool, f: Finding) -> None:
     """
     from hermes_cli.doctor import PROJECT_ROOT
 
-    env = dict(os.environ, HERMES_DISABLE_LAZY_INSTALLS="1")
+    env = dict(os.environ, A2ASSISTANT_DISABLE_LAZY_INSTALLS="1")
     try:
         proc = subprocess.run(
             [sys.executable, "-c", "import hermes_cli.web_server"],
@@ -557,7 +559,7 @@ def _check_web_dashboard_import(should_fix: bool, f: Finding) -> None:
         _fail_and_issue(
             "Dashboard web surface",
             "(import probe timed out)",
-            "Repair the dashboard dependencies: `hermes pm repair`, then restart A2Assistant",
+            "Repair the dashboard dependencies: `a2assistant pm repair`, then restart A2Assistant",
             f.issues,
         )
         return
@@ -574,7 +576,7 @@ def _check_web_dashboard_import(should_fix: bool, f: Finding) -> None:
     _fail_and_issue(
         "Dashboard web surface",
         detail,
-        "Repair the dashboard dependencies: `hermes pm repair`, then restart A2Assistant",
+        "Repair the dashboard dependencies: `a2assistant pm repair`, then restart A2Assistant",
         f.issues,
     )
 
@@ -597,7 +599,7 @@ def _check_command_installation(should_fix: bool, f: Finding) -> None:
 
     method = detect_install_method(PROJECT_ROOT)
     if is_nix_install_method(method) or method in ("docker", "apt"):
-        command = shutil.which("hermes")
+        command = shutil.which(CLI_COMMAND)
         if command:
             check_ok(f"A2Assistant command managed by {method} ({command})")
         else:
@@ -622,38 +624,38 @@ def _check_command_installation(should_fix: bool, f: Finding) -> None:
     prefix = os.environ.get("PREFIX", "")
     termux = prefix and (os.environ.get("TERMUX_VERSION") or "com.termux/files/usr" in prefix)
     link_dir, display = (Path(prefix) / "bin", "$PREFIX/bin") if termux else (Path.home() / ".local" / "bin", "~/.local/bin")
-    link = link_dir / "hermes"
+    link = link_dir / CLI_COMMAND
     if link.is_symlink():
         target, expected = link.resolve(), venv_bin.resolve()
         if target == expected:
-            return check_ok(f"{display}/hermes → correct target")
-        check_warn(f"{display}/hermes points to wrong target", f"(→ {target}, expected → {expected})")
+            return check_ok(f"{display}/{CLI_COMMAND} → correct target")
+        check_warn(f"{display}/{CLI_COMMAND} points to wrong target", f"(→ {target}, expected → {expected})")
         owned_targets = {(PROJECT_ROOT / name / "bin" / "hermes").resolve() for name in ("venv", ".venv")}
         if target not in owned_targets:
-            return f.manual_issues.append(f"Review {display}/hermes manually; its target is user-managed and was not changed")
+            return f.manual_issues.append(f"Review {display}/{CLI_COMMAND} manually; its target is user-managed and was not changed")
         if not should_fix:
-            return f.issues.append(f"Broken symlink at {display}/hermes — run 'hermes doctor --fix'")
+            return f.issues.append(f"Broken symlink at {display}/{CLI_COMMAND} — run 'a2assistant doctor --fix'")
         verb = "Fixed"
     elif link.exists():  # regular file (wrapper script), not a symlink
-        return check_ok(f"{display}/hermes exists (non-symlink)")
+        return check_ok(f"{display}/{CLI_COMMAND} exists (non-symlink)")
     else:
-        check_fail(f"{display}/hermes not found", "(hermes command may not work outside the venv)")
+        check_fail(f"{display}/{CLI_COMMAND} not found", f"({CLI_COMMAND} command may not work outside the venv)")
         if not should_fix:
-            return f.issues.append(f"Missing {display}/hermes symlink — run 'hermes doctor --fix'")
+            return f.issues.append(f"Missing {display}/{CLI_COMMAND} symlink — run 'a2assistant doctor --fix'")
         link_dir.mkdir(parents=True, exist_ok=True)
         verb = "Created"
     if pm_launcher:
         from hermes_cli._launchers import stage_launcher
 
-        if stage_launcher("hermes", PROJECT_ROOT, link_dir) is None:
+        if stage_launcher(CLI_COMMAND, PROJECT_ROOT, link_dir) is None:
             check_fail("Could not publish A2Assistant launcher")
-            return f.manual_issues.append("Repair the PM store interpreter through the installation owner, then rerun 'hermes doctor --fix'")
-        check_ok(f"{verb} PM launcher: {display}/hermes")
+            return f.manual_issues.append("Repair the PM store interpreter through the installation owner, then rerun 'a2assistant doctor --fix'")
+        check_ok(f"{verb} PM launcher: {display}/{CLI_COMMAND}")
     else:
         if link.is_symlink():
             link.unlink()
         link.symlink_to(venv_bin)
-        check_ok(f"{verb} symlink: {display}/hermes → {venv_bin}")
+        check_ok(f"{verb} symlink: {display}/{CLI_COMMAND} → {venv_bin}")
     f.fixed += 1
     if verb == "Created" and str(link_dir) not in os.environ.get("PATH", "").split(os.pathsep):
         check_warn(f"{display} is not on your PATH", "(add it to your shell config: export PATH=\"$HOME/.local/bin:$PATH\")")

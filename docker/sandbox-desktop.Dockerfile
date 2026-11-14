@@ -34,7 +34,7 @@ RUN apt-get -o Acquire::Retries=3 update && \
     rm -rf /var/lib/apt/lists/*
 
 # Display stack: identical package set to the Hermes -desktop image (Dockerfile,
-# HERMES_BOT_DESKTOP=1) so tools/bot_desktop/launcher.sh finds the same binaries.
+# A2ASSISTANT_BOT_DESKTOP=1) so tools/bot_desktop/launcher.sh finds the same binaries.
 # Components are launched individually by the launcher, never xfce4-session.
 RUN apt-get -o Acquire::Retries=3 update && \
     apt-get -o Acquire::Retries=3 install -y --no-install-recommends \

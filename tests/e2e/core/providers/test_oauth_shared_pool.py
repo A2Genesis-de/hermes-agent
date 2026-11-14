@@ -1,4 +1,4 @@
-"""Two real ``hermes -z`` processes share one auth.json pool row and hit its expiry at the same moment.
+"""Two real ``a2assistant -z`` processes share one auth.json pool row and hit its expiry at the same moment.
 
 Both processes load the same Anthropic OAuth pool row (single-use refresh
 token) and both get the vendor's 401 for the expired access token. The first to

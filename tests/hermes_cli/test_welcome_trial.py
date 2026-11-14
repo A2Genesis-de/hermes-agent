@@ -38,7 +38,7 @@ def test_the_claim_is_stamped_by_the_mint_write_itself(portal, monkeypatch):
 
 BLOCKED = {
     "the CLI": lambda mp, home: None,
-    "an SSH backend": lambda mp, home: (mp.setenv("HERMES_DESKTOP", "1"), mp.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)),
+    "an SSH backend": lambda mp, home: (mp.setenv("A2ASSISTANT_DESKTOP", "1"), mp.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)),
     "guests switched off": lambda mp, home: (as_local_desktop_backend(mp),
                                               (home / "config.yaml").write_text("nous:\n  guest: false\n", encoding="utf-8")),
     "a provider key": lambda mp, home: (as_local_desktop_backend(mp), mp.setenv("OPENROUTER_API_KEY", "sk-or-test")),
@@ -321,8 +321,8 @@ def _kanban_worker_model(monkeypatch, tmp_path) -> str:
     from gateway.session_policy import restore_policy
 
     home = str(get_hermes_home())
-    monkeypatch.setenv("HERMES_KANBAN_HOME", str(tmp_path / "kanban"))
-    monkeypatch.delenv("HERMES_KANBAN_DB", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_HOME", str(tmp_path / "kanban"))
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_DB", raising=False)
     monkeypatch.setattr("hermes_cli.profiles.resolve_profile_env", lambda name: home)
     workspace = tmp_path / "workspace"
     workspace.mkdir()
@@ -342,7 +342,7 @@ def _kanban_worker_model(monkeypatch, tmp_path) -> str:
 def unconfigured_trial(portal, monkeypatch):
     """A fresh install whose Desktop claimed the trial, read by the scheduler or the Kanban
     dispatcher (not Desktop work), with no model configured anywhere."""
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
     claimed_trial(monkeypatch)
     off_local_desktop(monkeypatch)
     yield
@@ -361,7 +361,7 @@ def test_a_claimed_trial_runs_a_kanban_worker_when_no_model_is_configured(unconf
 def test_a_configured_model_beats_the_trial_for_cron_jobs_and_kanban_workers(portal, monkeypatch, tmp_path):
     from hermes_constants import get_hermes_home
 
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
     claimed_trial(monkeypatch)
     off_local_desktop(monkeypatch)
     (get_hermes_home() / "config.yaml").write_text(

@@ -156,7 +156,7 @@ export const GROUP_SURFACE_RU = {
     attentionFallback: "Требует внимания",
     attentionProviderAuth: "Войдите заново для этого профиля",
     attentionQuota: "Квота или баланс исчерпаны",
-    attentionMissingConfig: "Провайдер не настроен — выполните hermes model",
+    attentionMissingConfig: "Провайдер не настроен — выполните a2assistant model",
     attentionBlocked: "Бот заблокирован — см. последнее сообщение",
     editMenu: "Изменить…",
     duplicate: "Дублировать",

@@ -16,7 +16,7 @@ pytestmark = pytest.mark.platforms("windows")
 
 @pytest.fixture
 def host_dir(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     yield tmp_path
     hr.release_host_lock(hr.ROLE_SERVE)
 

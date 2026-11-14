@@ -101,7 +101,7 @@ export const es: Translations = {
   status: {
     actionFailed: "Acción fallida",
     actionFinished: "Finalizado",
-    actionFinishedOwed: "Actualizado, pero aún pendiente (vuelve a ejecutar `hermes update` para terminar)",
+    actionFinishedOwed: "Actualizado, pero aún pendiente (vuelve a ejecutar `a2assistant update` para terminar)",
     actions: "Acciones",
     agent: "Agente",
     activeSessions: "Sesiones activas",
@@ -338,7 +338,7 @@ export const es: Translations = {
       "Guardado: reinicia el gateway para aplicar el cambio.",
     forceReinstall: "Forzar reinstalación (eliminar carpeta existente primero)",
     headline:
-      "Descubre, instala, habilita y actualiza complementos de A2Assistant (equivalente a `hermes plugins`).",
+      "Descubre, instala, habilita y actualiza complementos de A2Assistant (equivalente a `a2assistant plugins`).",
     identifierLabel: "URL de Git u owner/repo",
     inactive: "inactivo",
     installBtn: "Instalar",
@@ -355,8 +355,8 @@ export const es: Translations = {
     providersHint:
       "Escribe memory.provider (vacío = incorporado) y context.engine en config.yaml. Surte efecto en la próxima sesión.",
     refreshDashboard: "Volver a escanear extensiones del panel",
-    removeConfirm: "¿Eliminar este complemento de ~/.hermes/plugins/?",
-    removeHint: "Solo se pueden eliminar complementos instalados por el usuario en ~/.hermes/plugins.",
+    removeConfirm: "¿Eliminar este complemento de ~/.a2assistant/plugins/?",
+    removeHint: "Solo se pueden eliminar complementos instalados por el usuario en ~/.a2assistant/plugins.",
     rescanHeading: "Registro de complementos SPA",
     rescanHint: "Vuelve a escanear tras añadir archivos en disco para que la barra lateral del panel detecte nuevos manifiestos.",
     runtimeHeading: "Tiempo de ejecución del Gateway (complementos YAML)",
@@ -377,7 +377,7 @@ export const es: Translations = {
     all: "Todas",
     categories: "Categorías",
     filters: "Filtros",
-    noSkills: "No se encontraron habilidades. Las habilidades se cargan desde ~/.hermes/skills/",
+    noSkills: "No se encontraron habilidades. Las habilidades se cargan desde ~/.a2assistant/skills/",
     noSkillsMatch: "Ninguna habilidad coincide con tu búsqueda o filtro.",
     skillCount: "{count} habilidad{s}",
     resultCount: "{count} resultado{s}",
@@ -391,7 +391,7 @@ export const es: Translations = {
   },
 
   config: {
-    configPath: "~/.hermes/config.yaml",
+    configPath: "~/.a2assistant/config.yaml",
     filters: "Filtros",
     sections: "Secciones",
     exportConfig: "Exportar configuración como JSON",

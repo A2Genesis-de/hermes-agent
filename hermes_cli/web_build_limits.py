@@ -15,7 +15,7 @@ cgroup OOM kill.
 
 User overrides always win: an explicit ``NODE_OPTIONS`` ``--max-old-space-size`` or
 ``RAYON_NUM_THREADS`` in the environment is left untouched, and
-``HERMES_WEB_BUILD_MAX_OLD_SPACE_SIZE`` / ``HERMES_WEB_BUILD_THREADS`` allow
+``A2ASSISTANT_WEB_BUILD_MAX_OLD_SPACE_SIZE`` / ``A2ASSISTANT_WEB_BUILD_THREADS`` allow
 tailoring without code changes.
 """
 
@@ -92,7 +92,7 @@ def web_build_limits(env: dict[str, str] | None = None) -> dict[str, str]:
 
     Never overrides the user: an existing ``NODE_OPTIONS`` containing
     ``--max-old-space-size`` or an existing ``RAYON_NUM_THREADS`` is preserved.
-    ``HERMES_WEB_BUILD_LIGHT=1`` tightens the caps (1 thread, 1 GB heap) for hosts
+    ``A2ASSISTANT_WEB_BUILD_LIGHT=1`` tightens the caps (1 thread, 1 GB heap) for hosts
     that cannot spare full CPU during the build.
     """
     env = dict(env if env is not None else os.environ)
@@ -101,7 +101,7 @@ def web_build_limits(env: dict[str, str] | None = None) -> dict[str, str]:
     # --- V8 heap cap ---------------------------------------------------------
     tokens = env.get("NODE_OPTIONS", "").split()
     if not any(t.startswith("--max-old-space-size=") for t in tokens):
-        explicit = (env.get("HERMES_WEB_BUILD_MAX_OLD_SPACE_SIZE") or "").strip()
+        explicit = (env.get("A2ASSISTANT_WEB_BUILD_MAX_OLD_SPACE_SIZE") or "").strip()
         try:
             heap_mb = int(explicit) if explicit else (
                 _MIN_WEB_BUILD_HEAP_MB if light else _bounded_heap_mb()
@@ -114,7 +114,7 @@ def web_build_limits(env: dict[str, str] | None = None) -> dict[str, str]:
 
     # --- Native bundler parallelism cap -------------------------------------
     if not env.get("RAYON_NUM_THREADS"):
-        explicit = (env.get("HERMES_WEB_BUILD_THREADS") or "").strip()
+        explicit = (env.get("A2ASSISTANT_WEB_BUILD_THREADS") or "").strip()
         try:
             threads = int(explicit) if explicit else (1 if light else _bounded_threads())
         except ValueError:
@@ -133,8 +133,8 @@ def apply_web_build_limits(env: dict[str, str]) -> dict[str, str]:
 def light_build_requested(env: dict[str, str] | None = None) -> bool:
     """True when the caller asked for the minimal-footprint web build.
 
-    ``HERMES_WEB_BUILD_LIGHT=1``: caps tighten to a single bundler thread and a
+    ``A2ASSISTANT_WEB_BUILD_LIGHT=1``: caps tighten to a single bundler thread and a
     1 GB heap — for VPS hosts that cannot spare full CPU during the build
     (the closed PR #78131's ``build:light`` idea).
     """
-    return _env_flag(env if env is not None else dict(os.environ), "HERMES_WEB_BUILD_LIGHT")
+    return _env_flag(env if env is not None else dict(os.environ), "A2ASSISTANT_WEB_BUILD_LIGHT")

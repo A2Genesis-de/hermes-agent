@@ -41,7 +41,7 @@ if (!["bundled", "light", "store"].includes(variant)) {
   process.exit(1)
 }
 
-process.env.HERMES_DESKTOP_VARIANT = variant
+process.env.A2ASSISTANT_DESKTOP_VARIANT = variant
 const config = require(path.join(desktop, "electron-builder.config.cjs"))
 const pkg = require(path.join(desktop, "package.json"))
 
@@ -88,7 +88,7 @@ const manifest = substituteManifestMacros(template, (m) => {
     case "publisherDisplayName": return options.publisherDisplayName
     // Same quad the real build stamps (msix-shared::nativeQuad) — the build
     // time, so this inspection tool never disagrees with what shipped.
-    case "version": return appIdentity(desktop, process.env.HERMES_PAYLOAD_TAG).version
+    case "version": return appIdentity(desktop, process.env.A2ASSISTANT_PAYLOAD_TAG).version
     case "applicationId": return resolvePackageApplicationId(options.applicationId, options.identityName, appInfoName, "MSIX")
     case "identityName": return resolvePackageIdentityName(options.identityName, appInfoName, "MSIX")
     case "executable": return executable

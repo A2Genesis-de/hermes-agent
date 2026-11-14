@@ -273,7 +273,7 @@ def _answer_choices(cli, connection, wake, answering):
 def run(cli, name, arg):
     """True when the gateway answered ``/name arg`` (the local handler must not run); :data:`GONE`
     when it no longer has that plugin command and a fresh catalog read agrees (a plugin reload, e.g.
-    ``hermes plugins disable``, dropped it in this session and gateway life, which no cache boundary
+    ``a2assistant plugins disable``, dropped it in this session and gateway life, which no cache boundary
     sees): nothing ran, and the caller dispatches the name again (bundle, skill, prefix)."""
     from hermes_cli.gateway_side import connection_for
     connection = connection_for(cli)

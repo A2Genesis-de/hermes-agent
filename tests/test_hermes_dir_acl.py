@@ -89,7 +89,7 @@ def elevated_windows(tmp_path, monkeypatch):
     outside = tmp_path / "Program Files" / "X"
     outside.mkdir(parents=True)
     (outside / "app.exe").write_text("x")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(hermes_dir_acl, "process_is_elevated", lambda: True)
     monkeypatch.setattr(hermes_dir_acl, "_granted", set())
     touched = []
@@ -132,12 +132,12 @@ def test_grant_user_access_refuses_a_link_directly(elevated_windows):
 
 
 def test_make_user_dir_still_grants_real_dirs_under_a_linked_home(tmp_path, monkeypatch):
-    """HERMES_HOME itself is the user's own choice; only entries INSIDE it are swappable."""
+    """A2ASSISTANT_HOME itself is the user's own choice; only entries INSIDE it are swappable."""
     real = tmp_path / "real-home"
     real.mkdir()
     linked = tmp_path / "linked-home"
     linked.symlink_to(real, target_is_directory=True)
-    monkeypatch.setenv("HERMES_HOME", str(linked))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(linked))
     monkeypatch.setattr(hermes_dir_acl, "process_is_elevated", lambda: True)
     monkeypatch.setattr(hermes_dir_acl, "_granted", set())
     calls = []
@@ -260,7 +260,7 @@ def test_media_release_then_recapture_grants_the_recreated_digest_dir(tmp_path, 
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(hermes_dir_acl, "process_is_elevated", lambda: True)
     monkeypatch.setattr(hermes_dir_acl, "_granted", set())
     grants = []
@@ -291,7 +291,7 @@ def test_repairing_an_existing_dir_also_grants_what_is_already_inside_it(tmp_pat
     outside = tmp_path / "outside"
     outside.mkdir()
     (locks / "jn").symlink_to(outside, target_is_directory=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(hermes_dir_acl, "_granted", set())
     writes = []
 

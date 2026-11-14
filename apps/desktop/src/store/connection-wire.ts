@@ -9,7 +9,7 @@ import type { PrimaryGatewayRoute } from '@/store/gateway-primary-route'
  *  is one backend, so every socket to it (the primary and its profile secondaries) agrees. */
 export const $connectionWires = map<Record<string, GatewaySessionWire>>({})
 
-// A remote reached without a registry id (`HERMES_DESKTOP_REMOTE_URL`) is not the local source,
+// A remote reached without a registry id (`A2ASSISTANT_DESKTOP_REMOTE_URL`) is not the local source,
 // which may run beside it as a secondary. It gets a key no registry id can take.
 export const UNNAMED_REMOTE_WIRE_KEY = '\u0000unnamed-remote'
 

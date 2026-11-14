@@ -69,11 +69,11 @@ export async function sourceUpdateEnvironment(
     ...process.env,
     ...(await updateProxyEnv(process.env, note, updateRoot, hermesHome)),
     ...buildDesktopBackendEnv(),
-    HERMES_HOME: hermesHome,
-    HERMES_INSTALL_ROOT: updateRoot
+    A2ASSISTANT_HOME: hermesHome,
+    A2ASSISTANT_INSTALL_ROOT: updateRoot
   }
 
-  delete env.HERMES_RUNTIME_DIR
+  delete env.A2ASSISTANT_RUNTIME_DIR
 
   return env
 }

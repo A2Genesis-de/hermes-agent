@@ -48,7 +48,7 @@ _NEEDS_UNIX_SOCKETS = pytest.mark.skipif(
 def tmp_path():
     """Short-path override for this module (macOS AF_UNIX ~104-byte limit).
 
-    The loop-tick witness tests bind real UNIX sockets under HERMES_HOME.
+    The loop-tick witness tests bind real UNIX sockets under A2ASSISTANT_HOME.
     pytest's default tmp_path nests deep enough on macOS that
     ``state/gateway.loop-tick.<pid>.sock`` exceeds the sockaddr_un limit and
     ``bind()`` raises ``OSError: AF_UNIX path too long``. A mkdtemp directly
@@ -191,7 +191,7 @@ def _launchd_harness(monkeypatch, tmp_path, pid):
     patched ``_process_hermes_home``).
     """
     events = []
-    monkeypatch.setattr(gateway_cli, "get_launchd_label", lambda: "ai.hermes.gateway")
+    monkeypatch.setattr(gateway_cli, "get_launchd_label", lambda: "de.a2genesis.a2assistant.gateway")
     monkeypatch.setattr(gateway_cli, "_launchd_domain", lambda: "gui/501")
     monkeypatch.setattr(gateway_cli, "_get_restart_drain_timeout", lambda: 180.0)
     monkeypatch.setattr("gateway.status.get_running_pid", lambda *a, **k: pid)
@@ -396,7 +396,7 @@ class TestLaunchdRestartWedgedIntegration:
 
     def _setup(self, monkeypatch, liveness):
         events = []
-        monkeypatch.setattr(gateway_cli, "get_launchd_label", lambda: "ai.hermes.gateway")
+        monkeypatch.setattr(gateway_cli, "get_launchd_label", lambda: "de.a2genesis.a2assistant.gateway")
         monkeypatch.setattr(gateway_cli, "_launchd_domain", lambda: "gui/501")
         monkeypatch.setattr(gateway_cli, "_get_restart_drain_timeout", lambda: 180.0)
         # Wait budget covers after-turn deferral + drain + headroom (#77184).

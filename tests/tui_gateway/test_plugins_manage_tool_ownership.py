@@ -1,7 +1,7 @@
 """``plugins.manage list`` names the tools each package's own code produces (``tools``): Desktop lets a plugin's desktop half render media only from those, so the
 answer must come from what the loader actually registered, never from a manifest claim.
 
-Real discovery against the sandbox ``HERMES_HOME``: two native plugins and one portable MCP package.
+Real discovery against the sandbox ``A2ASSISTANT_HOME``: two native plugins and one portable MCP package.
 """
 
 from __future__ import annotations
@@ -48,7 +48,7 @@ def _portable_plugin(root: Path, args: list[str] | None = None) -> None:
 
 
 def test_list_reports_only_tools_the_package_itself_registered():
-    root = Path(os.environ["HERMES_HOME"]) / "plugins"
+    root = Path(os.environ["A2ASSISTANT_HOME"]) / "plugins"
     _native_plugin(root, "sfx", "sfx_make", _OVERRIDE_TTS)
     _native_plugin(root, "other", "other_tool")
     _portable_plugin(root)
@@ -81,7 +81,7 @@ def test_list_reports_only_tools_the_package_itself_registered():
 
 def _list_meshy_tools(live: list[str] | None = None, lazy: list[str] | None = None,
                       native: dict | None = None, args: list[str] | None = None) -> list[str]:
-    root = Path(os.environ["HERMES_HOME"]) / "plugins"
+    root = Path(os.environ["A2ASSISTANT_HOME"]) / "plugins"
     if not (root / "meshy-ish").exists():
         _portable_plugin(root, args)
     cfg = load_config()

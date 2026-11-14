@@ -28,11 +28,11 @@ class _Agent:
 
 
 def _claimed_frame(tmp_path, monkeypatch, *, expired=False, goal_mode=False):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.delenv("HERMES_KANBAN_TURN_RECOVERY", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TURN_RECOVERY", raising=False)
     # The owner/gateway process carries a FOREIGN (stale) env carrier: the proof must ignore it.
-    for key, value in (("HERMES_KANBAN_TASK", "t_foreign"), ("HERMES_KANBAN_DB", str(tmp_path / "nope.db")),
-                       ("HERMES_KANBAN_RUN_ID", "999"), ("HERMES_KANBAN_CLAIM_LOCK", "foreign")):
+    for key, value in (("A2ASSISTANT_KANBAN_TASK", "t_foreign"), ("A2ASSISTANT_KANBAN_DB", str(tmp_path / "nope.db")),
+                       ("A2ASSISTANT_KANBAN_RUN_ID", "999"), ("A2ASSISTANT_KANBAN_CLAIM_LOCK", "foreign")):
         monkeypatch.setenv(key, value)
     monkeypatch.setattr(rec, "RECOVERY_DELAYS_SECONDS", (0.0,))
     monkeypatch.setattr("agent.skill_commands.build_preloaded_skills_prompt", lambda *a, **k: ("", [], []))

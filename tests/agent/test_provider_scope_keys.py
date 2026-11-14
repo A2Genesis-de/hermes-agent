@@ -15,7 +15,7 @@ def test_scoped_reads_and_restore_share_canonical_key(tmp_path, monkeypatch):
     home.mkdir()
     raw = str(home / ".." / home.name)
     key = hermes_home_key(home)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     global_provider, scoped, replacement = Provider(), Provider(), Provider()
     registry.register(global_provider)
     registry.register(scoped, scope=raw)

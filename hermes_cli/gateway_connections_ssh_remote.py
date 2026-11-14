@@ -1,4 +1,4 @@
-"""Remote ``hermes serve`` lifecycle over an SSH ControlMaster (Linux/macOS remotes).
+"""Remote ``a2assistant serve`` lifecycle over an SSH ControlMaster (Linux/macOS remotes).
 
 Server-side port of ``apps/desktop/electron/remote-lifecycle.ts``: locate the remote Hermes, gate
 the platform, refuse while a remote install update is in progress, reuse a provably-owned
@@ -6,8 +6,8 @@ the platform, refuse while a remote install update is in progress, reuse a prova
 fresh detached one under the update-marker mutex and scrape its READY port, and reap a stale
 backend only when its argv proves it is ours.
 
-The remote paths below (``~/.hermes/desktop-ssh/...``) are REMOTE path strings: the remote
-``serve`` validates ``--ssh-session-token-file`` against ``$HOME/.hermes/desktop-ssh`` on its own
+The remote paths below (``~/.a2assistant/desktop-ssh/...``) are REMOTE path strings: the remote
+``serve`` validates ``--ssh-session-token-file`` against ``$HOME/.a2assistant/desktop-ssh`` on its own
 host (``hermes_cli/main_dashboard.py::_read_ssh_session_token_file``).
 """
 
@@ -29,8 +29,8 @@ LOCKFILE_SCHEMA_VERSION = 2
 # Bumped when the client<->serve reuse contract changes so an old serve is never reattached.
 PROTOCOL_VERSION = 1
 # The remote log is `>> log 2>&1`: merged output, not line-accurate (backend-ready.ts).
-READY_RE = re.compile(r"(?<!\w)HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)")
-REMOTE_LOCK_DIR = "~/.hermes/desktop-ssh"
+READY_RE = re.compile(r"(?<!\w)A2ASSISTANT_(?:BACKEND|DASHBOARD)_READY port=(\d+)")
+REMOTE_LOCK_DIR = "~/.a2assistant/desktop-ssh"
 SUPPORTED_REMOTE_OS = ("Linux", "Darwin")
 # A busy remote's cold boot can take 60-150s before READY; a warm start announces in <1s.
 DEFAULT_READY_TIMEOUT_S = 120.0
@@ -159,10 +159,10 @@ def probe_remote_platform(ssh: SshConnection) -> tuple[str, str]:
 
 def probe_remote_hermes_home(ssh: SshConnection) -> str:
     try:
-        out = ssh.exec('echo "${HERMES_HOME:-$HOME/.hermes}"').strip().split("\n")[-1]
+        out = ssh.exec('echo "${A2ASSISTANT_HOME:-$HOME/.a2assistant}"').strip().split("\n")[-1]
     except SshReachError as exc:
         raise _err("transient-transport-error", "Could not resolve the remote A2Assistant home.") from exc
-    return out or "~/.hermes"
+    return out or "~/.a2assistant"
 
 
 def assert_remote_install_update_clear(ssh: SshConnection, hermes_home: str, hermes_path: str = "") -> None:
@@ -205,7 +205,7 @@ def locate_hermes(ssh: SshConnection, remote_hermes_path: str) -> str:
             return remote_hermes_path
         raise _err("hermes-not-found",
                    f'The A2Assistant path set for this connection is not an executable on the remote host: '
-                   f'"{remote_hermes_path}". It must be the full path to the remote `hermes` binary, or blank '
+                   f'"{remote_hermes_path}". It must be the full path to the remote `a2assistant` binary, or blank '
                    "to auto-detect.")
     candidates: list[str] = []
     try:
@@ -215,12 +215,12 @@ def locate_hermes(ssh: SshConnection, remote_hermes_path: str) -> str:
     except SshReachError:
         pass
     # The installer's command locations (scripts/install.sh): per-user, root/FHS, legacy venv.
-    candidates += ["~/.local/bin/hermes", "/usr/local/bin/hermes", "~/.hermes/hermes-agent/venv/bin/hermes"]
+    candidates += ["~/.local/bin/hermes", "/usr/local/bin/hermes", "~/.a2assistant/app/venv/bin/hermes"]
     for candidate in candidates:
         if candidate and _is_executable(ssh, candidate):
             return candidate
     raise _err("hermes-not-found",
-               "A2Assistant is not installed on the remote host (no `hermes` executable found). Install it there, "
+               "A2Assistant is not installed on the remote host (no `a2assistant` executable found). Install it there, "
                "or set the A2Assistant path explicitly on the connection.")
 
 
@@ -532,8 +532,8 @@ def _spawn_payload_prefix(plan: SpawnPlan) -> tuple[str, str, str]:
            f"{expand_remote_path(plan.token_file_path)} --ssh-owner-nonce {validate_spawn_nonce(plan.spawn_nonce)}")
     # A value the remote login shell exports is cleared first; gateway connections never hand a
     # dev renderer origin on (Desktop's HERMES_DESKTOP_DEV_SERVER is always empty here).
-    dash = (f"ulimit -n {REMOTE_NOFILE_SOFT_LIMIT} 2>/dev/null || true; unset HERMES_DESKTOP_DEV_SERVER; "
-            f"exec env HERMES_DESKTOP=1 {hermes} {profile_args}{sub}")
+    dash = (f"ulimit -n {REMOTE_NOFILE_SOFT_LIMIT} 2>/dev/null || true; unset A2ASSISTANT_DESKTOP_DEV_SERVER; "
+            f"exec env A2ASSISTANT_DESKTOP=1 {hermes} {profile_args}{sub}")
     detached_shell = f'eval "exec $1>&-"; {dash} </dev/null >> {log_path} 2>&1 & echo $!'
     # setsid (Linux) starts a new session; macOS has no setsid, so nohup. The inner shell
     # backgrounds Hermes and reports ITS pid, which is what the lock publishes.
@@ -549,7 +549,7 @@ def build_spawn_command(plan: SpawnPlan) -> str:
     lock, so the child is reaped (exit 75). The reservation is an atomic mkdir reclaimed only when
     its owning remote shell is dead. Plain sh (dash): no ``${var//pat/rep}``."""
     hermes, log_path, detached_spawn = _spawn_payload_prefix(plan)
-    marker = expand_remote_path(f"{remote_install_root(plan.hermes_home or '~/.hermes')}/.hermes-update-in-progress")
+    marker = expand_remote_path(f"{remote_install_root(plan.hermes_home or '~/.a2assistant')}/.hermes-update-in-progress")
     marker_absent = f"[ ! -e {marker} ]"
     reap = 'kill "$child" 2>/dev/null || true; wait "$child" 2>/dev/null || true;'
     reservation = expand_remote_path(connect_reservation_path(plan.ownership_id))

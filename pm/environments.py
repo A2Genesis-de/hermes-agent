@@ -17,9 +17,12 @@ from pathlib import Path
 from hermes_constants import get_default_hermes_root, project_venv_dir
 
 
-def install_key(project_root: Path) -> str:
-    canonical = str(Path(project_root).resolve())
+def install_key_for(canonical: str) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+
+
+def install_key(project_root: Path) -> str:
+    return install_key_for(str(Path(project_root).resolve()))
 
 
 def dependency_home_root() -> Path:
@@ -43,7 +46,7 @@ def owning_home_root(project_root: Path) -> Path | None:
 
     Dependency state is scoped per data root (``<root>/installs/<install_key>``), but a source
     checkout -- its launchers, product builds and install stamp -- exists once. A launch under
-    another root (a test's temporary ``HERMES_HOME``, a per-task home, a CI service home) borrows
+    another root (a test's temporary ``A2ASSISTANT_HOME``, a per-task home, a CI service home) borrows
     it: the root that installed it already holds committed state for it, under the root the
     checkout sits in (``<root>/hermes-agent``) or else the platform default root. ``None`` when
     the active root's state is that state (the owner itself, or one of its profiles), and when no
@@ -51,7 +54,7 @@ def owning_home_root(project_root: Path) -> Path | None:
     tree -- so those keep today's behaviour (#123238).
 
     A borrowing launch's own sync leaves ``facts.json`` under the borrower too, so state alone
-    cannot name the owner. The checkout's ``hermes`` launcher can: only the owner publishes it,
+    cannot name the owner. The checkout's ``a2assistant`` launcher can: only the owner publishes it,
     and it execs the owner's store Python. With no live launcher to ask, the root the checkout
     sits in outranks the platform default.
     """
@@ -77,7 +80,11 @@ def _launcher_bound_root(project_root: Path, candidates: list[Path]) -> Path | N
     from hermes_cli._launchers import _launcher_python
 
     local = project_root / ".hermes" / "bin"
-    for name in (("hermes.exe", "hermes.cmd") if os.name == "nt" else ("hermes",)):
+    from hermes_cli.branding import CLI_COMMAND, LEGACY_CLI_COMMAND
+
+    commands = (CLI_COMMAND, LEGACY_CLI_COMMAND)
+    names = [f"{command}{suffix}" for command in commands for suffix in (".exe", ".cmd")] if os.name == "nt" else commands
+    for name in names:
         python = _launcher_python(local / name)
         if python is None or not python.is_file():
             continue
@@ -207,7 +214,7 @@ def cli_command_name(project_root: Path) -> str:
     """The name a person types to run this install's CLI.
 
     A desktop channel build publishes its launcher under a qualified name
-    (``hermes-canary``) so it never shadows another install's ``hermes``.
+    (``hermes-canary``) so it never shadows another install's ``a2assistant``.
     """
     command = _payload_hermes_command(Path(project_root).resolve())
     return command.name.removesuffix(".exe") if command else "hermes"
@@ -220,14 +227,14 @@ def base_venv(project_root: Path) -> Path:
 def store_root(project_root: Path, *, honor_runtime_override: bool = True) -> Path:
     """Resolve a payload-relative or stamped store before PM imports.
 
-    ``HERMES_RUNTIME_DIR`` exists so a running process can point PM at a
+    ``A2ASSISTANT_RUNTIME_DIR`` exists so a running process can point PM at a
     non-default runtime location. Publication paths must pass
     ``honor_runtime_override=False``: a persisted artifact (an installed
     launcher) has to bind the store of the tree it serves, never a runtime
     directory inherited through the environment.
     """
     if honor_runtime_override:
-        override = os.environ.get("HERMES_RUNTIME_DIR")
+        override = os.environ.get("A2ASSISTANT_RUNTIME_DIR")
         if override:
             return Path(override).resolve()
     root = Path(project_root).resolve()
@@ -444,7 +451,7 @@ def running_from_selected_environment(project_root: Path) -> bool:
 
 
 class NoCommittedEnvironment(RuntimeError):
-    """PM's store Python with no committed generation: no retry fixes it, only `hermes pm repair`."""
+    """PM's store Python with no committed generation: no retry fixes it, only `a2assistant pm repair`."""
 
 
 def _require_own_dependencies(project_root: Path) -> None:
@@ -471,7 +478,11 @@ def activate_dependencies(project_root: Path) -> None:
 
     state = install_state_dir(project_root)
     if state.is_dir():
-        from hermes_cli.runtime_state import runtime_lock, recover_publication, lease_generation
+        from hermes_cli.runtime_state import (
+            lease_generation,
+            recover_publication,
+            runtime_lock,
+        )
         # The lock's holder may be another profile's backend running a full dependency rebuild;
         # this process only reads the committed selection, so it proceeds without waiting rather
         # than leaving the backend unbound (see runtime_lock).

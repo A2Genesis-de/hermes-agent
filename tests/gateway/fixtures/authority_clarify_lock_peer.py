@@ -1,4 +1,4 @@
-"""#140400 end to end: a `hermes chat`-shaped turn's clarify batch answered from a second viewer.
+"""#140400 end to end: a `a2assistant chat`-shaped turn's clarify batch answered from a second viewer.
 
 Real GatewayRunner + session API WebSocket, a loopback model asking two questions, the real clarify
 tool. Socket A creates a ``cli`` session and submits with ``clarify_batch`` (what GatewayAgent sends);
@@ -59,7 +59,7 @@ async def probe(peer):
     from hermes_cli import web_server
 
     runner = GatewayRunner()
-    authority = await initialize_session_authority(runner, profile_id=os.environ['HERMES_HOME'], instance_id='lock')
+    authority = await initialize_session_authority(runner, profile_id=os.environ['A2ASSISTANT_HOME'], instance_id='lock')
     api = await start_gateway_api(runner)
     url = api.api_origin.replace('http:', 'ws:') + '/api/ws?token=' + web_server._SESSION_TOKEN
     frames = {}
@@ -106,7 +106,7 @@ async def probe(peer):
         tools = [m for messages in peer.requests for m in messages if m['role'] == 'tool']
         dumped = json.dumps(tools)
         assert 'green' in dumped and 'large' in dumped and 'submitted' in dumped, tools
-        Path(os.environ['HERMES_HOME'], 'lock-passed').write_text('both locked answers reached the real model')
+        Path(os.environ['A2ASSISTANT_HOME'], 'lock-passed').write_text('both locked answers reached the real model')
     finally:
         task = authority.sessions[sid].task if sid in authority.sessions else None
         if task is not None and not task.done():
@@ -123,7 +123,7 @@ def main():
     threading.Thread(target=peer.serve_forever, daemon=True).start()
     url = f'http://127.0.0.1:{peer.server_port}/v1'
     os.environ.update(OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
-    Path(os.environ['HERMES_HOME'], 'config.yaml').write_text(
+    Path(os.environ['A2ASSISTANT_HOME'], 'config.yaml').write_text(
         f'model:\n  default: local\n  provider: custom\n  base_url: {url}\n'
         'agent:\n  clarify_timeout: 25\nauxiliary:\n  title_generation:\n    enabled: false\n')
     try:

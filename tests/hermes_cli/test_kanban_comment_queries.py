@@ -24,9 +24,9 @@ from hermes_cli import kanban_db_connect as kbc
 def fresh_home(tmp_path, monkeypatch):
     home = tmp_path / "hermes_home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    for var in ("HERMES_KANBAN_DB", "HERMES_KANBAN_WORKSPACES_ROOT", "HERMES_KANBAN_HOME", "HERMES_KANBAN_BOARD"):
+    for var in ("A2ASSISTANT_KANBAN_DB", "A2ASSISTANT_KANBAN_WORKSPACES_ROOT", "A2ASSISTANT_KANBAN_HOME", "A2ASSISTANT_KANBAN_BOARD"):
         monkeypatch.delenv(var, raising=False)
     try:
         import hermes_constants

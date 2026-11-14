@@ -21,7 +21,7 @@ import pytest
 def test_cli_stamp_roundtrip(tmp_path, monkeypatch, variant, distribution, mechanism, payload, tag):
     out = tmp_path / "install-stamp.json"
     script = Path(__file__).resolve().parents[2] / "scripts/write_install_stamp.py"
-    env = {**os.environ, "HERMES_DESKTOP_VARIANT": variant, "HERMES_PAYLOAD_TAG": "v0.18.0", "HERMES_BUILD_COMMIT": ""}
+    env = {**os.environ, "A2ASSISTANT_DESKTOP_VARIANT": variant, "A2ASSISTANT_PAYLOAD_TAG": "v0.18.0", "A2ASSISTANT_BUILD_COMMIT": ""}
     args = [sys.executable, str(script), "--output", str(out), "--commit", "d" * 40,
             "--source", "ci", "--base-version", "0.18.0", "--distance", "0",
             "--update-mechanism", mechanism]
@@ -36,7 +36,7 @@ def test_cli_stamp_roundtrip(tmp_path, monkeypatch, variant, distribution, mecha
     assert data["baseVersion"] == data["displayVersion"] == "0.18.0"
     from hermes_cli.version_info import _stamp_version_info
     from hermes_cli.venv_sync import _is_sealed
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(tmp_path))
     if payload == "light":
         with pytest.raises(RuntimeError, match="light"):
             _stamp_version_info()
@@ -66,8 +66,8 @@ def test_missing_or_invalid_mechanism_cannot_emit_stamp(tmp_path, arguments):
 
 
 @pytest.mark.parametrize("variant,tag,error", [
-    ("bundled", "", "HERMES_PAYLOAD_TAG"), ("light", "", "HERMES_PAYLOAD_TAG"),
-    ("chonky", "v0.18.0", "unknown HERMES_DESKTOP_VARIANT"),
+    ("bundled", "", "A2ASSISTANT_PAYLOAD_TAG"), ("light", "", "A2ASSISTANT_PAYLOAD_TAG"),
+    ("chonky", "v0.18.0", "unknown A2ASSISTANT_DESKTOP_VARIANT"),
 ])
 def test_invalid_variant_cannot_emit_stamp(tmp_path, variant, tag, error):
     out = tmp_path / "install-stamp.json"
@@ -75,7 +75,7 @@ def test_invalid_variant_cannot_emit_stamp(tmp_path, variant, tag, error):
         [sys.executable, str(Path(__file__).resolve().parents[2] / "scripts/write_install_stamp.py"),
          "--output", str(out), "--commit", "d" * 40, "--base-version", "0.18.0",
          "--update-mechanism", "self"],
-        env={**os.environ, "HERMES_DESKTOP_VARIANT": variant, "HERMES_PAYLOAD_TAG": tag, "HERMES_BUILD_COMMIT": ""},
+        env={**os.environ, "A2ASSISTANT_DESKTOP_VARIANT": variant, "A2ASSISTANT_PAYLOAD_TAG": tag, "A2ASSISTANT_BUILD_COMMIT": ""},
         capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode != 0 and error in result.stderr
     assert not out.exists()
@@ -89,7 +89,7 @@ def test_packaged_identity_never_falls_back_to_project_metadata(tmp_path, monkey
     (tmp_path / "hermes_cli" / "_version.py").write_text('__version__ = "9.9.9"\n', encoding="utf-8")
     (tmp_path / "pyproject.toml").write_text('[project]\nversion = "8.8.8"\n', encoding="utf-8")
     monkeypatch.setattr(write_install_stamp, "_REPO_ROOT", tmp_path)
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(tmp_path))
 
     # No reachable release (a tagless docker build): the admitted commit is the whole identity.
     write_install_stamp.write_stamp(

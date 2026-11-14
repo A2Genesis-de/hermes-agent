@@ -1,4 +1,5 @@
 """Source launchers keep custom-home and selected-generation state at boot."""
+from hermes_constants import unset_env
 import json
 import os
 from pathlib import Path
@@ -21,7 +22,7 @@ BOOT_FILES = (
     "pm/environments.py", "pm/filesystem.py", "pm/paths.py", "hermes_cli/runtime_state.py",
     "hermes_cli/_early_recovery.py", "hermes_cli/_parser.py",
     "hermes_cli/venv_sync.py", "hermes_cli/steward.py",
-    "hermes_cli/stderr_timestamp.py",
+    "hermes_cli/stderr_timestamp.py", "hermes_cli/service_names.py",
     "scripts/hermes-gateway",
 )
 
@@ -39,7 +40,7 @@ def fixture_tree(tmp_path, monkeypatch):
         "def main():\n"
         "    import selected_probe\n"
         "    print(json.dumps({'value': selected_probe.VALUE, 'argv': sys.argv[1:], "
-        "'home': os.environ.get('HERMES_HOME'), 'exe': sys.executable}))\n"
+        "'home': os.environ.get('A2ASSISTANT_HOME'), 'exe': sys.executable}))\n"
         "    return 7\n"
         "if __name__ == '__main__':\n    sys.exit(main())\n"
     )
@@ -50,7 +51,8 @@ def fixture_tree(tmp_path, monkeypatch):
         monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
     home = tmp_path / ("hermes" if os.name == "nt" else ".hermes")
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_RUNTIME_DIR", raising=False)
     monkeypatch.delenv("HERMES_RUNTIME_DIR", raising=False)
     store = home / "tools"
     store.mkdir(parents=True)
@@ -99,8 +101,8 @@ def test_source_launchers_boot_selected_generation_from_custom_home(tmp_path, mo
     for number in (1, 2):
         select_generation(repo, number, number)
         env = dict(os.environ)
-        env.pop("HERMES_HOME", None)
-        env.pop("HERMES_RUNTIME_DIR", None)
+        unset_env(env, "HOME")
+        unset_env(env, "RUNTIME_DIR")
         env["PYTHONHOME"] = str(tmp_path / "foreign-python")
         env["PYTHONPATH"] = str(tmp_path / "foreign-deps")
         for launcher in launchers:
@@ -125,10 +127,10 @@ def test_launcher_resolves_default_home_at_use_not_publication(tmp_path, monkeyp
     new_user_home = tmp_path / "second-user"
     new_user_home.mkdir()
     monkeypatch.setenv("HOME", str(new_user_home))
-    monkeypatch.setenv("HERMES_HOME", str(new_user_home / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(new_user_home / ".hermes"))
     select_generation(repo, "second", "from-second-user")
     env = dict(os.environ)
-    env.pop("HERMES_HOME")
+    unset_env(env, "HOME")
     result = subprocess.run([str(launcher)], cwd=tmp_path, env=env,
                             capture_output=True, text=True, encoding="utf-8", timeout=30, check=False)
     assert result.returncode == 7, result.stdout + result.stderr
@@ -148,7 +150,7 @@ def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, mo
 
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(repo))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(repo))
     profile = home / "profiles" / "coder"
     profile.mkdir(parents=True)
     (home / "active_profile").write_text("default\n", encoding="utf-8")
@@ -166,9 +168,9 @@ def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, mo
 
     def assert_home(override, expected):
         env = dict(os.environ)
-        env.pop("HERMES_HOME", None)
+        unset_env(env, "HOME")
         if override is not None:
-            env["HERMES_HOME"] = str(override)
+            env["A2ASSISTANT_HOME"] = str(override)
         for launcher in launchers:
             result = subprocess.run([str(launcher)], cwd=tmp_path, env=env,
                                     capture_output=True, text=True, encoding="utf-8", timeout=30, check=False)
@@ -179,7 +181,7 @@ def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, mo
             assert Path(receipt["exe"]).samefile(interpreter)
 
     assert_home(None, home)
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
     if publisher == "boot":
         # Keep the real per-profile boot gate and exposure step, not unrelated
         # migrations. A named profile's first boot republishes the shared files.
@@ -199,7 +201,7 @@ def test_profile_publication_preserves_shared_launcher_default_home(tmp_path, mo
     other_home = tmp_path / "explicit custom home"
     other_home.mkdir()
     # A custom home is its own dependency root: it sees only generations committed there.
-    monkeypatch.setenv("HERMES_HOME", str(other_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(other_home))
     select_generation(repo, "shared", "ready")
     assert_home(other_home, other_home)
 
@@ -251,7 +253,7 @@ def test_materializer_cli_refuses_missing_store_without_publishing(tmp_path, mon
 def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeypatch, legacy_hermes):
     repo, home, interpreter = fixture_tree(tmp_path, monkeypatch)
     monkeypatch.setattr(Path, "home", lambda: home)
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(repo))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(repo))
     select_generation(repo, 'current', 'migrated')
     out = home / ".local" / "bin"
     out.mkdir(parents=True)
@@ -262,7 +264,7 @@ def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeyp
                    f'exec "{repo}/venv/bin/hermes" "$@"\n')
     (out / "hermes").write_text(old_wrapper, encoding="utf-8")
     (out / "hermes-acp").write_text(
-        '#!/usr/bin/env bash\n# A2Assistant — ACP launcher (written by `hermes update`).\n'
+        '#!/usr/bin/env bash\n# A2Assistant — ACP launcher (written by `a2assistant update`).\n'
         f'exec "{out}/hermes" acp "$@"\n', encoding="utf-8")
     # Mentions this install only in a comment and runs another checkout's venv.
     foreign = f'#!/bin/sh\n# user note about {repo}/venv/bin/hermes\nexec "{tmp_path}/other/venv/bin/hermes" "$@"\n'
@@ -270,7 +272,7 @@ def test_boot_migrates_legacy_conveniences_to_selected_runtime(tmp_path, monkeyp
 
     result = _launchers.expose_cli()
     assert result["ok"], result
-    assert set(result["written"]) == {"hermes", "hermes-acp", CLI_COMMAND}
+    assert set(result["written"]) == {"hermes", "hermes-acp", CLI_COMMAND, f"{CLI_COMMAND}-acp", f"{CLI_COMMAND}-agent"}
     for name in ("hermes", "hermes-acp"):
         run = subprocess.run([str(out / name), "quoted argument"], cwd=tmp_path,
                              capture_output=True, text=True, timeout=30, encoding="utf-8", check=False)
@@ -507,8 +509,8 @@ def test_pre_pm_base_dependencies_activate_only_at_boot(tmp_path, monkeypatch):
 
 
 def test_external_interpreter_keeps_its_owned_dependencies(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "empty-store"))
     command = _launchers.runtime_command(ROOT, code="import ruamel.yaml; print('external-runtime-ready')")
     result = subprocess.run(command, cwd=tmp_path, capture_output=True, text=True, timeout=30, encoding="utf-8", check=False)
     assert result.returncode == 0, result.stderr
@@ -630,8 +632,8 @@ def test_a_merge_killed_writing_hermes_constants_is_repaired_by_the_next_launch(
     checkout module, so a torn ``hermes_constants.py`` is put back instead of killing every launch."""
     repo, home, interpreter, pre, original, marker = _torn_by_a_killed_merge(tmp_path, monkeypatch)
     env = dict(os.environ)
-    env.pop("HERMES_HOME", None)  # the default-home pin itself needs hermes_constants
-    env.pop("HERMES_RUNTIME_DIR", None)
+    unset_env(env, "HOME")  # the default-home pin itself needs hermes_constants
+    unset_env(env, "RUNTIME_DIR")
     env.pop("PYTEST_CURRENT_TEST", None)  # the repair stands down in a checkout pytest itself runs from
     no_git = tmp_path / "path-without-git"
     no_git.mkdir()
@@ -695,7 +697,7 @@ def test_stage_launcher_ignores_an_inherited_runtime_directory(tmp_path, monkeyp
     foreign_python.symlink_to(interpreter)
     (foreign_store / "facts.json").write_text(
         json.dumps({"packages": {"python": {"entry": "python-foreign"}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(foreign_store))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(foreign_store))
 
     # Publication callers create the bin dir before staging (see
     # ensure_install_launchers); the launcher writer does not invent it.
@@ -728,11 +730,11 @@ def test_service_launcher_binds_the_tree_store_despite_inherited_runtime_overrid
     foreign_python.symlink_to(interpreter)
     (foreign_store / "facts.json").write_text(
         json.dumps({"packages": {"python": {"entry": "python-foreign"}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(foreign_store))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(foreign_store))
 
     gateway._prepare_service_launcher()
 
-    wrapper = (repo / ".hermes" / "bin" / "hermes").read_text(encoding="utf-8-sig")
+    wrapper = (repo / ".hermes" / "bin" / CLI_COMMAND).read_text(encoding="utf-8-sig")
     assert "python-A" in wrapper
     assert "python-foreign" not in wrapper
 
@@ -749,7 +751,7 @@ def test_runtime_override_still_selects_the_runtime_python(tmp_path, monkeypatch
     foreign_python.symlink_to(interpreter)
     (foreign_store / "facts.json").write_text(
         json.dumps({"packages": {"python": {"entry": "python-foreign"}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(foreign_store))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(foreign_store))
 
     selected = _launchers.resolve_store_python(repo)
 
@@ -774,12 +776,12 @@ def test_install_launchers_never_bind_a_fixture_store_under_scratch(tmp_path, mo
     own = _launchers.resolve_store_python(repo)
     fixture = home / "cache" / "scratch" / "hermes-e2e-media-overlap-run" / "hermes-home" / "tools"
     _record_store_python(fixture, interpreter)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(fixture))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(fixture))
 
     written = _launchers.ensure_install_launchers(repo, repo / ".hermes" / "bin")
 
     assert len(written) == len(_launchers.WINDOWS_BIN_LAUNCHERS)
-    for path in written:
+    for path in (path for path in written if Path(path).name in _launchers.PRIMARY_LAUNCHERS):
         wrapper = Path(path).read_text(encoding="utf-8-sig")
         assert "hermes-e2e-media-overlap-run" not in wrapper
         assert shlex.quote(str(own)) in wrapper
@@ -794,10 +796,10 @@ def test_publication_uses_the_runtime_store_when_the_tree_records_none(tmp_path,
     (home / "tools" / "facts.json").unlink()
     runtime = tmp_path / "runtime-tools"
     python = _record_store_python(runtime, interpreter)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(runtime))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(runtime))
 
     written = _launchers.ensure_install_launchers(repo, repo / ".hermes" / "bin")
 
     assert len(written) == len(_launchers.WINDOWS_BIN_LAUNCHERS)
-    for path in written:
+    for path in (path for path in written if Path(path).name in _launchers.PRIMARY_LAUNCHERS):
         assert shlex.quote(str(python)) in Path(path).read_text(encoding="utf-8-sig")

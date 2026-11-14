@@ -11,7 +11,7 @@ Three live proofs (no mocks of the code under test):
 
 2. ``TestWatcherRespawnLive`` — drives the REAL
    ``hermes_cli.gateway._spawn_gateway_restart_watcher`` end to end with a
-   real stub gateway process, against a temp HERMES_HOME:
+   real stub gateway process, against a temp A2ASSISTANT_HOME:
    - the respawned process's stderr must land in ``logs/gateway-stdio.log``
      (on unfixed main it went to DEVNULL: a job-teardown kill left ZERO trace);
    - the respawn env must carry ``_HERMES_GATEWAY_BREAKAWAY=1`` (the stamp
@@ -285,7 +285,7 @@ class TestWatcherRespawnLive:
     """Drive the real ``_spawn_gateway_restart_watcher`` with real processes."""
 
     def _run_watcher_cycle(self, tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
         (tmp_path / "home").mkdir(parents=True, exist_ok=True)
 
         marker = tmp_path / "respawned.marker"
@@ -342,7 +342,7 @@ class TestResumeVerificationLive:
     """The user-visible lie: '✓ Restarting' printed for a dead gateway."""
 
     def test_dead_relaunch_is_not_reported_as_success(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
         (tmp_path / "home").mkdir(parents=True, exist_ok=True)
 
         from hermes_cli import gateway

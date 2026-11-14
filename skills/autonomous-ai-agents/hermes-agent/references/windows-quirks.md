@@ -50,7 +50,7 @@ scripts/run_tests.sh tests/foo/test_bar.py -v --tb=short
 
 The runner discovers `.venv/Scripts/python.exe`, clears credentials and
 `PYTHONPATH`, and isolates each test file. For an external test environment,
-set `HERMES_PYTHON` to its Python executable. PM shell activation alone does
+set `A2ASSISTANT_PYTHON` to its Python executable. PM shell activation alone does
 not supply pytest after the runner clears `PYTHONPATH`.
 
 ### Path / Filesystem

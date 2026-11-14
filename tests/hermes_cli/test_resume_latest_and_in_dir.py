@@ -1,6 +1,6 @@
 """Tests for `--resume latest` and `--in DIR` launch sugar.
 
-`hermes --tui --resume latest --in ./dir` (and the classic-CLI equivalents)
+`a2assistant --tui --resume latest --in ./dir` (and the classic-CLI equivalents)
 resolve "latest" through the same workspace-scoped MRU lookup as `-c`, with
 `--in` re-homing the process before any session resolution happens.
 """

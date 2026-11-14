@@ -56,7 +56,7 @@ def _maybe_inject_iteration_budget_warning(agent: Any, messages: Any) -> bool:
 
     ratio = getattr(agent, "budget_warning_ratio", None)
     kanban_worker = (
-        bool(os.environ.get("HERMES_KANBAN_TASK"))
+        bool(os.environ.get("A2ASSISTANT_KANBAN_TASK"))
         and is_dispatcher_owned_worker_context()
         and "kanban_complete" in getattr(agent, "valid_tool_names", ())
     )

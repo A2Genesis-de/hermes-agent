@@ -108,7 +108,7 @@ def _board_conn(board: Optional[str]) -> Iterator[tuple[Optional[str], sqlite3.C
 
 def _with_board_pinned(board: Optional[str], fn: Callable[[], Any]) -> Any:
     """Run ``fn`` with the board pinned context-locally, not via the process-global
-    ``HERMES_KANBAN_BOARD`` env var (concurrent requests for different boards would cross-write)."""
+    ``A2ASSISTANT_KANBAN_BOARD`` env var (concurrent requests for different boards would cross-write)."""
     with kanban_db.scoped_current_board(_resolve_board(board) or kanban_db.DEFAULT_BOARD):
         return fn()
 
@@ -294,7 +294,7 @@ def get_board(
     workflow_template_id: Optional[str] = Query(None, description="Restrict to tasks using this workflow template id"),
     current_step_key: Optional[str] = Query(None, description="Restrict to tasks at this workflow step key")):
     """Full board grouped by status column; omitting ``board`` uses the active board
-    (``HERMES_KANBAN_BOARD`` env → on-disk ``current`` pointer → ``default``)."""
+    (``A2ASSISTANT_KANBAN_BOARD`` env → on-disk ``current`` pointer → ``default``)."""
     with _board_conn(board) as (board, conn):
         tasks = kanban_db.list_tasks(
             conn, tenant=tenant, include_archived=include_archived,
@@ -884,7 +884,7 @@ def list_diagnostics(
     board: Optional[str] = _BOARD_Q,
     severity: Optional[str] = Query(None, description="Filter by severity: warning|error|critical")):
     """Tasks with an active diagnostic, highest severity first then most recent; also
-    consumed by ``hermes kanban diagnostics`` when the dashboard runs."""
+    consumed by ``a2assistant kanban diagnostics`` when the dashboard runs."""
     with _board_conn(board) as (board, conn):
         diags_by_task = _compute_task_diagnostics(conn, task_ids=None)
         if severity and diags_by_task:
@@ -1008,7 +1008,7 @@ class ReclaimBody(BaseModel):
 @router.post("/tasks/{task_id}/reclaim")
 def reclaim_task_endpoint(task_id: str, payload: ReclaimBody, board: Optional[str] = Query(None)):
     """Release an active worker claim without waiting for the claim TTL
-    (``hermes kanban reclaim <task_id> --reason ...``)."""
+    (``a2assistant kanban reclaim <task_id> --reason ...``)."""
     with _board_conn(board) as (board, conn):
         if not kanban_db.reclaim_task(conn, task_id, reason=payload.reason):
             raise _conflict(f"cannot reclaim {task_id}: not in a claimable state (not running, or unknown id)")
@@ -1024,7 +1024,7 @@ class SpecifyBody(BaseModel):
 
 @router.post("/tasks/{task_id}/specify")
 def specify_task_endpoint(task_id: str, payload: SpecifyBody, board: Optional[str] = Query(None)):
-    """Flesh out a triage task via the auxiliary LLM (``hermes kanban specify``). Non-OK is NOT
+    """Flesh out a triage task via the auxiliary LLM (``a2assistant kanban specify``). Non-OK is NOT
     an HTTP error — the UI renders the reason inline. Sync ``def`` → runs in the threadpool."""
     outcome = _run_aux(board, "kanban_specify", "specify_task", task_id, payload.author)
     return {"ok": bool(outcome.ok), "task_id": outcome.task_id, "reason": outcome.reason, "new_title": outcome.new_title}
@@ -1039,7 +1039,7 @@ class ReassignBody(BaseModel):
 @router.post("/tasks/{task_id}/reassign")
 def reassign_task_endpoint(task_id: str, payload: ReassignBody, board: Optional[str] = Query(None)):
     """Reassign to another profile, optionally reclaiming first
-    (``hermes kanban reassign <task_id> <profile> [--reclaim]``)."""
+    (``a2assistant kanban reassign <task_id> <profile> [--reclaim]``)."""
     with _board_conn(board) as (board, conn):
         ok = kanban_db.reassign_task(
             conn, task_id, payload.profile or None, reclaim_first=bool(payload.reclaim_first), reason=payload.reason)
@@ -1585,7 +1585,7 @@ def update_profile_description(profile_name: str, payload: DescribeBody):
 
 @router.post("/profiles/{profile_name}/describe-auto")
 def auto_describe_profile(profile_name: str, payload: DescribeAutoBody):
-    """``hermes profile describe <name> --auto``: persist with ``description_auto: true``.
+    """``a2assistant profile describe <name> --auto``: persist with ``description_auto: true``.
     Non-OK outcomes are NOT HTTP errors — the UI renders the reason inline."""
     with _errors_to_500("describer crashed"):
         from hermes_cli import profile_describer
@@ -1601,7 +1601,7 @@ class DecomposeBody(BaseModel):
 
 @router.post("/tasks/{task_id}/decompose")
 def decompose_task_endpoint(task_id: str, payload: DecomposeBody, board: Optional[str] = Query(None)):
-    """Fan a triage task out into child tasks via the auxiliary LLM (``hermes kanban decompose``).
+    """Fan a triage task out into child tasks via the auxiliary LLM (``a2assistant kanban decompose``).
     Non-OK is NOT an HTTP error. Sync ``def`` → runs in the threadpool."""
     outcome = _run_aux(board, "kanban_decompose", "decompose_task", task_id, payload.author)
     return {

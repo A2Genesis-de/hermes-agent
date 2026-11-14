@@ -36,7 +36,7 @@ post_install: |
   public, read-only discovery tools. Account data and tools that post or fund
   bounties, message people, accept applicants, book services, or manage payments
   remain disabled until you explicitly select them with:
-    hermes mcp configure rentahuman
+    a2assistant mcp configure rentahuman
 
   Review each selected tool before enabling it. Use state-changing and payment
   actions only when the account owner has asked for them, and review the action

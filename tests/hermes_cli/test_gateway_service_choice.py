@@ -22,7 +22,7 @@ def supervisor(tmp_path, monkeypatch):
         profile = home / "profile"
         profile.mkdir()
         monkeypatch.setenv("HOME", str(home))
-        monkeypatch.setenv("HERMES_HOME", str(profile))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
         runtime = home / "run"
         runtime.mkdir()
         (runtime / "bus").touch()

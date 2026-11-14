@@ -8,7 +8,7 @@ the record (the launcher, or whoever it was handed to) stops the browser on exit
 Hermes process holds a lease; otherwise it hands the record to one of them, so the LAST holder stops it. A
 holder that crashed is dropped once its pid and start time no longer match, never on the pid alone.
 
-A pid means something only inside the PID namespace and boot that wrote it (a ``HERMES_HOME`` shared by a
+A pid means something only inside the PID namespace and boot that wrote it (a ``A2ASSISTANT_HOME`` shared by a
 container gateway and a host CLI): every record, lease and throwaway-dir name carries the writer's
 :func:`ns_identity`, and one from another namespace or boot, or one lacking it, is never judged dead. A lease is
 keyed by the record of the browser it holds, whichever namespace wrote that record; only its holder part carries

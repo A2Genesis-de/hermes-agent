@@ -12,7 +12,7 @@ async def _discord_session(tmp_path, monkeypatch):
     from gateway.session_ingress_context import native_callback, register_transport_home
     from hermes_state import SessionDB
     from plugins.platforms.telegram.adapter import TelegramAdapter
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setenv('TELEGRAM_ALLOWED_USERS', '42')
     monkeypatch.setattr(SessionAuthority, '_schedule', lambda self, ref: None)  # nothing claims: all stay queued
     runner = GatewayRunner(GatewayConfig(sessions_dir=tmp_path / 'sessions'))

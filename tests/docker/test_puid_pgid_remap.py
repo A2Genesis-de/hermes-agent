@@ -3,7 +3,7 @@
 Build the real image and verify the actual runtime behavior:
 
   1. PUID/PGID env vars remap the hermes user UID/GID at boot
-  2. HERMES_UID/HERMES_GID take precedence over PUID/PGID aliases
+  2. A2ASSISTANT_UID/A2ASSISTANT_GID take precedence over PUID/PGID aliases
   3. NAS-style low UIDs (99:100) are accepted and remapped
   4. Invalid UIDs are rejected
   5. The remapped user can write to the data volume
@@ -67,7 +67,7 @@ def test_nas_low_uid_accepted(
 
 def test_root_registered_gateway_after_uid_remap(built_image: str, container_name: str) -> None:
     """A root-created slot must start its gateway and logger as the remapped account."""
-    start_container(built_image, container_name, "HERMES_UID=1000", "HERMES_GID=1000")
+    start_container(built_image, container_name, "A2ASSISTANT_UID=1000", "A2ASSISTANT_GID=1000")
     key = secrets.token_hex(32)
     setup = docker_exec(container_name, "python3", "-c", (
         "from pathlib import Path; "
@@ -81,7 +81,7 @@ def test_root_registered_gateway_after_uid_remap(built_image: str, container_nam
         "import os; from hermes_cli.service_manager import S6ServiceManager; "
         "assert os.geteuid() == 0; os.umask(0o077); "
         "S6ServiceManager().register_profile_gateway('remapped')"
-    ), user="root", extra_docker_args=("-e", "HERMES_DOCKER_EXEC_AS_ROOT=1"))
+    ), user="root", extra_docker_args=("-e", "A2ASSISTANT_DOCKER_EXEC_AS_ROOT=1"))
     assert registered.returncode == 0, registered.stderr
     slot = "/run/hermes-service/gateway-remapped"
     ok, state = poll_container(container_name, (

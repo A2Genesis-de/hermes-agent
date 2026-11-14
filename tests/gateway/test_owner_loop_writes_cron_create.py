@@ -16,7 +16,7 @@ from hermes_state_runtime import begin_runtime_epoch, list_session_admissions
 
 
 def test_cron_submit_creation_commit_waits_off_the_owner_loop(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {}, 'platform_toolsets': {'cli': []}})
     with jobs.use_cron_store(tmp_path / 'cron'):
         job = jobs.create_job(prompt='report', schedule='every 1h', deliver='local', model='fixture')

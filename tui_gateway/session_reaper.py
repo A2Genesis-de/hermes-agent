@@ -83,7 +83,7 @@ def _flush_dirty_sessions(now: float | None = None) -> int:
 
 def _flush_sessions_before_exit(budget_s: float | None = None) -> int:
     """Bounded flush of ALL in-memory sessions on the way out, on a daemon worker joined with the budget so a
-    hung SQLite write can't block exit past ``HERMES_TUI_EXIT_FLUSH_BUDGET_S`` (default 5s). Running sessions
+    hung SQLite write can't block exit past ``A2ASSISTANT_TUI_EXIT_FLUSH_BUDGET_S`` (default 5s). Running sessions
     are included — the process is dying, a partial transcript beats loss."""
     budget = _EXIT_FLUSH_BUDGET_S if budget_s is None else max(0.0, budget_s)
     if budget <= 0:
@@ -108,7 +108,7 @@ def _flush_sessions_before_exit(budget_s: float | None = None) -> int:
     if result["flushed"] < flushable:
         logger.warning(
             "Exit flush persisted %d of %d in-memory session transcript(s) within %.1fs; the rest "
-            "may have been lost (HERMES_TUI_EXIT_FLUSH_BUDGET_S)",
+            "may have been lost (A2ASSISTANT_TUI_EXIT_FLUSH_BUDGET_S)",
             result["flushed"], flushable, budget)
     return result["flushed"]
 
@@ -437,7 +437,7 @@ def _sweep_orphaned_session_rows() -> list[str]:
 # "owned by a live but idle backend" from "truly orphaned" (else the first process to restart reaped every
 # inactive row of the other N−1). Refresh 60s default — far shorter than the 6h TTL so a refresh always lands
 # inside the staleness window. Removed at exit; a crashed row ages out.
-_HEARTBEAT_REFRESH_S = max(0.0, env_float("HERMES_GATEWAY_HEARTBEAT_REFRESH_S", 60.0))
+_HEARTBEAT_REFRESH_S = max(0.0, env_float("A2ASSISTANT_GATEWAY_HEARTBEAT_REFRESH_S", 60.0))
 _heartbeat_refresher_started = False
 _heartbeat_refresher_lock = threading.Lock()
 _BACKEND_NONCE = secrets.token_hex(4)
@@ -506,7 +506,7 @@ def _start_backend_heartbeat_refresher() -> None:
                 db.clear_backend_heartbeat(_backend_id_for_this_process())
 
     atexit.register(_atexit_clear)
-    threading.Thread(target=_loop, name="hermes-gateway-heartbeat", daemon=True).start()
+    threading.Thread(target=_loop, name="a2assistant-gateway-heartbeat", daemon=True).start()
 
 
 def _schedule_startup_orphan_sweep() -> None:

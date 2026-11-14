@@ -1,6 +1,6 @@
 """The session teardown stops processes left running against this run's Hermes homes.
 
-A test that runs a real ``hermes chat -q`` child gets a grandchild ``gateway run`` in its own
+A test that runs a real ``a2assistant chat -q`` child gets a grandchild ``gateway run`` in its own
 session; no per-test subprocess patch sees it, and pytest's tmp cleanup removes only directories.
 """
 from __future__ import annotations
@@ -18,7 +18,7 @@ from tests.waiting import wait_until
 
 def _detached(env_home, marker):
     code = "import time\nwhile True: time.sleep(0.2)\n"
-    env = {**os.environ, "HERMES_HOME": str(env_home), "LIVE_REAP_MARKER": marker}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(env_home), "LIVE_REAP_MARKER": marker}
     return subprocess.Popen([sys.executable, "-c", code], env=env, start_new_session=True,
                             stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
 

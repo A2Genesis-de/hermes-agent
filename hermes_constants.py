@@ -13,6 +13,89 @@ from collections.abc import Callable, Mapping, MutableMapping
 from contextvars import ContextVar, Token
 from pathlib import Path
 
+LEGACY_CLI_COMMAND = "hermes"
+HOME_DIR_NAME = ".a2assistant"
+LEGACY_HOME_DIR_NAME = ".hermes"
+WINDOWS_HOME_DIR_NAME = "a2assistant"
+LEGACY_WINDOWS_HOME_DIR_NAME = "hermes"
+INSTALL_DIR_NAME = "app"
+LEGACY_INSTALL_DIR_NAME = "hermes-agent"
+ENV_PREFIX = "A2ASSISTANT_"
+LEGACY_ENV_PREFIX = "HERMES_"
+LAUNCHD_LABEL_PREFIX = "de.a2genesis.a2assistant"
+LEGACY_LAUNCHD_LABEL_PREFIX = "ai.hermes"
+LAUNCHD_GATEWAY_LABEL = f"{LAUNCHD_LABEL_PREFIX}.gateway"
+LEGACY_LAUNCHD_GATEWAY_LABEL = f"{LEGACY_LAUNCHD_LABEL_PREFIX}.gateway"
+SYSTEMD_GATEWAY_UNIT = "a2assistant-gateway"
+LEGACY_SYSTEMD_GATEWAY_UNIT = "hermes-gateway"
+DESKTOP_APP_ID = "de.a2genesis.a2assistant"
+LEGACY_DESKTOP_APP_ID = "com.nousresearch.hermes"
+DESKTOP_USER_DATA_DIR = "A2Assistant"
+LEGACY_DESKTOP_USER_DATA_DIR = "Hermes"
+MIGRATION_MARKER = ".a2assistant-migration.json"
+
+HOME_DIR_NAMES = (HOME_DIR_NAME, LEGACY_HOME_DIR_NAME)
+_MIRRORED_ENV_KEYS: set[str] = set()
+INSTALL_DIR_NAMES = (INSTALL_DIR_NAME, LEGACY_INSTALL_DIR_NAME)
+
+
+def adopted_env_name(name: str) -> str:
+    """The ``A2ASSISTANT_*`` spelling of a legacy ``HERMES_*`` name; other names unchanged."""
+    return ENV_PREFIX + name[len(LEGACY_ENV_PREFIX):] if name.startswith(LEGACY_ENV_PREFIX) else name
+
+
+def adopt_legacy_env(environ: MutableMapping[str, str]) -> MutableMapping[str, str]:
+    """Adopt ``HERMES_*`` as ``A2ASSISTANT_*`` (an explicit new key wins) and mirror every new key back.
+
+    A mirror this process wrote for ``os.environ`` follows its key: once the ``A2ASSISTANT_*`` key is
+    gone, the stale ``HERMES_*`` copy goes too instead of being adopted again."""
+    tracked = environ is os.environ
+    for key in [key for key in environ if key.startswith(LEGACY_ENV_PREFIX)]:
+        current = ENV_PREFIX + key[len(LEGACY_ENV_PREFIX):]
+        if tracked and key in _MIRRORED_ENV_KEYS and current not in environ:
+            del environ[key]
+            _MIRRORED_ENV_KEYS.discard(key)
+            continue
+        environ.setdefault(current, environ[key])
+    for key in [key for key in environ if key.startswith(ENV_PREFIX)]:
+        legacy = LEGACY_ENV_PREFIX + key[len(ENV_PREFIX):]
+        environ[legacy] = environ[key]
+        if tracked:
+            _MIRRORED_ENV_KEYS.add(legacy)
+    return environ
+
+
+def unset_env(environ: MutableMapping[str, str], name: str) -> None:
+    """Remove ``A2ASSISTANT_<name>`` and its legacy mirror."""
+    environ.pop(ENV_PREFIX + name, None)
+    environ.pop(LEGACY_ENV_PREFIX + name, None)
+
+
+def env_value(environ: Mapping[str, str], name: str, default: str = "") -> str:
+    """``A2ASSISTANT_<name>`` from *environ*, else the legacy ``HERMES_<name>``."""
+    return environ.get(ENV_PREFIX + name, environ.get(LEGACY_ENV_PREFIX + name, default))
+
+
+def legacy_home_pending(current: Path, legacy: Path) -> bool:
+    """True while only the pre-rename home exists (before ``a2assistant migrate``)."""
+    return not os.path.lexists(current) and legacy.is_dir() and not legacy.is_symlink()
+
+
+def default_home_in(base: Path, *, windows: bool = False, suffix: str = "") -> Path:
+    """The default home under *base*: the renamed directory, or the legacy one until it is migrated."""
+    names = (WINDOWS_HOME_DIR_NAME, LEGACY_WINDOWS_HOME_DIR_NAME) if windows else HOME_DIR_NAMES
+    current, legacy = (base / (name + suffix) for name in names)
+    return legacy if legacy_home_pending(current, legacy) else current
+
+
+def legacy_layout_active() -> bool:
+    """True while the default home is still the pre-rename one (``~/.hermes``, before
+    ``a2assistant migrate``): services keep their old names until then."""
+    return _get_platform_default_hermes_home().name.startswith((LEGACY_HOME_DIR_NAME, LEGACY_WINDOWS_HOME_DIR_NAME))
+
+
+adopt_legacy_env(os.environ)
+
 _profile_fallback_warned: bool = False
 _UNSET = object()
 _HERMES_HOME_OVERRIDE: ContextVar[str | object] = ContextVar("_HERMES_HOME_OVERRIDE", default=_UNSET)
@@ -56,12 +139,12 @@ def _expand_hermes_home(path: str) -> Path:
 
 def _platform_default_hermes_home(environ: Mapping[str, str], user_home: Callable[[], Path]) -> Path:
     """The platform default that *environ* names, with the literal data-directory suffix."""
-    suffix = environ.get("HERMES_DATA_DIR_SUFFIX", "")
+    suffix = environ.get("A2ASSISTANT_DATA_DIR_SUFFIX", "")
     if sys.platform == "win32":
         local_appdata = environ.get("LOCALAPPDATA", "").strip()
         base = Path(local_appdata) if local_appdata else user_home() / "AppData" / "Local"
-        return base / ("hermes" + suffix)
-    return user_home() / (".hermes" + suffix)
+        return default_home_in(base, windows=True, suffix=suffix)
+    return default_home_in(user_home(), suffix=suffix)
 
 
 def _get_platform_default_hermes_home() -> Path:
@@ -85,7 +168,7 @@ def account_default_hermes_home() -> Path:
 
     Host service identities (``systemctl --user`` units, LaunchAgents) belong to the account, and their
     definitions are found under the account home. A process started with ``HOME=<scratch>`` used to call
-    ``<scratch>/.hermes`` native, name the bare ``hermes-gateway`` unit, and stop the account's real
+    ``<scratch>/.hermes`` native, name the bare ``a2assistant-gateway`` unit, and stop the account's real
     gateway through it. When the process HOME is the account home the two answers are the same home.
     """
     account = _account_home()
@@ -117,7 +200,7 @@ def hermes_root_for_environment(environ: Mapping[str, str]) -> Path | None:
     environment. ``%NAME%``, ``${NAME}`` and ``$NAME`` references and a leading
     ``~`` expand from *environ* alone, never from this process. Returns None
     when the answer depends on anything outside *environ*: a relative
-    HERMES_HOME, an undefined variable, or a missing user profile folder.
+    A2ASSISTANT_HOME, an undefined variable, or a missing user profile folder.
     """
     names = {key.upper(): value for key, value in environ.items()}
     profile = names.get("USERPROFILE" if sys.platform == "win32" else "HOME", "").strip()
@@ -127,7 +210,7 @@ def hermes_root_for_environment(environ: Mapping[str, str]) -> Path | None:
             raise LookupError("no user profile folder")
         return Path(profile)
 
-    raw = names.get("HERMES_HOME", "").strip()
+    raw = env_value(names, "HOME").strip()
     try:
         native_home = _platform_default_hermes_home(names, user_home)
         if not raw:
@@ -142,9 +225,9 @@ def hermes_root_for_environment(environ: Mapping[str, str]) -> Path | None:
 
 
 def sudo_invoker_default_home() -> Path | None:
-    """The invoking user's native ``~/.hermes`` when this process is root under ``sudo``, else None.
+    """The invoking user's native ``~/.a2assistant`` when this process is root under ``sudo``, else None.
 
-    sudo strips HERMES_HOME and sets HOME=/root, so the process's own default is root's; the profile
+    sudo strips A2ASSISTANT_HOME and sets HOME=/root, so the process's own default is root's; the profile
     store and the system service being operated on belong to SUDO_USER.
     """
     if not hasattr(os, "geteuid") or os.geteuid() != 0:
@@ -155,13 +238,13 @@ def sudo_invoker_default_home() -> Path | None:
     import pwd
 
     try:
-        return Path(pwd.getpwnam(sudo_user).pw_dir) / ".hermes"
+        return default_home_in(Path(pwd.getpwnam(sudo_user).pw_dir))
     except KeyError:  # SUDO_USER not in passwd (chroot/container)
         return None
 
 
 def _warn_profile_fallback_once() -> None:
-    """Warn once when HERMES_HOME is unset but a non-default profile is sticky-active (wrong fallback)."""
+    """Warn once when A2ASSISTANT_HOME is unset but a non-default profile is sticky-active (wrong fallback)."""
     global _profile_fallback_warned
     if _profile_fallback_warned:
         return
@@ -179,11 +262,11 @@ def _warn_profile_fallback_once() -> None:
         # Direct stderr, not logging: runs at import time (often before logging is
         # configured) and root-logger propagation would double-emit.
         msg = (
-            f"[HERMES_HOME fallback] HERMES_HOME is unset but active "
+            f"[A2ASSISTANT_HOME fallback] A2ASSISTANT_HOME is unset but active "
             f"profile is {active!r}. Falling back to {fallback_home}, which "
             f"is the DEFAULT profile — not {active!r}. Any data this "
             f"process writes will land in the wrong profile. The "
-            f"subprocess spawner should pass HERMES_HOME explicitly "
+            f"subprocess spawner should pass A2ASSISTANT_HOME explicitly "
             f"(see issue #18594)."
         )
         with contextlib.suppress(Exception):
@@ -192,11 +275,11 @@ def _warn_profile_fallback_once() -> None:
 
 
 def get_hermes_home() -> Path:
-    """Hermes home: context-local override → ``HERMES_HOME`` env var → platform default."""
+    """Hermes home: context-local override → ``A2ASSISTANT_HOME`` env var → platform default."""
     override = get_hermes_home_override()
     if override:
         return _expand_hermes_home(override)
-    if not os.environ.get("HERMES_HOME", "").strip():
+    if not os.environ.get("A2ASSISTANT_HOME", "").strip():
         _warn_profile_fallback_once()
     return get_process_hermes_home()
 
@@ -245,10 +328,10 @@ def get_process_hermes_home() -> Path:
 
     For process-level assets (theme YAML, dashboard plugin manifests) that must stay visible while a
     request is scoped to another profile (e.g. embedded ``/chat`` under ``--open-profile``). Follows
-    ``HERMES_HOME`` live on purpose: routed-profile DECISIONS compare against
+    ``A2ASSISTANT_HOME`` live on purpose: routed-profile DECISIONS compare against
     :func:`get_routing_process_hermes_home` instead (#119242).
     """
-    val = os.environ.get("HERMES_HOME", "").strip()
+    val = os.environ.get("A2ASSISTANT_HOME", "").strip()
     return _expand_hermes_home(val) if val else _get_platform_default_hermes_home()
 
 
@@ -260,7 +343,7 @@ def pin_process_hermes_home(path: str | Path | None) -> None:
     """Pin the home this process serves as its own profile, for "is this task routed?" decisions.
 
     An embedding host that serves several profiles and mirrors the active turn's profile into
-    ``os.environ["HERMES_HOME"]`` for legacy readers (Hermes WebUI) otherwise makes every turn's own
+    ``os.environ["A2ASSISTANT_HOME"]`` for legacy readers (Hermes WebUI) otherwise makes every turn's own
     profile look like the launch profile: ``agent.secret_scope.serves_routed_profile()`` turns
     False and that turn's MCP connections fall back to bare, cross-profile names; the sibling
     launch-home checks (``secret_scope._is_process_home``, ``tools.environments.local._is_routed_home``,
@@ -269,7 +352,7 @@ def pin_process_hermes_home(path: str | Path | None) -> None:
     Process-global on purpose: it names the process's own identity, not a per-task value. It is NOT
     folded into :func:`get_process_hermes_home`: :func:`get_hermes_home` falls back to that for
     tasks carrying no override, and the host's mirror exists precisely so those readers see the
-    served profile. Hosts that never mutate ``HERMES_HOME`` need not call this (no-op).
+    served profile. Hosts that never mutate ``A2ASSISTANT_HOME`` need not call this (no-op).
     """
     global _PINNED_PROCESS_HERMES_HOME
     _PINNED_PROCESS_HERMES_HOME = None if path is None else str(path)
@@ -303,7 +386,7 @@ def get_default_hermes_root(*, home: str | Path | None = None) -> Path:
     """Root of an explicit home, or the process home when none is supplied."""
     global _default_hermes_root_memo
     native_home = _get_platform_default_hermes_home()
-    env_home = str(home).strip() if home is not None else os.environ.get("HERMES_HOME", "").strip()
+    env_home = str(home).strip() if home is not None else os.environ.get("A2ASSISTANT_HOME", "").strip()
     env_path = _expand_hermes_home(env_home) if env_home else None
     memo_key = (str(native_home), str(env_path) if env_path is not None else "")
     memo = _default_hermes_root_memo
@@ -323,11 +406,11 @@ _HERMES_HOME_MARKERS = ("config.yaml", ".env", "state.db")
 def _is_hermes_profiles_root(profiles_dir: Path) -> bool:
     """True when *profiles_dir* is provably ``<hermes-home>/profiles``.
 
-    Accepts the classic ``~/.hermes`` layout, a root carrying Hermes-home marker files, a
+    Accepts the classic ``~/.a2assistant`` layout, a root carrying Hermes-home marker files, a
     ``profiles/.deleted`` tombstone dir (only ``profile delete`` creates it), or the default root.
     """
     root = profiles_dir.parent
-    if root.name == ".hermes":
+    if root.name in HOME_DIR_NAMES:
         return True
     try:
         if (profiles_dir / _DELETED_PROFILES_DIR).is_dir() or any(
@@ -353,7 +436,7 @@ def named_profile_home(path: str | Path) -> Path | None:
         if (candidate.parent.name == "profiles" and not candidate.name.startswith(".")
                 and _is_hermes_profiles_root(candidate.parent)):
             return candidate
-        if candidate.name == ".hermes":  # default home: a coincidental profiles/ ancestor is not a root
+        if candidate.name in HOME_DIR_NAMES:  # default home: a coincidental profiles/ ancestor is not a root
             return None
     return None
 
@@ -362,7 +445,7 @@ def profile_name_for_home(path: str | Path | None) -> str | None:
     """Return the canonical profile id owning *path*, or ``None`` when it is not a profile home.
 
     The default home is the Hermes root itself, so its basename is an installation detail (``.hermes``
-    on POSIX and commonly ``hermes`` on Windows), not the profile id ``default``.
+    on POSIX and commonly ``a2assistant`` on Windows), not the profile id ``default``.
     """
     if path is None or not str(path).strip():
         return None
@@ -412,7 +495,7 @@ def named_profile_has_servable_identity(profile_home: str | Path) -> bool:
     """Stricter than :func:`named_profile_has_identity`: is this dir a profile a host should change
     its own posture for?
 
-    An EMPTY ``.env`` is all a crashed ``hermes profile create`` leaves behind, and it is enough for
+    An EMPTY ``.env`` is all a crashed ``a2assistant profile create`` leaves behind, and it is enough for
     ``named_profile_has_identity``. Listing such a shell is harmless; counting it as a second tenant
     is not — it flips the whole host's credential reads fail-closed at the next boot. Every other
     marker, and a non-empty or symlinked ``.env``, still counts.
@@ -474,7 +557,7 @@ def _packaged_dir(env_var: str, default: Path | None, subdir: str) -> Path:
     """Resolve a package-manager-relocatable directory.
 
     Order: *env_var* (Nix wrapper / explicit override) → caller ``default`` (source checkout) →
-    ``<HERMES_HOME>/<subdir>``.
+    ``<A2ASSISTANT_HOME>/<subdir>``.
     """
     override = os.getenv(env_var, "").strip()
     return Path(override) if override else default if default is not None else get_hermes_home() / subdir
@@ -482,17 +565,17 @@ def _packaged_dir(env_var: str, default: Path | None, subdir: str) -> Path:
 
 def get_optional_skills_dir(default: Path | None = None) -> Path:
     """Return the optional-skills directory, honoring package-manager wrappers."""
-    return _packaged_dir("HERMES_OPTIONAL_SKILLS", default, "optional-skills")
+    return _packaged_dir("A2ASSISTANT_OPTIONAL_SKILLS", default, "optional-skills")
 
 
 def get_optional_mcps_dir(default: Path | None = None) -> Path:
-    """Return the optional-mcps directory, honoring package-manager wrappers (``HERMES_OPTIONAL_MCPS``)."""
-    return _packaged_dir("HERMES_OPTIONAL_MCPS", default, "optional-mcps")
+    """Return the optional-mcps directory, honoring package-manager wrappers (``A2ASSISTANT_OPTIONAL_MCPS``)."""
+    return _packaged_dir("A2ASSISTANT_OPTIONAL_MCPS", default, "optional-mcps")
 
 
 def get_bundled_skills_dir(default: Path | None = None) -> Path:
-    """Return the bundled skills directory, honoring package-manager wrappers (``HERMES_BUNDLED_SKILLS``)."""
-    return _packaged_dir("HERMES_BUNDLED_SKILLS", default, "skills")
+    """Return the bundled skills directory, honoring package-manager wrappers (``A2ASSISTANT_BUNDLED_SKILLS``)."""
+    return _packaged_dir("A2ASSISTANT_BUNDLED_SKILLS", default, "skills")
 
 
 def get_hermes_dir(new_subpath: str, old_name: str, *, home: Path | None = None) -> Path:
@@ -578,7 +661,7 @@ def find_node_executable(command: str) -> str | None:
     Never falls back to the user's PATH copy (callers ``pm.ensure`` on ``None``):
     mixing toolchains breaks native-addon ABIs and npm caches. Explicit
     executable paths remain caller-owned. Discovery never installs, probes,
-    repairs, or activates the retired ``HERMES_HOME/node`` layout.
+    repairs, or activates the retired ``A2ASSISTANT_HOME/node`` layout.
     """
     command = str(command)
     if any(sep in command for sep in ("/", "\\")):
@@ -646,7 +729,7 @@ def _legacy_path_has_content(path: Path) -> bool:
 
 
 def display_hermes_home(home: Path | None = None) -> str:
-    """User-facing ``~/`` display string for HERMES_HOME (``~/.hermes/profiles/coder``).
+    """User-facing ``~/`` display string for A2ASSISTANT_HOME (``~/.a2assistant/profiles/coder``).
 
     ``home`` overrides the lookup for callers that run before the CLI has applied the sticky
     ``active_profile`` (``get_hermes_home()`` would emit the wrong-profile fallback warning there).
@@ -661,15 +744,15 @@ def display_hermes_home(home: Path | None = None) -> str:
 
 def profile_cli_selector() -> str:
     """``-p <name> `` (trailing space) pinning copy-pasteable ``hermes ...`` guidance to the
-    active NAMED profile, else ``""``: a bare ``hermes`` follows the sticky ``active_profile``
+    active NAMED profile, else ``""``: a bare ``a2assistant`` follows the sticky ``active_profile``
     file, which can name a different database than the one that failed (#105887). A custom
-    home outside the profile tree has no selector (only HERMES_HOME names it)."""
+    home outside the profile tree has no selector (only A2ASSISTANT_HOME names it)."""
     name = profile_name_for_home(get_hermes_home())
     return f"-p {name} " if name and name != "default" else ""
 
 
 def secure_parent_dir(path: Path) -> None:
-    """Chmod ``0o700`` on *path*'s parent, refusing ``/`` and top-level dirs (misresolved HERMES_HOME)."""
+    """Chmod ``0o700`` on *path*'s parent, refusing ``/`` and top-level dirs (misresolved A2ASSISTANT_HOME)."""
     parent = path.parent.resolve()
     if parent == Path("/") or len(parent.parts) < 3:
         return
@@ -701,8 +784,8 @@ def _norm_home_path(path: str | None) -> str:
 
 
 def _profile_home_path(env: dict[str, str] | None = None) -> str | None:
-    """Return ``{HERMES_HOME}/home`` when the profile-home directory exists."""
-    hermes_home = get_hermes_home_override() or (env or {}).get("HERMES_HOME") or os.getenv("HERMES_HOME")
+    """Return ``{A2ASSISTANT_HOME}/home`` when the profile-home directory exists."""
+    hermes_home = get_hermes_home_override() or (env or {}).get("A2ASSISTANT_HOME") or os.getenv("A2ASSISTANT_HOME")
     if not hermes_home:
         return None
     profile_home = str(_expand_hermes_home(hermes_home) / "home")
@@ -721,7 +804,7 @@ def _env_get(env: dict[str, str], key: str, default: str = "") -> str:
 def _iter_real_home_candidates(env: dict[str, str] | None = None) -> list[str]:
     """Return likely OS-user home candidates in trust order."""
     env = env or {}
-    candidates = [_env_get(env, "HERMES_REAL_HOME"), _env_get(env, "HOME")]
+    candidates = [_env_get(env, "A2ASSISTANT_REAL_HOME"), _env_get(env, "HOME")]
     with contextlib.suppress(Exception):
         import pwd
         candidates.append(pwd.getpwuid(os.getuid()).pw_dir.strip())  # windows-footgun: ok — POSIX-only module inside try/except
@@ -739,7 +822,7 @@ def get_real_home(env: dict[str, str] | None = None) -> str:
     """The OS user's real home, avoiding the Hermes profile HOME.
 
     ``HOME`` belongs to the OS account and external CLIs keeping credentials under ``~``; a parent
-    already running with ``HOME={HERMES_HOME}/home`` is repaired back when possible.
+    already running with ``HOME={A2ASSISTANT_HOME}/home`` is repaired back when possible.
     """
     profile_home = _profile_home_path(env)
     seen: set[str] = set()
@@ -766,7 +849,7 @@ def get_subprocess_home(env: dict[str, str] | None = None) -> str | None:
     """Subprocess ``HOME`` override, or ``None``.
 
     ``auto``: hosts keep real HOME (repairing a profile-home parent), containers use
-    ``{HERMES_HOME}/home``; ``real``: always real HOME; ``profile``: always the profile home.
+    ``{A2ASSISTANT_HOME}/home``; ``real``: always real HOME; ``profile``: always the profile home.
     """
     env = env or {}
     profile_home = _profile_home_path(env)
@@ -789,11 +872,11 @@ def get_subprocess_home(env: dict[str, str] | None = None) -> str | None:
 
 
 def apply_subprocess_home_env(env: MutableMapping[str, str]) -> None:
-    """Apply Hermes' subprocess HOME contract to *env* in-place: ``HOME``/``HERMES_REAL_HOME``
-    per the home mode, and the temp vars re-pointed at ``env["HERMES_HOME"]``'s scratch dir."""
+    """Apply Hermes' subprocess HOME contract to *env* in-place: ``HOME``/``A2ASSISTANT_REAL_HOME``
+    per the home mode, and the temp vars re-pointed at ``env["A2ASSISTANT_HOME"]``'s scratch dir."""
     real_home = get_real_home(env)
     if real_home:
-        env["HERMES_REAL_HOME"] = real_home
+        env["A2ASSISTANT_REAL_HOME"] = real_home
     home = get_subprocess_home(env)
     if home:
         env["HOME"] = home
@@ -810,7 +893,7 @@ def apply_subprocess_home_env(env: MutableMapping[str, str]) -> None:
 # untouched and lost its worktree at the deadline, while finished trees (a 7 GB clone with its
 # own venv per campaign lane) sat for three days and filled the disk.
 SCRATCH_TMP_ENV_VARS = ("TMPDIR", "TMP", "TEMP")
-SCRATCH_DIR_MARKER_ENV = "HERMES_SCRATCH_DIR"
+SCRATCH_DIR_MARKER_ENV = "A2ASSISTANT_SCRATCH_DIR"
 SCRATCH_MAX_IDLE_HOURS = 24
 _SCRATCH_PRUNE_STAMP = ".last_prune"
 _SCRATCH_PRUNE_INTERVAL_SECONDS = 3600
@@ -853,14 +936,14 @@ _MANAGED_FALSE_VALUES = frozenset({"false", "0", "no", "off"})
 
 def get_managed_system(home: str | Path | None = None) -> str | None:
     """Return the package manager owning this install, if any.
-    Signals: HERMES_MANAGED env var (systemd service) or a ``.managed`` marker file in
-    HERMES_HOME (NixOS activation script — interactive shells don't see the service env).
+    Signals: A2ASSISTANT_MANAGED env var (systemd service) or a ``.managed`` marker file in
+    A2ASSISTANT_HOME (NixOS activation script — interactive shells don't see the service env).
     An unreadable or empty marker still counts as managed (the legacy NixOS shape).
 
     ``home`` names the home whose marker file is read, for callers that already resolved it
     (:func:`get_scratch_dir` at boot, before ``--profile`` re-homes the process).
     Defaults to the effective home."""
-    marker = os.getenv("HERMES_MANAGED", "").strip().lower() or None
+    marker = os.getenv("A2ASSISTANT_MANAGED", "").strip().lower() or None
     managed_marker = (Path(home) if home is not None else get_hermes_home()) / ".managed"
     if marker is None and managed_marker.exists():
         try:
@@ -875,21 +958,21 @@ def get_managed_system(home: str | Path | None = None) -> str | None:
 
 
 def _container_or_chmod_skipped() -> bool:
-    """Container/chmod-skip detection: the ``HERMES_CONTAINER``/``HERMES_SKIP_CHMOD`` operator
+    """Container/chmod-skip detection: the ``A2ASSISTANT_CONTAINER``/``A2ASSISTANT_SKIP_CHMOD`` operator
     overrides on top of the canonical :func:`_detect_container` signals (same breadth as
     :func:`is_container` — Docker/Podman/LXC/Kubernetes, cgroup and root-mountinfo). The cached
     :func:`is_container` itself is deliberately avoided: it ignores these env overrides and is
     computed only once per process, so tests could not flip it. Volume-mounted config is not
     forced to owner-only in containers: gateway and dashboard may run as different UIDs, or
     the mount itself needs broader permissions."""
-    if os.environ.get("HERMES_CONTAINER") or os.environ.get("HERMES_SKIP_CHMOD"):
+    if os.environ.get("A2ASSISTANT_CONTAINER") or os.environ.get("A2ASSISTANT_SKIP_CHMOD"):
         return True
     return _detect_container()
 
 
 def _resolve_hermes_uid_gid() -> tuple[int | None, int | None]:
-    """Read HERMES_UID / HERMES_GID (set by Docker deployments); (None, None) if unset/invalid/Windows.
-    The entrypoint chowns HERMES_HOME once, but subdirs created at runtime (``profiles/<name>/``)
+    """Read A2ASSISTANT_UID / A2ASSISTANT_GID (set by Docker deployments); (None, None) if unset/invalid/Windows.
+    The entrypoint chowns A2ASSISTANT_HOME once, but subdirs created at runtime (``profiles/<name>/``)
     need the same chown or they land root:root and block later uid-mapped workers.
 
     Docker containers running Hermes commonly set these to map the in-container user to a host user so
@@ -904,11 +987,11 @@ def _resolve_hermes_uid_gid() -> tuple[int | None, int | None]:
         except (TypeError, ValueError):
             return None
 
-    return _env_int("HERMES_UID"), _env_int("HERMES_GID")
+    return _env_int("A2ASSISTANT_UID"), _env_int("A2ASSISTANT_GID")
 
 
 def _chown_to_hermes_uid(path) -> None:
-    """Chown ``path`` to ``HERMES_UID:HERMES_GID`` when set; EPERM/ENOENT are non-fatal (the
+    """Chown ``path`` to ``A2ASSISTANT_UID:A2ASSISTANT_GID`` when set; EPERM/ENOENT are non-fatal (the
     entrypoint's startup chown -R fixes ownership on the next restart).
 
     Used by :func:`apply_secure_dir_policy` to keep ownership consistent across all directories
@@ -928,11 +1011,11 @@ def apply_secure_dir_policy(path, *, home: str | Path | None = None) -> None:
 
     Owner-only ``0700`` by default, but the operator's explicit and managed sharing choices
     win (#117347): managed installs are left exactly as the package manager / activation
-    script set them (#77579); in a container only an explicit ``HERMES_HOME_MODE`` is applied
+    script set them (#77579); in a container only an explicit ``A2ASSISTANT_HOME_MODE`` is applied
     (a bind-mounted data dir is often shared with sibling containers, #10757); elsewhere
-    ``HERMES_HOME_MODE`` (e.g. ``0701``, ``2770``) is passed to the host's ``chmod``. Special
+    ``A2ASSISTANT_HOME_MODE`` (e.g. ``0701``, ``2770``) is passed to the host's ``chmod``. Special
     bits may be cleared by the host filesystem (macOS commonly clears setgid on directories
-    whose group the caller does not belong to). ``HERMES_UID`` / ``HERMES_GID`` ownership is
+    whose group the caller does not belong to). ``A2ASSISTANT_UID`` / ``A2ASSISTANT_GID`` ownership is
     applied when those env vars are set (#34107).
 
     ``home`` (keyword-only: both arguments are path-likes) names the home whose managed-mode
@@ -944,7 +1027,7 @@ def apply_secure_dir_policy(path, *, home: str | Path | None = None) -> None:
     """
     if get_managed_system(home) is not None:
         return
-    explicit_mode = os.environ.get("HERMES_HOME_MODE", "").strip()
+    explicit_mode = os.environ.get("A2ASSISTANT_HOME_MODE", "").strip()
     if _container_or_chmod_skipped() and not explicit_mode:
         _chown_to_hermes_uid(path)
         return
@@ -969,9 +1052,9 @@ def get_scratch_dir(home: str | Path | None = None, *, prune: bool = True) -> Pa
     The pass itself runs in a detached child process (``hermes_constants_scratch_detach``): the
     directory is created and permissioned before this returns, no caller (the boot hook
     included) waits on the idle scan or the ``rmtree`` of a multi-GB entry, and the pass still
-    finishes when the caller is a ``hermes`` command that exits a moment later.
+    finishes when the caller is a ``a2assistant`` command that exits a moment later.
 
-    Permissions follow :func:`apply_secure_dir_policy`, so an explicit ``HERMES_HOME_MODE`` or
+    Permissions follow :func:`apply_secure_dir_policy`, so an explicit ``A2ASSISTANT_HOME_MODE`` or
     a managed/shared home is honored instead of a blanket ``0700`` (#117347).
     """
     base = Path(home) if home is not None else get_hermes_home()
@@ -1022,7 +1105,7 @@ def _prune_scratch_dir_once(scratch: Path) -> None:
 
 
 def scratch_dir_usage_bytes(scratch: Path | None = None) -> int:
-    """Total bytes under the scratch dir (for ``hermes doctor``); 0 when unreadable."""
+    """Total bytes under the scratch dir (for ``a2assistant doctor``); 0 when unreadable."""
     root = scratch if scratch is not None else get_scratch_dir(prune=False)
     total = 0
     for dirpath, _dirnames, filenames in os.walk(root, onerror=lambda _e: None):
@@ -1033,11 +1116,11 @@ def scratch_dir_usage_bytes(scratch: Path | None = None) -> int:
 
 
 def apply_scratch_tmp_env(env: MutableMapping[str, str]) -> bool:
-    """Point ``TMPDIR``/``TMP``/``TEMP`` in *env* at the scratch dir of ``env["HERMES_HOME"]``.
+    """Point ``TMPDIR``/``TMP``/``TEMP`` in *env* at the scratch dir of ``env["A2ASSISTANT_HOME"]``.
 
     A temp var the user (or the OS: macOS ``/var/folders``, Windows ``%TEMP%``) set is
     respected and nothing changes. A value Hermes itself exported earlier — recognisable
-    because it equals ``HERMES_SCRATCH_DIR`` — is re-derived, so a child running under another
+    because it equals ``A2ASSISTANT_SCRATCH_DIR`` — is re-derived, so a child running under another
     profile's home gets that home's scratch dir rather than its parent's. Returns True when
     the vars were (re)written.
     """
@@ -1046,7 +1129,7 @@ def apply_scratch_tmp_env(env: MutableMapping[str, str]) -> bool:
         value = env.get(key, "").strip()
         if value and value != ours:
             return False
-    home = env.get("HERMES_HOME", "").strip()
+    home = env.get("A2ASSISTANT_HOME", "").strip()
     try:
         scratch = str(get_scratch_dir(_expand_hermes_home(home) if home else get_process_hermes_home()))
     except (RuntimeError, OSError):
@@ -1267,17 +1350,17 @@ def translate_cwd_for_wsl_backend(cwd: str) -> str:
 
 
 def get_config_path() -> Path:
-    """Return the path to ``config.yaml`` under HERMES_HOME."""
+    """Return the path to ``config.yaml`` under A2ASSISTANT_HOME."""
     return get_hermes_home() / "config.yaml"
 
 
 def get_skills_dir() -> Path:
-    """Return the path to the skills directory under HERMES_HOME."""
+    """Return the path to the skills directory under A2ASSISTANT_HOME."""
     return get_hermes_home() / "skills"
 
 
 def get_env_path() -> Path:
-    """Return the path to the ``.env`` file under HERMES_HOME."""
+    """Return the path to the ``.env`` file under A2ASSISTANT_HOME."""
     return get_hermes_home() / ".env"
 
 
@@ -1368,10 +1451,10 @@ def project_venv_dir(project_root) -> Path | None:
     Windows shim-lock preflight skipped itself entirely (#79542). ``venv`` wins when both exist, matching
     what the installers write.
 
-    Installers that keep the interpreter out of the checkout (``$HERMES_HOME/venvs/<name>``, the layout the
+    Installers that keep the interpreter out of the checkout (``$A2ASSISTANT_HOME/venvs/<name>``, the layout the
     shipped Windows launchers assume) have neither, and the ``project_venv_dir(root) or root / "venv"``
     idiom those call sites share then handed ``uv`` a ``VIRTUAL_ENV`` that does not exist: that one invented
-    path skipped the import probe, reclassified every ``hermes tools`` dependency as missing and failed the
+    path skipped the import probe, reclassified every ``a2assistant tools`` dependency as missing and failed the
     reinstall with interpreter errors (#116148). The interpreter running this module is the only truthful
     answer to "which venv is live", so fall back to it — but only for the checkout it was loaded from. A
     foreign root (test temp dir, another clone) still resolves to ``None``: handing it someone else's venv
@@ -1451,7 +1534,7 @@ def partial_update_hint(exc: BaseException) -> list[str]:
         "This looks like a partially-updated install: one module was refreshed "
         "and a related one was not.",
         "Re-run the update to bring the whole tree to the same version:",
-        "    hermes update",
+        "    a2assistant update",
         "If that also fails, clone the repository again: https://github.com/A2Genesis-de/a2assistant",
     ]
 

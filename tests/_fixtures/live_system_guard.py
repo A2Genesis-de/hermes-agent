@@ -66,7 +66,7 @@ def _live_system_guard(request, monkeypatch):
       • pty.spawn
       • asyncio.create_subprocess_exec / create_subprocess_shell
     A mutating systemctl verb is refused against every Hermes unit
-    (``hermes``/``hermes-*``: gateway, dashboard, serve, any profile).
+    (``a2assistant``/``hermes-*``: gateway, dashboard, serve, any profile).
     Subprocess inspection looks at the WHOLE command string (not just
     tokens[0]), so ``bash -c "systemctl restart hermes-dashboard"``,
     ``sudo systemctl ...``, ``env systemctl ...``, ``setsid systemctl ...``
@@ -185,11 +185,13 @@ def _live_system_guard(request, monkeypatch):
 
     # ── Subprocess command-string inspection (whole-line) ──────────
     _HERMES_TOKENS = (
+        "a2assistant-gateway",
         "hermes-gateway",
         "hermes.service",
         "hermes_cli.main gateway",
         "hermes_cli/main.py gateway",
         "gateway/run.py",
+        "a2assistant gateway",
         "hermes gateway",
     )
     _MUTATING_VERBS = (
@@ -312,9 +314,9 @@ def _live_system_guard(request, monkeypatch):
     def _sandboxed_gateway_child(cmd_str: str, env) -> bool:
         """The disposable-daemon fixtures (``tests/gateway/fixtures/*``, the socket-path-length
         probes) launch the bare ``python -m gateway.run`` module entry with an explicit ``env``
-        that re-homes BOTH ``HERMES_HOME`` and ``HOME`` away from the developer's account. Such a
+        that re-homes BOTH ``A2ASSISTANT_HOME`` and ``HOME`` away from the developer's account. Such a
         child resolves no developer unit or config, holds no live port, and is reaped by its
-        test: the orphan class the guard exists for is the ``hermes gateway run|start|restart``
+        test: the orphan class the guard exists for is the ``a2assistant gateway run|start|restart``
         CLI spawn against the real home, which the fixtures never use."""
         if not isinstance(env, dict):
             return False
@@ -324,7 +326,7 @@ def _live_system_guard(request, monkeypatch):
             tokens = cmd_str.split()
         if "-m" not in tokens or tokens[tokens.index("-m") + 1:][:1] != ["gateway.run"]:
             return False
-        hermes_home, home = env.get("HERMES_HOME"), env.get("HOME")
+        hermes_home, home = env.get("A2ASSISTANT_HOME"), env.get("HOME")
         if not hermes_home or not home:
             return False
         # The developer's account home from the passwd db: tests re-point ``Path.home`` at their
@@ -357,7 +359,7 @@ def _live_system_guard(request, monkeypatch):
             raise RuntimeError(
                 f"tests/conftest.py live-system guard: blocked "
                 f"subprocess.{name}({cmd!r}) — would mutate a live "
-                "A2Assistant systemd unit (hermes-gateway*, hermes-dashboard*, "
+                "A2Assistant systemd unit (a2assistant-gateway*, hermes-dashboard*, "
                 "hermes-serve*, ...). Mock "
                 "subprocess.run / _run_systemctl in the test, or "
                 "mark with @pytest.mark.live_system_guard_bypass."
@@ -395,7 +397,7 @@ def _live_system_guard(request, monkeypatch):
             raise RuntimeError(
                 f"tests/conftest.py live-system guard: blocked "
                 f"subprocess.{name}({cmd!r}) — this command would run "
-                "`hermes update` against the real checkout, fetching "
+                "`a2assistant update` against the real checkout, fetching "
                 "from origin and overwriting repo files (e.g. "
                 "pyproject.toml) mid-test-run. This corrupts every "
                 "subsequent subprocess in the same runner. "
@@ -427,7 +429,7 @@ def _live_system_guard(request, monkeypatch):
             raise RuntimeError(
                 f"tests/conftest.py live-system guard: blocked "
                 f"subprocess.{name}({cmd!r}) — this would spawn a REAL "
-                "hermes gateway runtime that outlives the test (it is "
+                "a2assistant gateway runtime that outlives the test (it is "
                 "detached), restarts the developer's live gateway, and "
                 "holds the webhook port. Patch the spawn seam where "
                 "production reads it (hermes_cli.web_server_gateway."

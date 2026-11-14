@@ -1,4 +1,4 @@
-"""``hermes webapp``: open the browser-hosted Desktop that the gateway serves.
+"""``a2assistant webapp``: open the browser-hosted Desktop that the gateway serves.
 
 The gateway serves the Webapp on its own listener when its home's config sets ``webapp.enabled``
 (``gateway.webapp_listener``). This command builds the bundle when it is stale, starts the gateway that
@@ -23,8 +23,9 @@ import sys
 import time
 from pathlib import Path
 from urllib.parse import urlsplit
+from hermes_cli.branding import CLI_COMMAND
 
-RESTART_COMMAND = "hermes gateway restart"
+RESTART_COMMAND = "a2assistant gateway restart"
 # The gateway reads the Webapp's settings and sign-in providers only when it starts.
 RETRY_AFTER_FIX = f"The gateway reads these settings when it starts: after fixing them, run {RESTART_COMMAND}."
 STARTED_BEFORE_ON = f"The gateway started before the Webapp was turned on. Restart it to serve the Webapp: {RESTART_COMMAND}"
@@ -55,7 +56,7 @@ def _gateway_home(home: Path) -> Path:
 
 def _deleted_profile_refusal(home: Path) -> str | None:
     """What ``-p <name>`` says when *home* is a named profile that was deleted or never created, else
-    None. ``HERMES_HOME`` set to such a home skips that check, and its gateway would be the default
+    None. ``A2ASSISTANT_HOME`` set to such a home skips that check, and its gateway would be the default
     one, so the command refuses it the same way rather than act on the default profile."""
     from hermes_cli.profiles import _missing_profile_error
     from hermes_constants import named_profile_home, named_profile_is_live
@@ -154,14 +155,14 @@ def _profile_choice(home: Path, target: Path) -> dict:
 
 
 def _rerun_command(*flags: str) -> str:
-    """``hermes webapp *flags*`` for the profile this run used: ``-p`` re-homed only this process, so a
+    """``a2assistant webapp *flags*`` for the profile this run used: ``-p`` re-homed only this process, so a
     bare rerun gets the sticky profile, and the command keeps ``-p <name>`` when that names another one."""
     import shlex
     from hermes_cli.main import explicit_cli_profile
     from hermes_cli.profiles import get_active_profile
     name = explicit_cli_profile()
     profile = ["-p", shlex.quote(name)] if name and name != get_active_profile() else []
-    return " ".join(["hermes", *profile, "webapp", *flags])
+    return " ".join([CLI_COMMAND, *profile, "webapp", *flags])
 
 
 def older_gateway(response: dict) -> bool:
@@ -216,9 +217,9 @@ def _status(target: Path) -> int:
     except GatewayUnreachable:
         from gateway.webapp_listener import webapp_settings
         if webapp_settings(target).enabled:
-            print("The gateway is not running. Run hermes webapp to start it.")
+            print("The gateway is not running. Run a2assistant webapp to start it.")
         else:
-            print(_off_message(target, "run hermes webapp"))
+            print(_off_message(target, "run a2assistant webapp"))
         return 1
     if not response.get("ok"):
         print(_refusal(response))
@@ -234,7 +235,7 @@ def _status(target: Path) -> int:
             print(f"{target / 'config.yaml'} no longer turns the Webapp on: it stops at the next gateway restart "
                   f"({RESTART_COMMAND}).")
     elif status["state"] == "starting":
-        print("The gateway is still starting the Webapp. Run hermes webapp --status again in a moment.")
+        print("The gateway is still starting the Webapp. Run a2assistant webapp --status again in a moment.")
     elif status["state"] == "off":
         print(_off_message(target, f"run {RESTART_COMMAND}"))
     else:
@@ -282,7 +283,7 @@ def _signed_out_summary(result: dict) -> str:
         return (f"Signed out every browser: {connections}. Every browser login behind sign-in has ended, "
                 "and the account tokens it held no longer work here: browsers must sign in again. Native apps "
                 "signed in to this gateway with their own sign-in stay signed in.")
-    return f"Signed out of every Webapp tab: {connections}. Run hermes webapp to open it again."
+    return f"Signed out of every Webapp tab: {connections}. Run a2assistant webapp to open it again."
 
 
 def _sign_out(target: Path) -> int:
@@ -315,7 +316,7 @@ def _sign_out(target: Path) -> int:
         # never reaches it: wait until it answers the sign-out itself.
         if attempt < _START_WAIT_ATTEMPTS:
             time.sleep(_START_WAIT_INTERVAL)
-    print(f"The gateway is still starting, so nobody was signed out. Run hermes webapp --sign-out again once "
+    print(f"The gateway is still starting, so nobody was signed out. Run a2assistant webapp --sign-out again once "
           f"it is up ({RESTART_COMMAND} if it never comes up).")
     return 1
 
@@ -356,7 +357,7 @@ def cmd_webapp(args) -> int:
     if args.sign_out:
         return _sign_out(target)
     if not args.build_only and not webapp_settings(target).enabled:
-        print(_still_served(target) or _off_message(target, "run hermes webapp again"))
+        print(_still_served(target) or _off_message(target, "run a2assistant webapp again"))
         return 1
     try:
         _build(args)
@@ -365,7 +366,7 @@ def cmd_webapp(args) -> int:
         # A packaged bundle (HERMES_WEBAPP_DIST) is never built here, so no build can fix it.
         if packaged_webapp_dist() is None:
             print("  Build it explicitly:")
-            print("    hermes webapp --build-only")
+            print("    a2assistant webapp --build-only")
         return 1
     if args.build_only:
         print("Webapp bundle ready.")

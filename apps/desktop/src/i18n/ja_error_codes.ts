@@ -110,6 +110,6 @@ export const jaErrorCodes: Partial<ThreadCopy['errorCodes']> = {
     title: 'ローカルモデルサーバーに接続できません',
     body: 'ローカルモデルサーバーはまだ動作していません。起動中の可能性があります。少し待ってから再試行するか、別のモデルに切り替えてください。',
     bodyNoRetry:
-      'ローカルモデルサーバーはオフになっています。A2Assistant デスクトップアプリか、ターミナルの `hermes model` から起動するか、別のモデルに切り替えてください。'
+      'ローカルモデルサーバーはオフになっています。A2Assistant デスクトップアプリか、ターミナルの `a2assistant model` から起動するか、別のモデルに切り替えてください。'
   }
 }

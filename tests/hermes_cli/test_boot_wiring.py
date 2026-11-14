@@ -1,7 +1,7 @@
 """C26 wiring: the boot registry is reached by the real entry points, and
 the cadence has a production caller.
 
-Proven with real imports against a temp HERMES_HOME; the external
+Proven with real imports against a temp A2ASSISTANT_HOME; the external
 boundaries (pm store, network check seams, process identity) are
 stubbed — the wiring itself is exercised through the exact public
 invocation (``hermes_cli.main.main()``, ``gateway.run`` housekeeping).
@@ -16,9 +16,9 @@ import pytest
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    """Temp HERMES_HOME + runtime dir so no test touches a real profile."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "runtime"))
+    """Temp A2ASSISTANT_HOME + runtime dir so no test touches a real profile."""
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "runtime"))
     return tmp_path
 
 

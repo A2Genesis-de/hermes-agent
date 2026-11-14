@@ -29,7 +29,7 @@ auth:
 # below cover BOTH shapes — glob patterns for the snake_case wire names plus
 # the display-label literals; unmatched entries no-op harmlessly.
 # ~85+ product tools stay enabled; re-check with
-# `hermes mcp configure betterstack` after first login.
+# `a2assistant mcp configure betterstack` after first login.
 tools:
   default_excluded:
     - search_documentation
@@ -53,7 +53,7 @@ suggest:
 
 post_install: |
   On first connection Hermes opens a browser to authorize with
-  Better Stack (or run `hermes mcp login betterstack`). Approve access,
+  Better Stack (or run `a2assistant mcp login betterstack`). Approve access,
   then restart the session so tools load.
 
   Heads-up: this server exposes a LARGE tool surface (~106 tools as of
@@ -61,4 +61,4 @@ post_install: |
   (docs search, instruction pseudo-tools, the raw-SQL query hatch, cloud
   credential minting, and team-membership tools); everything else stays
   enabled. Review or change the selection any time with:
-    hermes mcp configure betterstack
+    a2assistant mcp configure betterstack

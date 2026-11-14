@@ -120,7 +120,7 @@ def set_global_backend(name: str, *, session_key: str = "", apply_now: bool = Fa
 
 def _current_session_key(agent: Any) -> str:
     from gateway.session_context import get_session_env
-    return get_session_env("HERMES_SESSION_KEY", "") or str(getattr(agent, "session_id", "") or "")
+    return get_session_env("A2ASSISTANT_SESSION_KEY", "") or str(getattr(agent, "session_id", "") or "")
 
 
 def apply_requested_tool_rebuild(agent: Any) -> bool:

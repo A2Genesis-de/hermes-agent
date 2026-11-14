@@ -102,7 +102,7 @@ def snapshot_shutdown_context(received_signal: Any = None) -> dict[str, Any]:
     # --replace instance is killing us". Filenames mirror gateway.status; literals keep the signal-
     # handler path import-light.
     with contextlib.suppress(Exception):
-        hermes_home_str = os.path.expanduser(os.environ.get("HERMES_HOME", ""))
+        hermes_home_str = os.path.expanduser(os.environ.get("A2ASSISTANT_HOME", ""))
         if hermes_home_str:
             raw = _read_marker(Path(hermes_home_str) / ".gateway-takeover.json")
             if raw is not None:
@@ -202,7 +202,7 @@ def check_systemd_timing_alignment(
     drain_timeout: float, cron_drain_timeout: float = DEFAULT_GATEWAY_CRON_DRAIN_TIMEOUT
 ) -> Optional[dict[str, Any]]:
     """At startup, sanity-check that systemd's TimeoutStopSec covers stop. A stale unit file
-    (upgraded without re-running ``hermes setup``) can have ``TimeoutStopSec`` below the stop
+    (upgraded without re-running ``a2assistant setup``) can have ``TimeoutStopSec`` below the stop
     budget, so systemd SIGKILLs the cgroup mid-drain (a phantom ``code=killed status=9`` in the
     journal). ``None`` when aligned OR undeterminable (not under systemd, no ``systemctl``);
     otherwise a dict with ``timeout_stop_sec``/``drain_timeout``/``expected_min``/``mismatch``.

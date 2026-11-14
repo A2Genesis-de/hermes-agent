@@ -1257,7 +1257,7 @@ class TurnRunner(GatewayTurnProgressMixin, GatewaySessionAgentMixin):
 
         The turn message lives on the shared TurnContext (``ctx.message``) so ``_run_agent_inner`` sees
         every rebind. session_key propagates via contextvars (_set_session_env / set_current_session_key)
-        — never os.environ["HERMES_SESSION_KEY"], which would misroute approvals across sessions.
+        — never os.environ["A2ASSISTANT_SESSION_KEY"], which would misroute approvals across sessions.
         """
         from gateway.run import (
             _current_max_iterations, _normalize_empty_agent_response, _reload_runtime_env_preserving_config_authority,

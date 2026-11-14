@@ -1,6 +1,6 @@
 """A stopped cron run stays stopped in every reader of the ledger.
 
-Real store, real execution ledger, real cancel markers under the test HERMES_HOME: a cancel must not
+Real store, real execution ledger, real cancel markers under the test A2ASSISTANT_HOME: a cancel must not
 be replayed by receipt recovery, read as a crashed worker, counted as a failure, spend an extra
 repeat, or hide behind the due scan's ``missed`` rows.
 """

@@ -1,4 +1,4 @@
-"""``hermes debug`` debug tools for Hermes Agent."""
+"""``a2assistant debug`` debug tools for Hermes Agent."""
 
 import contextlib
 import io
@@ -13,7 +13,7 @@ from hermes_cli.debug_redaction import redact_debug_support_text
 logger = logging.getLogger(__name__)
 
 _REDACTION_BANNER = (
-    "[hermes debug share: log content redacted. "
+    "[a2assistant debug share: log content redacted. "
     "run with --no-redact to disable]\n")
 _MAX_LOG_BYTES = 512_000
 
@@ -157,7 +157,7 @@ def _capture_default_log_snapshots(
 
 
 def _capture_dump(redact: bool = True) -> str:
-    """Run ``hermes dump`` and return its stdout, force-redacted unless *redact* is False: the dump
+    """Run ``a2assistant dump`` and return its stdout, force-redacted unless *redact* is False: the dump
     is upload-bound and quotes config values (e.g. ``fallback_providers``), so URL credentials are
     redacted too, as in the uploaded logs."""
     from hermes_cli.dump import run_dump
@@ -173,7 +173,7 @@ def collect_debug_report(
     log_snapshots: Optional[dict[str, LogSnapshot]] = None) -> str:
     """Build the summary debug report (system dump + log tails) as upload-ready text.
 
-    ``dump_text`` is pre-captured dump output; when empty, ``hermes dump`` is run internally.
+    ``dump_text`` is pre-captured dump output; when empty, ``a2assistant dump`` is run internally.
     """
     buf = io.StringIO()
     buf.write(dump_text or _capture_dump())
@@ -258,7 +258,7 @@ def run_debug(args):
 
 
 _DEBUG_USAGE = """\
-Usage: hermes debug <command>
+Usage: a2assistant debug <command>
 
 Commands:
   share    Print a redacted debug report (system info + logs) for support

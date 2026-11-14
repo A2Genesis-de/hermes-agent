@@ -56,7 +56,7 @@ def test_an_administrator_pinned_key_outranks_the_users_empty_one(monkeypatch, t
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / "config.yaml").write_text(json.dumps({"api_server": {"key": _KEY}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     user = {"platforms": {"api_server": {"enabled": True, "extra": {"key": ""}}}}
 
@@ -69,7 +69,7 @@ def test_an_administrator_pinned_key_outranks_the_users_empty_one(monkeypatch, t
     home = tmp_path / "home"
     home.mkdir()
     (home / "config.yaml").write_text(json.dumps(user), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     gateway = load_gateway_config()
     api_server = gateway.platforms[Platform.API_SERVER]
     assert (api_server.enabled, gateway._is_platform_connected(Platform.API_SERVER, api_server)) == (True, True)

@@ -344,8 +344,8 @@ def _named_profile_from_action(subcommand: list[str]) -> Optional[str]:
 def _is_host_gateway_spawn(subcommand: list[str]) -> bool:
     """True when *subcommand* starts the host multiplexer, not a named profile's own gateway.
 
-    ``hermes gateway restart`` and ``hermes -p default gateway restart`` are the host.
-    ``hermes -p coder gateway stop`` is not.
+    ``a2assistant gateway restart`` and ``a2assistant -p default gateway restart`` are the host.
+    ``a2assistant -p coder gateway stop`` is not.
     """
     profile = _named_profile_from_action(subcommand)
     if profile not in (None, "default"):
@@ -365,14 +365,14 @@ def _profile_action_environment(
     """Environment for a detached ``hermes <subcommand>`` action.
 
     The dashboard loads its own profile's ``.env`` into process-global ``os.environ``. Copying
-    that mapping verbatim into ``hermes -p <other> ...`` lets the named child see the dashboard
+    that mapping verbatim into ``a2assistant -p <other> ...`` lets the named child see the dashboard
     profile's platform credentials and ports *before* its own dotenv loads (``load_hermes_dotenv``
     does not override keys already present): a supposedly A2A-only profile then claims the default
     Discord token and binds the default API/BlueBubbles ports.
 
     Named-profile actions therefore start from Hermes' standard scrubbed subprocess env, then drop
     the profile-managed keys plus every key declared by the dashboard/default profile dotenv files
-    and their hydrated secret sources, and pin ``HERMES_HOME`` to the target profile. The child's
+    and their hydrated secret sources, and pin ``A2ASSISTANT_HOME`` to the target profile. The child's
     normal startup then loads that profile's own ``.env``. A host-gateway verb (bare ``gateway``
     or ``-p default gateway``) starts from ``host_gateway_child_env`` so a named-profile dashboard
     cannot donate its dotenv to the multiplexer. Other actions without a profile selector keep
@@ -414,10 +414,10 @@ def _profile_action_environment(
 
         # Pin the child before import-time startup runs; the explicit -p flag stays authoritative
         # and resolves to the same validated directory.
-        action_env["HERMES_HOME"] = str(target_home)
+        action_env["A2ASSISTANT_HOME"] = str(target_home)
         apply_subprocess_home_env(action_env)
 
-    action_env["HERMES_NONINTERACTIVE"] = "1"
+    action_env["A2ASSISTANT_NONINTERACTIVE"] = "1"
     # A config.yaml allow_all_users grant bridged into os.environ must not outlive the config that
     # produced it: drop it so the restarted child re-derives the posture from its own config.yaml.
     from gateway.config_loader import drop_bridged_env
@@ -442,7 +442,7 @@ def _action_targets_system_gateway(subcommand: list[str]) -> bool:
     Scope is decided by the CLI's own picker (``_select_systemd_scope``) evaluated for the profile
     the action addresses, not by "a system unit exists": a host carrying both units resolves to the
     user unit, which the dashboard user operates unelevated. Same root/sudo posture as the
-    ``hermes update`` fleet restart (``update_cmd_fleet._needs_sudo`` / ``_sudo_noninteractive_ok``).
+    ``a2assistant update`` fleet restart (``update_cmd_fleet._needs_sudo`` / ``_sudo_noninteractive_ok``).
     """
     from hermes_cli.update_cmd_fleet import _needs_sudo
 
@@ -482,7 +482,7 @@ def _spawn_hermes_action(
     section_start = os.fstat(log_file.fileno()).st_size
     # The header carries the action id durably: the update's completion marker lands in the ROOT
     # update.log every profile shares, and only this id ties one to the action THIS log started.
-    action_id = (env_overrides or {}).get("HERMES_ACTION_ID")
+    action_id = (env_overrides or {}).get("A2ASSISTANT_ACTION_ID")
     stamp = time.strftime('%Y-%m-%d %H:%M:%S') + (f" {action_id}" if action_id else "")
     log_file.write(f"\n=== {name} started {stamp} ===\n".encode())
     if action_id:
@@ -562,7 +562,7 @@ def _spawn_hermes_action(
 
 def _own_profile_selector(profile: Optional[str]) -> Optional[str]:
     """The profile a lifecycle verb addresses: the explicit selector, else the process's own
-    profile (a pooled Desktop ``hermes --profile X serve`` answers ``/api/gateway/*`` without
+    profile (a pooled Desktop ``a2assistant --profile X serve`` answers ``/api/gateway/*`` without
     ``?profile=``; an unscoped verb there is about X). The default home resolves to the literal
     ``"default"`` selector, never to a bare argv: a selector-less child re-reads the sticky
     ``active_profile`` and would act on another profile's gateway (and skips the named-target
@@ -580,7 +580,7 @@ def _gateway_subcommand(profile: Optional[str], verb: str) -> list[str]:
     that actually serves X — a ``-p X gateway restart`` child only exits 78 into the action log while the
     UI reports "restarted"); ``start``/``stop`` are refused by the caller (``multiplexed_profile_refusal``).
     The multiplexer is addressed as ``-p default`` explicitly: a bare ``gateway restart`` spawned from a
-    pooled ``--profile X serve`` would inherit X's ``HERMES_HOME`` and hit the same exit-78 refusal. The
+    pooled ``--profile X serve`` would inherit X's ``A2ASSISTANT_HOME`` and hit the same exit-78 refusal. The
     selector is explicit for the default home too: a bare child re-reads the sticky ``active_profile``
     and would restart another profile's gateway."""
     from hermes_cli.web_server_profiles import _profile_cli_args
@@ -619,7 +619,7 @@ def multiplexed_profile_refusal(profile: Optional[str], verb: str) -> Optional[s
     """Refusal text for ``gateway start``/``stop`` on a named profile with no gateway of its own (a
     ``--force``-started separate one is managed normally), else None. A profile the live host
     multiplexer serves is parked by ``stop`` and a parked one is unparked by ``start`` (the spawned
-    ``hermes -p X gateway <verb>`` runs ``gateway_profile_lifecycle``), so neither is refused;
+    ``a2assistant -p X gateway <verb>`` runs ``gateway_profile_lifecycle``), so neither is refused;
     ``start`` on an unparked named profile is — one host gateway serves every profile, so a new
     per-profile gateway is never the answer (the CLI twin ``_named_profile_refused_under_multiplexer``
     exits 78 into an action log nobody reads while the UI shows the verb as done)."""
@@ -655,9 +655,9 @@ def multiplexed_profile_refusal(profile: Optional[str], verb: str) -> Optional[s
     if _installed_services(profile_dir):
         return None  # a --force-installed fleet member is not NEW; its own service is started normally
     return (f"Profile '{requested}' does not get a gateway of its own: one host gateway serves every "
-            f"profile. Install or start it from the default profile (hermes gateway install), or fold an "
-            f"existing per-profile fleet with `hermes gateway migrate --multiplex`; "
-            f"`hermes -p {requested} gateway install --force` starts a separate one anyway.")
+            f"profile. Install or start it from the default profile (a2assistant gateway install), or fold an "
+            f"existing per-profile fleet with `a2assistant gateway migrate --multiplex`; "
+            f"`a2assistant -p {requested} gateway install --force` starts a separate one anyway.")
 
 
 def live_session_refusal(profile: Optional[str], verb: str) -> Optional[str]:

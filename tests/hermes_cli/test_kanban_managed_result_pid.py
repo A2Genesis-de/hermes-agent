@@ -22,9 +22,9 @@ from hermes_cli import kanban_db_dispatch as kbd
 def conn(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_KANBAN_HOME", str(home))
-    monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_CRASH_GRACE_SECONDS", "0")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kbd._recent_worker_exits.clear()
     kb.init_db()

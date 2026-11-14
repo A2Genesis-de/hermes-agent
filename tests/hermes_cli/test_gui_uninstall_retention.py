@@ -12,7 +12,7 @@ from hermes_constants import get_hermes_home
 @pytest.fixture(params=("complete", "record_only"))
 def installation(request, tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     home = get_hermes_home()
     assert home.resolve().is_relative_to(tmp_path.resolve())
     root = home / "hermes-agent"

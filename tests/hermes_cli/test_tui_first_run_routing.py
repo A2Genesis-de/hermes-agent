@@ -1,7 +1,7 @@
 """First-run routing between the classic CLI guard, the TUI and the shared-metrics offer.
 
 A blank install (no provider) must reach the TUI's own "Setup Required" screen under
-``hermes --tui``; the classic "Run setup now? [Y/n]" guard only fronts the classic CLI, and the
+``a2assistant --tui``; the classic "Run setup now? [Y/n]" guard only fronts the classic CLI, and the
 one-time shared-metrics offer waits until a provider exists (#128663).
 """
 
@@ -61,7 +61,7 @@ def _run_chat(monkeypatch, argv, *, provider_configured):
 
 @pytest.fixture(autouse=True)
 def _no_tui_env(monkeypatch):
-    monkeypatch.delenv("HERMES_TUI", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI", raising=False)
 
 
 def test_blank_install_tui_skips_classic_guard_and_offer(monkeypatch):

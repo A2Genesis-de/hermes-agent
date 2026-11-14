@@ -15,7 +15,7 @@ from tests.gateway.test_api_unknown_resolution import _AUTH_HEADERS, _adapter, _
 
 @pytest.mark.asyncio
 async def test_locked_admission_write_is_503_and_exact_retry_runs(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     store = SessionStore(tmp_path / "sessions", GatewayConfig())
     db = SessionDB(tmp_path / "state.db")
     executed = []

@@ -1,6 +1,6 @@
 """Start the gateway listener with the Webapp on or off; report what a browser and a native client get.
 
-Run as ``python webapp_listener_peer.py on|off <port> <dist> [macos]`` with an isolated ``HERMES_HOME``;
+Run as ``python webapp_listener_peer.py on|off <port> <dist> [macos]`` with an isolated ``A2ASSISTANT_HOME``;
 ``macos`` takes the launch path of macOS and the BSDs (the printed link) on any host. Writes
 ``receipt.json`` there (the gateway redirects stdout). No external inference: the model points at a closed
 port and no turn is submitted.
@@ -113,7 +113,7 @@ async def probe(mode, port, dist, platform):
     import hermes_cli.webapp
     from tests.gateway.fixtures.local_recovery_probe import rpc
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     webapp_block = f"webapp:\n  enabled: true\n  port: {port}\n" if mode == "on" else ""
     (home / "config.yaml").write_text(
         "gateway:\n  multiplex_profiles: false\nmodel:\n  provider: custom\n  default: no-inference\n"
@@ -189,7 +189,7 @@ async def probe(mode, port, dist, platform):
 
 
 def main():
-    receipt = Path(os.environ["HERMES_HOME"]) / "receipt.json"
+    receipt = Path(os.environ["A2ASSISTANT_HOME"]) / "receipt.json"
     try:
         receipt.write_text(json.dumps(asyncio.run(probe(
             sys.argv[1], int(sys.argv[2]), sys.argv[3], sys.argv[4] if len(sys.argv) > 4 else "this platform"))))

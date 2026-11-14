@@ -23,7 +23,7 @@ export const enDesktopCommands: DesktopCommandNotices = {
   processesHeader: count => `Background processes (${count}):`,
   configHeader: 'Configuration (display, approvals, paste and voice settings; everything else is not shown):',
   configDefaults: '(defaults)',
-  configFooter: 'Change settings in Settings, or edit config.yaml with `hermes config edit` on the gateway host.',
+  configFooter: 'Change settings in Settings, or edit config.yaml with `a2assistant config edit` on the gateway host.',
   historyHeader: count => `Conversation history (${count} messages):`,
   historyEmpty: 'No messages yet.',
   historyYou: 'You',
@@ -38,9 +38,9 @@ export const enDesktopCommands: DesktopCommandNotices = {
   savedTo: path => `Saved conversation to ${path}`,
   saveCancelled: 'Not saved (cancelled).',
   exportRemote:
-    '/export packages a profile from the gateway host, which is not this machine. Run `hermes profile export` on that host.',
+    '/export packages a profile from the gateway host, which is not this machine. Run `a2assistant profile export` on that host.',
   importRemote:
-    '/import installs a profile on the gateway host, which is not this machine. Run `hermes profile import <archive>` on that host.',
+    '/import installs a profile on the gateway host, which is not this machine. Run `a2assistant profile import <archive>` on that host.',
   timestampsUsage: 'usage: /timestamps [on|off|status]',
   timestampsOn: 'Timestamps: on (this window; set display.timestamps in config.yaml to keep it)',
   timestampsOff: 'Timestamps: off (this window; set display.timestamps in config.yaml to keep it)'

@@ -57,7 +57,7 @@ import {
 interface LoadOptions {
   /** Root-level default-enable CAP: `false` ships the plugin opt-in (inventory
    *  row, off until the user toggles) even if the plugin says otherwise. The
-   *  unified agent-plugin root sets this so `~/.hermes/plugins` keeps its
+   *  unified agent-plugin root sets this so `~/.a2assistant/plugins` keeps its
    *  installed-but-inert posture (GHSA-mcfc-hp25-cjv7) on the desktop side too. */
   defaultEnabled?: boolean
   /** Absolute plugin.js path (disk plugins) — recorded for reveal/inventory. */

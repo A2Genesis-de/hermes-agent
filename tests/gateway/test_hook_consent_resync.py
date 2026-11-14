@@ -38,8 +38,8 @@ async def test_consent_change_registers_and_revokes_hook_without_restart(tmp_pat
     launch = tmp_path / ".hermes"
     profile = launch / "profiles" / "guarded"
     profile.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
-    monkeypatch.delenv("HERMES_ACCEPT_HOOKS", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
+    monkeypatch.delenv("A2ASSISTANT_ACCEPT_HOOKS", raising=False)
     shell_hooks.reset_for_tests()
     command = str(tmp_path / "guard.sh")
     hook_cfg = f"hooks:\n  pre_tool_call:\n    - command: {command}\n      fail_closed: true\n"

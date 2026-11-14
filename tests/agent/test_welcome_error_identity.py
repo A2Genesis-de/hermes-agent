@@ -68,7 +68,7 @@ def test_signing_in_does_not_inherit_anonymous_cooldown(tmp_path, monkeypatch):
     from agent.nous_rate_guard import clear_nous_rate_limit, nous_rate_limit_remaining, record_nous_rate_limit
     from agent.turn_recovery import _is_genuine_nous_rate_limit
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     guest = agent_for(make_jwt(), WELCOME)
     error = Exception("refused")
     error.status_code = 429
@@ -97,7 +97,7 @@ def test_auxiliary_anonymous_cooldown_does_not_outlive_signing_in(tmp_path, monk
     import agent.auxiliary_client as aux
     from agent.nous_rate_guard import record_nous_rate_limit
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     record_nous_rate_limit(headers={"retry-after": "600"}, anonymous=True)
     runtime = [make_jwt(), WELCOME]
     monkeypatch.setattr(aux, "_read_nous_auth", dict)
@@ -122,7 +122,7 @@ def test_401_diagnostics_follow_request_identity_on_welcome_host(tier, capsys, m
     _print_nous_401_diagnostics(agent_for(make_jwt(account_tier=tier), WELCOME), Exception("unauthorized"))
     output = capsys.readouterr().out
     assert ("A2Assistant couldn't start a new one" in output) == (tier == "anonymous")
-    assert ("hermes auth add nous" in output) == (tier != "anonymous")
+    assert ("a2assistant auth add nous" in output) == (tier != "anonymous")
 
 
 def test_anonymous_claim_does_not_classify_other_providers_as_nous():

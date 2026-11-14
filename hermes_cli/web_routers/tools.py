@@ -56,7 +56,7 @@ def _terminal_backend_rows() -> list[dict[str, str]]:
 def _probe_docker_backend(_cfg) -> tuple:
     """Health-check the docker terminal backend the same way the agent resolves it.
 
-    ``find_docker()`` honors ``HERMES_DOCKER_BINARY``, then ``docker`` / ``podman``
+    ``find_docker()`` honors ``A2ASSISTANT_DOCKER_BINARY``, then ``docker`` / ``podman``
     on PATH. The probe uses ``version`` (not ``info --format {{.ServerVersion}}``)
     because Podman has no ServerVersion field and the agent already probes with
     ``version``.
@@ -452,7 +452,7 @@ async def select_toolset_model(
 async def select_toolset_provider(
     name: str, body: ToolsetProviderSelect, profile: Optional[str] = None):
     """Persist a provider selection via ``apply_provider_selection`` (shared with
-    ``hermes tools``, so both write identical keys).
+    ``a2assistant tools``, so both write identical keys).
 
     ``web`` only: ``capability`` ('search' | 'extract') writes
     ``web.<capability>_backend`` (the override the dispatchers resolve first);
@@ -576,9 +576,9 @@ async def save_toolset_env(name: str, body: ToolsetEnvUpdate, profile: Optional[
 @router.post("/api/tools/toolsets/{name}/post-setup")
 async def run_toolset_post_setup(
     name: str, body: ToolsetPostSetup, profile: Optional[str] = None):
-    """Spawn ``hermes tools post-setup <key>`` (long-running installs) as a
+    """Spawn ``a2assistant tools post-setup <key>`` (long-running installs) as a
     background action tailed via ``GET /api/actions/tools-post-setup/status``;
-    ``profile`` is threaded so hooks see the drawer's HERMES_HOME."""
+    ``profile`` is threaded so hooks see the drawer's A2ASSISTANT_HOME."""
     from hermes_cli.tools_config import valid_post_setup_keys
 
     scope_profile = body.profile or profile
@@ -659,7 +659,7 @@ async def get_computer_use_status(profile: Optional[str] = None):
 
 @router.post("/api/tools/computer-use/permissions/grant")
 async def grant_computer_use_permissions(profile: Optional[str] = None):
-    """Spawn ``hermes computer-use permissions grant`` (macOS-only: launches
+    """Spawn ``a2assistant computer-use permissions grant`` (macOS-only: launches
     CuaDriver via LaunchServices so the TCC dialog is attributed correctly).
     The frontend polls ``GET /api/actions/computer-use-grant/status``."""
     if sys.platform != "darwin":

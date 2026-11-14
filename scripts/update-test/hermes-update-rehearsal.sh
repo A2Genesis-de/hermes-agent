@@ -2,9 +2,9 @@
 # hermes-update-rehearsal.sh — for an EXISTING Hermes install.
 #
 # Two steps:
-#   pre   take a `hermes backup` of your data, clone HERMES_HOME and the desktop
+#   pre   take a `a2assistant backup` of your data, clone A2ASSISTANT_HOME and the desktop
 #         app's Electron userData into the backup dir, then point the install's
-#         update source at a fork so `hermes update` pulls that fork's main.
+#         update source at a fork so `a2assistant update` pulls that fork's main.
 #         Prints what to do next.
 #   post  swap the clones back in, so both trees are exactly as they were.
 #
@@ -13,10 +13,10 @@
 #
 # On APFS (macOS) and btrfs/xfs the clone is copy-on-write: no file data is
 # copied. Elsewhere it is a plain copy. post swaps by rename, so it is instant
-# when the backup dir is on the same disk. HERMES_HOME/cache is left as it is.
+# when the backup dir is on the same disk. A2ASSISTANT_HOME/cache is left as it is.
 #
 #   ./hermes-update-rehearsal.sh pre  --source <git-url>
-#   # ... run `hermes update`, use Hermes, test whatever you need ...
+#   # ... run `a2assistant update`, use Hermes, test whatever you need ...
 #   ./hermes-update-rehearsal.sh post
 #
 # Options:
@@ -25,7 +25,7 @@
 #   --backup-root DIR   where the backup lives (default ~/hermes-update-rehearsal)
 #   --yes          post: skip the confirmation
 #
-# Requires: git. `pre` and `hermes update` need network access to --source.
+# Requires: git. `pre` and `a2assistant update` need network access to --source.
 
 set -euo pipefail
 
@@ -103,20 +103,20 @@ native_path() {
 }
 
 resolve_paths() {
-  local suffix="${HERMES_DATA_DIR_SUFFIX:-}"
-  if [ -n "${HERMES_HOME:-}" ]; then
-    HERMES_HOME="$(cd "$HERMES_HOME" 2>/dev/null && pwd || printf '%s' "$HERMES_HOME")"
+  local suffix="${A2ASSISTANT_DATA_DIR_SUFFIX:-}"
+  if [ -n "${A2ASSISTANT_HOME:-}" ]; then
+    A2ASSISTANT_HOME="$(cd "$A2ASSISTANT_HOME" 2>/dev/null && pwd || printf '%s' "$A2ASSISTANT_HOME")"
   else
-    HERMES_HOME="$HOME/.hermes${suffix}"
+    A2ASSISTANT_HOME="$HOME/.a2assistant${suffix}"
   fi
-  INSTALL_DIR="$HERMES_HOME/hermes-agent"
-  if [ -n "${HERMES_DESKTOP_USER_DATA_DIR:-}" ]; then
-    USERDATA_DIR="$HERMES_DESKTOP_USER_DATA_DIR"; USERDATA_SOURCE="env"
+  INSTALL_DIR="$A2ASSISTANT_HOME/hermes-agent"
+  if [ -n "${A2ASSISTANT_DESKTOP_USER_DATA_DIR:-}" ]; then
+    USERDATA_DIR="$A2ASSISTANT_DESKTOP_USER_DATA_DIR"; USERDATA_SOURCE="env"
   else
     USERDATA_DIR="$HOME/Library/Application Support/Hermes${suffix}"; USERDATA_SOURCE="default"
   fi
   BACKUP_ROOT="$(native_path "$BACKUP_ROOT")"
-  HERMES_HOME="$(native_path "$HERMES_HOME")"
+  A2ASSISTANT_HOME="$(native_path "$A2ASSISTANT_HOME")"
   INSTALL_DIR="$(native_path "$INSTALL_DIR")"
   USERDATA_DIR="$(native_path "$USERDATA_DIR")"
 }
@@ -133,14 +133,14 @@ load_snapshot() {
   SNAP="$(latest_backup_root)" || die "no backup found under $BACKUP_ROOT — run 'pre' first"
   local recorded_path="$SNAP/hermes-home.txt"
   [ -f "$recorded_path" ] || die "$SNAP is not a rehearsal backup (no hermes-home.txt)"
-  [ -d "$SNAP/home" ] || die "$SNAP has no clone of HERMES_HOME (made by an older version of this script, or already restored)"
+  [ -d "$SNAP/home" ] || die "$SNAP has no clone of A2ASSISTANT_HOME (made by an older version of this script, or already restored)"
   # Plain text, not JSON: this string is compared byte-for-byte to decide whether
   # the backup belongs to the home post is about to restore.
   local recorded current
   recorded="$(tr -d '\r' < "$recorded_path")"
-  current="$(printf '%s' "$HERMES_HOME" | tr '\\' '/')"
+  current="$(printf '%s' "$A2ASSISTANT_HOME" | tr '\\' '/')"
   [ "$(printf '%s' "$recorded" | tr '\\' '/')" = "$current" ] \
-    || die "that backup belongs to HERMES_HOME=$recorded, not $HERMES_HOME; pass --backup-root to pick the right one"
+    || die "that backup belongs to A2ASSISTANT_HOME=$recorded, not $A2ASSISTANT_HOME; pass --backup-root to pick the right one"
 }
 
 # ---------------------------------------------------------------------------
@@ -226,7 +226,7 @@ swap_tree() {
 resolve_hermes_exe() {
   local c
   for c in "$INSTALL_DIR/venv/bin/hermes" "$INSTALL_DIR/.hermes/bin/hermes" \
-           "$INSTALL_DIR/venv/Scripts/hermes.exe" "$HERMES_HOME/bin/hermes"; do
+           "$INSTALL_DIR/venv/Scripts/hermes.exe" "$A2ASSISTANT_HOME/bin/hermes"; do
     [ -x "$c" ] && { printf '%s' "$c"; return 0; }
   done
   return 1
@@ -239,14 +239,14 @@ resolve_hermes_exe() {
 cmd_pre() {
   resolve_paths
   step "your install"
-  say "HERMES_HOME   $HERMES_HOME"
+  say "A2ASSISTANT_HOME   $A2ASSISTANT_HOME"
   say "install       $INSTALL_DIR"
   say "desktop data  $USERDATA_DIR ($USERDATA_SOURCE)"
   say "backup to     $BACKUP_ROOT"
-  [ -d "$HERMES_HOME" ] || die "no HERMES_HOME at $HERMES_HOME"
+  [ -d "$A2ASSISTANT_HOME" ] || die "no A2ASSISTANT_HOME at $A2ASSISTANT_HOME"
   [ -d "$INSTALL_DIR/.git" ] || die "no git checkout at $INSTALL_DIR — this tool covers source installs"
   local hermes_exe
-  hermes_exe="$(resolve_hermes_exe)" || die "no hermes executable found in $INSTALL_DIR (venv/bin, .hermes/bin) or $HERMES_HOME/bin"
+  hermes_exe="$(resolve_hermes_exe)" || die "no hermes executable found in $INSTALL_DIR (venv/bin, .hermes/bin) or $A2ASSISTANT_HOME/bin"
 
   step "before we start (nothing here is a pass/fail, just read it)"
   if command -v pgrep >/dev/null 2>&1; then
@@ -254,7 +254,7 @@ cmd_pre() {
     procs="$(pgrep -fl hermes 2>/dev/null | grep -v 'hermes-update-rehearsal' || true)"
     if [ -n "$procs" ]; then
       warn "Hermes looks like it is running — close the desktop app and the gateway"
-      warn "before you run 'hermes update', or the dependency sync may fail:"
+      warn "before you run 'a2assistant update', or the dependency sync may fail:"
       printf '    %s\n' "$procs"
     else
       ok "no Hermes processes running"
@@ -276,23 +276,23 @@ cmd_pre() {
   [ ! -e "$SNAP" ] || die "backup dir already exists: $SNAP"
   mkdir -p "$SNAP"
 
-  step "backing up your data (hermes backup)"
+  step "backing up your data (a2assistant backup)"
   # Config, keys, sessions, memories, skills, with SQLite copied consistently:
   # a second, independent copy of what matters most. post never deletes it.
   local started code=0 out
   started="$SECONDS"
-  out="$(HERMES_HOME="$HERMES_HOME" "$hermes_exe" backup -o "$SNAP/hermes-backup.zip" 2>&1)" || code=$?
+  out="$(A2ASSISTANT_HOME="$A2ASSISTANT_HOME" "$hermes_exe" backup -o "$SNAP/hermes-backup.zip" 2>&1)" || code=$?
   if [ "$code" = 1 ] && [ -f "$SNAP/hermes-backup.zip" ]; then
     printf '    %s\n' "$out"
-    warn "hermes backup finished INCOMPLETE ($((SECONDS - started))s): the files listed above are not in $SNAP/hermes-backup.zip"
+    warn "a2assistant backup finished INCOMPLETE ($((SECONDS - started))s): the files listed above are not in $SNAP/hermes-backup.zip"
   elif [ "$code" != 0 ] || [ ! -f "$SNAP/hermes-backup.zip" ]; then
     printf '    %s\n' "$out"
-    die "hermes backup failed (exit $code) — nothing else was done"
+    die "a2assistant backup failed (exit $code) — nothing else was done"
   else
     ok "hermes-backup.zip ($(du -h "$SNAP/hermes-backup.zip" | cut -f1), $((SECONDS - started))s)"
   fi
 
-  step "cloning HERMES_HOME and the desktop app's data"
+  step "cloning A2ASSISTANT_HOME and the desktop app's data"
   detect_clone_mode
   case "$CLONE_MODE" in
     clonefile|reflink) ok "copy-on-write clones ($CLONE_MODE): no file data is copied" ;;
@@ -302,8 +302,8 @@ cmd_pre() {
   # Everything but cache/: checkout, venv, PM store and node_modules come too,
   # so post is a true rollback rather than a re-download. SQLite sidecars travel
   # WITH their db on purpose (a raw copy of db+wal+shm is consistent).
-  clone_tree "$HERMES_HOME" "$SNAP/home" cache || die "cloning HERMES_HOME failed"
-  ok "HERMES_HOME -> $SNAP/home ($((SECONDS - started))s, cache/ left out)"
+  clone_tree "$A2ASSISTANT_HOME" "$SNAP/home" cache || die "cloning A2ASSISTANT_HOME failed"
+  ok "A2ASSISTANT_HOME -> $SNAP/home ($((SECONDS - started))s, cache/ left out)"
   local userdata_existed=false
   if [ -d "$USERDATA_DIR" ]; then
     userdata_existed=true
@@ -314,12 +314,12 @@ cmd_pre() {
   fi
 
   step "recording what this backup is"
-  printf '%s\n' "$HERMES_HOME" > "$SNAP/hermes-home.txt"
+  printf '%s\n' "$A2ASSISTANT_HOME" > "$SNAP/hermes-home.txt"
   cat > "$SNAP/manifest.json" <<EOF
 {
   "schema": 4,
   "created": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-  "hermes_home": "$HERMES_HOME",
+  "hermes_home": "$A2ASSISTANT_HOME",
   "install_dir": "$INSTALL_DIR",
   "userdata_dir": "$USERDATA_DIR",
   "userdata_dir_source": "$USERDATA_SOURCE",
@@ -328,11 +328,11 @@ cmd_pre() {
   "rehearsal_source": "$SOURCE"
 }
 EOF
-  ok "manifest.json (backup of $HERMES_HOME)"
+  ok "manifest.json (backup of $A2ASSISTANT_HOME)"
 
   step "pointing your install at $SOURCE"
   # insteadOf is a TRANSPORT rewrite. Your checkout's origin keeps the official
-  # URL, which matters: `hermes update` resolves its channel from the archive
+  # URL, which matters: `a2assistant update` resolves its channel from the archive
   # and validates it against `git config --get remote.origin.url`. Repointing
   # origin at a fork would make the update fail before any git work.
   # Straight at the fork: the updater follows main, so the fork's main is what
@@ -347,10 +347,10 @@ EOF
     git -C "$INSTALL_DIR" config --local --add "url.$SOURCE.insteadOf" "$url" \
       || die "could not write the URL redirect into $INSTALL_DIR/.git/config"
   done
-  touch "$HERMES_HOME/.skip_upstream_prompt"
+  touch "$A2ASSISTANT_HOME/.skip_upstream_prompt"
   printf '%s\n' "$target_sha" > "$SNAP/target-sha"
   ok "official repo URL now resolves to $SOURCE"
-  ok "created $HERMES_HOME/.skip_upstream_prompt (stops the 'add upstream remote?' prompt)"
+  ok "created $A2ASSISTANT_HOME/.skip_upstream_prompt (stops the 'add upstream remote?' prompt)"
 
   step "ready"
   say "your install is unchanged so far. nothing has been updated yet."
@@ -366,7 +366,7 @@ EOF
 cmd_status() {
   resolve_paths
   step "your install"
-  say "HERMES_HOME   $HERMES_HOME"
+  say "A2ASSISTANT_HOME   $A2ASSISTANT_HOME"
   say "install       $INSTALL_DIR"
   say "desktop data  $USERDATA_DIR ($USERDATA_SOURCE)"
   say "backup root   $BACKUP_ROOT"
@@ -384,7 +384,7 @@ cmd_status() {
   fi
   say "clone         $([ -d "$SNAP/home" ] && echo "present ($(sed -n 's/.*"clone_mode": "\(.*\)",/\1/p' "$SNAP/manifest.json" 2>/dev/null | head -1))" || echo 'none (restored already?)')"
   say "data backup   $([ -f "$SNAP/hermes-backup.zip" ] && echo hermes-backup.zip || echo none)"
-  say "marker        $([ -f "$HERMES_HOME/.skip_upstream_prompt" ] && echo present || echo absent)"
+  say "marker        $([ -f "$A2ASSISTANT_HOME/.skip_upstream_prompt" ] && echo present || echo absent)"
   local n=0
   while IFS= read -r _; do n=$((n + 1)); done \
     < <( { git config --global --get-regexp '^url\.' 2>/dev/null || true; git -C "$INSTALL_DIR" config --local --get-regexp '^url\.' 2>/dev/null || true; } )
@@ -421,7 +421,7 @@ cmd_post() {
   local userdata_existed
   userdata_existed="$(sed -n 's/.*"userdata_existed": \([a-z]*\).*/\1/p' "$SNAP/manifest.json" | head -1)"
   step "this will restore:"
-  say "  $HERMES_HOME  (everything except cache/, including the checkout)"
+  say "  $A2ASSISTANT_HOME  (everything except cache/, including the checkout)"
   say "  $USERDATA_DIR"
   say "  to how they were at $SNAP"
   confirm "Put everything back from $SNAP?"
@@ -429,15 +429,15 @@ cmd_post() {
   step "stopping this home's gateway"
   local hermes_exe
   hermes_exe="$(resolve_hermes_exe)" || die "no Hermes launcher for $INSTALL_DIR; stop this home's gateway before restoring"
-  HERMES_HOME="$HERMES_HOME" "$hermes_exe" gateway stop \
+  A2ASSISTANT_HOME="$A2ASSISTANT_HOME" "$hermes_exe" gateway stop \
     || die "could not stop this home's gateway; restore has not started"
   ok "stopped this home's gateway (close the desktop app before restoring its data)"
 
   local aside="$SNAP/replaced"
   [ ! -e "$aside" ] || die "$aside already exists (an interrupted post?) — nothing was changed; move it away and run post again"
 
-  step "restoring your HERMES_HOME"
-  swap_tree "$HERMES_HOME" "$SNAP/home" "$aside/home" cache \
+  step "restoring your A2ASSISTANT_HOME"
+  swap_tree "$A2ASSISTANT_HOME" "$SNAP/home" "$aside/home" cache \
     || die "restore stopped part-way: the post-update files are in $aside/home, the rest of the clone in $SNAP/home"
   ok "restored (cache/ left as it was)"
 
@@ -461,8 +461,8 @@ cmd_post() {
   ok "deleted the post-update trees ($aside)"
 
   step "done"
-  say "Your HERMES_HOME and the desktop app's data are back exactly as they were."
-  say "Open the desktop app once and run 'hermes doctor' to confirm."
+  say "Your A2ASSISTANT_HOME and the desktop app's data are back exactly as they were."
+  say "Open the desktop app once and run 'a2assistant doctor' to confirm."
   say "Nothing was judged or changed by this script; the backup at $SNAP"
   say "(including hermes-backup.zip) is yours to keep or delete."
 }

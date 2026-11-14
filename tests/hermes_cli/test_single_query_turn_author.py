@@ -1,6 +1,6 @@
 """A dispatcher-authored ``chat -q`` run carries its turn author, as ``chat -Q`` already does.
 
-``HERMES_TURN_AUTHOR`` names who wrote a one-shot run's prompts. The non-quiet ``-q`` path ignored it,
+``A2ASSISTANT_TURN_AUTHOR`` names who wrote a one-shot run's prompts. The non-quiet ``-q`` path ignored it,
 so the turn reached memory providers as the operator's and tool subprocesses inherited the variable.
 """
 
@@ -18,8 +18,8 @@ from agent.turn_author import TURN_AUTHOR_ENV
 
 def _one_shot_cli(monkeypatch):
     """A real HermesCLI whose ``chat`` runs the real agent-thread body against a recording agent."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
-    monkeypatch.delenv("HERMES_KANBAN_GOAL_MODE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_GOAL_MODE", raising=False)
     monkeypatch.setattr(cli, "_should_seed_interactive", lambda *a, **k: False)
     monkeypatch.setattr(cli, "_collect_query_images", lambda q, i: (q, []))
     monkeypatch.setattr(cli, "_collect_kanban_task_images", lambda imgs: [])

@@ -103,7 +103,7 @@ class _SourceTask:
         from hermes_state import SessionDB
         from hermes_state_runtime import begin_runtime_epoch
         import gateway.run
-        monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+        monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
         self.homes = {'other': str(tmp_path / 'profiles' / 'other')}
         monkeypatch.setattr(gateway.run, '_load_gateway_config', lambda: {'hosted_rooms': {'profiles': self.homes}})
         self.db = db = SessionDB(tmp_path / 'state.db')

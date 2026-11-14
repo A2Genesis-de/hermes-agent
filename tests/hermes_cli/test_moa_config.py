@@ -164,7 +164,7 @@ def test_config_key_aggregator_fields_are_the_slot_fields_clean_slot_keeps():
 
 def test_print_config_marks_aggregator_as_billed_and_warns_on_provider_mismatch(capsys):
     """#112359: the aggregator is the acting model billed for the run; when it sits on a
-    different provider than the main model, ``hermes moa list``/``configure`` say so."""
+    different provider than the main model, ``a2assistant moa list``/``configure`` say so."""
     from hermes_cli import moa_cmd
 
     moa_cmd._print_config({"model": {"provider": "openai-codex"}})

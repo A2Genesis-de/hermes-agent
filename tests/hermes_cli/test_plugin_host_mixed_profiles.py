@@ -38,7 +38,7 @@ def test_create_client_profile_loads_in_process_and_its_sibling_stays_hosted(tmp
     (plugin_dir / "__init__.py").write_text(TWO_PROFILE_PLUGIN, encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"isolation": "host"}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     with caplog.at_level(logging.WARNING, logger="providers"):
         hosted = providers.get_provider_profile("mixhosted")
@@ -73,7 +73,7 @@ def test_a_rescan_keeps_the_hosted_plugin_it_already_loaded(tmp_path, monkeypatc
     (plugin_dir / "__init__.py").write_text(TWO_PROFILE_PLUGIN, encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"isolation": "host"}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     try:
         with caplog.at_level(logging.WARNING, logger="providers"):

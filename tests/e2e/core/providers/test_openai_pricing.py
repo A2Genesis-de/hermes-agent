@@ -68,7 +68,7 @@ _SHIM = '''\
 """E2E vendor-boundary shim: route a hard-coded vendor origin to a loopback fake."""
 import os
 
-_pairs = [p.split("=", 1) for p in os.environ.get("HERMES_E2E_ORIGIN_REDIRECT", "").split(";") if "=" in p]
+_pairs = [p.split("=", 1) for p in os.environ.get("A2ASSISTANT_E2E_ORIGIN_REDIRECT", "").split(";") if "=" in p]
 if _pairs:
     import urllib.request
 
@@ -165,7 +165,7 @@ def _home(tmp_path: Path, catalog: FakeCatalog, dead: socket.socket) -> _ShimHom
     write_sitecustomize_shim(tmp_path / "shim", _SHIM)
     proxy = f"http://127.0.0.1:{dead.getsockname()[1]}"
     h.extra = {"PYTHONPATH": f"{tmp_path / 'shim'}:{REPO_ROOT}",
-               "HERMES_E2E_ORIGIN_REDIRECT": f"{VENDOR_ORIGIN}={catalog.origin}",
+               "A2ASSISTANT_E2E_ORIGIN_REDIRECT": f"{VENDOR_ORIGIN}={catalog.origin}",
                **{k: proxy for k in ("HTTP_PROXY", "http_proxy", "HTTPS_PROXY", "https_proxy")},
                "NO_PROXY": "127.0.0.1,localhost", "no_proxy": "127.0.0.1,localhost"}
     h.write({

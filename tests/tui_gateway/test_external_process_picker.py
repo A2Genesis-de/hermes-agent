@@ -1,8 +1,8 @@
 """A user-installed ``external_process`` provider must survive shared picker discovery and native selection.
 
-Drives a fake process profile (registered like a ``$HERMES_HOME/plugins/<name>`` model-provider plugin
+Drives a fake process profile (registered like a ``$A2ASSISTANT_HOME/plugins/<name>`` model-provider plugin
 would) through ``list_available_providers``, ``provider_model_ids``, the TUI/Desktop ``model.options``
-RPC, the ``hermes model`` setup picker and a session-scoped ``config.set model`` switch.
+RPC, the ``a2assistant model`` setup picker and a session-scoped ``config.set model`` switch.
 """
 import shutil
 import sys
@@ -33,7 +33,7 @@ def picker_env(monkeypatch, tmp_path):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     profile = _FakeProcessProfile(
         name="fake-process-provider", display_name="Fake Process Provider", auth_type="external_process",
         api_mode="chat_completions", base_url="process://fake-process-provider", process_command="fake-process-cli",

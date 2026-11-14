@@ -19,7 +19,7 @@ import pytest
 
 @pytest.fixture
 def fake_hermes(tmp_path, monkeypatch):
-    """Build a two-profile Hermes layout and point HERMES_HOME at
+    """Build a two-profile Hermes layout and point A2ASSISTANT_HOME at
     the hermes-security profile (matching the original-incident shape).
     """
     root = tmp_path / "fake-hermes"
@@ -34,7 +34,7 @@ def fake_hermes(tmp_path, monkeypatch):
     coder_home = root / "profiles" / "coder"
     (coder_home / "skills").mkdir(parents=True)
 
-    monkeypatch.setenv("HERMES_HOME", str(sec_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(sec_home))
 
     import hermes_constants
     monkeypatch.setattr(hermes_constants, "get_default_hermes_root", lambda: root)

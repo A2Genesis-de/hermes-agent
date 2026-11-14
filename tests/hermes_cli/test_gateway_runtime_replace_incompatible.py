@@ -2,8 +2,8 @@
 
 Upgrade path (Windows Desktop report, TUI "retrying in 30s" forever): the pre-protocol gateway a user
 left running answers ``identify`` without ``runtime_protocol``. Every client of this install ensures
-through ``ensure_gateway_runtime`` (TUI bootstrap, Desktop's ``hermes gateway ensure``), so that is
-where the old owner is stopped the way ``hermes gateway stop`` stops it and the current one started.
+through ``ensure_gateway_runtime`` (TUI bootstrap, Desktop's ``a2assistant gateway ensure``), so that is
+where the old owner is stopped the way ``a2assistant gateway stop`` stops it and the current one started.
 A gateway of another install (a home that resolves outside this install's root) stays refused.
 """
 from __future__ import annotations

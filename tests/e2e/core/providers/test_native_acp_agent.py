@@ -3,10 +3,10 @@
 An ``external_process`` model provider makes Hermes spawn an external ACP agent per model call and
 speak the Agent Client Protocol to it over stdio through the public ``agent.acp_client.ACPClient``.
 Here the provider is ``fake-acp``, a user model-provider plugin written into the temp
-``HERMES_HOME`` (``tests/fakes/providers/fake_acp_agent.py::install_provider_plugin``) whose
+``A2ASSISTANT_HOME`` (``tests/fakes/providers/fake_acp_agent.py::install_provider_plugin``) whose
 ``create_client`` returns an ``ACPClient`` subclass, and the agent is that module run as a script: a
 fake that validates every request against the published ACP schema and replays scripted turns.
-Everything on the Hermes side is real: the ``hermes chat -q`` process, user plugin discovery, runtime
+Everything on the Hermes side is real: the ``a2assistant chat -q`` process, user plugin discovery, runtime
 resolution from ``config.yaml`` + the profile ``.env`` (the profile's ``process_command_env_vars`` /
 ``process_args_env_var``), the ACP client, the agent loop, the ``read_file`` tool and ``state.db``.
 

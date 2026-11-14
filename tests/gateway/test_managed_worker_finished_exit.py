@@ -43,7 +43,7 @@ def test_finished_worker_keeps_its_result_on_slow_or_nonzero_exit(tmp_path, monk
     from hermes_state import SessionDB
     from hermes_state_runtime import begin_runtime_epoch, claim_session_input
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')
     # The worker's per-call usage writes, already committed by the time it reports 'finished'.

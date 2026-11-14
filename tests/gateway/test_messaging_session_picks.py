@@ -13,7 +13,7 @@ from gateway.run import GatewayRunner
 
 @pytest.fixture(autouse=True)
 def _home(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
 
 
 async def _compressed_chat(tmp_path):

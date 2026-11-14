@@ -244,7 +244,7 @@ export default function SystemPage() {
   const [importFile, setImportFile] = useState<File | null>(null);
   const [importPath, setImportPath] = useState("");
   // Restore-from-backup is destructive (overwrites the live config) and the
-  // spawned `hermes import` runs non-interactively (stdin is /dev/null), so
+  // spawned `a2assistant import` runs non-interactively (stdin is /dev/null), so
   // its CLI "Continue? [y/N]" prompt would auto-abort. The dashboard owns the
   // consent: confirm here, then call the endpoint with force=true.
   const [importingBackup, setImportingBackup] = useState(false);
@@ -695,8 +695,8 @@ export default function SystemPage() {
         title="Update A2Assistant?"
         description={
           updateInfo && updateInfo.behind && updateInfo.behind > 0
-            ? `This will run 'hermes update' (${updateInfo.update_command}) and pull ${updateInfo.behind} new commit${updateInfo.behind === 1 ? "" : "s"}. The gateway restarts when the update finishes; the current session keeps its prompt cache until then.`
-            : `This will run 'hermes update' (${updateInfo?.update_command ?? "hermes update"}) and restart the gateway when it finishes.`
+            ? `This will run 'a2assistant update' (${updateInfo.update_command}) and pull ${updateInfo.behind} new commit${updateInfo.behind === 1 ? "" : "s"}. The gateway restarts when the update finishes; the current session keeps its prompt cache until then.`
+            : `This will run 'a2assistant update' (${updateInfo?.update_command ?? "a2assistant update"}) and restart the gateway when it finishes.`
         }
         confirmLabel="Update now"
       />
@@ -1023,7 +1023,7 @@ export default function SystemPage() {
             )}
             {!portal?.logged_in && (
               <p className="text-xs text-muted-foreground">
-                Log in with <span className="font-mono">hermes portal</span>.
+                Log in with <span className="font-mono">a2assistant portal</span>.
               </p>
             )}
           </CardContent>
@@ -1313,7 +1313,7 @@ export default function SystemPage() {
                   id="import-path"
                   value={importPath}
                   onChange={(e) => setImportPath(e.target.value)}
-                  placeholder="$HERMES_HOME/backups/hermes-backup.zip"
+                  placeholder="$A2ASSISTANT_HOME/backups/hermes-backup.zip"
                 />
               </div>
               <Button

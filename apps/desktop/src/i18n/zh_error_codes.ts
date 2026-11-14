@@ -105,6 +105,6 @@ export const zhErrorCodes: Partial<ThreadCopy['errorCodes']> = {
     title: '无法连接本地模型服务器',
     body: '本地模型服务器尚未运行：它可能仍在启动。请稍后重试，或切换到其他模型。',
     bodyNoRetry:
-      '本地模型服务器已关闭。请在 A2Assistant 桌面应用或终端中的 `hermes model` 启动它，或切换到其他模型。'
+      '本地模型服务器已关闭。请在 A2Assistant 桌面应用或终端中的 `a2assistant model` 启动它，或切换到其他模型。'
   }
 }

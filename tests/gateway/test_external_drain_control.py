@@ -2,12 +2,12 @@
 
 Task 2.2/2.3. Two layers:
   * drain_control.py — the presence-based marker contract (write/clear/read,
-    HERMES_HOME-scoped, never-raises).
+    A2ASSISTANT_HOME-scoped, never-raises).
   * GatewayRunner enter/exit/watcher + the new-turn accept gate — the
     reversible state machine driven by the marker.
 
 Mocked tests are necessary-not-sufficient here (the HARD live-validation gate,
-Q-B, exercises a real `hermes gateway run`); these lock the unit contract.
+Q-B, exercises a real `a2assistant gateway run`); these lock the unit contract.
 """
 from __future__ import annotations
 
@@ -30,7 +30,7 @@ from datetime import UTC
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     return tmp_path
 
 

@@ -1,4 +1,4 @@
-"""``hermes sessions list|browse|stats --source cli`` must see gateway rows stored as ``local``."""
+"""``a2assistant sessions list|browse|stats --source cli`` must see gateway rows stored as ``local``."""
 from argparse import Namespace
 
 from hermes_state import SessionDB

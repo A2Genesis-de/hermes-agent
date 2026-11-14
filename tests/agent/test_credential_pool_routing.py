@@ -258,7 +258,7 @@ class TestApiKeyHintRealPool:
                 }
             )
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         from agent.credential_pool import load_pool
 
         return load_pool("openrouter")
@@ -311,7 +311,7 @@ class TestFailureAttribution:
     def _make_pool(self, tmp_path, monkeypatch, entries):
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         # Keep host Anthropic/Claude credentials out of this fixture. load_pool()
         # auto-seeds ~/.claude/.credentials.json and env keys when anthropic is
         # explicitly configured on the machine, which turns a deliberate

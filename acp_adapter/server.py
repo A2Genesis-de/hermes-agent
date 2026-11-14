@@ -333,7 +333,7 @@ class HermesACPAgent(SlashCommandsMixin, acp.Agent):
 
     def _build_model_state(self, state: SessionState) -> SessionModelState | None:
         """Authenticated providers + models, from the shared Hermes inventory (same substrate
-        as ``hermes model``/TUI/dashboard) so the selector isn't just the current curated list."""
+        as ``a2assistant model``/TUI/dashboard) so the selector isn't just the current curated list."""
         model = str(state.model or getattr(state.agent, "model", "") or "").strip()
         provider = getattr(state.agent, "provider", None) or detect_provider() or "openrouter"
         try:
@@ -803,7 +803,7 @@ class HermesACPAgent(SlashCommandsMixin, acp.Agent):
         ContextVar writes are isolated from concurrent sessions.
 
         Approval routing is thread-local, so it MUST be bound here, not on the loop thread.
-        Interactive routing is a ``tools.approval`` contextvar, not ``HERMES_INTERACTIVE`` in
+        Interactive routing is a ``tools.approval`` contextvar, not ``A2ASSISTANT_INTERACTIVE`` in
         os.environ, so concurrent workers can't race a global flag onto the non-interactive
         auto-approve path (GHSA-96vc-wcxf-jjff)."""
         agent = state.agent
@@ -841,8 +841,8 @@ class HermesACPAgent(SlashCommandsMixin, acp.Agent):
                 _bind_guarded(stack, "edit approval requester", _edit_approval)
             stack.callback(reset_hermes_interactive_context, set_hermes_interactive_context(True))
             # Tools tag side-effects with the ACP session (``kanban_create``); save/restore it.
-            stack.callback(_restore_env, "HERMES_SESSION_ID", os.environ.get("HERMES_SESSION_ID"))
-            os.environ["HERMES_SESSION_ID"] = session_id
+            stack.callback(_restore_env, "A2ASSISTANT_SESSION_ID", os.environ.get("A2ASSISTANT_SESSION_ID"))
+            os.environ["A2ASSISTANT_SESSION_ID"] = session_id
 
             # Auto-titling fires in the turn prologue; push the title now as a session-info update.
             def _notify_title_update(_title: str, _source: str) -> None:

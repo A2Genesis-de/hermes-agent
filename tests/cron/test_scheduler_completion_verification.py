@@ -79,11 +79,11 @@ def _run_booked_job(monkeypatch, tmp_path):
     )
     # The runtime key is read from the environment (never a literal here);
     # AIAgent and SessionDB are fakes above, so the value is never used.
-    monkeypatch.setenv("HERMES_TEST_RUNTIME_KEY", "unused-placeholder")
+    monkeypatch.setenv("A2ASSISTANT_TEST_RUNTIME_KEY", "unused-placeholder")
 
     def _fake_runtime(**_kwargs):
         return {
-            "api_key": os.environ.get("HERMES_TEST_RUNTIME_KEY", ""),
+            "api_key": os.environ.get("A2ASSISTANT_TEST_RUNTIME_KEY", ""),
             "base_url": None,
             "provider": "test-provider",
             "api_mode": None,

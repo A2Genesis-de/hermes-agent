@@ -133,7 +133,7 @@ TOOLSETS = {
     "delegation": _ts("Spawn subagents with isolated context for complex subtasks", ["delegate_task"]),
     "kanban": _ts(
         "Kanban multi-agent coordination — only active when the agent is spawned by "
-        "the kanban dispatcher (HERMES_KANBAN_TASK env set). The dispatcher runs "
+        "the kanban dispatcher (A2ASSISTANT_KANBAN_TASK env set). The dispatcher runs "
         "inside the gateway by default; see `kanban.dispatch_in_gateway` in "
         "config.yaml. Lets workers mark tasks done with structured handoffs, enter "
         "first-class review (request_review — not a block), return review changes, "
@@ -174,7 +174,7 @@ TOOLSETS = {
 
     # Mirrors hermes-cli; `hermes tools` platform config filters it down and
     # _get_platform_tools() drops _DEFAULT_OFF_TOOLSETS unless user-enabled.
-    "hermes-cron": _bundle("Default cron toolset - same core tools as hermes-cli; gated by `hermes tools`"),
+    "hermes-cron": _bundle("Default cron toolset - same core tools as hermes-cli; gated by `a2assistant tools`"),
     "hermes-telegram": _bundle("Telegram bot toolset - full access for personal use (terminal has safety checks)"),
     "hermes-webhook": _ts("Webhook toolset - receive and process external webhook events", _HERMES_WEBHOOK_SAFE_TOOLS),
     "hermes-gateway": _ts(
@@ -263,7 +263,7 @@ def bundle_non_core_tools(toolset_name: str) -> set[str]:
     """A bundle's tools minus _HERMES_CORE_TOOLS (one level of includes).
 
     Disabling a `core + extras` bundle must not strip the core tools every other
-    toolset shares. One `includes` pass suffices (only hermes-gateway nests
+    toolset shares. One `includes` pass suffices (only a2assistant-gateway nests
     bundles). Unknown names: full resolution minus core.
     """
     core = set(_HERMES_CORE_TOOLS)

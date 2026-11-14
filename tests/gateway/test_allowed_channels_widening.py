@@ -101,7 +101,7 @@ class TestTelegramAllowedChats:
             "    - -200\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("TELEGRAM_ALLOWED_CHATS", "__sentinel__")
         monkeypatch.delenv("TELEGRAM_ALLOWED_CHATS")
 

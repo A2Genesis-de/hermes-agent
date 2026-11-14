@@ -1,4 +1,4 @@
-"""`hermes update` refuses a target that predates the gateway runtime once a state.db holds ledger rows.
+"""`a2assistant update` refuses a target that predates the gateway runtime once a state.db holds ledger rows.
 
 Downgrading is unsupported (#106742, jquesnelle item 6): the older release cannot delete or prune
 the sessions with runtime history, so the move is refused before the tree changes and the message
@@ -61,7 +61,7 @@ def test_a_pre_runtime_target_is_refused_before_the_move_with_the_snapshot_that_
     from hermes_cli import update_cmd
 
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr("hermes_cli.backup._sibling_profile_homes", lambda h: [])
     monkeypatch.setattr(update_cmd._commit, "preflight_refusal", lambda *a, **k: None)
     monkeypatch.setattr(hermes_main, "PROJECT_ROOT", repo)
@@ -80,7 +80,7 @@ def test_a_pre_runtime_target_is_refused_before_the_move_with_the_snapshot_that_
     out = capsys.readouterr().out
     assert "Downgrading is unsupported" in out and str(home / "state.db") in out
     assert "/snapshot restore 20261001-000000-pre-update" in out and "20261008" not in out
-    assert "hermes gateway stop" in out and "No update was applied" in out
+    assert "a2assistant gateway stop" in out and "No update was applied" in out
 
 
 def test_forward_updates_and_stores_without_ledger_rows_are_never_refused(repo, tmp_path, monkeypatch):
@@ -101,14 +101,14 @@ def test_forward_updates_and_stores_without_ledger_rows_are_never_refused(repo, 
 
 @pytest.mark.parametrize("divergent", [True, False], ids=["beside-history", "in-history"])
 def test_check_holds_a_release_that_update_would_refuse(repo, tmp_path, monkeypatch, capsys, divergent):
-    """`hermes update --check` must neither offer nor promise a move back to a release the update then
+    """`a2assistant update --check` must neither offer nor promise a move back to a release the update then
     refuses (#139099): one cut beside this checkout's history, or one it already contains."""
     from types import SimpleNamespace
 
     from hermes_cli import source_releases, update_cmd_check
 
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr("hermes_cli.backup._sibling_profile_homes", lambda h: [])
     release = _git(repo, "rev-parse", "old-release")
     if divergent:

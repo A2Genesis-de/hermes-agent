@@ -15,7 +15,7 @@ def home(tmp_path, monkeypatch):
 
     path = tmp_path / ".hermes"
     path.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(path))
     monkeypatch.setenv("API_SERVER_KEY", "gateway-api-key-1234567890")
     monkeypatch.setattr(srv, "_run_idempotency_store", DurableRunStore(), raising=False)
     methods_groups.stop_hosted_room_service(timeout=1.0)

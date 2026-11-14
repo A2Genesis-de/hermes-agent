@@ -1,4 +1,4 @@
-"""`hermes gateway attach`: the public attach for a third-party local client (#142159).
+"""`a2assistant gateway attach`: the public attach for a third-party local client (#142159).
 
 The real CLI runs against a real control socket with a real ticket store: it prints the owner's
 WebSocket URL and one single-use ticket bound to the caller's profile, or the bootstrap's verdict.
@@ -34,7 +34,7 @@ def home(request):
 
 
 def _attach(home, *flags):
-    env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": str(REPO)}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home), "PYTHONPATH": str(REPO)}
     return subprocess.run([sys.executable, "-m", "hermes_cli.main", "gateway", "attach", "--json", *flags],
                           cwd=REPO, env=env, capture_output=True, text=True, timeout=120, stdin=subprocess.DEVNULL,
                           check=False)

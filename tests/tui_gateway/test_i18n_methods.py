@@ -30,7 +30,7 @@ def test_languages_and_catalog_serve_pack_layers_per_surface(tmp_path, monkeypat
     home = tmp_path / "home"
     (home / "locales").mkdir(parents=True)
     (home / "locales" / "de.yaml").write_text(yaml.safe_dump({"approval": {"denied": "Overlay-DE"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", home)
     i18n.reset_language_cache()
 
@@ -69,7 +69,7 @@ def test_catalog_answers_for_the_requested_profile_home(tmp_path, monkeypatch, c
     (launch / "locales").mkdir(parents=True)
     (named / "locales").mkdir(parents=True)
     (named / "locales" / "de.yaml").write_text(yaml.safe_dump({"approval": {"denied": "Nur named"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(server, "_hermes_home", launch)
     monkeypatch.setattr(server, "_profile_home", lambda name: str(named) if name == "named" else None)
     i18n.reset_language_cache()
@@ -98,7 +98,7 @@ def test_cold_gateway_serves_an_installed_pack_before_any_agent_exists(tmp_path,
         encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"enabled": ["hermes-lang-ko"]}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", home)
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     i18n.reset_language_cache()
@@ -120,7 +120,7 @@ def test_failed_plugin_discovery_still_answers_with_bundled_languages(tmp_path, 
     def boom(force=False):
         raise RuntimeError("plugin loader broke")
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(server, "_hermes_home", tmp_path)
     monkeypatch.setattr(plugins_mod, "discover_plugins", boom)
     i18n.reset_language_cache()
@@ -153,7 +153,7 @@ def test_slow_plugin_discovery_does_not_hold_up_other_requests(method, tmp_path,
         entered.set()
         assert release.wait(10)
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(server, "_hermes_home", tmp_path)
     monkeypatch.setattr(plugins_mod, "discover_plugins", slow_discovery)
     transport = Transport()

@@ -1,4 +1,4 @@
-"""``hermes logs`` subcommand parser."""
+"""``a2assistant logs`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -15,20 +15,20 @@ def build_logs_parser(subparsers, *, cmd_logs: Callable) -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
 Examples:
-    hermes logs                    Show last 50 lines of agent.log
-    hermes logs -f                 Follow agent.log in real time
-    hermes logs errors             Show last 50 lines of errors.log
-    hermes logs gateway -n 100     Show last 100 lines of gateway.log
-    hermes logs gui -f             Follow gui.log in real time
-    hermes logs desktop -f         Follow desktop.log (Electron app boot/backend)
-    hermes logs update             Show last 50 lines of update.log (hermes update mirror)
-    hermes logs handoff            Show last 50 lines of desktop-update-handoff.log
-    hermes logs --level WARNING    Only show WARNING and above
-    hermes logs --session abc123   Filter by session ID
-    hermes logs --component tools  Only show tool-related lines
-    hermes logs --since 1h         Lines from the last hour
-    hermes logs --since 30m -f     Follow, starting from 30 min ago
-    hermes logs list               List available log files with sizes
+    a2assistant logs                    Show last 50 lines of agent.log
+    a2assistant logs -f                 Follow agent.log in real time
+    a2assistant logs errors             Show last 50 lines of errors.log
+    a2assistant logs gateway -n 100     Show last 100 lines of gateway.log
+    a2assistant logs gui -f             Follow gui.log in real time
+    a2assistant logs desktop -f         Follow desktop.log (Electron app boot/backend)
+    a2assistant logs update             Show last 50 lines of update.log (a2assistant update mirror)
+    a2assistant logs handoff            Show last 50 lines of desktop-update-handoff.log
+    a2assistant logs --level WARNING    Only show WARNING and above
+    a2assistant logs --session abc123   Filter by session ID
+    a2assistant logs --component tools  Only show tool-related lines
+    a2assistant logs --since 1h         Lines from the last hour
+    a2assistant logs --since 30m -f     Follow, starting from 30 min ago
+    a2assistant logs list               List available log files with sizes
 """)
     logs_parser.add_argument(
         "log_name",

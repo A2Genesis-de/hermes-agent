@@ -31,7 +31,7 @@ if not os.environ.get("OPENROUTER_API_KEY"):
 for var in list(os.environ):
     if var.endswith(("_API_KEY", "_TOKEN")) and var != "OPENROUTER_API_KEY":
         os.environ.pop(var, None)
-os.environ.pop("HERMES_PROFILE", None)
+os.environ.pop("A2ASSISTANT_PROFILE", None)
 
 from sandbox import isolate_host
 
@@ -44,7 +44,7 @@ isolate_host(tmp_root, hermes_home)
 with open(os.path.join(hermes_home, "config.yaml"), "w", encoding="utf-8") as f:
     f.write(f"model:\n  provider: openrouter\n  model: {MODEL}\n")
 
-os.environ["HERMES_HOME"] = hermes_home
+os.environ["A2ASSISTANT_HOME"] = hermes_home
 os.environ["TERMINAL_CWD"] = workspace
 os.chdir(workspace)
 sys.path.insert(0, HARNESS)

@@ -17,7 +17,7 @@ from urllib.parse import urlparse
 def recipient_key(raw_target: str, sender: Any) -> str:
     """The author id a turn started by ``raw_target`` would carry here, resolved in ``_dispatch``'s
     order: a registered peer, then a connection-qualified relay row, then a local bot (folder id,
-    ``hermes``, friendly name), then any relay row."""
+    ``a2assistant``, friendly name), then any relay row."""
     from agent.turn_author import bot_author_id
     from tools.bot_mode_dm import _PEER_TARGET_RE, _resolve_local_name
 

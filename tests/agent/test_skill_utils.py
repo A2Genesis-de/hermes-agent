@@ -57,7 +57,7 @@ skills:
         parse_count += 1
         return real_load(stream)
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     skill_utils._external_dirs_cache_clear()
     getattr(skill_utils, "_raw_config_cache_clear", lambda: None)()
     # The file config backend parses through utils.fast_safe_load.
@@ -224,7 +224,7 @@ class TestMultiprofileRawConfigCache:
 
 
 class TestParseConfigStringList:
-    """#86661: `hermes config set` and JSON-mode editor saves store lists as
+    """#86661: `a2assistant config set` and JSON-mode editor saves store lists as
     quoted strings (e.g. '["a","b"]'). Treating such a string as a single name
     made curated disabled lists silently filter nothing."""
 
@@ -272,7 +272,7 @@ class TestDisabledSkillsJsonArrayString:
             "skills:\n  disabled: '[\"skill-a\",\"skill-b\"]'\n",
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         from agent import skill_utils
 
         getattr(skill_utils, "_raw_config_cache_clear", lambda: None)()
@@ -291,7 +291,7 @@ def test_skill_config_home_vars_use_subprocess_home(tmp_path, monkeypatch):
     subprocess_home = hermes_home / "home"
     subprocess_home.mkdir(parents=True)
     (hermes_home / "config.yaml").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv("HOME", str(hermes_home))
     monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
     monkeypatch.setenv("PROJECT_ROOT", "/proj")

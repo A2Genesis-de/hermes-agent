@@ -359,7 +359,7 @@ def _print_nous_401_diagnostics(agent: Any, api_error: Exception) -> None:
     _plines(
         agent,
         "   Troubleshooting:",
-        "     • Re-authenticate: hermes auth add nous",
+        "     • Re-authenticate: a2assistant auth add nous",
         "     • Check credits / billing: https://portal.nousresearch.com",
         f"     • Verify stored credentials: {display_hermes_home()}/auth.json",
         "     • Switch providers temporarily: /model <model> --provider openrouter",
@@ -378,7 +378,7 @@ def _print_anthropic_401_diagnostics(agent: Any, key: Any) -> None:
         _plines(
             agent,
             "   Auth method: Microsoft Entra ID (httpx event hook)",
-            "   Run `hermes doctor` for credential-chain diagnostics, or",
+            "   Run `a2assistant doctor` for credential-chain diagnostics, or",
             "   `az login` if your developer session expired.",
         )
     else:
@@ -395,10 +395,10 @@ def _print_anthropic_401_diagnostics(agent: Any, key: Any) -> None:
         f"     • Check ANTHROPIC_TOKEN in {_dhh}/.env for A2Assistant-managed OAuth/setup tokens",
         f"     • Check ANTHROPIC_API_KEY in {_dhh}/.env for API keys or legacy token values",
         "     • For API keys: verify at https://platform.claude.com/settings/keys",
-        "     • A2Assistant login (OAuth): run 'hermes auth add anthropic' to sign in again, then retry",
-        "     • Inspect what A2Assistant holds: hermes auth list anthropic",
-        "     • Legacy cleanup: hermes config set ANTHROPIC_TOKEN \"\"",
-        "     • Clear stale keys: hermes config set ANTHROPIC_API_KEY \"\"",
+        "     • A2Assistant login (OAuth): run 'a2assistant auth add anthropic' to sign in again, then retry",
+        "     • Inspect what A2Assistant holds: a2assistant auth list anthropic",
+        "     • Legacy cleanup: a2assistant config set ANTHROPIC_TOKEN \"\"",
+        "     • Clear stale keys: a2assistant config set ANTHROPIC_API_KEY \"\"",
     )
 
 
@@ -905,14 +905,14 @@ def _print_nonretryable_auth_guidance(
             _vlines(
                 agent,
                 "   💡 xAI OAuth token was rejected (HTTP 401). To fix:",
-                "      re-authenticate with xAI Grok OAuth (SuperGrok / Premium+) from `hermes model`.",
+                "      re-authenticate with xAI Grok OAuth (SuperGrok / Premium+) from `a2assistant model`.",
             )
         else:  # nous
             _vlines(
                 agent,
                 "   💡 Nous Portal OAuth token was rejected (HTTP 401). Your token may be",
                 "      expired, revoked, or your account may be out of credits. To fix:",
-                "      1. Re-authenticate: hermes portal",
+                "      1. Re-authenticate: a2assistant portal",
                 "      2. Check your portal account: https://portal.nousresearch.com",
             )
             # ``:free`` is OpenRouter slug syntax; Nous Portal will reject the model
@@ -934,7 +934,7 @@ def _print_nonretryable_auth_guidance(
     _vlines(
         agent,
         "   💡 Your API key was rejected by the provider. Check:",
-        "      • Is the key valid? Run: hermes setup",
+        "      • Is the key valid? Run: a2assistant setup",
         f"      • Does your account have access to {model}?",
     )
     if base_url_host_matches(str(base_url), "openrouter.ai"):
@@ -1089,7 +1089,7 @@ def nonretryable_client_error_result(
         _vlines(
             agent,
             f"   💡 {CONTENT_POLICY_NEXT_STEPS}",
-            "      To route future blocks to another provider automatically: hermes fallback add",
+            "      To route future blocks to another provider automatically: a2assistant fallback add",
         )
     # TLS certificate failures are environment problems — name the knobs for each cause.
     if classified.reason == FailoverReason.ssl_cert_verification:
@@ -1527,7 +1527,7 @@ def free_tier_cooldown_ends_turn(agent: Any, api_error: Exception, base_url: Any
     sits through. The free tier's pause is service-wide: a 600 s retry met a second 429 while its
     1069 s window ran, so the caller ends the attempt cycle now (fallback, or the reset time and
     the sign-in / model doors). Every other provider, and every unattended run (cron, messaging,
-    ``hermes chat -q``), waits out its ``Retry-After``: a paid bucket reopens on time, and
+    ``a2assistant chat -q``), waits out its ``Retry-After``: a paid bucket reopens on time, and
     ``fallback.min_switch_reset_seconds`` relies on that wait."""
     from agent.retry_utils import LIVE_RETRY_WAIT_CAP_S, provider_retry_after_seconds
     from agent.session_source import is_attended

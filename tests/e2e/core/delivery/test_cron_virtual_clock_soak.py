@@ -2,7 +2,7 @@
 
 Real: ``InProcessCronScheduler.start`` (the gateway's ticker loop: startup recovery, tick, heartbeat
 bookkeeping), ``cron.scheduler.tick`` / due scan / pending slots / fire claims + heartbeat /
-executions ledger / delivery routing / ``mark_job_run``, a second OS process sharing HERMES_HOME
+executions ledger / delivery routing / ``mark_job_run``, a second OS process sharing A2ASSISTANT_HOME
 (its ticker races the in-process one for every tick; the tick lock admits one). Fire-claim
 contention between two OS processes is ``test_two_replicas_contend_for_every_fire``.
 Fake: the agent (``cron.scheduler.run_job``) and the platform wire (``_send_to_platform``), which
@@ -563,13 +563,13 @@ class Soak:
 @pytest.fixture
 def soak_env(tmp_path, monkeypatch):
     for key in list(os.environ):
-        if key.endswith("_API_KEY") or key in ("INVOCATION_ID", "HERMES_TIMEZONE"):
+        if key.endswith("_API_KEY") or key in ("INVOCATION_ID", "A2ASSISTANT_TIMEZONE"):
             monkeypatch.delenv(key, raising=False)
     home_root = tmp_path / "home"
     hermes_home = home_root / ".hermes"
     hermes_home.mkdir(parents=True)
     monkeypatch.setenv("HOME", str(home_root))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     original_tz = os.environ.get("TZ")
     yield tmp_path, hermes_home, monkeypatch
     if original_tz is None:

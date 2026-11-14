@@ -37,7 +37,7 @@ describe('completionRequestForInput', () => {
   // The shared gateway's own cwd is its daemon folder: the listing must name the session's.
   it('lists paths in the session folder, else the launch folder', () => {
     try {
-      vi.stubEnv('HERMES_CWD', '/launch/dir')
+      vi.stubEnv('A2ASSISTANT_CWD', '/launch/dir')
       patchUiState({ info: { cwd: '/work/repo' } as never })
       expect(completionRequestForInput('read @file:sr')).toMatchObject({
         method: 'complete.path',

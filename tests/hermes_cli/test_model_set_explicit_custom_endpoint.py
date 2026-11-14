@@ -26,7 +26,7 @@ LAYOUTS = {
 def isolated_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     import hermes_cli.config as config_mod
 
     importlib.reload(config_mod)

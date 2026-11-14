@@ -33,8 +33,8 @@ def test_terminal_run_env_starts_from_the_sessions_toolchain(daemon_env):
         assert env['NVM_DIR'] == '/client/.nvm'
         # The backend's own terminal.env still wins over the client's.
         assert _make_run_env({'NVM_DIR': '/configured'})['NVM_DIR'] == '/configured'
-    with client_env_scope({'HERMES_EPHEMERAL_SYSTEM_PROMPT': 'p'}):  # behaviour names are not tool env
-        assert 'HERMES_EPHEMERAL_SYSTEM_PROMPT' not in _make_run_env({})
+    with client_env_scope({'A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT': 'p'}):  # behaviour names are not tool env
+        assert 'A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT' not in _make_run_env({})
     env = _make_run_env({})  # messaging/cron/Desktop: the gateway's own environment
     assert '/daemon/bin' in _parts(env) and 'NVM_DIR' not in env
 
@@ -55,14 +55,14 @@ def test_tool_envs_carry_the_behaviour_values_the_session_uses(daemon_env, monke
     def envs():
         return (_make_run_env({}), ProcessRegistry._spawn_env({}),
                 _build_child_env(rpc_endpoint='sock', rpc_token='t', tmpdir=str(tmp_path), child_python=sys.executable))
-    with client_env_scope({**CLIENT, 'HERMES_EPHEMERAL_SYSTEM_PROMPT': 'client prompt'}):
+    with client_env_scope({**CLIENT, 'A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT': 'client prompt'}):
         for env in envs():
             assert not set(BEHAVIOUR_ENV) & set(env), env
     with client_env_scope(CLIENT, local=False):
         terminal = envs()[0]
-        assert 'HERMES_EPHEMERAL_SYSTEM_PROMPT' not in terminal and 'HERMES_INFERENCE_PROVIDER' not in terminal
-        assert terminal['HERMES_PREFILL_MESSAGES_FILE'] == daemon['HERMES_PREFILL_MESSAGES_FILE']
-    assert envs()[0]['HERMES_EPHEMERAL_SYSTEM_PROMPT'] == daemon['HERMES_EPHEMERAL_SYSTEM_PROMPT']
+        assert 'A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT' not in terminal and 'A2ASSISTANT_INFERENCE_PROVIDER' not in terminal
+        assert terminal['A2ASSISTANT_PREFILL_MESSAGES_FILE'] == daemon['A2ASSISTANT_PREFILL_MESSAGES_FILE']
+    assert envs()[0]['A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT'] == daemon['A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT']
 
 
 def test_background_process_env_starts_from_the_sessions_toolchain(daemon_env):
@@ -88,12 +88,12 @@ def test_execute_code_child_env_starts_from_the_sessions_toolchain(daemon_env, t
 # execute_code's secret names (BEARER, CREDS, DSN, WEBHOOK...) and Hermes control names never travel, even
 # under a built-in prefix (NODE_, CONDA_) or a profile's configured extra names.
 REFUSED = {'NODE_BEARER': 'b', 'NODE_CREDS': 'c', 'CONDA_DSN': 'postgres://u:p@h/db', 'DEPLOY_WEBHOOK': 'https://h',
-           'HERMES_KANBAN_DB': '/board.db', 'HERMES_DELEGATED_CHILD_CONTEXT': '1'}
+           'A2ASSISTANT_KANBAN_DB': '/board.db', 'A2ASSISTANT_DELEGATED_CHILD_CONTEXT': '1'}
 
 
 def test_credential_and_control_names_are_refused_by_execute_codes_secret_policy():
     from agent.session_client_env import accept_client_env, collect_client_env
-    config = {'terminal': {'client_env_passthrough': ['DEPLOY_WEBHOOK', 'HERMES_KANBAN_DB', 'MY_TOOLCHAIN_HOME']}}
+    config = {'terminal': {'client_env_passthrough': ['DEPLOY_WEBHOOK', 'A2ASSISTANT_KANBAN_DB', 'MY_TOOLCHAIN_HOME']}}
     sent = {**REFUSED, 'NVM_DIR': '/client/.nvm', 'MY_TOOLCHAIN_HOME': '/opt/tc', 'PATH': '/client/bin'}
     kept = {'NVM_DIR': '/client/.nvm', 'MY_TOOLCHAIN_HOME': '/opt/tc', 'PATH': '/client/bin'}
     assert accept_client_env(sent, config) == kept  # the gateway, before anything is stored
@@ -147,7 +147,7 @@ async def _owner(home, monkeypatch):
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
     monkeypatch.setattr(run, '_hermes_home', home)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     store = SessionStore(home / 'sessions', GatewayConfig())
     runner = SimpleNamespace(session_store=store, _session_db=store._db, adapters={}, _draining=False,
                              _cached_agent_for=lambda route: None, _adapter_for_source=lambda source: None,

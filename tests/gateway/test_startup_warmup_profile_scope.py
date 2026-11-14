@@ -24,9 +24,9 @@ PORTAL = "https://portal.staging-nousresearch.com"
 def multiplex_home(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
-    (home / ".env").write_text(f"HERMES_PORTAL_BASE_URL={PORTAL}\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_PORTAL_BASE_URL", raising=False)
+    (home / ".env").write_text(f"A2ASSISTANT_PORTAL_BASE_URL={PORTAL}\n")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_PORTAL_BASE_URL", raising=False)
     monkeypatch.delenv("NOUS_PORTAL_BASE_URL", raising=False)
     secret_scope.set_multiplex_active(True)
     try:
@@ -81,8 +81,8 @@ def test_single_profile_warmup_keeps_environ_semantics(tmp_path, monkeypatch):
     """Multiplex off: no scope is installed and the process env stays the override source."""
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PORTAL_BASE_URL", PORTAL)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_PORTAL_BASE_URL", PORTAL)
     secret_scope.set_multiplex_active(False)
     seen = _run_warmup(monkeypatch, multiplex=False)
     assert seen["scope_installed"] is False

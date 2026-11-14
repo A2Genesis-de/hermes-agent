@@ -61,10 +61,10 @@ def test_both_launchers_keep_active_home_and_call_declared_function(tmp_path, ta
     (root / "bin").mkdir(parents=True)
     (root / "app").mkdir()
     (root / "python").symlink_to(sys.executable)
-    (root / "app/entry.py").write_text("import json,os,sys\ndef run():\n print(json.dumps([os.environ['HERMES_HOME'],sys.argv[1:]])); return 7\n", encoding="utf-8")
+    (root / "app/entry.py").write_text("import json,os,sys\ndef run():\n print(json.dumps([os.environ['A2ASSISTANT_HOME'],sys.argv[1:]])); return 7\n", encoding="utf-8")
     launcher = root / "bin/custom"
     launcher.write_text(posix_launcher("custom", "entry:run", python="python", repo="app", site="deps", target=target), encoding="utf-8")
     result = subprocess.run(["sh", str(launcher), "two words", "$(nope)", ""], cwd=tmp_path,
-                            env={**os.environ, "HERMES_HOME": str(tmp_path / "custom/profiles/memory")}, capture_output=True, text=True, check=False)
+                            env={**os.environ, "A2ASSISTANT_HOME": str(tmp_path / "custom/profiles/memory")}, capture_output=True, text=True, check=False)
     assert result.returncode == 7, result.stderr
     assert json.loads(result.stdout) == [str(tmp_path / "custom/profiles/memory"), ["two words", "$(nope)", ""]]

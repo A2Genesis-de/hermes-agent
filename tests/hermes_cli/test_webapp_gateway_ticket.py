@@ -21,7 +21,7 @@ _TOKEN = "a" * 43
 def webapp(monkeypatch, tmp_path):
     from hermes_cli import web_server as server
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(server.app.state, "ui_surface", "webapp", raising=False)
     monkeypatch.setattr(server.app.state, "auth_required", False, raising=False)
     monkeypatch.setattr(server.app.state, "bound_host", "127.0.0.1", raising=False)

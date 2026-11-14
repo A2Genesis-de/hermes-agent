@@ -814,7 +814,7 @@ runpy.run_module("cron.scheduler", run_name="__main__", alter_sys=True)
 def test_relaunch_replays_the_worker_before_its_ack(tmp_path, cause):
     """Importing ``hermes_bootstrap`` may relaunch the process: finishing a source
     update (into an ``-I`` interpreter that ignores the pinned PYTHONPATH), or the restore of a
-    tree a killed ``hermes update`` half-wrote. Reached inside ``run_one_job``, either came after
+    tree a killed ``a2assistant update`` half-wrote. Reached inside ``run_one_job``, either came after
     the ack: the payload was deleted, the marker consumed, and the new process died on ``ruamel``
     or found no payload, leaving the adopted run ``unknown``. The relaunch must instead replay
     the whole worker: payload unread, no ack, marker set, the same worker re-run."""
@@ -1061,7 +1061,7 @@ def test_worker_delivery_queue_is_keyed_by_the_delivering_jobs_own_execution(
     monkeypatch, tmp_path
 ):
     """A nested in-process dispatch inside a worker (e.g. a script running
-    ``hermes cron run <other>``) must not queue under the OUTER execution id."""
+    ``a2assistant cron run <other>``) must not queue under the OUTER execution id."""
     from cron import scheduler
     from cron import scheduler_delivery
 
@@ -1186,7 +1186,7 @@ def test_managed_gateway_restart_preserves_active_worker_and_single_side_effect(
         "print('completed')\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     with use_cron_store(home):
         job = create_job(
             prompt=None,
@@ -1232,7 +1232,7 @@ def test_managed_gateway_restart_preserves_active_worker_and_single_side_effect(
 
     harness = (
         "import json, os, pathlib, time\n"
-        f"os.environ['HERMES_HOME'] = {str(home)!r}\n"
+        f"os.environ['A2ASSISTANT_HOME'] = {str(home)!r}\n"
         "os.environ['INVOCATION_ID'] = 'restart-fixture'\n"
         "from cron import scheduler\n"
         "from tools import process_registry\n"
@@ -1338,7 +1338,7 @@ def test_restart_wait_counts_exclude_only_scoped_workers(tmp_path, monkeypatch):
     """
     from cron import scheduler
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr("cron.jobs.load_jobs", list)
     jobs = ("job-scoped", "job-degraded", "job-scoped-wedged")
     for job_id in jobs:

@@ -53,7 +53,7 @@ def _is_link(path: Path) -> bool:
 
 def _list_dirs(folder: Path, *, follow_links: bool = False) -> list[str]:
     """Folder names in *folder*. A package root follows links to folders (``ln -s ~/src/pkg
-    ~/.hermes/plugins/`` is how a package is developed in place), the app root does not."""
+    ~/.a2assistant/plugins/`` is how a package is developed in place), the app root does not."""
     try:
         entries = list(os.scandir(folder))
     except OSError:

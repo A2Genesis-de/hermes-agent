@@ -54,8 +54,8 @@ def test_activation_real_setup_pm_lifecycle(tmp_path, served):
     scratch = tmp_path / "tmp"
     scratch.mkdir()
     env = {
-        "PATH": os.environ["PATH"], "HOME": str(home), "HERMES_HOME": str(hermes_home),
-        "HERMES_RUNTIME_DIR": str(runtime), "SHELL": bash, "TMPDIR": str(scratch),
+        "PATH": os.environ["PATH"], "HOME": str(home), "A2ASSISTANT_HOME": str(hermes_home),
+        "A2ASSISTANT_RUNTIME_DIR": str(runtime), "SHELL": bash, "TMPDIR": str(scratch),
         "XDG_CONFIG_HOME": str(home / ".config"), "XDG_CACHE_HOME": str(home / ".cache"),
         "LANG": "C.UTF-8", "PYTHONNOUSERSITE": "1", "UV_OFFLINE": "1",
         "UV_CACHE_DIR": str(home / ".cache" / "uv"), "UV_PYTHON_DOWNLOADS": "never",

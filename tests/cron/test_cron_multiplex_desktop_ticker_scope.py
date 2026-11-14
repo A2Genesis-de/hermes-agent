@@ -34,7 +34,7 @@ def test_standalone_fallback_pool_keeps_profile_scope(tmp_path, monkeypatch):
     for home in (default_home, sec_home):
         (home / "cron").mkdir(parents=True)
         (home / "config.yaml").write_text("platforms:\n  telegram:\n    enabled: true\n")
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "DEFAULT-TOKEN")
     set_multiplex_active(True)
 
@@ -172,7 +172,7 @@ def test_a_routed_profile_fire_runs_under_multiplex_semantics_for_exactly_its_sc
         (home / "cron").mkdir(parents=True)
     (launch / ".env").write_text("XAI_API_KEY=launch-key\nDISCORD_BOT_TOKEN=launch-bot\n", encoding="utf-8")
     (routed / ".env").write_text("XAI_API_KEY=routed-key\nROUTED_ONLY=routed-only\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("XAI_API_KEY", "launch-key")
     monkeypatch.setenv("DISCORD_BOT_TOKEN", "launch-bot")
     monkeypatch.delenv("ROUTED_ONLY", raising=False)
@@ -224,8 +224,8 @@ def test_routed_fire_scope_carries_managed_env_authority(tmp_path, monkeypatch, 
         (home / "cron").mkdir(parents=True)
     (routed / ".env").write_text(routed_env_line, encoding="utf-8")
     (managed / ".env").write_text("ORG_API_KEY=managed-key\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     monkeypatch.setenv("ORG_API_KEY", "managed-key")  # what _apply_managed_env left in the launch env
     managed_scope.invalidate_managed_cache()
     secret_scope.set_multiplex_active(False)
@@ -264,7 +264,7 @@ def test_dashboard_run_now_isolates_a_sibling_profile_fire_like_the_ticker(tmp_p
         (home / "config.yaml").write_text("model: test-model\n", encoding="utf-8")
     (launch / ".env").write_text("LAUNCH_ONLY_SECRET=launch-secret\n", encoding="utf-8")
     (routed / ".env").write_text("ROUTED_ONLY_SECRET=routed-secret\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("LAUNCH_ONLY_SECRET", "launch-secret")
     monkeypatch.delenv("ROUTED_ONLY_SECRET", raising=False)
     monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: launch)

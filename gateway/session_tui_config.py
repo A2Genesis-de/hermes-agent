@@ -138,7 +138,7 @@ def _set_focus(display, raw):
 
 
 def _managed_refusal(key):
-    """A leaf the administrator's managed scope pins: refused, never written (``hermes config set``
+    """A leaf the administrator's managed scope pins: refused, never written (``a2assistant config set``
     refuses it too, and the next load would reinstate the managed value anyway)."""
     return RuntimeStoreError('permission_denied', field=key, detail='managed by your administrator')
 

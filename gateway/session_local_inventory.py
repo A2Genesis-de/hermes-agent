@@ -105,7 +105,7 @@ def _unknown_toolsets(enabled, config):
 
 def _cli_skills():
     """``hermes_cli.banner.get_available_skills`` as main's classic CLI computed it: ``cmd_chat`` pins
-    ``HERMES_KANBAN_BOARD`` before HermesCLI starts, so ``environments: [kanban]`` skills are offered.
+    ``A2ASSISTANT_KANBAN_BOARD`` before HermesCLI starts, so ``environments: [kanban]`` skills are offered.
     The owner never sets that env; the kanban relevance is scoped to this scan (a ContextVar) and the
     catalog cache entry it would poison is restored, so other surfaces keep their own view."""
     from tools import skills_tool

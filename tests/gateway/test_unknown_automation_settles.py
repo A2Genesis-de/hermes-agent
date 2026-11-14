@@ -31,7 +31,7 @@ class Peer:
 
 
 def _runner(tmp_path, monkeypatch, executed):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
 
     async def answer(event):

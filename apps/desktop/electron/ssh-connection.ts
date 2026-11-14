@@ -45,7 +45,7 @@ const DEFAULT_FORWARD_TIMEOUT_MS = 15_000
 
 // Remote-side watchdog for probe commands, in seconds. runSsh SIGKILLs the
 // LOCAL ssh child on timeout, but the remote command keeps running as an
-// orphan (ppid=1) — a hung remote CLI (e.g. a wedged `hermes --version`)
+// orphan (ppid=1) — a hung remote CLI (e.g. a wedged `a2assistant --version`)
 // accumulates orphans that busy-loop (#110478). Kept under
 // DEFAULT_EXEC_TIMEOUT_MS so the remote kill lands before the local timeout.
 const REMOTE_PROBE_TIMEOUT_SECS = 15
@@ -149,7 +149,7 @@ function validateKeyPath(keyPath) {
 // Token / secret redaction
 
 const _REDACTIONS: Array<[RegExp, string]> = [
-  [/(HERMES_DASHBOARD_SESSION_TOKEN=)(\S+)/g, '$1<redacted>'],
+  [/(A2ASSISTANT_DASHBOARD_SESSION_TOKEN=)(\S+)/g, '$1<redacted>'],
   [/(X-Hermes-Session-Token["']?\s*[:=]\s*["']?)([^\s"'&]+)/gi, '$1<redacted>'],
   [/(Authorization["']?\s*:\s*Bearer\s+)(\S+)/gi, '$1<redacted>'],
   [/([?&](?:token|ticket)=)([^\s&"']+)/gi, '$1<redacted>'],

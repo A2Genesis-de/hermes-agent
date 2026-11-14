@@ -12,7 +12,7 @@ async def test_stored_picker_survives_upgrade_and_resumes_without_copying(tmp_pa
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     db = store._db

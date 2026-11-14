@@ -1,4 +1,4 @@
-"""Contract C3: after the commit point nothing fails `hermes update`.
+"""Contract C3: after the commit point nothing fails `a2assistant update`.
 
 Post-commit step failures are ⚠ + a receipt follow-up + an armed obligation; the receipt
 is durable while the run is open; receipts resolve to the root home.
@@ -20,7 +20,7 @@ def _latest(home):
 
 
 def test_open_receipt_is_durably_running_and_finalizes_in_place(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     update_receipt.begin_update_receipt()
     running = _latest(tmp_path)
     assert running["outcome"] == "running" and running["pid"] == os.getpid()
@@ -42,18 +42,18 @@ def test_open_receipt_is_durably_running_and_finalizes_in_place(tmp_path, monkey
 def test_parked_local_changes_never_finalize_as_success(tmp_path, monkeypatch, finish):
     # A follow-up is retried by the next launch; a stash whose restore conflicted is not, so the
     # committed run must stay partial (#122557) on both the verify path and the boundary net.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     update_receipt.begin_update_receipt()
-    update_receipt.record_user_action("local_changes", "⚠ hermes update stashed 1 local modification(s)\n  Stash ref: abc")
+    update_receipt.record_user_action("local_changes", "⚠ a2assistant update stashed 1 local modification(s)\n  Stash ref: abc")
     finish()
     final = _latest(tmp_path)
     assert final["outcome"] == "partial"
     assert final["user_action"] == {"step": "local_changes",
-                                    "reason": "⚠ hermes update stashed 1 local modification(s) Stash ref: abc"}
+                                    "reason": "⚠ a2assistant update stashed 1 local modification(s) Stash ref: abc"}
 
 
 def test_dead_running_record_is_reported_interrupted_by_the_next_run(tmp_path, monkeypatch, capsys):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     dead = subprocess.Popen(["true"])
     dead.wait()
     update_receipt.begin_update_receipt()
@@ -77,7 +77,7 @@ def test_dead_running_record_is_reported_interrupted_by_the_next_run(tmp_path, m
 
 
 def test_live_running_record_is_not_reclaimed(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     update_receipt.begin_update_receipt()
     own_id = update_receipt._current.get().data["update_id"]
     for path in (tmp_path / "logs/update_receipts").glob("*.json"):
@@ -100,7 +100,7 @@ def test_profile_process_writes_receipts_to_the_root_home(tmp_path, monkeypatch)
     profile.mkdir(parents=True)
     monkeypatch.setattr("hermes_constants._get_platform_default_hermes_home", lambda: root)
     monkeypatch.setattr("hermes_constants._default_hermes_root_memo", None)
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
     assert update_receipt._receipt_dir() == root / "logs/update_receipts"
 
 
@@ -132,7 +132,7 @@ def test_failed_config_migration_is_owed_and_later_maintenance_runs(tmp_path, mo
     from hermes_cli import update_cmd, update_cmd_maint as maint
 
     calls = []
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from hermes_cli import update_windows_acl
     monkeypatch.setattr(update_windows_acl, "repair_windows_home_acl", lambda: calls.append("repair_windows_home_acl"))
     for name in ("_verify_and_restore_state_dbs_post_update",
@@ -174,8 +174,8 @@ def test_owed_restart_names_its_gateways_so_a_dead_fleet_cannot_discharge_it(tmp
     from hermes_cli import update_cmd_fleet_verify as fleet_verify
     from hermes_cli.update_inventory import RuntimeRecord, UpdatePlan
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     fleet._write_fleet_restart_pending_marker(expected_sha="a" * 40)
     plan = UpdatePlan(runtimes=[RuntimeRecord(kind="gateway", profile="default", pid=4242),
                                 RuntimeRecord(kind="dashboard", profile="default", pid=4343)])
@@ -197,8 +197,8 @@ def test_owed_restart_rearms_a_settled_obligation_and_a_later_run_keeps_owing_it
     from hermes_cli import update_cmd_fleet_verify as fleet_verify
     from hermes_cli.update_inventory import RuntimeRecord, UpdatePlan
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     monkeypatch.setattr(fleet, "_current_checkout_sha", lambda: "b" * 40)
     monkeypatch.setattr("hermes_cli.update_receipt.collect_fleet_versions", list)
     assert not fleet._fleet_restart_obligation_armed()
@@ -215,7 +215,7 @@ def test_followup_line_is_the_one_both_desktop_handoffs_parse(tmp_path, monkeypa
     import re
     from pathlib import Path
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     update_receipt.record_followup("gateway_restart", "x" * 900)
     update_receipt.record_followup("windows_resume", "Windows gateway recovery failed: 'quoted' reason")
     out = capsys.readouterr().out
@@ -236,7 +236,7 @@ def test_interrupt_after_the_run_closed_as_success_never_tells_the_gateway_1(tmp
     from types import SimpleNamespace
     from hermes_cli import main, update_cmd, update_owning_install
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(main, "_update_preflight_handled", lambda args: False)
     monkeypatch.setattr(main, "_install_hangup_protection", lambda **kw: None)
     monkeypatch.setattr(main, "_finalize_update_output", lambda state: None)
@@ -258,7 +258,7 @@ def test_a_failure_before_the_run_closed_still_tells_the_gateway_1(tmp_path, mon
     from types import SimpleNamespace
     from hermes_cli import main, update_cmd, update_owning_install
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(main, "_update_preflight_handled", lambda args: False)
     monkeypatch.setattr(main, "_install_hangup_protection", lambda **kw: None)
     monkeypatch.setattr(main, "_finalize_update_output", lambda state: None)
@@ -279,7 +279,7 @@ def test_completion_child_interrupted_after_verification_answers_its_success(tmp
     then an interrupt landed. Exit, result and gateway status follow the receipt (0), not 130/1."""
     from hermes_cli import update_completion
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     update_receipt.begin_update_receipt()
     data = dict(update_receipt._current.get().data)
     update_receipt._current.set(None)

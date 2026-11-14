@@ -92,7 +92,7 @@ def two_profile_homes(tmp_path, monkeypatch):
     default_home = tmp_path / ".hermes"
     worker_home = default_home / "profiles" / "worker"
     worker_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     monkeypatch.setenv("NO_PROXY", "*")
     yield {"default": default_home, "worker": worker_home}
     from tools.mcp_tool_lifecycle import shutdown_mcp_servers

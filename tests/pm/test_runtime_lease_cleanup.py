@@ -77,7 +77,7 @@ def test_unremovable_lease_keeps_its_generation(tmp_path, monkeypatch, collector
     else:
         project = tmp_path / "project"
         project.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
         state = install_state_dir(project)
         generation = _generation(state / "environments" / "obsolete")
         selected = _generation(state / "environments" / "selected") / "venv"

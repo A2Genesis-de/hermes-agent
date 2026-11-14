@@ -42,7 +42,7 @@ def set_multiplex_active(active: bool) -> None:
     Activation also pins the launch home for routed-profile decisions
     (``hermes_constants.pin_process_hermes_home``) unless an embedding host already pinned one:
     from here on "is this task routed" compares the override against the home the process was
-    launched with, not against whatever a host later mirrors into ``os.environ["HERMES_HOME"]``.
+    launched with, not against whatever a host later mirrors into ``os.environ["A2ASSISTANT_HOME"]``.
     Deactivation releases only the pin activation itself created — a transient toggle
     (``gateway_migrate._multiplex_read_mode``, a cron worker restoring the caller's mode) must not
     drop the host's explicit pin (#119242)."""
@@ -81,7 +81,7 @@ def is_multiplex_active() -> bool:
 class _BoundScope(NamedTuple):
     """An installed secret scope plus the home it was built for, when the binder
     declared one — the provenance ``serves_routed_profile`` needs when the binding
-    deliberately skips the HERMES_HOME override (kanban spawn-env builds, MCP
+    deliberately skips the A2ASSISTANT_HOME override (kanban spawn-env builds, MCP
     owner scopes)."""
 
     mapping: Mapping[str, str]
@@ -90,11 +90,11 @@ class _BoundScope(NamedTuple):
 
 def serves_routed_profile() -> bool:
     """True when the current task runs for a profile other than the process's own: always under
-    multiplexing, else when a HERMES_HOME override names another home (dashboard/desktop backend,
+    multiplexing, else when a A2ASSISTANT_HOME override names another home (dashboard/desktop backend,
     per-profile cron ticker) or a secret scope stamped with a foreign home is bound. The MCP
     registry scope and the check_fn cache key both follow this predicate so a served profile's
     view never aliases the launch profile's (#111151). A host that mirrors the turn's profile into
-    ``HERMES_HOME`` pins its own home with ``hermes_constants.pin_process_hermes_home`` so the
+    ``A2ASSISTANT_HOME`` pins its own home with ``hermes_constants.pin_process_hermes_home`` so the
     mirror cannot flip this predicate."""
     if is_multiplex_active():
         return True
@@ -142,8 +142,8 @@ class UnscopedSecretError(RuntimeError):
         what = f"this profile's {secret_name}" if secret_name else "this profile's API key"
         super().__init__(
             f"A2Assistant could not read {what} (an internal profile-scoping bug on the multiplexed "
-            "gateway, not your configuration). Run `hermes gateway restart`; if it keeps happening, "
-            "report it with `hermes debug share`."
+            "gateway, not your configuration). Run `a2assistant gateway restart`; if it keeps happening, "
+            "report it with `a2assistant debug share`."
         )
         self.secret_name = secret_name
         self.developer_detail = developer_detail
@@ -156,7 +156,7 @@ def set_secret_scope(secrets: Optional[Mapping[str, str]], *, profile_home: Opti
 
     ``profile_home`` stamps the home the mapping was built for so
     ``serves_routed_profile`` detects a foreign-home scope even when the binder
-    deliberately skips the HERMES_HOME override."""
+    deliberately skips the A2ASSISTANT_HOME override."""
     if secrets is None:
         return _SECRET_SCOPE.set(None)
     return _SECRET_SCOPE.set(_BoundScope(secrets, str(profile_home) if profile_home else None))
@@ -184,15 +184,15 @@ def current_secret_scope_home() -> Optional[str]:
 # value is a profile secret. Membership is exact name OR prefix.
 _GLOBAL_ENV_EXACT = frozenset({
     # Hermes runtime / deployment
-    "HERMES_HOME", "HERMES_PROFILE", "HERMES_GATEWAY_LOCK_DIR",
-    "HERMES_MAX_ITERATIONS", "HERMES_API_TIMEOUT",
-    "HERMES_REDACT_SECRETS", "HERMES_NOUS_TIMEOUT_SECONDS",
+    "A2ASSISTANT_HOME", "A2ASSISTANT_PROFILE", "A2ASSISTANT_GATEWAY_LOCK_DIR",
+    "A2ASSISTANT_MAX_ITERATIONS", "A2ASSISTANT_API_TIMEOUT",
+    "A2ASSISTANT_REDACT_SECRETS", "A2ASSISTANT_NOUS_TIMEOUT_SECONDS",
     "_HERMES_GATEWAY",
     # OS / interpreter
     "PATH", "HOME", "USER", "LANG", "LC_ALL", "TZ", "PWD", "SHELL", "TMPDIR",
     "VIRTUAL_ENV", "PYTHONPATH", "SSL_CERT_FILE",
     # Kanban paths (per-board, not per-profile-secret)
-    "HERMES_KANBAN_DB", "HERMES_KANBAN_WORKSPACES_ROOT", "HERMES_KANBAN_BOARD",
+    "A2ASSISTANT_KANBAN_DB", "A2ASSISTANT_KANBAN_WORKSPACES_ROOT", "A2ASSISTANT_KANBAN_BOARD",
     # API-server LISTENER settings — deployment config (compose/systemd env),
     # which the scoped runner reload must keep seeing or containers silently
     # lose the api_server platform. API_SERVER_KEY is a credential: NOT here.
@@ -201,8 +201,8 @@ _GLOBAL_ENV_EXACT = frozenset({
     "API_SERVER_CORS_ORIGINS",
 })
 _GLOBAL_ENV_PREFIXES = (
-    "HERMES_KANBAN_",
-    "HERMES_TELEGRAM_",   # tuning knobs (batch delays, fallback toggles) — NOT the token
+    "A2ASSISTANT_KANBAN_",
+    "A2ASSISTANT_TELEGRAM_",   # tuning knobs (batch delays, fallback toggles) — NOT the token
     "TERMINAL_",          # terminal/sandbox backend settings
 )
 
@@ -427,7 +427,7 @@ def build_profile_secret_scope(hermes_home: Path) -> dict[str, str]:
 
 def _is_process_home(hermes_home: Path) -> bool:
     """Is *hermes_home* the profile this process serves as its own? Same launch-home identity as
-    ``serves_routed_profile()``: a host that mirrors a served profile into ``HERMES_HOME`` would
+    ``serves_routed_profile()``: a host that mirrors a served profile into ``A2ASSISTANT_HOME`` would
     otherwise seed the launch profile's bridged allow-all grant into that profile's scope."""
     from hermes_constants import get_routing_process_hermes_home
     try:

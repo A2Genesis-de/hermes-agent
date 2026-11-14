@@ -22,8 +22,8 @@ def homes(tmp_path, monkeypatch):
         home.mkdir(parents=True)
         (home / "config.yaml").write_text(yaml.safe_dump({"model": {"default": model}}), encoding="utf-8")
         (home / ".env").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
-    for seed in ("HERMES_MODEL", "HERMES_INFERENCE_MODEL"):
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
+    for seed in ("A2ASSISTANT_MODEL", "A2ASSISTANT_INFERENCE_MODEL"):
         monkeypatch.delenv(seed, raising=False)
     monkeypatch.setenv("OPENAI_API_KEY", "launch-own-key")
     monkeypatch.setattr(server, "_hermes_home", launch)

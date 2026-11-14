@@ -508,7 +508,7 @@ def test_peer_delivery_command_pins_registry_profile_for_secondary_bots(
     tmp_path, monkeypatch
 ):
     """A secondary-profile bot's peer DM must run in the registry-owning
-    profile (#93935). `hermes peer` resolves bot_peers through
+    profile (#93935). `a2assistant peer` resolves bot_peers through
     profile-scoped load_config(); unpinned, the subprocess inherits the
     calling bot's profile and dies with "No peer named" even though the
     tool-side roster (read from the machine-root config) validated the
@@ -564,7 +564,7 @@ def test_peer_delivery_command(tmp_path, monkeypatch):
 
 def test_delivery_pins_the_hermes_entrypoint_beside_this_interpreter(tmp_path, monkeypatch):
     """A background delivery must not rely on PATH: the runner's service context
-    lacks the gateway's venv bin dir, so a bare ``hermes`` resolves to a system
+    lacks the gateway's venv bin dir, so a bare ``a2assistant`` resolves to a system
     install whose shebang picks the wrong interpreter and dies on import (#108628).
     With no published install launcher, both transports invoke the entrypoint beside
     this interpreter instead; a published launcher outranks that sibling (#124868)."""
@@ -621,7 +621,7 @@ def test_peer_delivery_author_carries_the_sender_hostname_and_local_stays_bare(t
 
 
 def test_renamed_primary_signs_with_its_friendly_name_and_is_reachable_by_it(tmp_path, monkeypatch):
-    """#89720: `hermes profile rename default Maia` writes profile.yaml ``display_name`` (no Bot Mode
+    """#89720: `a2assistant profile rename default Maia` writes profile.yaml ``display_name`` (no Bot Mode
     title). The primary must then sign `Maia (@hermes)`, not `hermes (@hermes)`, and a teammate must
     reach it as `maia` / `@maia` — the tag the Desktop roster inserts — while `@hermes` keeps resolving.
     A Bot Mode title outranks the display_name in the signature, as in the Desktop's botFriendlyNames."""
@@ -723,7 +723,7 @@ def test_live_dm_admitted_before_waiter_failure(tmp_path, monkeypatch):
     target = home / "profiles" / "researcher"
     authority = _canonical_target(monkeypatch, target)
     monkeypatch.setattr(bot_mode_dm, "_dm_dir", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "wrong-home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "wrong-home"))
     import tools.terminal_tool as terminal
     monkeypatch.setattr(terminal, "terminal_tool", lambda *a, **k: json.dumps({"error": "spawn failed"}))
 
@@ -741,7 +741,7 @@ def test_live_dm_admitted_before_waiter_failure(tmp_path, monkeypatch):
 def test_live_dm_runner_retry_never_reexecutes_failed_admission(tmp_path, monkeypatch, capsys):
     home = _managed_home(tmp_path)
     target = home / "profiles" / "researcher"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     authority = _canonical_target(monkeypatch, target)
     # The authority still holds the admission, so the runner waits to its absolute deadline.
     monkeypatch.setattr(bot_mode_dm, "_LIVE_WAIT_SECONDS", 0.01)
@@ -890,7 +890,7 @@ def test_local_delivery_runner_surfaces_refusal_and_retains_payload(tmp_path, mo
     ("stdin", None),
 ], ids=["author", "no author"])
 def test_delivery_main_child_env_carries_only_the_argv_author(tmp_path, monkeypatch, mode, author):
-    """The ``--author`` payload becomes HERMES_TURN_AUTHOR on the child. Without it the runner drops the
+    """The ``--author`` payload becomes A2ASSISTANT_TURN_AUTHOR on the child. Without it the runner drops the
     variable it inherited from the sending bot's own turn instead of passing it on as the recipient's author."""
     from agent.turn_author import TURN_AUTHOR_ENV
 
@@ -903,7 +903,7 @@ def test_delivery_main_child_env_carries_only_the_argv_author(tmp_path, monkeypa
         return subprocess.CompletedProcess(argv, 0, stdout="", stderr="")
 
     monkeypatch.setattr(subprocess, "run", fake_run)
-    monkeypatch.setenv("HERMES_DM_TEST_MARKER", "kept")
+    monkeypatch.setenv("A2ASSISTANT_DM_TEST_MARKER", "kept")
     monkeypatch.setenv(TURN_AUTHOR_ENV, json.dumps({"id": "bot:previous", "name": "previous", "is_bot": True}))
     author_args = ["--author", json.dumps(author)] if author else []
 
@@ -913,7 +913,7 @@ def test_delivery_main_child_env_carries_only_the_argv_author(tmp_path, monkeypa
     assert returncode == 0
     [(argv, kwargs)] = calls
     assert argv[:3] == ["hermes", "-p", "researcher"]
-    assert kwargs["env"]["HERMES_DM_TEST_MARKER"] == "kept"
+    assert kwargs["env"]["A2ASSISTANT_DM_TEST_MARKER"] == "kept"
     assert (json.loads(kwargs["env"][TURN_AUTHOR_ENV]) if TURN_AUTHOR_ENV in kwargs["env"] else None) == author
     assert not dm_file.exists()
 
@@ -945,14 +945,14 @@ def test_local_runner_sends_only_argv_author_to_authority(tmp_path, monkeypatch,
 
 
 def test_real_delivery_command_round_trip_carries_author(tmp_path):
-    """Through a real subprocess, the runner argv built by ``_delivery_command`` sets HERMES_TURN_AUTHOR on the child."""
+    """Through a real subprocess, the runner argv built by ``_delivery_command`` sets A2ASSISTANT_TURN_AUTHOR on the child."""
     dm_file = tmp_path / "message.txt"
     dm_file.write_text("secret", encoding="utf-8")
     observed = tmp_path / "observed.txt"
     child = tmp_path / "child.py"
     child.write_text(
         "import os, pathlib, sys\n"
-        "pathlib.Path(sys.argv[1]).write_text(os.environ.get('HERMES_TURN_AUTHOR', 'unset'), encoding='utf-8')\n",
+        "pathlib.Path(sys.argv[1]).write_text(os.environ.get('A2ASSISTANT_TURN_AUTHOR', 'unset'), encoding='utf-8')\n",
         encoding="utf-8",
     )
     author = {"id": "bot:default", "name": "hermes", "is_bot": True}

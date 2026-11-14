@@ -108,7 +108,7 @@ _SENSITIVE_QUERY_PARAMS = frozenset({
 # to this env var in hermes_cli/main.py, gateway/run.py, and cli.py) or `HERMES_REDACT_SECRETS=false` in
 # ~/.hermes/.env. An opt-out warning is logged at gateway and CLI startup so operators see the downgrade —
 # see `_log_redaction_status()` in gateway/run.py and cli.py.
-_REDACT_ENABLED = os.getenv("HERMES_REDACT_SECRETS", "true").lower() in {"1", "true", "yes", "on"}
+_REDACT_ENABLED = os.getenv("A2ASSISTANT_REDACT_SECRETS", "true").lower() in {"1", "true", "yes", "on"}
 
 # Routed multiplex profiles: the import-time snapshot above is the LAUNCH profile's policy. A profile
 # served under a HERMES_HOME override follows its own ``security.redact_secrets`` (its ``.env`` value
@@ -135,7 +135,7 @@ def resolve_profile_policy(home) -> None:
     try:
         key = hermes_home_key()
         from hermes_cli.config import load_config_readonly, load_env
-        note_env_policy(key, load_env().get("HERMES_REDACT_SECRETS"))
+        note_env_policy(key, load_env().get("A2ASSISTANT_REDACT_SECRETS"))
         note_config_policy(key, (load_config_readonly().get("security") or {}).get("redact_secrets"))
     except (Exception, SystemExit) as exc:  # health: allow BLE001 -- unreadable now: stays unknown, which redacts
         logging.getLogger(__name__).debug("redaction policy for %s not read: %s", home, exc)
@@ -152,7 +152,7 @@ def _redact_enabled() -> bool:
     home_key = hermes_home_key()
     from agent.secret_scope import current_secret_scope
     scope = current_secret_scope()
-    raw = scope.get("HERMES_REDACT_SECRETS") if scope else None
+    raw = scope.get("A2ASSISTANT_REDACT_SECRETS") if scope else None
     if raw is None and scope is None:
         # No live scope (the log listener thread formats routed records): the profile's own .env, as
         # its scope would have it. Not recorded yet: redact, since .env may opt the profile back in.
@@ -921,7 +921,7 @@ _DISPLAY_CONTROL_RE = re.compile(r"[\x00-\x1f\x7f\x80-\x9f\u200b-\u200f\u202a-\u
 
 def mask_secret(value: str, *, head: int = 4, tail: int = 4, floor: int = 12,
                 placeholder: str = "***", empty: str = "") -> str:
-    """Mask a secret for display (``hermes config`` / ``status`` / ``dump``):
+    """Mask a secret for display (``a2assistant config`` / ``status`` / ``dump``):
     ``sk-p...7890``; shorter than ``floor`` (after control-byte stripping) →
     ``placeholder``; falsy → ``empty``."""
     value = _DISPLAY_CONTROL_RE.sub("", value) if value else value
@@ -1660,7 +1660,7 @@ _SHELL_RC_BASENAMES = frozenset({
 # Filter readers take a PATTERN/program as their first positional; only the operands after
 # it are files, so ``grep .bashrc app.py`` must not gate on the pattern.
 _PATTERN_FIRST_COMMANDS = frozenset({"grep", "awk", "sed"})
-_HERMES_HOME_PREFIXES = ("$HERMES_HOME/", "${HERMES_HOME}/")
+_HERMES_HOME_PREFIXES = ("$A2ASSISTANT_HOME/", "${A2ASSISTANT_HOME}/", "$HERMES_HOME/", "${HERMES_HOME}/")
 # ``$HOME/.hermes/config.yaml`` keeps the ``.hermes`` segment, so stripping the prefix is
 # enough to gate it; ``~/`` already survives the ``$``-bearing-path bail-out.
 _HOME_PREFIXES = ("$HOME/", "${HOME}/")
@@ -1699,8 +1699,8 @@ def _command_segments(command: str) -> list[str]:
 def _is_under_hermes_home(path: str) -> bool:
     """True when an absolute ``config.yaml`` path sits under the active Hermes home or root.
 
-    The default home's basename is an installation detail — ``.hermes`` on POSIX, ``hermes``
-    under ``AppData/Local`` on Windows — and a resolved path never spells ``$HERMES_HOME``,
+    The default home's basename is an installation detail — ``.hermes`` on POSIX, ``a2assistant``
+    under ``AppData/Local`` on Windows — and a resolved path never spells ``$A2ASSISTANT_HOME``,
     so the literal-segment test in ``_is_secret_file_arg`` cannot see a native Windows path.
     Compare against the resolved homes instead. Only reached for a ``config.yaml`` basename,
     so the resolve cost stays off the per-token command scan.
@@ -1723,7 +1723,7 @@ def _is_under_hermes_home(path: str) -> bool:
 
 def _is_secret_file_arg(arg: str) -> bool:
     """``.env``-style or shell rc basename anywhere; ``config.yaml`` only under a
-    ``.hermes`` directory, ``$HERMES_HOME``, or the resolved Hermes home (never arbitrary
+    ``.hermes`` directory, ``$A2ASSISTANT_HOME``, or the resolved Hermes home (never arbitrary
     YAML). The resolved-home arm is what covers native Windows, where the home directory
     is ``%LOCALAPPDATA%\\hermes`` and carries no ``.hermes`` segment."""
     path = arg.strip("\"'").replace("\\", "/")
@@ -1744,11 +1744,10 @@ def _is_secret_file_arg(arg: str) -> bool:
         return False
     if parts[-1] in _ENV_FILE_BASENAMES or parts[-1] in _SHELL_RC_BASENAMES:
         return True
-    # ``config.yaml`` plus the ``config.yaml.good.<stamp>`` / ``.corrupt.<stamp>`` copies Hermes
-    # writes under ``backups/config/`` — same contents, same secrets.
     if parts[-1] != "config.yaml" and not parts[-1].startswith(("config.yaml.good.", "config.yaml.corrupt.")):
         return False
-    return hermes_home or ".hermes" in parts[:-1] or _is_under_hermes_home(path)
+    from hermes_constants import HOME_DIR_NAMES
+    return hermes_home or any(name in parts[:-1] for name in HOME_DIR_NAMES) or _is_under_hermes_home(path)
 
 
 def _command_reads_secret_file(command: str | None) -> bool:

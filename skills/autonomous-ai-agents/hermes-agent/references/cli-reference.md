@@ -27,7 +27,7 @@ hermes [flags] [command]        (no subcommand = interactive chat)
 ### Chat
 
 ```
-hermes chat [flags]
+a2assistant chat [flags]
   -q, --query TEXT          Single query, non-interactive
   --image PATH              Attach a local image to a single query
   -Q, --quiet               Suppress banner, spinner, tool previews
@@ -40,34 +40,34 @@ hermes chat [flags]
 ### Configuration
 
 ```
-hermes setup [section]      Wizard (model|tts|terminal|gateway|tools|agent)
-hermes model                Interactive model/provider picker
-hermes fallback [add|remove|list]  Fallback provider chain
-hermes config [show|edit|get|set|unset|path|env-path|check|migrate]
-hermes login / logout       OAuth sign-in / clear stored auth
-hermes doctor [--fix]       Check dependencies and config
-hermes status [--full]      Component summary (--full: every section)
+a2assistant setup [section]      Wizard (model|tts|terminal|gateway|tools|agent)
+a2assistant model                Interactive model/provider picker
+a2assistant fallback [add|remove|list]  Fallback provider chain
+a2assistant config [show|edit|get|set|unset|path|env-path|check|migrate]
+a2assistant login / logout       OAuth sign-in / clear stored auth
+a2assistant doctor [--fix]       Check dependencies and config
+a2assistant status [--full]      Component summary (--full: every section)
 ```
 
 ### Tools & Skills
 
 ```
-hermes tools [list|enable NAME|disable NAME]   Per-platform toolsets (curses UI with no args)
+a2assistant tools [list|enable NAME|disable NAME]   Per-platform toolsets (curses UI with no args)
 
-hermes skills list|browse|search QUERY|inspect ID
-hermes skills install ID    Hub identifier OR a direct https://…/SKILL.md URL
-hermes skills config        Enable/disable skills per platform
-hermes skills check|update|uninstall|publish PATH
-hermes skills tap add REPO  Add a GitHub repo as a skill source
-hermes bundles              Skill bundles (one /<name> alias loads several skills)
+a2assistant skills list|browse|search QUERY|inspect ID
+a2assistant skills install ID    Hub identifier OR a direct https://…/SKILL.md URL
+a2assistant skills config        Enable/disable skills per platform
+a2assistant skills check|update|uninstall|publish PATH
+a2assistant skills tap add REPO  Add a GitHub repo as a skill source
+a2assistant bundles              Skill bundles (one /<name> alias loads several skills)
 ```
 
 ### MCP Servers
 
 ```
-hermes mcp add NAME (--url or --command) | remove | list | test NAME
-hermes mcp catalog | install NAME     Curated catalog install
-hermes mcp configure NAME             Toggle tool selection
+a2assistant mcp add NAME (--url or --command) | remove | list | test NAME
+a2assistant mcp catalog | install NAME     Curated catalog install
+a2assistant mcp configure NAME             Toggle tool selection
 hermes mcp-serve                      Run A2Assistant as an MCP server (mcp-serve plugin)
 ```
 Details (transport, tool discovery, catalog): `references/native-mcp.md`.
@@ -75,7 +75,7 @@ Details (transport, tool discovery, catalog): `references/native-mcp.md`.
 ### Gateway (Messaging Platforms)
 
 ```
-hermes gateway run|install|start|stop|restart|status|setup
+a2assistant gateway run|install|start|stop|restart|status|setup
 ```
 
 Platforms: Telegram, API Server, Webhooks. Open WebUI connects via the API Server adapter. The Telegram adapter ships under `plugins/platforms/telegram/`.
@@ -84,56 +84,56 @@ Docs: https://hermes-agent.nousresearch.com/docs/user-guide/messaging/
 ### Sessions
 
 ```
-hermes sessions list|browse|rename ID TITLE|delete ID|export OUT|prune|stats
+a2assistant sessions list|browse|rename ID TITLE|delete ID|export OUT|prune|stats
 ```
 
 ### Cron / Webhooks
 
 ```
-hermes cron list|create SCHED|edit ID|pause|resume|run ID|remove|status
+a2assistant cron list|create SCHED|edit ID|pause|resume|run ID|remove|status
     Schedules: '30m', 'every 2h', '0 9 * * *', ISO timestamp
-hermes webhook subscribe NAME|list|remove NAME|test NAME
+a2assistant webhook subscribe NAME|list|remove NAME|test NAME
 ```
 Webhook payloads/routes: `references/webhooks.md`.
 
 ### Profiles
 
 ```
-hermes profile list|create NAME (--clone|--clone-all|--clone-from)|use|show|delete
-hermes profile rename A B | alias NAME | export NAME | import FILE
-hermes profile migrate-identity A B   Retry a completed rename's session/routing identity migration
+a2assistant profile list|create NAME (--clone|--clone-all|--clone-from)|use|show|delete
+a2assistant profile rename A B | alias NAME | export NAME | import FILE
+a2assistant profile migrate-identity A B   Retry a completed rename's session/routing identity migration
 ```
 
 ### Credentials & Pools
 
 ```
-hermes auth                 Interactive credential manager
-hermes auth add [PROVIDER]  Add OAuth or API-key credential (nous, openai-codex, qwen-oauth, …)
-hermes auth list|remove P IDX|reset PROVIDER|status
+a2assistant auth                 Interactive credential manager
+a2assistant auth add [PROVIDER]  Add OAuth or API-key credential (nous, openai-codex, qwen-oauth, …)
+a2assistant auth list|remove P IDX|reset PROVIDER|status
 ```
 Multiple credentials per provider form a pool that rotates automatically and skips exhausted keys.
 
 ### Other
 
 ```
-hermes desktop / gui        Native desktop app
-hermes dashboard            Web admin panel + embedded chat (--stop / --status)
-hermes proxy                OpenAI-compatible local proxy backed by an OAuth provider
-hermes portal               Quick setup / sign in via Nous Portal
-hermes kanban <verb>        Multi-agent work-queue board
-hermes project              Named multi-folder workspaces (see references/projects-and-folders.md)
-hermes skin list|use|set    Switch/tweak skins (see references/themes.md)
-hermes pets <verb>          Pet mascots (see references/petdex.md)
-hermes memory setup|status|off|reset   Memory provider
-hermes secrets bitwarden|onepassword   External secret stores
-hermes moa                  Mixture-of-Agents slots
-hermes hooks / security / backup / import / checkpoints / console
-hermes logs [-f] [errors]   View agent/error logs
-hermes send                 One-off message through a gateway platform
-hermes pairing / plugins / insights / journey / computer-use
-hermes acp                  ACP server (IDE integration)
-hermes completion bash|zsh|fish
-hermes update / uninstall
+a2assistant desktop / gui        Native desktop app
+a2assistant dashboard            Web admin panel + embedded chat (--stop / --status)
+a2assistant proxy                OpenAI-compatible local proxy backed by an OAuth provider
+a2assistant portal               Quick setup / sign in via Nous Portal
+a2assistant kanban <verb>        Multi-agent work-queue board
+a2assistant project              Named multi-folder workspaces (see references/projects-and-folders.md)
+a2assistant skin list|use|set    Switch/tweak skins (see references/themes.md)
+a2assistant pets <verb>          Pet mascots (see references/petdex.md)
+a2assistant memory setup|status|off|reset   Memory provider
+a2assistant secrets bitwarden|onepassword   External secret stores
+a2assistant moa                  Mixture-of-Agents slots
+a2assistant hooks / security / backup / import / checkpoints / console
+a2assistant logs [-f] [errors]   View agent/error logs
+a2assistant send                 One-off message through a gateway platform
+a2assistant pairing / plugins / insights / journey / computer-use
+a2assistant acp                  ACP server (IDE integration)
+a2assistant completion bash|zsh|fish
+a2assistant update / uninstall
 ```
 
 Plugin- and provider-supplied subcommands (e.g. `a2assistant photon setup`) only appear once their plugin is installed/active. Importing from OpenClaw, Claude Code, Codex CLI or Cursor (`a2assistant import-agent <agent>`, plus the older `a2assistant claw migrate|cleanup`) comes from the `agent-importers` plugin; a fresh `a2assistant setup` that finds one of those agents offers to install it.
@@ -147,5 +147,5 @@ Plugin- and provider-supplied subcommands (e.g. `a2assistant photon setup`) only
 | Skills catalog | `a2assistant skills browse` · [Skills catalog](https://hermes-agent.nousresearch.com/docs/reference/skills-catalog) |
 | Provider setup | `a2assistant model` · [Providers guide](https://hermes-agent.nousresearch.com/docs/integrations/providers) |
 | Env variables | `a2assistant config env-path` · [Env vars reference](https://hermes-agent.nousresearch.com/docs/reference/environment-variables) |
-| Gateway logs | `~/.hermes/logs/gateway.log` (or `a2assistant logs`) |
+| Gateway logs | `~/.a2assistant/logs/gateway.log` (or `a2assistant logs`) |
 | Sessions | `a2assistant sessions browse` (reads state.db) |

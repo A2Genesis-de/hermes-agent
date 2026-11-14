@@ -19,8 +19,8 @@ DEFAULT_STT_MODEL = os.getenv("STT_OPENAI_MODEL", "whisper-1")
 # Seconds for one STT HTTP request; shared by the OpenAI-SDK path and the QQ adapter so a
 # self-hosted model's cold start is not cut off at the old fixed 30s (#112939).
 DEFAULT_STT_TIMEOUT = 60.0
-LOCAL_STT_COMMAND_ENV = "HERMES_LOCAL_STT_COMMAND"
-LOCAL_STT_LANGUAGE_ENV = "HERMES_LOCAL_STT_LANGUAGE"
+LOCAL_STT_COMMAND_ENV = "A2ASSISTANT_LOCAL_STT_COMMAND"
+LOCAL_STT_LANGUAGE_ENV = "A2ASSISTANT_LOCAL_STT_LANGUAGE"
 COMMON_LOCAL_BIN_DIRS = ("/opt/homebrew/bin", "/usr/local/bin")
 
 OPENAI_BASE_URL = os.getenv("STT_OPENAI_BASE_URL", "https://api.openai.com/v1")

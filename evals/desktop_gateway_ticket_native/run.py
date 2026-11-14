@@ -92,7 +92,7 @@ def main():
             'PATH', 'SYSTEMROOT', 'WINDIR', 'COMSPEC', 'PATHEXT', 'SYSTEMDRIVE',
             'DISPLAY', 'WAYLAND_DISPLAY', 'XDG_RUNTIME_DIR', 'XAUTHORITY',
             'LD_LIBRARY_PATH', 'LANG', 'TZ'}}
-        env.update(HOME=str(home), USERPROFILE=str(home), HERMES_HOME=str(state),
+        env.update(HOME=str(home), USERPROFILE=str(home), A2ASSISTANT_HOME=str(state),
                    APPDATA=str(home / 'AppData' / 'Roaming'),
                    LOCALAPPDATA=str(home / 'AppData' / 'Local'),
                    XDG_CONFIG_HOME=str(home / '.config'), XDG_CACHE_HOME=str(home / '.cache'),
@@ -107,7 +107,7 @@ def main():
             log = (output / f'daemon-{index}.log').open('w', encoding='utf-8')
             logs.append(log)
             process = subprocess.Popen([python, '-m', 'gateway.run'], cwd=REPO,
-                                       env={**env, 'HERMES_HOME': str(profile)},
+                                       env={**env, 'A2ASSISTANT_HOME': str(profile)},
                                        stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
             processes.append(process)
             endpoints.append(ready(process, profile))

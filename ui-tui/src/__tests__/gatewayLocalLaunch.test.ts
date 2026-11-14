@@ -11,8 +11,8 @@ const home = mkdtempSync(join(tmpdir(), 'ink-bootstrap-test-'))
 afterEach(() => { vi.unstubAllEnvs(); rmSync(home, { recursive: true, force: true }) })
 
 it('reports failed canonical bootstrap without creating an independent owner or retrying ensure', async () => {
-  vi.stubEnv('HERMES_HOME', home)
-  vi.stubEnv('HERMES_TUI_GATEWAY_URL', '')
+  vi.stubEnv('A2ASSISTANT_HOME', home)
+  vi.stubEnv('A2ASSISTANT_TUI_GATEWAY_URL', '')
   const bootstrap = vi.fn().mockRejectedValue(new Error('gateway draining: update_paused'))
   const gw = new GatewayClient(bootstrap)
   const events: any[] = []
@@ -27,8 +27,8 @@ it('reports failed canonical bootstrap without creating an independent owner or 
 
 it('reports a bootstrap that cannot load A2Assistant once and stops retrying (#138878)', async () => {
   vi.useFakeTimers()
-  vi.stubEnv('HERMES_HOME', home)
-  vi.stubEnv('HERMES_TUI_GATEWAY_URL', '')
+  vi.stubEnv('A2ASSISTANT_HOME', home)
+  vi.stubEnv('A2ASSISTANT_TUI_GATEWAY_URL', '')
   const bootstrap = vi.fn().mockRejectedValue(new Error(
     'Command failed: python3 gateway_bootstrap.py --start\ngateway unavailable: bootstrap_dependencies\nNo module named \'ruamel\''))
   const gw = new GatewayClient(bootstrap)

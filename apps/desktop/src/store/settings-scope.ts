@@ -50,7 +50,7 @@ export const $settingsScopeEditsNonDefault = computed([$settingsScopeProfile, $p
 // WROTE them back to A, while the "Changes on this page apply to 'B'" note —
 // which reads the concrete $settingsScopeProfile — kept naming B (#118432).
 // Send the concrete key the pages render. Only a name with no profile
-// directory behind it (`custom`, a HERMES_HOME outside profiles/) stays
+// directory behind it (`custom`, a A2ASSISTANT_HOME outside profiles/) stays
 // `undefined`, where the ambient path is the only correct answer.
 export const $settingsRequestProfile = computed($settingsScopeProfile, (selected): string | undefined =>
   selected === 'custom' ? undefined : selected

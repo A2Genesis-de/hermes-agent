@@ -8,7 +8,7 @@ in config.yaml forever. ``presets`` is authoritative on write; undeclared
 sibling keys (``save_traces``, ``trace_dir``) must still survive (#58819), and
 other config sections must not be clobbered (#89184).
 
-Real config pipeline against a temp HERMES_HOME — a mocked save cannot show the
+Real config pipeline against a temp A2ASSISTANT_HOME — a mocked save cannot show the
 merge that caused the bug.
 """
 
@@ -45,7 +45,7 @@ def _on_disk(home) -> dict:
 def _seed(home, monkeypatch, moa: dict, **sections) -> None:
     from ruamel.yaml import YAML
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     with (home / "config.yaml").open("w", encoding="utf-8") as fh:
         YAML(typ="rt").dump({"moa": moa, **sections}, fh)
 
@@ -166,7 +166,7 @@ def test_deletion_survives_autosave_restart_and_backup_with_sparse_yaml(tmp_path
         result = subprocess.run(
             [sys.executable, "-B", "-c", probe],
             cwd=Path(__file__).resolve().parents[2],
-            env={**os.environ, "HERMES_HOME": str(tmp_path)},
+            env={**os.environ, "A2ASSISTANT_HOME": str(tmp_path)},
             capture_output=True, text=True, check=True, timeout=30,
         )
         assert json.loads(result.stdout.splitlines()[-1]) == sorted(survivors)
@@ -357,7 +357,7 @@ def test_named_map_stays_authoritative_in_a_fresh_process_and_backup_fallback(tm
     result = subprocess.run(
         [sys.executable, "-B", "-c", probe],
         cwd=__import__("pathlib").Path(__file__).resolve().parents[2],
-        env={**os.environ, "HERMES_HOME": str(home)},
+        env={**os.environ, "A2ASSISTANT_HOME": str(home)},
         capture_output=True,
         text=True,
         check=True,
@@ -370,7 +370,7 @@ def test_missing_moa_map_still_receives_schema_defaults(tmp_path, monkeypatch):
     """Without a user MoA map, the built-in default remains available."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "config.yaml").write_text("model: {}\n", encoding="utf-8")
 
     from hermes_cli.config import DEFAULT_CONFIG, load_config

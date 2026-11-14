@@ -38,10 +38,10 @@ from hermes_cli.config import (
 
 @pytest.fixture(autouse=True)
 def _isolated_hermes_home(tmp_path):
-    """Point HERMES_HOME at a temp dir so tests never touch real config."""
+    """Point A2ASSISTANT_HOME at a temp dir so tests never touch real config."""
     env_file = tmp_path / ".env"
     env_file.touch()
-    with patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}):
+    with patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path)}):
         yield tmp_path
 
 

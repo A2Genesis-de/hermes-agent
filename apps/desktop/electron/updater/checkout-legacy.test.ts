@@ -17,7 +17,7 @@ it('moves a checkout without a source probe to main, but surfaces a broken probe
 
   const probe: () => Promise<SourceUpdate | null> = (): Promise<SourceUpdate | null> =>
     readSourceUpdate({
-      python: process.env.HERMES_PYTHON || 'python3',
+      python: process.env.A2ASSISTANT_PYTHON || 'python3',
       git: 'git',
       updateRoot: root,
       hermesHome: home
@@ -57,7 +57,7 @@ it('moves a checkout without a source probe to main, but surfaces a broken probe
       }
 
       expect(await strategy.check()).toMatchObject({ supported: true, updateAvailable: true, branch: 'main' })
-      expect(await strategy.apply()).toMatchObject({ ok: true, manual: true, command: 'hermes update' })
+      expect(await strategy.apply()).toMatchObject({ ok: true, manual: true, command: 'a2assistant update' })
     }
 
     fs.writeFileSync(modulePath, 'def main():\n    raise RuntimeError("invalid channel configuration")\n')

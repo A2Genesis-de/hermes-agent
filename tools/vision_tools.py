@@ -82,7 +82,7 @@ def _read_vision_setting(env_var: str, key: str, cast, minimum=None):
 
 
 # HTTP download timeout (separate from ``auxiliary.vision.timeout``, which governs the LLM call).
-_VISION_DOWNLOAD_TIMEOUT = _read_vision_setting("HERMES_VISION_DOWNLOAD_TIMEOUT", "download_timeout", float)
+_VISION_DOWNLOAD_TIMEOUT = _read_vision_setting("A2ASSISTANT_VISION_DOWNLOAD_TIMEOUT", "download_timeout", float)
 if _VISION_DOWNLOAD_TIMEOUT is None:
     _VISION_DOWNLOAD_TIMEOUT = 30.0
 
@@ -105,8 +105,8 @@ def _detect_host_cpus() -> int:
 
 
 def _resolve_vision_cpu_workers() -> int:
-    """HERMES_VISION_MAX_CONCURRENCY → ``auxiliary.vision.max_concurrency`` → host cores (< 1 ignored)."""
-    val = _read_vision_setting("HERMES_VISION_MAX_CONCURRENCY", "max_concurrency", int, minimum=1)
+    """A2ASSISTANT_VISION_MAX_CONCURRENCY → ``auxiliary.vision.max_concurrency`` → host cores (< 1 ignored)."""
+    val = _read_vision_setting("A2ASSISTANT_VISION_MAX_CONCURRENCY", "max_concurrency", int, minimum=1)
     return val or _detect_host_cpus()
 
 
@@ -173,8 +173,8 @@ def _secure_cache_dir(new_subpath: str, old_name: str) -> Path:
     the agent at — a private attachment, an internal screenshot, a document
     scan. Created with a bare ``mkdir(parents=True, exist_ok=True)`` these
     inherited the umask and landed 0755, readable by every other local
-    account. ``HERMES_HOME`` is 0700 by default so default-config exposure is
-    narrow; the concrete scenario is the documented ``HERMES_HOME_MODE=0701``
+    account. ``A2ASSISTANT_HOME`` is 0700 by default so default-config exposure is
+    narrow; the concrete scenario is the documented ``A2ASSISTANT_HOME_MODE=0701``
     hatch (letting nginx/caddy traverse to a served subdirectory), where a
     0755 child really is world-readable.
 
@@ -183,7 +183,7 @@ def _secure_cache_dir(new_subpath: str, old_name: str) -> Path:
     Policy is then reconciled through ``hermes_cli.config._secure_dir`` — the
     house helper — rather than a hand-rolled chmod, which is what keeps this
     correct off a single-user desktop: managed/NixOS installs are skipped,
-    ``HERMES_HOME_MODE`` stays honoured, and ``HERMES_UID``/``HERMES_GID``
+    ``A2ASSISTANT_HOME_MODE`` stays honoured, and ``A2ASSISTANT_UID``/``A2ASSISTANT_GID``
     ownership is applied so a root-created dir does not lock out uid-mapped
     Docker workers (#34107).
 
@@ -195,7 +195,7 @@ def _secure_cache_dir(new_subpath: str, old_name: str) -> Path:
     ``stateDir/.hermes`` to ``2770`` and runs the gateway with ``UMask =
     "0007"`` so "interactive users in the hermes group can read/write"
     gateway-created state. On such a host the gateway and a hostUsers CLI
-    share one ``$HERMES_HOME``, so a 0700 cache created by whichever ran
+    share one ``$A2ASSISTANT_HOME``, so a 0700 cache created by whichever ran
     first makes vision fail with EACCES for the other. Skipping the explicit
     mode there lets the inherited setgid + umask land 2770, matching
     ``ensure_hermes_home``'s managed branch and its ``logs/curator``
@@ -230,7 +230,7 @@ def _write_private_bytes(path: Path, data: bytes) -> None:
     """Write ``data`` to ``path`` with owner-only (0600) permissions.
 
     ``Path.write_bytes`` lands 0644 under a default umask. The enclosing cache
-    dir is 0700, so this matters only under ``HERMES_HOME_MODE=0701`` — but
+    dir is 0700, so this matters only under ``A2ASSISTANT_HOME_MODE=0701`` — but
     ``tools.computer_use.tool`` already writes private captures into this
     very directory, and one directory with two file-mode conventions is the
     kind of inconsistency that rots. POSIX mode bits are advisory on Windows
@@ -681,7 +681,7 @@ async def _prepare_image(
 def _too_large_message(image_data_url: str) -> str:
     return (
         f"Image too large for vision API: base64 payload is {len(image_data_url) / (1024 * 1024):.1f} MB "
-        f"(limit {_MAX_BASE64_BYTES / (1024 * 1024):.0f} MB) even after resizing. Run `hermes pm repair` "
+        f"(limit {_MAX_BASE64_BYTES / (1024 * 1024):.0f} MB) even after resizing. Run `a2assistant pm repair` "
         f"to restore Pillow for auto-resize, or compress the image manually.")
 
 
@@ -889,7 +889,7 @@ async def vision_analyze_tool(
     image_url: str, user_prompt: str, model: str | None = None,
     task_id: Optional[str] = None, region: Optional[list] = None) -> str:
     """Describe an image (URL, local path, data: URL) with the auxiliary vision LLM. ``user_prompt``
-    is pre-formatted by the caller. Temp images live under $HERMES_HOME/cache/vision/."""
+    is pre-formatted by the caller. Temp images live under $A2ASSISTANT_HOME/cache/vision/."""
     async def stage(prompt: str, debug_call_data: dict, temp_paths: list) -> tuple:
         prepared = await _prepare_image(image_url, task_id, region, validate_decode=False)
         temp_paths.append(prepared.path)

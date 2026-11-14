@@ -32,18 +32,18 @@ beforeEach((): void => {
 })
 
 afterEach((): void => {
-  delete process.env.HERMES_DESKTOP_VARIANT
-  delete process.env.HERMES_PAYLOAD_TAG
-  delete process.env.HERMES_BUILD_COMMIT
-  delete process.env.HERMES_PAYLOAD_VERSION
+  delete process.env.A2ASSISTANT_DESKTOP_VARIANT
+  delete process.env.A2ASSISTANT_PAYLOAD_TAG
+  delete process.env.A2ASSISTANT_BUILD_COMMIT
+  delete process.env.A2ASSISTANT_PAYLOAD_VERSION
   vi.resetModules()
 })
 
 async function identityForVariant(variant: string | undefined): Promise<ProductIdentity> {
   if (variant === undefined) {
-    delete process.env.HERMES_DESKTOP_VARIANT
+    delete process.env.A2ASSISTANT_DESKTOP_VARIANT
   } else {
-    process.env.HERMES_DESKTOP_VARIANT = variant
+    process.env.A2ASSISTANT_DESKTOP_VARIANT = variant
   }
 
   delete require.cache[require.resolve('../product-identity.cjs')]
@@ -76,7 +76,7 @@ test('baked runtime identity never evaluates ambient build selectors', async ():
     const actual: unknown = JSON.parse(
       execFileSync(process.execPath, [file], {
         encoding: 'utf8',
-        env: { ...process.env, HERMES_DESKTOP_VARIANT: 'store', HERMES_BUILD_COMMIT: 'a'.repeat(40) }
+        env: { ...process.env, A2ASSISTANT_DESKTOP_VARIANT: 'store', A2ASSISTANT_BUILD_COMMIT: 'a'.repeat(40) }
       })
     )
 
@@ -88,7 +88,7 @@ test('baked runtime identity never evaluates ambient build selectors', async ():
 
 test('nonstable runtime pins userData before the app name can change', async (): Promise<void> => {
   const stable: ProductIdentity = await identityForVariant('bundled')
-  process.env.HERMES_PAYLOAD_TAG = 'v0.28.0+canary.20260818T000000Z'
+  process.env.A2ASSISTANT_PAYLOAD_TAG = 'v0.28.0+canary.20260818T000000Z'
   const canary: ProductIdentity = await identityForVariant('bundled')
   const runtime: { applyDesktopIdentity: typeof applyDesktopIdentity } = await import('./product-identity')
   const root: string = fs.mkdtempSync(path.join(os.tmpdir(), 'identity-userdata-'))
@@ -118,9 +118,9 @@ test('nonstable runtime pins userData before the app name can change', async ():
 })
 
 test.each([
-  [undefined, 'A2Assistant', 'hermes', 'latest', 'canary'],
-  ['bundled', 'A2Assistant Agent', 'hermes', 'latest', 'canary'],
-  ['light', 'A2Assistant Light', 'hermes-light', 'light', 'light-canary']
+  [undefined, 'A2Assistant', 'a2assistant', 'latest', 'canary'],
+  ['bundled', 'A2Assistant Agent', 'a2assistant', 'latest', 'canary'],
+  ['light', 'A2Assistant Light', 'a2assistant-light', 'light', 'light-canary']
 ] as const)(
   '%s separates stable, canary and independent commits',
   async (
@@ -142,8 +142,8 @@ test.each([
       ['', 'abcdef1234567890abcdef1234567890abcdef12', `${cli}-abcdef1`, null],
       ['', '1234567890abcdef1234567890abcdef12345678', `${cli}-1234567`, null]
     ] as const) {
-      process.env.HERMES_PAYLOAD_TAG = tag
-      process.env.HERMES_BUILD_COMMIT = commit
+      process.env.A2ASSISTANT_PAYLOAD_TAG = tag
+      process.env.A2ASSISTANT_BUILD_COMMIT = commit
       const current: ProductIdentity = await identityForVariant(variant)
       assert.equal(current.channel, expectedChannel)
       assert.equal(current.cliName, expectedCli)
@@ -175,8 +175,8 @@ test.each([
       identities.push(current)
     }
 
-    process.env.HERMES_BUILD_COMMIT = 'not-a-sha'
-    process.env.HERMES_PAYLOAD_TAG = 'v1.2.3'
+    process.env.A2ASSISTANT_BUILD_COMMIT = 'not-a-sha'
+    process.env.A2ASSISTANT_PAYLOAD_TAG = 'v1.2.3'
     assert.deepEqual(await identityForVariant(variant), stable)
   }
 )
@@ -211,13 +211,13 @@ test('packaging isolates boot metadata and executable names without renaming rel
   const stable: PackagingConfiguration = load()
   assert.equal(stable.extraMetadata.productName || pkg.productName, pkg.productName)
 
-  process.env.HERMES_PAYLOAD_TAG = 'v0.28.0'
-  process.env.HERMES_BUILD_COMMIT = ''
+  process.env.A2ASSISTANT_PAYLOAD_TAG = 'v0.28.0'
+  process.env.A2ASSISTANT_BUILD_COMMIT = ''
   assert.equal(load().msix.customManifestPath, 'build/msix-manifest.xml')
 
   for (const build of ['canary', 'abcdef1234567890abcdef1234567890abcdef12']) {
-    process.env.HERMES_PAYLOAD_TAG = build === 'canary' ? 'v0.28.0+canary.20260818T000000Z' : ''
-    process.env.HERMES_BUILD_COMMIT = build === 'canary' ? '' : build
+    process.env.A2ASSISTANT_PAYLOAD_TAG = build === 'canary' ? 'v0.28.0+canary.20260818T000000Z' : ''
+    process.env.A2ASSISTANT_BUILD_COMMIT = build === 'canary' ? '' : build
     const identity: ProductIdentity = await identityForVariant('bundled')
     const config: PackagingConfiguration = load()
     // Electron bootstrap gives productName precedence over name. appId alone
@@ -250,11 +250,11 @@ test('packaging isolates boot metadata and executable names without renaming rel
       appIdentity: (desktopDir: string) => { name: string; identity: ProductIdentity }
     } = require('../../../scripts/msix-shared.mjs')
 
-    process.env.HERMES_PAYLOAD_VERSION = '0.28.0'
+    process.env.A2ASSISTANT_PAYLOAD_VERSION = '0.28.0'
     const artifact: ReturnType<typeof appIdentity> = appIdentity(fileURLToPath(new URL('../', import.meta.url)))
     assert.equal(artifact.name, identity.artifactNamePascal)
     assert.equal(artifact.identity.msixAppIdWithOrg, config.msix.identityName)
-    assert.deepEqual(config.protocols[0].schemes, ['hermes'])
+    assert.deepEqual(config.protocols[0].schemes, ['a2assistant', 'hermes'])
 
     if (build !== 'canary') {
       assert.equal(config.publish, null)
@@ -280,10 +280,10 @@ test('store inherits the bundled app identity (shared userData) but swaps the MS
 })
 
 test('nonstable builds cannot claim the official Store package', async (): Promise<void> => {
-  process.env.HERMES_PAYLOAD_TAG = 'v0.28.0+canary.20260818T000000Z'
+  process.env.A2ASSISTANT_PAYLOAD_TAG = 'v0.28.0+canary.20260818T000000Z'
   await assert.rejects(identityForVariant('store'), /Store.*stable/)
-  delete process.env.HERMES_PAYLOAD_TAG
-  process.env.HERMES_BUILD_COMMIT = 'abcdef1234567890abcdef1234567890abcdef12'
+  delete process.env.A2ASSISTANT_PAYLOAD_TAG
+  process.env.A2ASSISTANT_BUILD_COMMIT = 'abcdef1234567890abcdef1234567890abcdef12'
   await assert.rejects(identityForVariant('store'), /Store.*stable/)
 })
 

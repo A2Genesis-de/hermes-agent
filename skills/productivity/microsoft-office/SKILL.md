@@ -42,7 +42,7 @@ Deeper notes: `references/revisions-and-comments.md` (Word review markup) and
 - Python 3.10+ with `python-docx`, `python-pptx`, and `openpyxl` (import names
   `docx`, `pptx`, `openpyxl`).
 - Pick the interpreter with `terminal`. Use `python` when it already imports
-  the libraries (the Hermes Docker image ships them). Otherwise, when `hermes`
+  the libraries (the Hermes Docker image ships them). Otherwise, when `a2assistant`
   is on PATH, let Hermes build its shared, pinned documents environment under
   the Hermes home: it survives container restarts, never touches the Hermes
   install itself, and is safe to run from several agents at once. When it is
@@ -52,7 +52,7 @@ Deeper notes: `references/revisions-and-comments.md` (Word review markup) and
 
   ```bash
   python -c "import docx, pptx, openpyxl" 2>/dev/null && PY=python || if command -v hermes >/dev/null 2>&1; then
-    PY="$(hermes pm environment documents --extra documents --extra documents-pdf)"
+    PY="$(a2assistant pm environment documents --extra documents --extra documents-pdf)"
   else
     PY="$HOME/.cache/hermes-docs-venv/bin/python"
     "$PY" -c "import docx, openpyxl, pptx, reportlab, pypdf, pdfplumber, pypdfium2" 2>/dev/null || (
@@ -78,9 +78,9 @@ Deeper notes: `references/revisions-and-comments.md` (Word review markup) and
 
   Run every helper with `"$PY"`. In PowerShell (Hermes runs on that host, so
   it is on PATH):
-  `$env:PY = hermes pm environment documents --extra documents --extra documents-pdf`.
+  `$env:PY = a2assistant pm environment documents --extra documents --extra documents-pdf`.
   Never `pip install` into the interpreter that runs Hermes or into the
-  `hermes pm environment` one; Hermes owns both.
+  `a2assistant pm environment` one; Hermes owns both.
 - Optional: LibreOffice (`soffice`) for PDF export, Excel recalculation, and
   slide rendering, plus poppler (`pdftoppm` or `pdftocairo`) for slide PNGs.
   The helpers that need them report what is missing and exit 0.

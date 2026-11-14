@@ -1,7 +1,7 @@
-"""`hermes gateway install --no-start-now` and the setup wizard's "Start the gateway now?" = No on launchd.
+"""`a2assistant gateway install --no-start-now` and the setup wizard's "Start the gateway now?" = No on launchd.
 
 The plist carries RunAtLoad, so loading it (`launchctl bootstrap`) starts the gateway on the spot. A
-no-start install must therefore write the plist without loading it; `hermes gateway start` loads it later.
+no-start install must therefore write the plist without loading it; `a2assistant gateway start` loads it later.
 """
 import argparse
 import plistlib
@@ -14,7 +14,7 @@ import hermes_cli.gateway as gateway_cli
 from hermes_cli import gateway_service_owner
 from hermes_cli.subcommands.gateway import build_gateway_parser
 
-LABEL = "ai.hermes.gateway"
+LABEL = "de.a2genesis.a2assistant.gateway"
 DOMAIN = "gui/501"
 
 

@@ -26,7 +26,7 @@ def homes(tmp_path, monkeypatch):
     (secondary / 'config.yaml').write_text('model: {default: worker-model}\n')
     (root / 'config.yaml').write_text('gateway: {multiplex_profiles: true}\n')
     monkeypatch.setattr('pathlib.Path.home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     monkeypatch.setattr(profiles, 'get_active_profile_name', lambda: 'default')
     monkeypatch.setattr(gw, '_get_service_pids', lambda **kw: [])
     monkeypatch.setattr(gw, '_scan_gateway_pids', lambda *a, **kw: [])
@@ -52,7 +52,7 @@ def _live_host(monkeypatch, home, *, socket_answers=False):
 def test_stop_refuses_the_serving_host_when_the_socket_does_not_answer(homes, monkeypatch, capsys):
     root, secondary = homes
     _live_host(monkeypatch, root)
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_mark_planned_stop', lambda *a: pytest.fail('planned-stop marker written for the host pid'))
     monkeypatch.setattr(gw.os, 'kill', lambda *a: pytest.fail('stop_profile_gateway SIGTERMed the host pid'))
     monkeypatch.setattr(gw, '_reap_unsupervised_gateway_orphans', lambda **kw: pytest.fail('host pid reached the reaper'))
@@ -93,7 +93,7 @@ def test_cmd_stop_guard_names_the_host_when_the_lock_carries_its_pid(homes, monk
     _live_host(monkeypatch, root)
     host = SimpleNamespace(home=root, pid=HOST_PID, profile_label='default',
                            profiles=('default', 'worker'), describe=lambda: 'test host')
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_refuse_from_inside_gateway', lambda *a: None)
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
     monkeypatch.setattr(gw, '_served_by_another_host_gateway', lambda *a: host)
@@ -119,10 +119,10 @@ def test_sticky_profile_force_gateway_stays_stoppable(homes, monkeypatch):
         (secondary / 'gateway.pid').write_text(json.dumps({
             'pid': pid, 'kind': status._GATEWAY_KIND, 'argv': ['hermes', 'gateway', 'run', '--force'],
             'start_time': status._get_process_start_time(pid), 'hermes_home': str(secondary)}))
-        monkeypatch.setenv('HERMES_HOME', str(secondary))
+        monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
         monkeypatch.setattr(hr, 'read_record', lambda role, **kw: None)
         monkeypatch.setattr(dashboard_procs, '_pid_environ',
-                            lambda p: {'HERMES_HOME': str(root), 'HOME': str(root.parent)})
+                            lambda p: {'A2ASSISTANT_HOME': str(root), 'HOME': str(root.parent)})
         monkeypatch.setattr(status, 'get_running_pid', lambda **kw: pid)
         assert dashboard_procs._hermes_home_for_pid(pid, require_launch_identity=True) is None
         assert gw._owned_gateway_pid() == pid
@@ -140,7 +140,7 @@ def test_only_the_hosts_pid_dials_its_control_socket(homes, monkeypatch):
     the live host's never dials, and the host's pid from another home is refused on the record alone."""
     root, secondary = homes
     dials = _live_host(monkeypatch, root, socket_answers=True)
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(status, 'get_running_pid', lambda **kw: 5151)
     monkeypatch.setattr(dashboard_procs, '_hermes_home_for_pid', lambda pid, **kw: str(secondary))
     assert gw.find_gateway_pids() == [5151]

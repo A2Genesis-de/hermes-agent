@@ -523,7 +523,7 @@ class GatewayChatView:
     def _report_no_reply(self, exit_code):
         """`-z` exit 1 (a completed turn with no reply text): the in-process one-shot's stderr line."""
         if self.unattended and exit_code == 1:
-            print("hermes -z: no final response was produced; treating the run as failed.", file=sys.stderr)
+            print("a2assistant -z: no final response was produced; treating the run as failed.", file=sys.stderr)
 
     def _write_usage_file(self, result, outcome):
         """``-z --usage-file``: the same JSON ledger the in-process one-shot wrote."""
@@ -541,7 +541,7 @@ class GatewayChatView:
         if oneshot and self.unknown_admissions():
             # A new admission would queue behind the unknown row and never run; refuse BEFORE
             # submitting so nothing is left queued for the next interactive resume to find.
-            return self._detach(f"Your message was not sent. To continue, run `hermes sessions discard "
+            return self._detach(f"Your message was not sent. To continue, run `a2assistant sessions discard "
                                 f"{self.session_id} --yes`, or resume this session in an interactive chat "
                                 "and /discard the paused turn there; then send it again.")
         renderer = asyncio.create_task(self.render())
@@ -647,4 +647,4 @@ def resume_footer(session_id):
     from hermes_cli.profiles import get_active_profile_name
     profile = get_active_profile_name()
     flag = "" if profile in ("default", "custom") else f" -p {profile}"
-    return f"\n{t('cli.session.exit_resume_hint')}\n  hermes --resume {session_id}{flag}"
+    return f"\n{t('cli.session.exit_resume_hint')}\n  a2assistant --resume {session_id}{flag}"

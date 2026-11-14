@@ -95,7 +95,7 @@ def test_launch_reads_devtools_port_and_runs_headless_on_an_ephemeral_home_profi
 @pytest.mark.platforms("posix")
 @pytest.mark.live_system_guard_bypass  # the fake browser's reparented helper is ours to stop
 def test_launch_record_lives_in_the_profiles_private_state_dir(fake_chromium):
-    """Launcher state lives in a private per-profile dir: the record under ``<HERMES_HOME>/cache/browser/
+    """Launcher state lives in a private per-profile dir: the record under ``<A2ASSISTANT_HOME>/cache/browser/
     chromium-records`` (0700) and the throwaway profile under the 0700 ephemeral root beside it."""
     from hermes_constants import get_hermes_home
     browser, err = launcher.launch_chromium("recorded", env=dict(os.environ))

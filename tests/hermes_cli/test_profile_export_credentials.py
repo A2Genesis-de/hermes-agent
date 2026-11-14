@@ -117,7 +117,7 @@ class TestCredentialExclusion:
         for rel in [*nested, "skills/s/.config/other/settings.json"]:
             (profile_dir / rel).parent.mkdir(parents=True, exist_ok=True)
             (profile_dir / rel).write_text("fake-credential")
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_dir))
         copies = [
             create_pre_update_backup(hermes_home=profile_dir),
             profile_dir / "state-snapshots" / create_quick_snapshot(hermes_home=profile_dir),
@@ -162,7 +162,7 @@ class TestCredentialExclusion:
 
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         (tmp_path / ".hermes").mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         stores = _seed_stores(tmp_path / "v1") | {"auth.json.corrupt", ".env.bak-20260928T084018Z",
                                                   "config.yaml.bak-20260928T084018Z"}
         for copy in ("auth.json.corrupt", ".env.bak-20260928T084018Z", "config.yaml.bak-20260928T084018Z"):
@@ -290,11 +290,11 @@ class TestExportSecretScrub:
 
 @pytest.fixture()
 def profile_env(tmp_path, monkeypatch):
-    """Point the home folder and HERMES_HOME into tmp_path, as test_profiles.py does."""
+    """Point the home folder and A2ASSISTANT_HOME into tmp_path, as test_profiles.py does."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     default_home = tmp_path / ".hermes"
     default_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     return tmp_path
 
 

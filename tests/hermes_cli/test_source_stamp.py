@@ -59,7 +59,7 @@ def test_stale_source_stamp_defers_to_live_checkout(tmp_path, monkeypatch):
 
     (repo / "tracked").write_text("manual pull\n", encoding="utf-8")
     _git(repo, "commit", "-qam", "manual pull")
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(repo))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(repo))
     monkeypatch.setattr("hermes_cli.version_info._resolve_repo_dir", lambda: repo)
     _reset_version_info_cache()
 

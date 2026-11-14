@@ -89,8 +89,8 @@ def _child_env(home: Path) -> dict:
     # process ancestry and would read this tmp $HOME/.hermes as the production root; the documented
     # child-process escape hatch is safe because every path here lives under tmp_path.
     env = {k: v for k, v in os.environ.items() if not k.endswith("_API_KEY")}
-    env.update(HOME=str(home), HERMES_HOME=str(home / ".hermes"), PYTHONPATH=str(REPO), PYTHONUNBUFFERED="1",
-               HERMES_STATE_DB_GUARD_BYPASS="1")
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home / ".hermes"), PYTHONPATH=str(REPO), PYTHONUNBUFFERED="1",
+               A2ASSISTANT_STATE_DB_GUARD_BYPASS="1")
     return env
 
 

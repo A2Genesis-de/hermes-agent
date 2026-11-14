@@ -1,4 +1,4 @@
-"""`hermes sessions discard`: a script can clear a turn lost in a gateway crash without a REPL."""
+"""`a2assistant sessions discard`: a script can clear a turn lost in a gateway crash without a REPL."""
 import argparse
 import asyncio
 import json
@@ -37,7 +37,7 @@ async def test_sessions_discard_yes_resolves_every_unknown_admission_with_its_fe
     build_sessions_parser(parser.add_subparsers(dest="command"), cmd_sessions=sessions_cmd.cmd_sessions)
     monkeypatch.setattr("sys.stdin.isatty", lambda: False)
     async with serve(peer, "127.0.0.1", 0) as server:
-        monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", f"ws://127.0.0.1:{server.sockets[0].getsockname()[1]}")
+        monkeypatch.setenv("A2ASSISTANT_TUI_GATEWAY_URL", f"ws://127.0.0.1:{server.sockets[0].getsockname()[1]}")
 
         def run(*argv):
             args = parser.parse_args(["sessions", "discard", "my script session", *argv])

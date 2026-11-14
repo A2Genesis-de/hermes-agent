@@ -129,8 +129,8 @@ def test_cold_cli_builds_own_runtime_discovers_plugins_and_repairs_app(tmp_path,
     scratch = tmp_path / "scratch"
     scratch.mkdir()
     env = {
-        "HOME": str(home), "HERMES_HOME": str(hermes_home),
-        "HERMES_RUNTIME_DIR": str(store), "PATH": os.defpath,
+        "HOME": str(home), "A2ASSISTANT_HOME": str(hermes_home),
+        "A2ASSISTANT_RUNTIME_DIR": str(store), "PATH": os.defpath,
         "TMPDIR": str(scratch), "LANG": "C.UTF-8", "LC_ALL": "C.UTF-8",
         "UV_PYTHON_DOWNLOADS": "never", "UV_NO_CONFIG": "1",
         "UV_CACHE_DIR": str(tmp_path / "seed-cache"),

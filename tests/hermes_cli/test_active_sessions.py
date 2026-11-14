@@ -55,7 +55,7 @@ def test_resolve_max_concurrent_sessions_values():
 
 def test_cross_process_acquire_claims_only_one_last_slot(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     repo_root = Path(__file__).resolve().parents[2]
     ready_dir = tmp_path / "ready"
     ready_dir.mkdir()
@@ -63,7 +63,7 @@ def test_cross_process_acquire_claims_only_one_last_slot(tmp_path, monkeypatch):
     results_dir.mkdir()
     go_file = tmp_path / "go"
     env = os.environ.copy()
-    env["HERMES_HOME"] = str(home)
+    env["A2ASSISTANT_HOME"] = str(home)
     env["PYTHONPATH"] = str(repo_root)
     script = (
         "import os, time\n"
@@ -153,7 +153,7 @@ def test_release_orphaned_leases_reclaims_only_unowned_own_pid_entries(tmp_path,
     dashboard`` running for days holds a leaked lease until restart. The
     process reconciles against the leases it still owns instead.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     cfg = {"max_concurrent_sessions": 5}
     kept, orphan = (
         active_sessions.try_acquire_active_session(
@@ -184,7 +184,7 @@ def test_release_orphaned_leases_sweeps_profile_runtime_registries(
     profile = root / "profiles" / "worker"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}\n")  # identity marker: a bare dir is not a profile
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
 
     root_lease, root_error = active_sessions.try_acquire_active_session(
         session_id="root-orphan", surface="desktop", config={}, registry_home=root
@@ -222,7 +222,7 @@ def test_drop_self_orphans_spares_foreign_and_vouched_leases():
 def test_release_under_profile_home_override_targets_acquisition_registry(
     tmp_path, monkeypatch
 ):
-    """Regression for #85431: a lease acquired against the root HERMES_HOME
+    """Regression for #85431: a lease acquired against the root A2ASSISTANT_HOME
     must release from the root registry even when ``release()`` runs inside a
     profile home override (native multiplex runs agent cleanup under
     ``_profile_runtime_scope``). Before the fix the root entry survived and
@@ -236,7 +236,7 @@ def test_release_under_profile_home_override_targets_acquisition_registry(
     profile = root / "profiles" / "worker"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}\n")  # identity marker: a bare dir is not a profile
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
 
     lease, error = active_sessions.try_acquire_active_session(
         session_id="agent:worker:telegram:dm:synthetic",
@@ -274,7 +274,7 @@ def test_transfer_under_profile_home_override_targets_acquisition_registry(
     profile = root / "profiles" / "worker"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}\n")  # identity marker: a bare dir is not a profile
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
 
     lease, error = active_sessions.try_acquire_active_session(
         session_id="before",
@@ -298,7 +298,7 @@ def test_liveness_registry_corruption_fails_closed_without_overwrite(
     tmp_path, monkeypatch
 ):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     state_path = home / "runtime" / "active_sessions.json"
     state_path.parent.mkdir(parents=True)
     corrupt = "{not-json"
@@ -340,7 +340,7 @@ def test_liveness_registry_corruption_fails_closed_without_overwrite(
 
 def test_strict_registry_rejects_structurally_invalid_entries(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     state_path = home / "runtime" / "active_sessions.json"
     base = {
         "lease_id": "lease-1",
@@ -381,7 +381,7 @@ def test_strict_registry_rejects_duplicate_lease_ids(
     tmp_path, monkeypatch, second_session_id
 ):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     state_path = home / "runtime" / "active_sessions.json"
     active_sessions._write_entries(
         state_path,
@@ -412,7 +412,7 @@ def test_strict_registry_rejects_duplicate_lease_ids(
 
 def test_cap_transfer_does_not_overwrite_registry_corruption(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     state_path = home / "runtime" / "active_sessions.json"
     lease, message = active_sessions.try_acquire_active_session(
         session_id="cli-old",
@@ -437,7 +437,7 @@ def test_cap_transfer_does_not_overwrite_registry_corruption(tmp_path, monkeypat
 
 def test_liveness_guard_rejects_unknown_pid_state(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     state_path = home / "runtime" / "active_sessions.json"
     active_sessions._write_entries(
         state_path,
@@ -484,7 +484,7 @@ def test_unknown_sibling_liveness_only_fences_its_own_session(tmp_path, monkeypa
     sibling whose owner pid exists but whose start time cannot be read (LXC /proc after
     a backend restart, #113683); the SAME session id still fails closed."""
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     state_path = home / "runtime" / "active_sessions.json"
     active_sessions._write_entries(state_path, [{
         "lease_id": "stale-sibling", "session_id": "old-chat", "surface": "desktop",
@@ -518,7 +518,7 @@ def test_unknown_sibling_does_not_block_guarded_release_or_orphan_sweep(tmp_path
     lease through ``release_active_session_liveness_guard``; that path and the
     orphan sweep must tolerate an unknowable, unrelated sibling as well (#113683)."""
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     state_path = home / "runtime" / "active_sessions.json"
     active_sessions._write_entries(state_path, [{
         "lease_id": "stale-sibling", "session_id": "old-chat", "surface": "desktop",
@@ -554,7 +554,7 @@ def test_unknown_sibling_does_not_block_guarded_release_or_orphan_sweep(tmp_path
 
 def test_liveness_release_failure_is_retryable(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     lease, message = active_sessions.try_acquire_active_session(
         session_id="session-1",
         surface="desktop",
@@ -583,7 +583,7 @@ def test_liveness_transfer_upserts_missing_entry_without_consuming_a_new_slot(
     tmp_path, monkeypatch
 ):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     lease, message = active_sessions.try_acquire_active_session(
         session_id="session-old",
         surface="desktop",
@@ -612,7 +612,7 @@ def test_liveness_transfer_upserts_missing_entry_without_consuming_a_new_slot(
 
 def test_liveness_transfer_write_failure_keeps_old_id_for_retry(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     lease, message = active_sessions.try_acquire_active_session(
         session_id="session-old",
         surface="desktop",
@@ -641,7 +641,7 @@ def test_release_wins_against_transfer_waiting_on_same_lease_lock(
     tmp_path, monkeypatch
 ):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     lease, message = active_sessions.try_acquire_active_session(
         session_id="session-old",
         surface="desktop",
@@ -701,7 +701,7 @@ def test_liveness_guard_keeps_a_just_acquired_own_lease_it_cannot_vouch_for(
     ids, then a sibling session acquires a lease before the registry lock is
     taken. That lease is absent from the snapshot but is not an orphan."""
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     fresh, error = active_sessions.try_acquire_active_session(
         session_id="fresh", surface="desktop", config={}, registry_home=home
     )

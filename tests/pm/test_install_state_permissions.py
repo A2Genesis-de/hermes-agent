@@ -15,7 +15,7 @@ from pm.environments import install_state_dir, install_state_permission_message
 
 @pytest.mark.parametrize("phase", ["preparation", "activation"])
 def test_bootstrap_reports_unwritable_install_once(tmp_path, monkeypatch, phase):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     root = Path(__file__).resolve().parents[2]
     target = install_state_dir(root) / (
         "pm-runtime/.prepare.lock" if phase == "preparation" else ".install.lock"
@@ -47,13 +47,13 @@ import hermes_bootstrap
     assert "install state is not writable by this user" in result.stderr
     assert str(target) in result.stderr
     assert "source-update completion failed" not in result.stderr
-    assert "run `hermes update`" not in result.stderr
-    assert "hermes pm repair" not in result.stderr
+    assert "run `a2assistant update`" not in result.stderr
+    assert "a2assistant pm repair" not in result.stderr
     assert "Traceback" not in result.stderr
 
 
 def test_pm_repair_reports_unwritable_runtime_without_traceback(tmp_path, monkeypatch, capsys):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     root = Path(__file__).resolve().parents[2]
     target = install_state_dir(root) / "pm-runtime" / ".prepare.lock"
     code = """
@@ -99,4 +99,4 @@ raise SystemExit(main(["repair"]))
     monkeypatch.setitem(sys.modules, "pm.recovery", recovery)
     with pytest.raises(PermissionError):
         _early_recovery.recover_if_needed(project, argv=["pm", "repair"], explicit=True)
-    assert "run `hermes pm repair`" not in capsys.readouterr().err
+    assert "run `a2assistant pm repair`" not in capsys.readouterr().err

@@ -59,7 +59,7 @@ const OBSERVE_MS = 13_000
 // (RUN_START_SNAP_THRESHOLD_PX in thread/list.tsx).
 const OFF_BOTTOM_PX = 64
 
-const SHOTS = process.env.HERMES_E2E_SHOT_DIR
+const SHOTS = process.env.A2ASSISTANT_E2E_SHOT_DIR
 
 function viewport(page: Page) {
   return page.locator('[data-slot="aui_thread-viewport"]').filter({ visible: true }).first()

@@ -33,7 +33,7 @@ if not (INFER_URL and INFER_KEY):
 for var in list(os.environ):
     if var.endswith(("_API_KEY", "_TOKEN")):
         os.environ.pop(var, None)
-os.environ.pop("HERMES_PROFILE", None)
+os.environ.pop("A2ASSISTANT_PROFILE", None)
 
 HARNESS = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(HARNESS, "..", "core_tool_deferral"))
@@ -47,7 +47,7 @@ os.makedirs(workspace)
 isolate_host(tmp_root, hermes_home)
 with open(os.path.join(hermes_home, "config.yaml"), "w", encoding="utf-8") as f:
     f.write(f"model:\n  provider: custom\n  base_url: {INFER_URL}\n  model: {MODEL}\nbrowser:\n  backend: browser-use\n")
-os.environ["HERMES_HOME"] = hermes_home
+os.environ["A2ASSISTANT_HOME"] = hermes_home
 os.environ["TERMINAL_CWD"] = workspace
 os.chdir(workspace)
 sys.path.insert(0, TREE)

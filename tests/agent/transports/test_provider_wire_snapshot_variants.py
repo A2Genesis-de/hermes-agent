@@ -19,7 +19,7 @@ reaches are recorded too:
 Cells live in ``tests/fixtures/provider_wire_snapshot_variants.json``; regenerate and review the
 diff exactly like the base snapshot::
 
-    HERMES_UPDATE_WIRE_SNAPSHOT=1 .venv/bin/python -m pytest tests/agent/transports/test_provider_wire_snapshot_variants.py
+    A2ASSISTANT_UPDATE_WIRE_SNAPSHOT=1 .venv/bin/python -m pytest tests/agent/transports/test_provider_wire_snapshot_variants.py
 """
 
 from __future__ import annotations
@@ -142,7 +142,7 @@ def _aux_kwargs(monkeypatch, provider: str, model: str, base_url: str | None, op
 
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)  # flips the direct-OpenAI key choice
     if "config" in opts:
-        Path(os.environ["HERMES_HOME"], "config.yaml").write_text(opts["config"], encoding="utf-8")
+        Path(os.environ["A2ASSISTANT_HOME"], "config.yaml").write_text(opts["config"], encoding="utf-8")
     task = opts.get("task")
     main = {"provider": provider, "model": model, "base_url": base_url or "", "session_id": "aux-snapshot"}
     out: dict[str, Any] = {}

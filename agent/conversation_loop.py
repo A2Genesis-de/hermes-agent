@@ -545,7 +545,7 @@ def _billing_or_entitlement_message(
                 "at https://claude.ai/settings/usage",
                 switch,
                 # The exhaustion latch replays the stored error without a request.
-                "Retry with a fresh credential state: `hermes auth reset anthropic`. Until that "
+                "Retry with a fresh credential state: `a2assistant auth reset anthropic`. Until that "
                 "cooldown clears, this error can be replayed from cache without contacting the API.",
             ])
         return "\n".join([
@@ -772,7 +772,7 @@ def _refresh_bot_chat_tools(agent) -> None:
     """Rebuild ``agent.tools`` for a Bot Chat capability refresh through the builder that
     created the session, so the refreshed set is what a fresh desktop/TUI session gets
     (#124211). A canonical Bot Chat never forks, so its tools[] is otherwise a fossil of
-    session creation: ``hermes tools enable/disable`` writes ``platform_toolsets`` and the
+    session creation: ``a2assistant tools enable/disable`` writes ``platform_toolsets`` and the
     automatic between-turns refresh reuses the build-time selection. Only the desktop/TUI
     gateway keeps agents alive across turns; every other surface builds a fresh agent whose
     tools[] already reflects config. No prefix preservation: a disabled toolset must drop,

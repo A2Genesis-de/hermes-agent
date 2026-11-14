@@ -23,8 +23,8 @@ async def test_inbound_cache_failure_keeps_owner_policy_and_context(
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     root = tmp_path / ".hermes"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(tmp_path / "managed"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(tmp_path / "managed"))
     (root / "config.yaml").write_text(json.dumps({"display": {"suppress_warning_notifications": ambient}}))
     for name, value in (("a", setting), ("b", not bool(setting))):
         home = root / "profiles" / name

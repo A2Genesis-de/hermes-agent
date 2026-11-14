@@ -31,12 +31,12 @@ def _plugins():
 
 @pytest.fixture
 def curator_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with a skills/ dir + reset curator module state."""
+    """Isolated A2ASSISTANT_HOME with a skills/ dir + reset curator module state."""
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "skills").mkdir()
     (home / "logs").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
     import hermes_constants
@@ -58,7 +58,7 @@ def _fresh_plugin_manager():
 
 
 def _run_pass(curator):
-    """One real prune-only pass (no LLM fork), the path a scheduled tick and `hermes curator run` take."""
+    """One real prune-only pass (no LLM fork), the path a scheduled tick and `a2assistant curator run` take."""
     curator.run_curator_review(synchronous=True, consolidate=False)
     return curator.load_state().get("last_report_path")
 
@@ -112,7 +112,7 @@ def test_a_pass_without_its_own_complete_report_fires_nothing(curator_env, monke
 
 
 def test_dry_run_pass_fires_flagged_with_the_hooks_test_payload_shape(curator_env):
-    """A preview still announces its report, flagged so observers don't act on it; ``hermes hooks
+    """A preview still announces its report, flagged so observers don't act on it; ``a2assistant hooks
     test post_curator_run`` sends the same keys a real pass does."""
     from hermes_cli.hooks import _DEFAULT_PAYLOADS
     curator = curator_env["curator"]

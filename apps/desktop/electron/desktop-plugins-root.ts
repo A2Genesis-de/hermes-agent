@@ -1,4 +1,4 @@
-// The standalone desktop-plugin root (`<HERMES_HOME>/desktop-plugins`) and the
+// The standalone desktop-plugin root (`<A2ASSISTANT_HOME>/desktop-plugins`) and the
 // one-time migrations that make it the ONLY place desktop code loads from.
 //
 // A desktop plugin extends THIS APP — panes, palette commands, themes — not an
@@ -113,7 +113,7 @@ async function listDirs(dir: string, followLinks = false): Promise<string[]> {
     const entries = await fs.promises.readdir(dir, { withFileTypes: true })
 
     // `Dirent.isDirectory()` is false for a symlink. A package root follows
-    // links to directories: `ln -s ~/src/my-plugin ~/.hermes/plugins/` is how a
+    // links to directories: `ln -s ~/src/my-plugin ~/.a2assistant/plugins/` is how a
     // plugin is developed in place, and the Python loader already follows it.
     const linkedDir = async (name: string) => {
       try {

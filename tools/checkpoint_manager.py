@@ -13,7 +13,7 @@ controlled by the ``checkpoints`` config flag or ``--checkpoints`` CLI flag.
 Storage layout (single shared store, git objects deduplicated across projects)
 -----------------------------------------------------------------------------
 
-    ~/.hermes/checkpoints/
+    ~/.a2assistant/checkpoints/
         store/                          — single bare-ish git repo
             HEAD, config, objects/      — standard git internals (shared)
             refs/hermes/<hash16>        — per-project branch tip
@@ -78,7 +78,7 @@ _CHECKPOINT_BASE_AT_IMPORT = CHECKPOINT_BASE
 
 def _resolve_checkpoint_base() -> Path:
     """Active profile's checkpoint root at call time: the patched ``CHECKPOINT_BASE`` when a test
-    changed it, else live profile-scoped HERMES_HOME — under the multiplexed gateway one process
+    changed it, else live profile-scoped A2ASSISTANT_HOME — under the multiplexed gateway one process
     serves every profile, so the import-time constant would write every profile's code-edit
     checkpoints into the launch profile's store."""
     return CHECKPOINT_BASE if CHECKPOINT_BASE != _CHECKPOINT_BASE_AT_IMPORT else get_hermes_home() / "checkpoints"
@@ -165,7 +165,7 @@ DEFAULT_EXCLUDES = [
 ]
 
 # Git subprocess timeout (seconds).
-_GIT_TIMEOUT: int = max(10, min(60, env_int("HERMES_CHECKPOINT_TIMEOUT", 30)))
+_GIT_TIMEOUT: int = max(10, min(60, env_int("A2ASSISTANT_CHECKPOINT_TIMEOUT", 30)))
 
 # Max files to snapshot — skip huge directories to avoid slowdowns.
 _MAX_FILES = 50_000
@@ -259,7 +259,7 @@ def _store_pathspecs(base: Path, working_dir) -> list[str]:
 def _stage_all_args(base: Path, working_dir) -> list[str]:
     """``git add -A`` that never stages the checkpoint base itself.
 
-    With HERMES_HOME (or a profile home) as the working directory the store sits inside
+    With A2ASSISTANT_HOME (or a profile home) as the working directory the store sits inside
     the snapshotted tree: every snapshot then staged the previous one's packfiles and
     index, the store grew by about its own size per checkpoint, and the eventual
     ``add -A`` timeout left ``indexes/<hash>.lock`` behind. Exclude the base and its
@@ -550,7 +550,7 @@ def _migrate_legacy_store(base: Path) -> Optional[Path]:
     Rather than delete the old data (users might want to recover), rename
     everything except our own v2 entries into ``legacy-<timestamp>/``.  The
     legacy dir is subject to the same retention sweep and can be manually
-    cleared with ``hermes checkpoints clear-legacy``.
+    cleared with ``a2assistant checkpoints clear-legacy``.
 
     Returns the legacy-archive path, or None if nothing to migrate.
     """
@@ -584,7 +584,7 @@ def _migrate_legacy_store(base: Path) -> Optional[Path]:
     if legacy_root is not None:
         logger.info(
             "Migrated pre-v2 checkpoint repos to %s. "
-            "Clear with `hermes checkpoints clear-legacy` when safe.",
+            "Clear with `a2assistant checkpoints clear-legacy` when safe.",
             legacy_root,
         )
     return legacy_root
@@ -807,7 +807,7 @@ def _pre_v2_shadow_repos(base: Path) -> list[dict]:
             continue
         workdir: Optional[str] = None
         marker_unreadable = False
-        wd_marker = child / "HERMES_WORKDIR"
+        wd_marker = child / "A2ASSISTANT_WORKDIR"
         if wd_marker.exists():
             try:
                 workdir = wd_marker.read_text(encoding="utf-8-sig").strip()

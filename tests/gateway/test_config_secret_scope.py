@@ -157,7 +157,7 @@ def _bound_policy(tmp_path, monkeypatch):
     from gateway.session_policy import bind_launch_key, build_policy
     home = tmp_path / 'profile'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     cfg = {'model': {'provider': 'custom', 'api_key': 'route-token', 'base_url': 'http://127.0.0.1:1234/v1'},
            'mcp_servers': {'docs': {'command': 'docs-mcp', 'env': {'DOCS_TOKEN': 'mcp-token'}}}}
     (home / 'config.yaml').write_text(json.dumps(cfg))
@@ -226,7 +226,7 @@ def _bind(tmp_path, monkeypatch, cfg):
     from gateway.session_policy import bind_launch_key, build_policy
     home = tmp_path / 'profile'
     home.mkdir(exist_ok=True)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     (home / 'config.yaml').write_text(json.dumps(cfg))
 
     def owner():

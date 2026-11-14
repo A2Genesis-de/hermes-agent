@@ -1,4 +1,4 @@
-"""``hermes plugins validate`` warns (never fails) on imports of private Hermes core modules."""
+"""``a2assistant plugins validate`` warns (never fails) on imports of private Hermes core modules."""
 
 from __future__ import annotations
 
@@ -155,7 +155,7 @@ def test_documented_session_helper_and_own_install_path_fallback_are_not_flagged
 
 def test_plugin_guide_session_identity_example_validates_clean(tmp_path):
     """Regression for #148311: the plugin guide's ``get_session_env`` example uses the import spelling
-    ``hermes plugins validate`` accepts, so a plugin that copies it gets no private-import warning."""
+    ``a2assistant plugins validate`` accepts, so a plugin that copies it gets no private-import warning."""
     import ast
     import re
 

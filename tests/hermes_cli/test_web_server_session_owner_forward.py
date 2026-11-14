@@ -218,7 +218,7 @@ async def test_selected_profile_ticket_is_minted_on_that_profiles_own_socket(tmp
     launch = tmp_path / 'launch'
     work = tmp_path / 'launch' / 'profiles' / 'work'
     work.mkdir(parents=True)
-    monkeypatch.setenv('HERMES_HOME', str(launch))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(launch))
     monkeypatch.setattr('hermes_cli.web_server_cron._cron_profile_home', lambda name: (name, work))
     endpoint = GatewayEndpoint(profile_id=str(work), instance_id='i-work', authority_epoch=1,
                                runtime_protocol=1, api_origin='http://127.0.0.1:1', supervisor='none',

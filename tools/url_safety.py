@@ -116,7 +116,7 @@ _fake_ip_resolved, _cached_fake_ip_ranges = False, ()
 
 
 def _global_allow_private_urls() -> bool:
-    """True when the user has opted out of private-IP blocking. Priority: ``HERMES_ALLOW_PRIVATE_URLS``
+    """True when the user has opted out of private-IP blocking. Priority: ``A2ASSISTANT_ALLOW_PRIVATE_URLS``
     env, ``security.allow_private_urls``, legacy ``browser.allow_private_urls``. Profile-scoped turns
     (``get_hermes_home_override()`` set) bypass the process-global cache — a multiplex gateway serves
     several profiles in one process; the first profile's opt-out must not disable blocking for later ones."""
@@ -130,7 +130,7 @@ def _global_allow_private_urls() -> bool:
 
 def _resolve_allow_private_urls() -> bool:
     """Resolve the effective private-URL toggle from the active config scope."""
-    env_val = os.getenv("HERMES_ALLOW_PRIVATE_URLS", "").strip().lower()
+    env_val = os.getenv("A2ASSISTANT_ALLOW_PRIVATE_URLS", "").strip().lower()
     if env_val in {"true", "1", "yes"}:
         return True
     if env_val in {"false", "0", "no"}:

@@ -8,7 +8,7 @@ Contract:
     onto the job as an ordinary per-job pin; ``pinned=False`` releases both.
 
 These tests exercise the full run_job path (real imports, mocked AIAgent +
-resolve_runtime_provider against a temp HERMES_HOME) and the job-store pin helpers.
+resolve_runtime_provider against a temp A2ASSISTANT_HOME) and the job-store pin helpers.
 """
 
 import asyncio
@@ -156,7 +156,7 @@ class TestUnpinnedJobsFollowTheMainModel:
 
     def test_missing_model_guides_to_user_owned_cli(self, tmp_path, monkeypatch):
         """A missing-model failure cannot advertise agent-owned pinning."""
-        monkeypatch.delenv("HERMES_MODEL", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
         success, error, agent_kwargs, _ = _run(
             _base_job(), tmp_path, current_provider="openrouter", current_model=None)
 

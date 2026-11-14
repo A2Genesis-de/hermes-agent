@@ -36,7 +36,7 @@ def test_held_reply_stays_rewritten_across_cli_replay_gap(gap):
     from hermes_cli.gateway_agent import GatewayAgent
     from hermes_cli.gateway_connection import GatewayConnection
 
-    receipt = _held_receipt(Path(os.environ["HERMES_HOME"]))
+    receipt = _held_receipt(Path(os.environ["A2ASSISTANT_HOME"]))
     terminal = frame("message.complete", {"text": REWRITE, "outcome": "completed", "status": "complete"})
     events = [frame("session.replay_gap", {}, admission=None)] if gap else [terminal]
     conn = GatewayConnection(connect=connect_with(FakeClient(events, result=receipt)))

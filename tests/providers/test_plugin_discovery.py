@@ -2,7 +2,7 @@
 
 Verifies that:
  1. All bundled providers at plugins/model-providers/<name>/ are discovered
- 2. User plugins at $HERMES_HOME/plugins/model-providers/<name>/ override bundled
+ 2. User plugins at $A2ASSISTANT_HOME/plugins/model-providers/<name>/ override bundled
  3. plugin.yaml manifests with kind=model-provider are correctly categorized
 """
 
@@ -72,7 +72,7 @@ def test_user_plugin_overrides_bundled(tmp_path, monkeypatch):
     # Point HERMES_HOME at a fresh temp dir
     hermes_home = tmp_path / ".hermes"
     hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     # get_hermes_home() may be module-cached depending on codebase; ensure the
     # env var is the source of truth. Most code paths re-read it each call.
 

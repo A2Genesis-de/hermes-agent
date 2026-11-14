@@ -3,7 +3,7 @@
 Provider profiles can live in three places:
 
 1. Bundled plugins: ``plugins/model-providers/<name>/`` (shipped with hermes-agent)
-2. User plugins: ``$HERMES_HOME/plugins/model-providers/<name>/``
+2. User plugins: ``$A2ASSISTANT_HOME/plugins/model-providers/<name>/``
 3. Pip-installed plugins: distributions exposing a ``hermes_agent.plugins``
    entry point (``module:func`` callable or a self-registering ``module``)
 
@@ -13,7 +13,7 @@ Each plugin directory contains:
 
 Discovery is lazy: the first call to ``get_provider_profile()`` or
 ``list_providers()`` imports the bundled and pip-installed plugins once per
-process; the ``$HERMES_HOME`` plugins of the profile home bound at lookup time
+process; the ``$A2ASSISTANT_HOME`` plugins of the profile home bound at lookup time
 load into that home's own layer, so one process serving several profiles
 (multiplex gateway, Desktop ``serve``) resolves each profile's installs. User
 plugins override bundled plugins on name collision, so third parties can
@@ -71,13 +71,13 @@ _PLUGIN_DIR_MTIME_TICK_NS = 2_000_000_000
 
 @dataclass
 class _HomeLayer:
-    """The ``$HERMES_HOME/plugins`` providers of ONE profile home.
+    """The ``$A2ASSISTANT_HOME/plugins`` providers of ONE profile home.
 
     One process serves many profiles (multiplex gateway, Desktop ``serve``) and each profile installs
     its own plugins, so user plugins are keyed by the home bound at lookup time instead of the home
     that happened to be bound at first discovery — that made a plugin installed in a secondary
     profile ``Unknown provider`` in Desktop while the same profile worked in a terminal (#88143).
-    ``stamps`` are the plugin dirs' mtimes: a directory added by ``hermes plugins install`` while the
+    ``stamps`` are the plugin dirs' mtimes: a directory added by ``a2assistant plugins install`` while the
     process runs changes them, and the next lookup imports it without a restart.
     """
     registry: dict[str, ProviderProfile] = field(default_factory=dict)
@@ -143,9 +143,9 @@ def register_provider(profile: ProviderProfile) -> None:
     """Register a provider profile by name and aliases.
 
     Later registrations with the same name replace earlier ones — so user
-    plugins under ``$HERMES_HOME/plugins/model-providers/`` can override
+    plugins under ``$A2ASSISTANT_HOME/plugins/model-providers/`` can override
     bundled profiles without editing repo code. A registration made while a
-    ``$HERMES_HOME`` plugin is being imported lands in that home's layer.
+    ``$A2ASSISTANT_HOME`` plugin is being imported lands in that home's layer.
     """
     global _PROVIDER_LIST_CACHE, _REGISTRY_GENERATION
     collect = _COLLECT.get()
@@ -174,7 +174,7 @@ def register_provider(profile: ProviderProfile) -> None:
 def provider_source(name: str) -> str | None:
     """Discovery source of the profile currently registered under *name* (see ``_SOURCES``), or None.
 
-    ``"user"`` is what lets a ``$HERMES_HOME`` plugin re-registering a bundled name win in
+    ``"user"`` is what lets a ``$A2ASSISTANT_HOME`` plugin re-registering a bundled name win in
     ``hermes_cli.auth.PROVIDER_REGISTRY`` too — a bundled profile never rewrites a built-in row.
     """
     layer = _home_layer()
@@ -332,7 +332,7 @@ def profile_for_host(url: str, *, metadata: bool = False) -> ProviderProfile | N
     """The registered profile whose declared ``hostnames`` match *url*'s host (exact or subdomain).
 
     *metadata* also matches ``metadata_hostnames``. Resolved against the bound home's providers, so a
-    ``$HERMES_HOME`` plugin installed after import (or in another profile) is seen; memoized per
+    ``$A2ASSISTANT_HOME`` plugin installed after import (or in another profile) is seen; memoized per
     (home, host) until the registry changes, because wire paths ask on every request.
     """
     from agent.safe_worker_policy import safe_worker_enabled
@@ -362,7 +362,7 @@ def profile_for_host(url: str, *, metadata: bool = False) -> ProviderProfile | N
 
 def list_providers() -> list[ProviderProfile]:
     """Return all registered provider profiles (one per canonical name); the bound home's
-    ``$HERMES_HOME`` plugins shadow process-wide profiles of the same name."""
+    ``$A2ASSISTANT_HOME`` plugins shadow process-wide profiles of the same name."""
     from agent.safe_worker_policy import safe_worker_enabled
 
     if safe_worker_enabled():
@@ -513,7 +513,7 @@ def _plugin_dir_stamps_settled(stamps: tuple) -> bool:
 
 
 def _user_plugins_dir() -> Path | None:
-    """Return ``$HERMES_HOME/plugins/model-providers/`` if it exists."""
+    """Return ``$A2ASSISTANT_HOME/plugins/model-providers/`` if it exists."""
     try:
         from hermes_constants import get_hermes_home
 
@@ -524,9 +524,9 @@ def _user_plugins_dir() -> Path | None:
 
 
 def _installed_plugins_dir() -> Path | None:
-    """Return ``$HERMES_HOME/plugins/`` if it exists.
+    """Return ``$A2ASSISTANT_HOME/plugins/`` if it exists.
 
-    This is where ``hermes plugins install`` clones a plugin — flat, one
+    This is where ``a2assistant plugins install`` clones a plugin — flat, one
     directory per plugin, NOT under ``model-providers/``. See
     :func:`_discover_installed_provider_plugins`.
     """
@@ -579,8 +579,8 @@ def _declares_model_provider_kind(plugin_dir: Path) -> bool:
 def _scan_home_layer(layer: _HomeLayer, key: str) -> None:
     """Import the bound home's not-yet-imported provider plugins into *layer*.
 
-    ``$HERMES_HOME/plugins/model-providers/<name>/`` first, then plugins cloned flat by
-    ``hermes plugins install`` into ``$HERMES_HOME/plugins/<name>/`` that declare
+    ``$A2ASSISTANT_HOME/plugins/model-providers/<name>/`` first, then plugins cloned flat by
+    ``a2assistant plugins install`` into ``$A2ASSISTANT_HOME/plugins/<name>/`` that declare
     ``kind: model-provider`` (PluginManager owns every other kind there). Per-home module names
     let two profiles carry the same plugin without aliasing each other's registrations.
     """
@@ -716,7 +716,7 @@ def _exec_plugin_module(plugin_dir: Path, source: str, module_name: str) -> None
 
 
 def _note_load_result(plugin_dir: Path, exc: BaseException | None) -> None:
-    """Record (or clear) a ``$HERMES_HOME`` plugin's import error on the home layer importing it: the
+    """Record (or clear) a ``$A2ASSISTANT_HOME`` plugin's import error on the home layer importing it: the
     general plugin manager lists a model-provider dir with no error, so this is the only record of why it
     registered nothing."""
     layer = _REGISTRATION_TARGET.get()
@@ -761,7 +761,7 @@ def _discover_entry_point_providers() -> None:
 
     Failures are swallowed per-entry (a broken third-party package must not
     break provider discovery) and logged at warning level. This scan runs
-    first, so filesystem plugins (bundled + ``$HERMES_HOME``) keep their
+    first, so filesystem plugins (bundled + ``$A2ASSISTANT_HOME``) keep their
     documented override precedence via last-writer-wins in
     ``register_provider()`` — a pip package cannot hijack a first-party
     provider name.
@@ -899,7 +899,7 @@ def _discover_providers() -> None:
       2. Legacy per-file modules at ``providers/<name>.py`` (back-compat)
 
     Each step imports its plugins, which call ``register_provider()`` at
-    module-level. Later steps win on name collision. ``$HERMES_HOME`` plugins are
+    module-level. Later steps win on name collision. ``$A2ASSISTANT_HOME`` plugins are
     per profile home and load through :func:`_home_layer` at lookup time.
     """
     from agent.safe_worker_policy import safe_worker_enabled

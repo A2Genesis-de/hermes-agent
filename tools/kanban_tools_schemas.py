@@ -6,7 +6,7 @@ from typing import Any
 from hermes_cli.kanban_workflow import ARCHIVED, DEFAULT_WORKFLOW
 
 _DESC_TASK_ID_DEFAULT = (
-    "Task id. If omitted, defaults to HERMES_KANBAN_TASK from the env — the "
+    "Task id. If omitted, defaults to A2ASSISTANT_KANBAN_TASK from the env — the "
     "task the dispatcher spawned you to work on. That default only exists for "
     "a dispatcher-spawned worker; any other caller has no default and must "
     "pass an explicit task_id (use kanban_list to discover ids)."
@@ -14,8 +14,8 @@ _DESC_TASK_ID_DEFAULT = (
 
 _DESC_BOARD = (
     "Kanban board slug to target. When omitted, the call resolves the "
-    "active board the usual way: HERMES_KANBAN_DB env → "
-    "HERMES_KANBAN_BOARD env → the 'current' symlink under the kanban "
+    "active board the usual way: A2ASSISTANT_KANBAN_DB env → "
+    "A2ASSISTANT_KANBAN_BOARD env → the 'current' symlink under the kanban "
     "home → 'default'. Pass an explicit slug only when the caller (e.g. "
     "a Telegram routing layer) needs to override the env-pinned active "
     "board for this one call."
@@ -146,8 +146,8 @@ KANBAN_COMPLETE_SCHEMA = _schema(
                 "Optional list of absolute paths to deliverable "
                 "files you produced during this run — generated "
                 "charts, PDFs, spreadsheets, images, archives. "
-                "Examples: [\"~/.hermes/cache/scratch/q3-revenue.png\", "
-                "\"~/.hermes/cache/scratch/report.pdf\"]. The gateway notifier "
+                "Examples: [\"~/.a2assistant/cache/scratch/q3-revenue.png\", "
+                "\"~/.a2assistant/cache/scratch/report.pdf\"]. The gateway notifier "
                 "uploads each path as a native attachment to the "
                 "subscribed chat (images embed inline, everything "
                 "else uploads as a file) so the deliverable "
@@ -254,7 +254,7 @@ KANBAN_REQUEST_REVIEW_SCHEMA = _schema(
                 "Optional list of absolute paths to deliverable "
                 "files this handoff names — generated charts, "
                 "PDFs, spreadsheets, images, archives. Examples: "
-                "['~/.hermes/cache/scratch/q3-revenue.png', '~/.hermes/cache/scratch/report.pdf']. "
+                "['~/.a2assistant/cache/scratch/q3-revenue.png', '~/.a2assistant/cache/scratch/report.pdf']. "
                 "A review handoff is the last implementer "
                 "transition, so the kernel copies these into the "
                 "task's durable attachments before the reviewer's "
@@ -418,7 +418,7 @@ KANBAN_CREATE_SCHEMA = _schema(
         },
         "tenant": _prop("string", (
                 "Optional namespace for multi-project isolation. "
-                "Defaults to HERMES_TENANT env if set."
+                "Defaults to A2ASSISTANT_TENANT env if set."
         )),
         "priority": _prop("integer", (
                 "Dispatcher tiebreaker. Higher = picked sooner "

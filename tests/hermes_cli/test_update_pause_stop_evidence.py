@@ -30,7 +30,7 @@ def _accepted_then_orphaned(tmp_path: Path, monkeypatch, *, home_writable: bool)
     from gateway import status
     root, home = tmp_path / "root", tmp_path / "root" / "profiles" / "p"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     pid = os.getpid()
     marker = status._get_planned_stop_marker_path()
     token = pause_record.record_pause({"resume_needed": True, "profiles": {"p": pid},

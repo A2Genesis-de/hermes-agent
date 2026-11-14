@@ -41,7 +41,7 @@ def work_dir(tmp_path):
 
 @pytest.fixture()
 def checkpoint_base(tmp_path):
-    """Isolated checkpoint base — never writes to ~/.hermes/."""
+    """Isolated checkpoint base — never writes to ~/.a2assistant/."""
     return tmp_path / "checkpoints"
 
 
@@ -50,7 +50,7 @@ def fake_home(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("HERMES_HOME", str(home / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home / ".hermes"))
     monkeypatch.setenv("USERPROFILE", str(home))
     monkeypatch.delenv("HOMEDRIVE", raising=False)
     monkeypatch.delenv("HOMEPATH", raising=False)
@@ -114,7 +114,7 @@ class TestStoreInit:
         fake_repo = base / "deadbeefcafebabe"
         fake_repo.mkdir()
         (fake_repo / "HEAD").write_text("ref: refs/heads/main\n")
-        (fake_repo / "HERMES_WORKDIR").write_text(str(work_dir) + "\n")
+        (fake_repo / "A2ASSISTANT_WORKDIR").write_text(str(work_dir) + "\n")
         (fake_repo / "objects").mkdir()
 
         # Init store — should migrate the fake pre-v2 repo
@@ -995,7 +995,7 @@ def _seed_legacy_repo(base: Path, name: str, workdir: Path, mtime: float | None 
     shadow = base / name
     shadow.mkdir(parents=True)
     (shadow / "HEAD").write_text("ref: refs/heads/main\n")
-    (shadow / "HERMES_WORKDIR").write_text(str(workdir) + "\n")
+    (shadow / "A2ASSISTANT_WORKDIR").write_text(str(workdir) + "\n")
     (shadow / "info").mkdir()
     (shadow / "info" / "exclude").write_text("node_modules/\n")
     if mtime is not None:
@@ -1178,7 +1178,7 @@ class TestPruneCheckpointsOrphanAllowlist:
 
     def test_end_to_end_timing_change_during_confirmation_prompt(self, tmp_path, monkeypatch):
         """Reproduces the exact PR #69141 review scenario end-to-end through
-        `hermes checkpoints prune`: the preview shows one pre-v2 orphan; a
+        `a2assistant checkpoints prune`: the preview shows one pre-v2 orphan; a
         second project's workdir is removed by the input() callback while
         the human is "answering" the prompt. Only the previewed orphan may
         be deleted.

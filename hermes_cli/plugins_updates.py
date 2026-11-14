@@ -45,7 +45,7 @@ def check_local_provenance(prov: Provenance) -> CheckResult:
         )
         return result
     if prov.klass is ProvenanceClass.SELF_CLONED:
-        result.reason = "cloned by hand; reinstall with `hermes plugins install --force` to record its source"
+        result.reason = "cloned by hand; reinstall with `a2assistant plugins install --force` to record its source"
         return result
     row = prov.row or {}
     result.current = row.get("revision") or None

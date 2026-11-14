@@ -67,7 +67,7 @@ def register(ctx):
     ctx.register_middleware("tool_request", _passthrough)
     ctx.register_session_env("HOSTEDPROV_SESSION", _session_env)
     ctx.register_rpc("probe", _passthrough)
-    (Path(os.environ["HERMES_HOME"]) / "registered.json").write_text("{}")  # register() ran to the end
+    (Path(os.environ["A2ASSISTANT_HOME"]) / "registered.json").write_text("{}")  # register() ran to the end
 """
 
 _SCHEMA = """
@@ -98,7 +98,7 @@ def hosted_home(request, tmp_path, monkeypatch):
     (home / "config.yaml").write_text(yaml.safe_dump(
         {"plugins": {"isolation": "host"}, "memory": {"provider": "hostedprov"}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     plugins_mod._reset_plugin_managers_for_tests()
     yield home
     for manager in plugins_mod._known_plugin_managers():

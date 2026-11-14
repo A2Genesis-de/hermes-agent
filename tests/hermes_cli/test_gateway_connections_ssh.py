@@ -1,7 +1,7 @@
 """Behaviour contracts for the gateway SSH attach path (hermes_cli/gateway_connections_ssh*.py).
 
 The remote-shell pieces are exercised by running them in a real local ``sh``/``dash`` against a
-temp ``HOME`` with a fake ``hermes`` executable, so the spawn command, lockfile publication and
+temp ``HOME`` with a fake ``a2assistant`` executable, so the spawn command, lockfile publication and
 marker gate are proven by execution rather than by string shape.
 """
 
@@ -130,7 +130,7 @@ def test_unsafe_key_paths_are_rejected(key):
 
 
 def test_redaction_masks_tokens_and_host_field_passwords():
-    text = ("HERMES_DASHBOARD_SESSION_TOKEN=abc X-Hermes-Session-Token: def "
+    text = ("A2ASSISTANT_DASHBOARD_SESSION_TOKEN=abc X-Hermes-Session-Token: def "
             "Authorization: Bearer ghi /x?token=jkl me@box:secret me@box:22")
     out = redact_secrets(text)
     for secret in ("abc", "def", "ghi", "jkl", "secret"):
@@ -212,7 +212,7 @@ def test_control_socket_is_stable_and_scoped_by_owner_and_key():
 def test_a_profile_home_shares_its_roots_ownership_id(tmp_path, monkeypatch):
     root = tmp_path / "home"
     (root / "profiles" / "work").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "work"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root / "profiles" / "work"))
     assert facade.store_root() == root.resolve()
     oid = facade.ownership_id(facade.store_root(), "c1")
     assert len(oid) == 32 and oid == facade.ownership_id(root.resolve(), "c1")
@@ -231,7 +231,7 @@ def test_unknown_connection_has_no_status_and_nothing_to_disconnect():
 
 def _lock(**overrides) -> dict:
     lock = {"schemaVersion": 2, "ownershipId": OID, "spawnNonce": NONCE, "pid": 4242, "port": 5555,
-            "profile": "", "hermesPath": "~/bin/hermes", "hermesHome": "~/.hermes",
+            "profile": "", "hermesPath": "~/bin/hermes", "hermesHome": "~/.a2assistant",
             "logPath": spawn_log_path(OID, NONCE), "tokenFingerprint": fingerprint_token("t"),
             "protocolVersion": 1, "devServer": "", "startedAt": "2026-01-01T00:00:00.000Z"}
     lock.update(overrides)
@@ -284,8 +284,8 @@ def remote_home(tmp_path):
     hermes = tmp_path / "bin" / "hermes"
     hermes.parent.mkdir()
     # Records its argv + env, announces a port the way serve does, then idles like a backend.
-    hermes.write_text('#!/bin/sh\nprintf "%s\\n" "$@" > "$HOME/argv"; echo "DESKTOP=$HERMES_DESKTOP" >> "$HOME/argv"\n'
-                      'echo "noise HERMES_DASHBOARD_READY port=43210"\nexec sleep 60\n')
+    hermes.write_text('#!/bin/sh\nprintf "%s\\n" "$@" > "$HOME/argv"; echo "DESKTOP=$A2ASSISTANT_DESKTOP" >> "$HOME/argv"\n'
+                      'echo "noise A2ASSISTANT_DASHBOARD_READY port=43210"\nexec sleep 60\n')
     hermes.chmod(0o755)
     return home, hermes
 
@@ -426,10 +426,10 @@ def test_unsafe_remote_paths_are_rejected(path):
 
 
 @pytest.mark.parametrize("log,port", [
-    ("boot\nHERMES_DASHBOARD_READY port=4100\n", 4100),
-    ("partial line HERMES_BACKEND_READY port=4200", 4200),
+    ("boot\nA2ASSISTANT_DASHBOARD_READY port=4100\n", 4100),
+    ("partial line A2ASSISTANT_BACKEND_READY port=4200", 4200),
     ("XHERMES_DASHBOARD_READY port=4300", None),
-    ("HERMES_DASHBOARD_READY port=", None),
+    ("A2ASSISTANT_DASHBOARD_READY port=", None),
 ])
 def test_ready_port_is_scraped_from_merged_output(log, port):
     match = READY_RE.search(log)

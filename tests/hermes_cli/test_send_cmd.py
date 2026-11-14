@@ -1,4 +1,4 @@
-"""Tests for the ``hermes send`` CLI subcommand.
+"""Tests for the ``a2assistant send`` CLI subcommand.
 
 Covers the argument parsing / stdin / file / list behavior of
 ``hermes_cli.send_cmd``. The underlying ``send_message_tool`` is stubbed so
@@ -140,8 +140,8 @@ def test_load_hermes_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
     """Top-level config.yaml scalars should be bridged into os.environ.
 
     This mirrors the gateway/run.py bootstrap behavior: without this, running
-    ``hermes send`` from a fresh shell cannot resolve the home channel
-    because ``TELEGRAM_HOME_CHANNEL`` (saved by ``hermes config set``) lives
+    ``a2assistant send`` from a fresh shell cannot resolve the home channel
+    because ``TELEGRAM_HOME_CHANNEL`` (saved by ``a2assistant config set``) lives
     in config.yaml, not in .env — and the gateway's config loader reads via
     ``os.getenv(...)``.
     """
@@ -154,7 +154,7 @@ def test_load_hermes_env_bridges_config_yaml_scalars(tmp_path, monkeypatch):
         "TELEGRAM_HOME_CHANNEL: '5550001111'\nnested:\n  ignored: true\n"
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.delenv("TELEGRAM_HOME_CHANNEL", raising=False)
     monkeypatch.delenv("SOME_TOKEN", raising=False)
 
@@ -175,7 +175,7 @@ def test_load_hermes_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
     PowerShell 5.1 `Set-Content -Encoding UTF8` and Notepad prepend a BOM
     (EF BB BF). With encoding=utf-8, python-dotenv kept U+FEFF on the first
     key, so the credential never appeared under its canonical name and
-    `hermes send` failed to authenticate.
+    `a2assistant send` failed to authenticate.
     """
     import os
 
@@ -185,7 +185,7 @@ def test_load_hermes_env_utf8_bom_preserves_first_key(tmp_path, monkeypatch):
         b"\xef\xbb\xbfSEND_BOM_BOT_TOKEN=tok-first\nSEND_BOM_SECOND=two\n"
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.delenv("SEND_BOM_BOT_TOKEN", raising=False)
     monkeypatch.delenv("SEND_BOM_SECOND", raising=False)
 
@@ -207,7 +207,7 @@ def test_load_hermes_env_bomless_utf8_still_loads(tmp_path, monkeypatch):
     hermes_home.mkdir()
     (hermes_home / ".env").write_bytes(b"SEND_PLAIN_TOKEN=plain-val\n")
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.delenv("SEND_PLAIN_TOKEN", raising=False)
 
     from importlib import reload
@@ -232,7 +232,7 @@ def test_load_hermes_env_latin1_fallback_still_loads(tmp_path, monkeypatch):
         b"\xef\xbb\xbfSEND_L1_TOKEN=tok-l1\nSEND_L1_NOTE=caf\xe9\n"
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.delenv("SEND_L1_TOKEN", raising=False)
     monkeypatch.delenv("SEND_L1_NOTE", raising=False)
 
@@ -257,7 +257,7 @@ def test_load_hermes_env_latin1_fallback_overrides_shell(tmp_path, monkeypatch):
     # 0xE9 forces the UnicodeDecodeError \u2192 latin-1 stream fallback.
     (hermes_home / ".env").write_bytes(b"SEND_OVR_LABEL=caf\xe9-file\n")
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv("SEND_OVR_LABEL", "stale-shell-value")
 
     from importlib import reload
@@ -278,7 +278,7 @@ def test_load_hermes_env_fallback_read_error_is_swallowed(tmp_path, monkeypatch)
     # Invalid UTF-8 so the fallback (and its read_bytes call) is reached.
     (hermes_home / ".env").write_bytes(b"SEND_ERR_TOKEN=caf\xe9\n")
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     def _boom(self):
         raise OSError("disk went away")
@@ -300,7 +300,7 @@ def test_load_hermes_env_bom_only_env_is_noop(tmp_path, monkeypatch):
     hermes_home.mkdir()
     (hermes_home / ".env").write_bytes(b"\xef\xbb\xbf")
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     from importlib import reload
     import hermes_cli.config as _hc_config
@@ -314,20 +314,20 @@ def test_load_hermes_env_bom_only_env_is_noop(tmp_path, monkeypatch):
 
 def test_help_and_empty_list_hint_name_the_resolved_home(tmp_path, monkeypatch, capsys):
     """``--help`` and the ``--list`` empty-state hint derive their paths from the resolved home instead of a
-    hardcoded ``~/.hermes`` (absent on a Windows install or under a profile home)."""
+    hardcoded ``~/.a2assistant`` (absent on a Windows install or under a profile home)."""
     import argparse
     import sys
     import types
 
     home = tmp_path / "AppData" / "Local" / "hermes"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     parser = argparse.ArgumentParser(prog="hermes")
     send_parser = send_cmd.register_send_subparser(parser.add_subparsers(dest="command"))
     help_text = send_parser.format_help()
     assert str(home / ".env") in help_text and str(home / "config.yaml") in help_text
-    assert "~/.hermes" not in help_text
+    assert "~/.a2assistant" not in help_text
 
     fake_gw_config = types.ModuleType("gateway.config")
     fake_gw_config.load_gateway_config = lambda: types.SimpleNamespace(get_connected_platforms=list)
@@ -340,4 +340,4 @@ def test_help_and_empty_list_hint_name_the_resolved_home(tmp_path, monkeypatch, 
     assert send_cmd._list_targets(None, json_mode=False) == 0
     out = capsys.readouterr().out
     assert str(home / "channel_directory.json") in out
-    assert "~/.hermes" not in out
+    assert "~/.a2assistant" not in out

@@ -13,7 +13,7 @@ import hermes_state_registry as registry
 
 
 original_target = server._config_model_target
-marker = Path(os.environ["HERMES_HOME"]) / "fail-rebuild"
+marker = Path(os.environ["A2ASSISTANT_HOME"]) / "fail-rebuild"
 
 
 def config_target():

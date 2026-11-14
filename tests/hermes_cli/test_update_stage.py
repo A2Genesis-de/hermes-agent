@@ -55,7 +55,7 @@ def test_marker_fallback_covers_the_old_shim(status_file, tmp_path, monkeypatch)
     The shim's status file is ${TMPDIR}/hermes-update-status.<shim pid> and
     the marker's first line IS that pid (update_lock adopts, never rewrites).
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / update_stage.MARKER_NAME).write_text(
         f"80335\n{int(time.time())}\n", encoding="utf-8")
     status_file.write_text('{"status":"running","message":"old"}', encoding="utf-8")
@@ -68,11 +68,11 @@ def test_marker_fallback_covers_the_old_shim(status_file, tmp_path, monkeypatch)
 
 
 def test_marker_fallback_uses_the_platform_home_without_env_var(status_file, tmp_path, monkeypatch):
-    """The shim without HERMES_HOME resolved the platform default, which is not ~/.hermes
+    """The shim without A2ASSISTANT_HOME resolved the platform default, which is not ~/.a2assistant
     on every host (sudo invoker, data-dir suffix); the marker must be looked up there."""
     import hermes_constants
 
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: tmp_path / "platform")
     (tmp_path / "platform").mkdir()
     (tmp_path / "platform" / update_stage.MARKER_NAME).write_text(
@@ -87,7 +87,7 @@ def test_marker_fallback_uses_the_platform_home_without_env_var(status_file, tmp
 
 def test_no_ui_sources_is_inert(status_file, tmp_path, monkeypatch):
     """A plain CLI update has no env var and no marker: publish must no-op."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))  # no marker inside
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))  # no marker inside
     monkeypatch.setenv("TMPDIR", str(tmp_path))
 
     update_stage.publish_stage("anything")

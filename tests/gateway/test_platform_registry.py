@@ -319,7 +319,7 @@ class TestApplyYamlConfigFnDispatch:
     """End-to-end dispatch through load_gateway_config().
 
     Each test registers a temporary PlatformEntry, writes a config.yaml in
-    a tmp HERMES_HOME, calls load_gateway_config(), and asserts the hook
+    a tmp A2ASSISTANT_HOME, calls load_gateway_config(), and asserts the hook
     was invoked correctly.  Cleanup unregisters the entry.
     """
 
@@ -380,7 +380,7 @@ class TestApplyYamlConfigFnDispatch:
                 "mybadplat:\n  k: v\n"
                 "mygoodplat:\n  k: v\n",
             )
-            monkeypatch.setenv("HERMES_HOME", str(home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
             # Must not raise.
             from gateway.config import load_gateway_config
@@ -431,7 +431,7 @@ class TestPluginPlatformSharedKeyBridge:
                 "  reply_prefix: \"→ \"\n"
                 "  allow_from: [\"alice\", \"bob\"]\n",
             )
-            monkeypatch.setenv("HERMES_HOME", str(home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
             from gateway.config import load_gateway_config, Platform
             cfg = load_gateway_config()
@@ -487,7 +487,7 @@ class TestPluginEnablementGate:
         ))
         try:
             home = self._write_config(tmp_path)
-            monkeypatch.setenv("HERMES_HOME", str(home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
             from gateway.config import load_gateway_config, Platform
             cfg = load_gateway_config()
@@ -524,7 +524,7 @@ class TestPluginEnablementGate:
         ))
         try:
             home = self._write_config(tmp_path)
-            monkeypatch.setenv("HERMES_HOME", str(home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
             from gateway.config import load_gateway_config, Platform
             cfg = load_gateway_config()
@@ -556,7 +556,7 @@ class TestPluginEnablementGate:
         ))
         try:
             home = self._write_config(tmp_path)
-            monkeypatch.setenv("HERMES_HOME", str(home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
             from gateway.config import load_gateway_config, Platform
             cfg = load_gateway_config()
@@ -594,7 +594,7 @@ class TestPluginEnablementGate:
         ))
         try:
             home = self._write_config(tmp_path)
-            monkeypatch.setenv("HERMES_HOME", str(home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
             from gateway.config import load_gateway_config, Platform
             cfg = load_gateway_config()
@@ -631,7 +631,7 @@ class TestPluginEnablementGate:
         ))
         try:
             home = self._write_config(tmp_path)
-            monkeypatch.setenv("HERMES_HOME", str(home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
             from gateway.config import load_gateway_config, Platform
             cfg = load_gateway_config()

@@ -53,8 +53,8 @@ def _seed_login_data(copy_dir: Path, origin: str = "https://example.com/login",
 
 @pytest.fixture
 def real_profile(tmp_path, monkeypatch):
-    """Scratch HERMES_HOME with a seeded snapshot for the 'chrome' default browser and consent on."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    """Scratch A2ASSISTANT_HOME with a seeded snapshot for the 'chrome' default browser and consent on."""
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     copy_dir = tmp_path / ".hermes" / "browser-profile" / "chrome"
     _seed_login_data(copy_dir)
     with patch("hermes_cli.browser_connect.detect_default_chromium", return_value="chrome"), \
@@ -235,7 +235,7 @@ def test_list_prepares_snapshot_when_none_exists(tmp_path, monkeypatch):
     """On a fresh profile with no prior browser session the snapshot does not exist yet; listing must
     drive the real-profile lifecycle (``real_profile_cdp``) to create it, then read it — not silently
     return empty so the user can never select a login to initialise the source."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     copy_dir = tmp_path / ".hermes" / "browser-profile" / "chrome"  # does NOT exist yet
 
     def prepare_snapshot():
@@ -456,7 +456,7 @@ def test_read_login_metadata_with_hash_in_path(tmp_path):
 # ── finding 3 (round 3): a RELATIVE copy dir (HERMES_HOME=./root) must still list, not ValueError ──
 
 def test_read_login_metadata_with_relative_copy_dir(tmp_path, monkeypatch):
-    """``HERMES_HOME=./root`` (a supported setting) makes ``real_profile_copy_dir()`` relative, so
+    """``A2ASSISTANT_HOME=./root`` (a supported setting) makes ``real_profile_copy_dir()`` relative, so
     the DB path reaches ``read_login_metadata`` relative. ``Path.as_uri()`` raises ValueError on a
     relative path, which escapes the ``sqlite3.Error`` handler and makes listing fail for EVERY
     source once a snapshot exists. Resolving the path to absolute first must let the real logins

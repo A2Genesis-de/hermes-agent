@@ -15,7 +15,7 @@ from typing import Any, Dict, Iterator, Optional
 
 logger = logging.getLogger(__name__)
 
-_MANAGED_FILES_ROOT_ENV = "HERMES_DASHBOARD_FILES_ROOT"
+_MANAGED_FILES_ROOT_ENV = "A2ASSISTANT_DASHBOARD_FILES_ROOT"
 _HOSTED_MANAGED_FILES_ROOT = Path("/opt/data")
 
 
@@ -372,7 +372,7 @@ def _path_text(raw_path: str | None) -> str:
 
 
 def _default_hermes_root_is_opt_data() -> bool:
-    raw = os.environ.get("HERMES_HOME", "").strip()
+    raw = os.environ.get("A2ASSISTANT_HOME", "").strip()
     if not raw:
         return False
     try:
@@ -385,7 +385,7 @@ def _default_hermes_root_is_opt_data() -> bool:
 
 
 def _dashboard_local_update_managed_externally() -> bool:
-    """True when the dashboard should not offer ``hermes update``.
+    """True when the dashboard should not offer ``a2assistant update``.
 
     Containerized dashboards are updated by the outer launcher/image — except a
     ``git`` install (bind-mounted checkout, e.g. the hermes-webui image), where

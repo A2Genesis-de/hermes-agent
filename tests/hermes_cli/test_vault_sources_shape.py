@@ -1,4 +1,4 @@
-"""`hermes vault sources --disable` must not crash on a hand-edited non-dict
+"""`a2assistant vault sources --disable` must not crash on a hand-edited non-dict
 ``vault:`` section in config.yaml (the same YAML-shape hazard class
 ``_voice_cfg_dict`` guards for voice.*, #19835): the malformed section is
 coerced to a dict before the opt-out is written."""
@@ -25,7 +25,7 @@ def _corrupt_vault(home):
 def test_sources_disable_tolerates_scalar_vault_section(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "config.yaml").write_text("vault: true\n")
 
     _cmd_sources(SimpleNamespace(enable=None, disable="bitwarden"))
@@ -39,7 +39,7 @@ def test_vault_command_surfaces_corrupt_store_as_clean_error(tmp_path, monkeypat
     contract as a clean error line on every subcommand, not a traceback."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     _corrupt_vault(home)
 
     vault_command(SimpleNamespace())  # bare `hermes vault` -> _cmd_list

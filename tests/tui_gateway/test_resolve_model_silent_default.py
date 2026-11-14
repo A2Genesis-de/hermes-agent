@@ -17,8 +17,8 @@ from tui_gateway import server
 
 @pytest.fixture
 def no_model_configured(monkeypatch):
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_MODEL", raising=False)
     monkeypatch.setattr(server, "_load_cfg", dict)
 
 

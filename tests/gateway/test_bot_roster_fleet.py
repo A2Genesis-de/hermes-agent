@@ -3,7 +3,7 @@ Bot Chat (the status dot's session id and the row's age), however that chat was 
 
 Each profile here holds its Bot Chat from a different creation path: a pre-upgrade CLI chat adopted
 on its first open (the reporter's fleet), a first ``bot_relay.deliver`` (``gateway/session_bot.py``),
-``hermes -p <bot> chat -c "Bot Chat" --create-if-missing``, and the Desktop's own mint. The Desktop
+``a2assistant -p <bot> chat -c "Bot Chat" --create-if-missing``, and the Desktop's own mint. The Desktop
 asks ``profiles.list`` of its active bot over its one host-scoped socket, so the other bots' rows
 come from that same answer.
 """

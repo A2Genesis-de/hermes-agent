@@ -242,7 +242,7 @@ def _resolve_verify(
         is_truthy_value(insecure, default=False) if insecure is not None
         else is_truthy_value(tls_state.get("insecure", False), default=False))
     effective_ca = (
-        ca_bundle or tls_state.get("ca_bundle") or os.getenv("HERMES_CA_BUNDLE")
+        ca_bundle or tls_state.get("ca_bundle") or os.getenv("A2ASSISTANT_CA_BUNDLE")
         or os.getenv("SSL_CERT_FILE") or os.getenv("REQUESTS_CA_BUNDLE"))
     if effective_insecure:
         return False
@@ -288,7 +288,7 @@ def _nous_device_auth_timeout_message(portal_base_url: str) -> str:
         "  Portal sign-in is required before the device code can be approved.\n"
         "  If the browser showed a CAPTCHA / 'You did not pass CAPTCHA' error,\n"
         "  finish signing in at the Portal in a normal browser tab, then retry:\n"
-        "    hermes portal\n"
+        "    a2assistant portal\n"
         f"  Portal login: {portal}/login")
 
 

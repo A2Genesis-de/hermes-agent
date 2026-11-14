@@ -122,7 +122,7 @@ async def get_health():
 
     ``commit`` is the code this process BOOTED from (``get_version_info`` is cached at
     ``web_server`` import): Desktop refuses to attach to a backend whose commit differs from
-    its checkout, so a serve that outlived ``hermes update`` is never re-adopted.
+    its checkout, so a serve that outlived ``a2assistant update`` is never re-adopted.
     """
     info = get_version_info()
     return {"ok": True, "version": info.base_version, "displayVersion": info.display_version,
@@ -132,13 +132,13 @@ async def get_health():
 
 @router.get("/api/host/identity")
 async def get_host_identity(request: Request):
-    """Prove to an attaching `hermes serve`/`dashboard` WHO owns this port.
+    """Prove to an attaching `a2assistant serve`/`dashboard` WHO owns this port.
 
     The host rendezvous record names a (pid, port) owner, but a record cannot say whether that
     owner still holds the port: a graceful-shutdown window or an unrelated listener that
     inherited the port both look identical on disk. The attaching side dials this endpoint with
     the owner's 0600 token and attaches only when pid+role match. ``servesSpa`` is false for
-    headless ``serve``, so a `hermes dashboard` user is never routed to a backend with no UI.
+    headless ``serve``, so a `a2assistant dashboard` user is never routed to a backend with no UI.
     """
     _require_token(request)
     # ``role`` is the host ROLE this process published (gateway/host_rendezvous.ROLE_SERVE, or
@@ -739,7 +739,7 @@ async def set_curator_paused(body: CuratorPause, profile: Optional[str] = None):
 
 
 def _spawn_action(argv: list, name: str, prefix: str, profile: Optional[str] = None) -> dict:
-    """Spawn a background ``hermes -p <profile> <argv>`` action; a spawn failure is
+    """Spawn a background ``a2assistant -p <profile> <argv>`` action; a spawn failure is
     ``500 "<prefix>: <exc>"``."""
     try:
         proc = _spawn_hermes_action(_profile_cli_args(profile) + argv, name)

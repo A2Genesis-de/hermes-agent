@@ -23,7 +23,7 @@ def _spa(monkeypatch, dist: Path, *, surface) -> TestClient:
         app.state.ui_surface = surface
     app.state.web_dist = dist
     monkeypatch.setattr(server, "app", app)
-    monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SERVE_HEADLESS", raising=False)
     mount_spa(app)
     return TestClient(app)
 

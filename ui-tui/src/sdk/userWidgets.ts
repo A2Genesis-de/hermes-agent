@@ -5,6 +5,7 @@ import { dirname, join } from 'path'
 import { pathToFileURL } from 'url'
 
 import { Box, Text } from '@hermes/ink'
+import { defaultHome } from '@hermes/shared/legacy-names'
 import * as React from 'react'
 
 import { Accordion } from '../components/accordion.js'
@@ -20,13 +21,13 @@ import { isCtrl } from './types.js'
 
 /**
  * User widget apps — Hermes authors its own TUI widgets, mirroring the
- * Python plugin contract: drop `<name>.mjs` into `$HERMES_HOME/tui-widgets/`,
+ * Python plugin contract: drop `<name>.mjs` into `$A2ASSISTANT_HOME/tui-widgets/`,
  * default-export `register(sdk)`, and the app surfaces in `/` completions
  * and dispatch automatically (the registry is the catalog). Plain ESM so the
  * production bundle can import it — no bundler, no JSX; `sdk.h` is
  * React.createElement.
  *
- * Trust model matches `~/.hermes/plugins/`: files under HERMES_HOME execute
+ * Trust model matches `~/.a2assistant/plugins/`: files under A2ASSISTANT_HOME execute
  * with the TUI's privileges. Load errors log and skip — a broken widget
  * never takes the TUI down.
  */
@@ -58,7 +59,7 @@ export const widgetSdk = {
 
 export type WidgetSdk = typeof widgetSdk
 
-const widgetsDir = () => join(process.env.HERMES_HOME?.trim() || join(homedir(), '.hermes'), 'tui-widgets')
+const widgetsDir = () => join(defaultHome(homedir()), 'tui-widgets')
 
 export interface UserWidgetLoadResult {
   /** App ids newly registered by this scan. */

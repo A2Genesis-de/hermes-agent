@@ -15,7 +15,7 @@ SUBAGENT_SOURCE = "subagent"
 
 def show_subagent_sessions(hermes_home: str | Path) -> bool:
     """``sessions.show_subagents`` from *hermes_home*'s own config.yaml. One ``serve`` lists many
-    profiles' stores, so the store's home decides, never the process ``HERMES_HOME``. False when
+    profiles' stores, so the store's home decides, never the process ``A2ASSISTANT_HOME``. False when
     the config cannot be read (the listing keeps its default shape)."""
     from hermes_cli.config import load_config_readonly
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override

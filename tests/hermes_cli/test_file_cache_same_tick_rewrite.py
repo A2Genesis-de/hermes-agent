@@ -97,7 +97,7 @@ import json, os, sys
 from pathlib import Path
 import utils
 utils.RACY_MTIME_WINDOW_NS = int(sys.argv[1])
-home = Path(os.environ["HERMES_HOME"])
+home = Path(os.environ["A2ASSISTANT_HOME"])
 (home / "config.yaml").write_text("agent:\n  max_turns: 17\nskills:\n  external_dirs: []\n")
 from agent.safe_worker_policy import _bind_safe_worker_policy
 _bind_safe_worker_policy(safe_mode=True, ignore_user_config=True, config={"agent": {"max_turns": 3}})
@@ -128,7 +128,7 @@ print(json.dumps(opens))
 def _worker_config_opens(tmp_path: Path, window_ns: int) -> dict:
     home = tmp_path / f"home-{window_ns}"
     home.mkdir()
-    env = {**os.environ, "HERMES_HOME": str(home)}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home)}
     root = Path(__file__).resolve().parents[2]
     out = subprocess.run([sys.executable, "-c", _WORKER_PROBE, str(window_ns)], cwd=root, env=env,
                          capture_output=True, text=True, timeout=120, check=True)

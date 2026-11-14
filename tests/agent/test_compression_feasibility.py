@@ -358,7 +358,7 @@ def test_the_probe_reads_provider_entries_as_configured_now(monkeypatch, tmp_pat
     entry = {"name": "work-gateway", "base_url": "http://gateway.invalid/v1",
              "models": {"small": {"context_length": 80_000}}}
     (home / "config.yaml").write_text(json.dumps({"custom_providers": [entry]}))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     agent = _make_agent(main_context=1_000_000)
     compressor = agent.context_compressor = ContextCompressor(
@@ -383,7 +383,7 @@ def test_a_bypass_session_measures_with_the_entries_from_agent_start(monkeypatch
     entry = {"name": "work-gateway", "base_url": "http://gateway.invalid/v1",
              "models": {"small": {"context_length": 80_000}}}
     (home / "config.yaml").write_text(json.dumps({"custom_providers": [entry]}))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     agent = _make_agent(main_context=1_000_000)
     compressor = agent.context_compressor = ContextCompressor(
@@ -694,7 +694,7 @@ def test_a_changed_provider_context_pin_reprobes_a_warm_agent(monkeypatch, tmp_p
     from agent.conversation_compression_feasibility import ensure_compression_feasibility_checked
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     entry = {"name": "work-gateway", "base_url": "http://gateway.invalid/v1",
              "models": {"small": {"context_length": 900_000}}}
     agent = _warm_agent_on(home, [entry])
@@ -718,7 +718,7 @@ def test_a_changed_provider_pin_reprobes_a_task_that_sets_its_own_url(monkeypatc
     from agent.conversation_compression_feasibility import ensure_compression_feasibility_checked
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     url = "http://gateway.invalid/v1"
     task = {"provider": "custom", "model": "small", "base_url": url}
     entry = {"name": "work-gateway", "base_url": url, "models": {"small": {"context_length": 900_000}}}

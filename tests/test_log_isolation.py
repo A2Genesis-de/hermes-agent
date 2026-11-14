@@ -3,9 +3,9 @@
 `hermes_cli/main.py` calls `setup_logging()` at module scope, which resolves
 `get_hermes_home()` and attaches rotating file handlers to the ROOT logger.
 Importing it - which many test modules do, directly or transitively - wires
-the whole pytest session's logging to `<HERMES_HOME>/logs/agent.log`.
+the whole pytest session's logging to `<A2ASSISTANT_HOME>/logs/agent.log`.
 
-If HERMES_HOME is not already sandboxed at that moment, that is the
+If A2ASSISTANT_HOME is not already sandboxed at that moment, that is the
 operator's real log. Measured on a live install, 126 warnings in a personal
 `agent.log` came from test runs rather than the running gateway: phantom
 `FakeTree` Discord failures and `rejected invalid API key` entries from
@@ -14,7 +14,7 @@ find precisely when someone is debugging.
 
 The per-test env fixture cannot close this: fixtures run after collection has
 imported the test modules, and by then the handler holds an absolute path.
-`tests/conftest.py` sets HERMES_HOME at module scope for that reason - this
+`tests/conftest.py` sets A2ASSISTANT_HOME at module scope for that reason - this
 guards the property so a refactor cannot quietly undo it.
 """
 
@@ -70,9 +70,9 @@ class TestLogIsolation:
         # import, which is the moment that actually matters.
         from tests.conftest import HERMES_HOME_AT_CONFTEST_IMPORT as home
 
-        assert home, "conftest must set HERMES_HOME before test modules import"
+        assert home, "conftest must set A2ASSISTANT_HOME before test modules import"
         assert Path(home).resolve() != _real_hermes_home().resolve(), (
-            f"HERMES_HOME pointed at the operator's real home ({home}) when "
+            f"A2ASSISTANT_HOME pointed at the operator's real home ({home}) when "
             "conftest loaded; import-time setup_logging() writes to their agent.log"
         )
 

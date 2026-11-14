@@ -16,7 +16,7 @@ async def test_forwarded_identity_survives_reconnect_without_policy_override(tmp
     from gateway.session_policy import build_policy
     from hermes_state_runtime import RuntimeStoreError
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {'default': 'fixture'}, 'platform_toolsets': {'cli': []}})
     monkeypatch.setattr(run, '_resolve_gateway_model', lambda config: 'fixture')
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
@@ -69,7 +69,7 @@ async def test_forwarding_does_not_merge_lossy_context_or_peer_identity(tmp_path
     from gateway.session_authority import initialize_session_authority
     from gateway import run
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {'default': 'fixture'}, 'platform_toolsets': {'cli': []}})
     monkeypatch.setattr(run, '_resolve_gateway_model', lambda config: 'fixture')
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
@@ -125,7 +125,7 @@ async def test_forwarded_turns_are_authored_by_the_peer_for_memory_attribution(t
     from hermes_state_runtime import list_session_admissions
     from gateway import run
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {'default': 'fixture'}, 'platform_toolsets': {'cli': []}})
     monkeypatch.setattr(run, '_resolve_gateway_model', lambda config: 'fixture')
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())

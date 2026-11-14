@@ -183,7 +183,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           cat $out/*
         '';
 
-        # The dev shell's HERMES_PYTHON must carry its own dependencies: the
+        # The dev shell's A2ASSISTANT_PYTHON must carry its own dependencies: the
         # TUI and the test runner launch it with PYTHONPATH replaced or cleared.
         dev-venv-self-contained = pkgs.runCommand "hermes-dev-venv-self-contained" { } ''
           venv=${hermes-agent.devVenv}
@@ -256,7 +256,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
                 gateway.enable = true;
                 backend.mode = "serve";
                 settings.model.default = "test/model";
-                environment.HERMES_TEST = "1";
+                environment.A2ASSISTANT_TEST = "1";
                 environmentFiles = [ "/run/secrets/hermes-env" ];
                 hermesHomeFiles."SOUL.md" = "test soul";
                 # documents needs an explicit workingDirectory. The check
@@ -272,7 +272,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             cfg = enabled.config;
 
             # The gateway and the backend are two processes with one
-            # HERMES_HOME.
+            # A2ASSISTANT_HOME.
             processes =
               if pkgs.stdenv.hostPlatform.isDarwin then
                 lib.mapAttrs (_: agent: {
@@ -308,34 +308,34 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
               ]) "expected hermes-agent + hermes-backend processes, got: ${toString names}"
               ++ lib.optional (
                 !lib.hasInfix "bin/hermes gateway" (argvOf "hermes-agent")
-              ) "gateway process does not run `hermes gateway`: ${argvOf "hermes-agent"}"
+              ) "gateway process does not run `a2assistant gateway`: ${argvOf "hermes-agent"}"
               ++ lib.optional (
                 !lib.hasInfix "bin/hermes serve" (argvOf "hermes-backend")
-              ) "backend process does not run `hermes serve`: ${argvOf "hermes-backend"}"
+              ) "backend process does not run `a2assistant serve`: ${argvOf "hermes-backend"}"
               ++ lib.optional (
                 !lib.hasInfix "--no-open" (argvOf "hermes-backend")
               ) "backend must pass --no-open so a service never opens a browser"
               ++ lib.optional (
                 lib.any (n: !lib.hasInfix "/home/hermes-check/.hermes" (envOf n)) names
-              ) "gateway and backend must share one HERMES_HOME"
+              ) "gateway and backend must share one A2ASSISTANT_HOME"
               ++ lib.optional (
-                cfg.home.sessionVariables.HERMES_HOME or null != "/home/hermes-check/.hermes"
-              ) "programs.hermes-agent.enable must export HERMES_HOME for interactive shells"
+                cfg.home.sessionVariables.A2ASSISTANT_HOME or null != "/home/hermes-check/.hermes"
+              ) "programs.hermes-agent.enable must export A2ASSISTANT_HOME for interactive shells"
               ++ lib.optional (
                 !lib.hasInfix "hermes-config-merge" activation
               ) "activation must deep-merge config.yaml, not overwrite it"
               ++ lib.optional (
                 !lib.hasInfix "/home/hermes-check/.hermes/SOUL.md" activation
-              ) "hermesHomeFiles must install into HERMES_HOME"
+              ) "hermesHomeFiles must install into A2ASSISTANT_HOME"
               ++ lib.optional (
                 !lib.hasInfix "/home/test-user/workspace/AGENTS.md" activation
               ) "documents must install into workingDirectory"
-              # The CLI reads HERMES_MANAGED to name the rebuild command when
+              # The CLI reads A2ASSISTANT_MANAGED to name the rebuild command when
               # it refuses to write the configuration. A Home Manager install
               # has no nixos-rebuild command. Thus it must not report NixOS.
               ++ lib.optional (
-                !lib.any (n: lib.hasInfix "HERMES_MANAGED=home-manager" (envOf n)) names
-              ) "processes must report HERMES_MANAGED=home-manager"
+                !lib.any (n: lib.hasInfix "A2ASSISTANT_MANAGED=home-manager" (envOf n)) names
+              ) "processes must report A2ASSISTANT_MANAGED=home-manager"
               ++ lib.optional (
                 !lib.hasInfix "hermes-managed" activation
               ) "activation must write a .managed marker naming the managing system";
@@ -428,12 +428,12 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
               ''
           );
 
-        # ── The desktop application shares one HERMES_HOME ───────────────
-        # `programs.enable` exports HERMES_HOME with home.sessionVariables,
+        # ── The desktop application shares one A2ASSISTANT_HOME ───────────────
+        # `programs.enable` exports A2ASSISTANT_HOME with home.sessionVariables,
         # which reaches an interactive shell only. Home Manager writes that
         # file to etc/profile.d, and a launcher from the desktop menu reads
-        # no shell profile. Thus the desktop application would open ~/.hermes
-        # while the services use the HERMES_HOME of the module, and the user
+        # no shell profile. Thus the desktop application would open ~/.a2assistant
+        # while the services use the A2ASSISTANT_HOME of the module, and the user
         # would see an empty application with no sessions and no keys.
         #
         # The launcher must therefore carry the value itself. This check
@@ -509,8 +509,8 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
               # value quoted), launchd an attribute set that holds the bare
               # value.
               if pkgs.stdenv.hostPlatform.isDarwin then
-                "HERMES_DASHBOARD_SESSION_TOKEN=file:"
-                + (cfg.launchd.agents.hermes-backend.config.EnvironmentVariables.HERMES_DASHBOARD_SESSION_TOKEN
+                "A2ASSISTANT_DASHBOARD_SESSION_TOKEN=file:"
+                + (cfg.launchd.agents.hermes-backend.config.EnvironmentVariables.A2ASSISTANT_DASHBOARD_SESSION_TOKEN
                   or "")
               else
                 lib.concatStringsSep "\n" cfg.systemd.user.services.hermes-backend.Service.Environment;
@@ -520,22 +520,22 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
                 lib.length desktopPackages != 1
               ) "programs.desktop.enable must install exactly one hermes-desktop package, got ${toString (lib.length desktopPackages)}"
               ++ lib.optional (
-                setValue "HERMES_HOME" != "/home/hermes-check/.hermes-work"
-              ) "the launcher must carry HERMES_HOME: a GUI launcher reads no shell profile, so home.sessionVariables never reaches it (got: ${toString (setValue "HERMES_HOME")})"
+                setValue "A2ASSISTANT_HOME" != "/home/hermes-check/.hermes-work"
+              ) "the launcher must carry A2ASSISTANT_HOME: a GUI launcher reads no shell profile, so home.sessionVariables never reaches it (got: ${toString (setValue "A2ASSISTANT_HOME")})"
               ++ lib.optional (
-                setValue "HERMES_MANAGED" != "home-manager"
-              ) "the launcher must report HERMES_MANAGED=home-manager while the services own the configuration (got: ${toString (setValue "HERMES_MANAGED")})"
+                setValue "A2ASSISTANT_MANAGED" != "home-manager"
+              ) "the launcher must report A2ASSISTANT_MANAGED=home-manager while the services own the configuration (got: ${toString (setValue "A2ASSISTANT_MANAGED")})"
               ++ lib.optional (
                 lib.length agentPackages == 1
-                && setValue "HERMES_DESKTOP_HERMES" != "${lib.head agentPackages}/bin/hermes"
-              ) "the launcher must pin the agent package that programs.enable installs, and not a second runtime: ${toString (setValue "HERMES_DESKTOP_HERMES")}"
+                && setValue "A2ASSISTANT_DESKTOP_HERMES" != "${lib.head agentPackages}/bin/hermes"
+              ) "the launcher must pin the agent package that programs.enable installs, and not a second runtime: ${toString (setValue "A2ASSISTANT_DESKTOP_HERMES")}"
 
               # ── The application reaches the backend of the service ──────
               ++ lib.optional (
-                setValue "HERMES_DESKTOP_REMOTE_URL" != "http://127.0.0.1:9231"
-              ) "the launcher must name the backend of the service, or the application starts a second one (got: ${toString (setValue "HERMES_DESKTOP_REMOTE_URL")})"
+                setValue "A2ASSISTANT_DESKTOP_REMOTE_URL" != "http://127.0.0.1:9231"
+              ) "the launcher must name the backend of the service, or the application starts a second one (got: ${toString (setValue "A2ASSISTANT_DESKTOP_REMOTE_URL")})"
               ++ lib.optional (
-                !lib.hasInfix "HERMES_DESKTOP_REMOTE_TOKEN" wrapper
+                !lib.hasInfix "A2ASSISTANT_DESKTOP_REMOTE_TOKEN" wrapper
               ) "the launcher must give a token with the URL: the desktop resolver throws when the URL is set alone"
 
               # ── The token never enters the Nix store ────────────────────
@@ -548,7 +548,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
                 !lib.hasInfix tokenFile wrapper || !lib.hasInfix "--run" wrapper
               ) "the launcher must read the token from ${tokenFile} at start time, with --run"
               ++ lib.optional (
-                !lib.hasInfix "HERMES_DASHBOARD_SESSION_TOKEN=" backendTokenText
+                !lib.hasInfix "A2ASSISTANT_DASHBOARD_SESSION_TOKEN=" backendTokenText
                 || !lib.hasInfix "file:${tokenFile}" backendTokenText
               ) "the backend unit must name the token file in its environment, or hermes mints a token the application cannot know"
               # With no waitFor, a token must no longer force the launcher:
@@ -567,7 +567,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
                 !lib.hasInfix ''_token_file=''${_token_file//\$\{XDG_RUNTIME_DIR\}/''${XDG_RUNTIME_DIR:-}}'' wrapper
               ) "the desktop launcher must expand an unexpanded \"$XDG_RUNTIME_DIR\" in the token path"
               ++ lib.optional (
-                setValue "HERMES_DESKTOP_REMOTE_TOKEN" != null
+                setValue "A2ASSISTANT_DESKTOP_REMOTE_TOKEN" != null
               ) "the token must never be a --set value: makeWrapper writes it into the world-readable Nix store";
           in
           pkgs.runCommand "hermes-home-manager-desktop" { } (
@@ -575,7 +575,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
               throw "Home Manager desktop check failed:\n${lib.concatMapStringsSep "\n" (f: "  - ${f}") failures}"
             else
               ''
-                echo "PASS: the desktop launcher shares HERMES_HOME, the runtime and the backend of the service"
+                echo "PASS: the desktop launcher shares A2ASSISTANT_HOME, the runtime and the backend of the service"
                 mkdir -p $out
                 echo "ok" > $out/result
               ''
@@ -605,13 +605,13 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
                 lib.length desktopPackages != 1
               ) "programs.desktop.enable must install the application with no services enabled"
               ++ lib.optional (
-                !lib.hasInfix "--set HERMES_HOME" wrapper
-              ) "the launcher must carry HERMES_HOME even with no services"
+                !lib.hasInfix "--set A2ASSISTANT_HOME" wrapper
+              ) "the launcher must carry A2ASSISTANT_HOME even with no services"
               ++ lib.optional (
-                lib.hasInfix "HERMES_MANAGED" wrapper
+                lib.hasInfix "A2ASSISTANT_MANAGED" wrapper
               ) "the launcher must not claim a managed install when no activation writes one"
               ++ lib.optional (
-                lib.hasInfix "HERMES_DESKTOP_REMOTE_URL" wrapper
+                lib.hasInfix "A2ASSISTANT_DESKTOP_REMOTE_URL" wrapper
               ) "the launcher must not name a backend when the services run none"
               ++ lib.optional (
                 cfg.systemd.user.services ? hermes-backend || cfg.launchd.agents ? hermes-backend
@@ -631,7 +631,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
         # ── installPackage names its replacement ─────────────────────────
         # The option was removed by the programs./services. split. It
         # defaulted to true, so a person who never named it still got the
-        # command line. A silent removal thus leaves them with no `hermes`
+        # command line. A silent removal thus leaves them with no `a2assistant`
         # and no message. The module must refuse the configuration and name
         # the replacement.
         home-manager-install-package-removed =
@@ -774,16 +774,16 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
               ]) "expected hermes-agent + hermes-backend units, got: ${toString names}"
               ++ lib.optional (
                 !lib.hasInfix "bin/hermes gateway" (execOf "hermes-agent")
-              ) "gateway unit does not run `hermes gateway`: ${execOf "hermes-agent"}"
+              ) "gateway unit does not run `a2assistant gateway`: ${execOf "hermes-agent"}"
               ++ lib.optional (
                 !lib.hasInfix "bin/hermes dashboard" (execOf "hermes-backend")
-              ) "backend unit does not run `hermes dashboard`: ${execOf "hermes-backend"}"
+              ) "backend unit does not run `a2assistant dashboard`: ${execOf "hermes-backend"}"
               ++ lib.optional (
-                units.hermes-agent.environment.HERMES_HOME != units.hermes-backend.environment.HERMES_HOME
-              ) "gateway and backend must share one HERMES_HOME"
+                units.hermes-agent.environment.A2ASSISTANT_HOME != units.hermes-backend.environment.A2ASSISTANT_HOME
+              ) "gateway and backend must share one A2ASSISTANT_HOME"
               ++ lib.optional (
                 !lib.hasInfix "/var/lib/hermes/.hermes/SOUL.md" activation
-              ) "hermesHomeFiles must install into HERMES_HOME";
+              ) "hermesHomeFiles must install into A2ASSISTANT_HOME";
 
             # You cannot use container mode and the backend together. The
             # module says so with an assertion. Without the assertion it
@@ -959,7 +959,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
 
         # ── How .env is built ────────────────────────────────────────────
         # This check runs the real script that both modules use to build
-        # $HERMES_HOME/.env. The important property is that a second run
+        # $A2ASSISTANT_HOME/.env. The important property is that a second run
         # gives the same result. Activation runs at each rebuild. If the
         # script added the secrets to the file that exists, the file would
         # grow at each rebuild. The script writes the file again from the
@@ -970,7 +970,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             envScript = (import ./moduleCommon.nix { inherit lib; }).mkEnvScript {
               inherit pkgs;
               environment = {
-                HERMES_PUBLIC = "visible";
+                A2ASSISTANT_PUBLIC = "visible";
               };
             };
           in
@@ -984,7 +984,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             ${envScript} "$workdir/.env" 0600 "$workdir/secret-a" "$workdir/secret-b"
             first=$(cat "$workdir/.env")
 
-            grep -qx 'HERMES_PUBLIC=visible' "$workdir/.env" || \
+            grep -qx 'A2ASSISTANT_PUBLIC=visible' "$workdir/.env" || \
               (echo "FAIL: non-secret environment missing"; cat "$workdir/.env"; exit 1)
             grep -qx 'SECRET_TOKEN=s3cret' "$workdir/.env" || \
               (echo "FAIL: secret from environmentFile missing"; cat "$workdir/.env"; exit 1)
@@ -1138,7 +1138,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           set -e
           export HOME=$(mktemp -d)
 
-          echo "=== Checking hermes --help ==="
+          echo "=== Checking a2assistant --help ==="
           ${hermes-agent}/bin/hermes --help 2>&1 | grep -q "gateway" || (echo "FAIL: gateway subcommand missing"; exit 1)
           ${hermes-agent}/bin/hermes --help 2>&1 | grep -q "config" || (echo "FAIL: config subcommand missing"; exit 1)
           echo "PASS: All subcommands accessible"
@@ -1160,9 +1160,9 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           test "$SKILL_COUNT" -gt 0 || (echo "FAIL: no SKILL.md files found in skills directory"; exit 1)
           echo "PASS: $SKILL_COUNT bundled skills found"
 
-          grep -q "HERMES_BUNDLED_SKILLS" ${hermes-agent}/bin/hermes || \
-            (echo "FAIL: HERMES_BUNDLED_SKILLS not in wrapper"; exit 1)
-          echo "PASS: HERMES_BUNDLED_SKILLS set in wrapper"
+          grep -q "A2ASSISTANT_BUNDLED_SKILLS" ${hermes-agent}/bin/hermes || \
+            (echo "FAIL: A2ASSISTANT_BUNDLED_SKILLS not in wrapper"; exit 1)
+          echo "PASS: A2ASSISTANT_BUNDLED_SKILLS set in wrapper"
 
           # Optional skills ship via the wrapper too (pythonSrc excludes
           # them from the wheel, so the env var is the only path in nix).
@@ -1170,9 +1170,9 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             (echo "FAIL: optional-skills directory missing"; exit 1)
           OPT_COUNT=$(find -L ${hermes-agent}/share/hermes-agent/optional-skills -name "SKILL.md" | wc -l)
           test "$OPT_COUNT" -gt 0 || (echo "FAIL: no SKILL.md files in optional-skills"; exit 1)
-          grep -q "HERMES_OPTIONAL_SKILLS" ${hermes-agent}/bin/hermes || \
-            (echo "FAIL: HERMES_OPTIONAL_SKILLS not in wrapper"; exit 1)
-          echo "PASS: $OPT_COUNT optional skills found, HERMES_OPTIONAL_SKILLS set in wrapper"
+          grep -q "A2ASSISTANT_OPTIONAL_SKILLS" ${hermes-agent}/bin/hermes || \
+            (echo "FAIL: A2ASSISTANT_OPTIONAL_SKILLS not in wrapper"; exit 1)
+          echo "PASS: $OPT_COUNT optional skills found, A2ASSISTANT_OPTIONAL_SKILLS set in wrapper"
 
           echo "=== All bundled skills checks passed ==="
           mkdir -p $out
@@ -1190,9 +1190,9 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             (echo "FAIL: telegram plugin manifest missing"; exit 1)
           echo "PASS: telegram plugin manifest present"
 
-          grep -q "HERMES_BUNDLED_PLUGINS" ${hermes-agent}/bin/hermes || \
-            (echo "FAIL: HERMES_BUNDLED_PLUGINS not in wrapper"; exit 1)
-          echo "PASS: HERMES_BUNDLED_PLUGINS set in wrapper"
+          grep -q "A2ASSISTANT_BUNDLED_PLUGINS" ${hermes-agent}/bin/hermes || \
+            (echo "FAIL: A2ASSISTANT_BUNDLED_PLUGINS not in wrapper"; exit 1)
+          echo "PASS: A2ASSISTANT_BUNDLED_PLUGINS set in wrapper"
 
           echo "=== All bundled plugins checks passed ==="
           mkdir -p $out
@@ -1216,18 +1216,18 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           test -f ${hermes-agent}/share/hermes-agent/locales/en.yaml || (echo "FAIL: en.yaml missing"; exit 1)
           echo "PASS: en.yaml present"
 
-          grep -q "HERMES_BUNDLED_LOCALES" ${hermes-agent}/bin/hermes || \
-            (echo "FAIL: HERMES_BUNDLED_LOCALES not in wrapper"; exit 1)
-          echo "PASS: HERMES_BUNDLED_LOCALES set in wrapper"
+          grep -q "A2ASSISTANT_BUNDLED_LOCALES" ${hermes-agent}/bin/hermes || \
+            (echo "FAIL: A2ASSISTANT_BUNDLED_LOCALES not in wrapper"; exit 1)
+          echo "PASS: A2ASSISTANT_BUNDLED_LOCALES set in wrapper"
 
           # locales/ is a bare data dir (no __init__.py), shipped via a
-          # symlink + HERMES_BUNDLED_LOCALES (not via wheel data-files).
+          # symlink + A2ASSISTANT_BUNDLED_LOCALES (not via wheel data-files).
           # Verify the wrapper override resolves real strings.
           export HOME=$(mktemp -d)
-          RENDERED=$(cd "$HOME" && HERMES_BUNDLED_LOCALES=${hermes-agent}/share/hermes-agent/locales \
+          RENDERED=$(cd "$HOME" && A2ASSISTANT_BUNDLED_LOCALES=${hermes-agent}/share/hermes-agent/locales \
             ${hermesVenv}/bin/python3 -c "from agent import i18n; print(i18n.t('gateway.reset.header_default', lang='en'))")
           echo "rendered: $RENDERED"
-          test "$RENDERED" != "gateway.reset.header_default" || (echo "FAIL: i18n returned the raw key with HERMES_BUNDLED_LOCALES set"; exit 1)
+          test "$RENDERED" != "gateway.reset.header_default" || (echo "FAIL: i18n returned the raw key with A2ASSISTANT_BUNDLED_LOCALES set"; exit 1)
           echo "PASS: i18n renders a human string via the wrapper override"
 
           echo "=== All bundled locales checks passed ==="
@@ -1237,7 +1237,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
 
         # Verify bundled optional-mcps catalog is present and resolvable.
         # optional-mcps/ is a bare data dir shipped via symlink +
-        # HERMES_OPTIONAL_MCPS (not via wheel data-files).
+        # A2ASSISTANT_OPTIONAL_MCPS (not via wheel data-files).
         bundled-mcps = pkgs.runCommand "hermes-bundled-mcps" { } ''
           set -e
           echo "=== Checking bundled optional-mcps ==="
@@ -1248,14 +1248,14 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           test "$MANIFEST_COUNT" -gt 0 || (echo "FAIL: no manifest.yaml files found"; exit 1)
           echo "PASS: $MANIFEST_COUNT catalog manifests found"
 
-          grep -q "HERMES_OPTIONAL_MCPS" ${hermes-agent}/bin/hermes || \
-            (echo "FAIL: HERMES_OPTIONAL_MCPS not in wrapper"; exit 1)
-          echo "PASS: HERMES_OPTIONAL_MCPS set in wrapper"
+          grep -q "A2ASSISTANT_OPTIONAL_MCPS" ${hermes-agent}/bin/hermes || \
+            (echo "FAIL: A2ASSISTANT_OPTIONAL_MCPS not in wrapper"; exit 1)
+          echo "PASS: A2ASSISTANT_OPTIONAL_MCPS set in wrapper"
 
           export HOME=$(mktemp -d)
           CATALOG=$(cd "$HOME" && ${hermes-agent}/bin/hermes mcp catalog 2>/dev/null || true)
           echo "catalog output: $CATALOG"
-          test -n "$CATALOG" || (echo "FAIL: hermes mcp catalog returned empty"; exit 1)
+          test -n "$CATALOG" || (echo "FAIL: a2assistant mcp catalog returned empty"; exit 1)
           echo "PASS: mcp catalog resolves entries"
 
           echo "=== All bundled optional-mcps checks passed ==="
@@ -1273,7 +1273,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           test -f ${hermes-agent}/ui-tui/dist/entry.js || (echo "FAIL: compiled entry.js missing"; exit 1)
           echo "PASS: compiled entry.js present"
 
-          # The compiled TUI runs these on HERMES_PYTHON; the Python package lives in another
+          # The compiled TUI runs these on A2ASSISTANT_PYTHON; the Python package lives in another
           # store path, so they must ship beside entry.js (#139208).
           for helper in gateway_bootstrap.py clipboard_image.py; do
             test -f ${hermes-agent}/ui-tui/dist/scripts/$helper || \
@@ -1283,39 +1283,39 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
 
           # self-contained bundle; no runtime node_modules expected
 
-          grep -q "HERMES_TUI_DIR" ${hermes-agent}/bin/hermes || \
-            (echo "FAIL: HERMES_TUI_DIR not in wrapper"; exit 1)
-          echo "PASS: HERMES_TUI_DIR set in wrapper"
+          grep -q "A2ASSISTANT_TUI_DIR" ${hermes-agent}/bin/hermes || \
+            (echo "FAIL: A2ASSISTANT_TUI_DIR not in wrapper"; exit 1)
+          echo "PASS: A2ASSISTANT_TUI_DIR set in wrapper"
 
           echo "=== All bundled TUI checks passed ==="
           mkdir -p $out
           echo "ok" > $out/result
         '';
 
-        # Verify HERMES_NODE is set in wrapper and points to Node 26+
+        # Verify A2ASSISTANT_NODE is set in wrapper and points to Node 26+
         # (Hermes pins its toolchain to Node 26 everywhere)
         hermes-node = pkgs.runCommand "hermes-node-version" { } ''
           set -e
-          echo "=== Checking HERMES_NODE in wrapper ==="
-          grep -q "HERMES_NODE" ${hermes-agent}/bin/hermes || \
-            (echo "FAIL: HERMES_NODE not set in wrapper"; exit 1)
-          echo "PASS: HERMES_NODE present in wrapper"
+          echo "=== Checking A2ASSISTANT_NODE in wrapper ==="
+          grep -q "A2ASSISTANT_NODE" ${hermes-agent}/bin/hermes || \
+            (echo "FAIL: A2ASSISTANT_NODE not set in wrapper"; exit 1)
+          echo "PASS: A2ASSISTANT_NODE present in wrapper"
 
-          HERMES_NODE=$(sed -n "s/^export HERMES_NODE='\(.*\)'/\1/p" ${hermes-agent}/bin/hermes)
-          test -x "$HERMES_NODE" || (echo "FAIL: HERMES_NODE=$HERMES_NODE not executable"; exit 1)
-          echo "PASS: HERMES_NODE executable at $HERMES_NODE"
+          A2ASSISTANT_NODE=$(sed -n "s/^export A2ASSISTANT_NODE='\(.*\)'/\1/p" ${hermes-agent}/bin/hermes)
+          test -x "$A2ASSISTANT_NODE" || (echo "FAIL: A2ASSISTANT_NODE=$A2ASSISTANT_NODE not executable"; exit 1)
+          echo "PASS: A2ASSISTANT_NODE executable at $A2ASSISTANT_NODE"
 
-          NODE_MAJOR=$("$HERMES_NODE" --version | sed 's/^v//' | cut -d. -f1)
+          NODE_MAJOR=$("$A2ASSISTANT_NODE" --version | sed 's/^v//' | cut -d. -f1)
           test "$NODE_MAJOR" -ge 26 || \
             (echo "FAIL: Node v$NODE_MAJOR < 26, Hermes requires Node 26"; exit 1)
           echo "PASS: Node v$NODE_MAJOR >= 26"
 
-          echo "=== All HERMES_NODE checks passed ==="
+          echo "=== All A2ASSISTANT_NODE checks passed ==="
           mkdir -p $out
           echo "ok" > $out/result
         '';
 
-        # Verify HERMES_MANAGED guard works on all mutation commands
+        # Verify A2ASSISTANT_MANAGED guard works on all mutation commands
         managed-guard = pkgs.runCommand "hermes-managed-guard" { } ''
           set -e
           export HOME=$(mktemp -d)
@@ -1323,7 +1323,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           check_blocked() {
             local label="$1"
             shift
-            OUTPUT=$(HERMES_MANAGED=true "$@" 2>&1 || true)
+            OUTPUT=$(A2ASSISTANT_MANAGED=true "$@" 2>&1 || true)
             # Case-insensitive: the message names the managing system as the
             # identifier it is keyed by, and the display form is not the
             # property under test here.
@@ -1331,7 +1331,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
             echo "PASS: $label blocked in managed mode"
           }
 
-          echo "=== Checking HERMES_MANAGED guards ==="
+          echo "=== Checking A2ASSISTANT_MANAGED guards ==="
           check_blocked "config set" ${hermes-agent}/bin/hermes config set model foo
           check_blocked "config edit" ${hermes-agent}/bin/hermes config edit
 
@@ -1551,8 +1551,8 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           in
           pkgs.runCommand "hermes-generated-config-version" { } ''
             set -e
-            export HOME=$(mktemp -d) HERMES_HOME=$(mktemp -d)
-            ${configMergeScript} ${configFiles.generated} "$HERMES_HOME/config.yaml"
+            export HOME=$(mktemp -d) A2ASSISTANT_HOME=$(mktemp -d)
+            ${configMergeScript} ${configFiles.generated} "$A2ASSISTANT_HOME/config.yaml"
             ${hermesVenv}/bin/python3 -c '
             from hermes_cli.config import check_config_version
             current, latest = check_config_version(raise_on_parse_error=True)
@@ -1635,7 +1635,7 @@ json.dump(sorted(leaf_paths(DEFAULT_CONFIG)), sys.stdout, indent=2)
           # Helper: run merge then load with Python, output merged JSON
           merge_and_load() {
             local hermes_home="$1"
-            export HERMES_HOME="$hermes_home"
+            export A2ASSISTANT_HOME="$hermes_home"
             ${configMergeScript} ${nixSettings} "$hermes_home/config.yaml"
             ${hermesVenv}/bin/python3 -c '
 import json, sys

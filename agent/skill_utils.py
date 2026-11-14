@@ -122,7 +122,7 @@ def _detect_kanban() -> bool:
     # Mirror tools/kanban_tools.py: a dispatcher-spawned worker (env vars, but
     # only when this execution OWNS the task — delegate children / in-process
     # cron see the worker's vars) or a profile opted into the kanban toolset.
-    if os.getenv("HERMES_KANBAN_TASK") or os.getenv("HERMES_KANBAN_BOARD"):
+    if os.getenv("A2ASSISTANT_KANBAN_TASK") or os.getenv("A2ASSISTANT_KANBAN_BOARD"):
         try:
             from agent.delegation_context import is_dispatcher_owned_worker_context
             owned = is_dispatcher_owned_worker_context()
@@ -268,7 +268,7 @@ def _expand_path(entry: str) -> Path:
 
 
 def _home_relative(p: Path) -> Path:
-    """Anchor a relative config path at HERMES_HOME; absolute paths pass through."""
+    """Anchor a relative config path at A2ASSISTANT_HOME; absolute paths pass through."""
     from hermes_constants import get_hermes_home
     return p if p.is_absolute() else get_hermes_home() / p
 
@@ -280,12 +280,12 @@ ESSENTIAL_SKILLS: frozenset = frozenset({"hermes-agent"})
 
 def get_disabled_skill_names(platform: str | None = None) -> set[str]:
     """Disabled skill names from config.yaml: global list ∪ platform list
-    (*platform* defaults to ``HERMES_PLATFORM`` / ``HERMES_SESSION_PLATFORM``)."""
+    (*platform* defaults to ``A2ASSISTANT_PLATFORM`` / ``A2ASSISTANT_SESSION_PLATFORM``)."""
     skills_cfg = _skills_cfg()
     if skills_cfg is None:
         return set()
     from gateway.session_context import get_session_env
-    resolved_platform = platform or os.getenv("HERMES_PLATFORM") or get_session_env("HERMES_SESSION_PLATFORM")
+    resolved_platform = platform or os.getenv("A2ASSISTANT_PLATFORM") or get_session_env("A2ASSISTANT_SESSION_PLATFORM")
     disabled = _normalize_string_set(skills_cfg.get("disabled"))
     platform_disabled = (skills_cfg.get("platform_disabled") or {}).get(resolved_platform) if resolved_platform else None
     if platform_disabled is not None:
@@ -295,7 +295,7 @@ def get_disabled_skill_names(platform: str | None = None) -> set[str]:
 
 def parse_config_string_list(value) -> list[str]:
     """Normalize a config value that may hold a JSON-array string into a list.
-    ``hermes config set`` stores lists as quoted JSON/Python-literal strings;
+    ``a2assistant config set`` stores lists as quoted JSON/Python-literal strings;
     treating one as a single name would silently filter nothing. A scalar
     string still means one name.
 
@@ -339,7 +339,7 @@ def _config_str_list(raw) -> list[str]:
 
 def get_external_skills_dirs() -> list[Path]:
     """Validated, deduplicated ``skills.external_dirs`` (existing dirs only). Entries
-    are ``~``/``${VAR}`` expanded, relative to HERMES_HOME; the local skills dir is skipped."""
+    are ``~``/``${VAR}`` expanded, relative to A2ASSISTANT_HOME; the local skills dir is skipped."""
     from hermes_cli.config_backend import config_exists
     config_path = get_config_path()
     if not config_exists(config_path):
@@ -369,7 +369,7 @@ def get_external_skills_dirs() -> list[Path]:
 
 def get_skill_create_dir() -> Optional[Path]:
     """Configured ``skills.create_dir`` (need not exist yet), or None when unset;
-    relative to HERMES_HOME; a value equal to the local skills dir counts as unset."""
+    relative to A2ASSISTANT_HOME; a value equal to the local skills dir counts as unset."""
     raw = _skills_cfg_get("create_dir")
     entry = str(raw).strip() if raw and isinstance(raw, (str, os.PathLike)) else ""
     if not entry:
@@ -425,7 +425,7 @@ def get_skill_search_roots(local: Optional[Path] = None, *, include_project: boo
 
 
 def get_all_skills_dirs() -> list[Path]:
-    """Skill dirs: local ``~/.hermes/skills/`` first, then create_dir, then external.
+    """Skill dirs: local ``~/.a2assistant/skills/`` first, then create_dir, then external.
     Trusted project dirs are NOT included (higher precedence; see get_project_skills_dirs)."""
     return [d for _tier, d in get_skill_search_roots(include_project=False)]
 
@@ -574,7 +574,7 @@ def is_project_root_trusted(root: Path) -> bool:
 
 def _candidate_project_skills_dirs(root: Path) -> list[Path]:
     """Existing skill dirs under *root*, excluding the profile's own skills dir
-    (HERMES_HOME itself may live inside a git checkout)."""
+    (A2ASSISTANT_HOME itself may live inside a git checkout)."""
     local_skills = get_skills_dir().resolve()
     dirs: list[Path] = []
     for cand in (root / sub for sub in PROJECT_SKILLS_SUBDIRS):
@@ -812,7 +812,7 @@ def _expand_skill_config_path(value: str) -> str:
     """Expand ``~`` / ``$HOME`` against the HOME Hermes injects into tool subprocesses.
 
     Skill config defaults describe paths the agent hands to tools, so in a container where the
-    control process HOME (``/opt/data``) differs from the tool HOME (``{HERMES_HOME}/home``) a
+    control process HOME (``/opt/data``) differs from the tool HOME (``{A2ASSISTANT_HOME}/home``) a
     plain ``expanduser`` pointed the prompt at a path no tool would ever read (#12260).
     """
     subprocess_home = get_subprocess_home()

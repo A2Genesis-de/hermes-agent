@@ -22,7 +22,7 @@ import hermes_yaml as yaml
 def home(tmp_path, monkeypatch):
     h = tmp_path / ".hermes"
     h.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(h))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(h))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     for var in ("TERMINAL_ENV", "TERMINAL_DOCKER_IMAGE", "TERMINAL_DOCKER_IMAGE_PINNED"):
         monkeypatch.delenv(var, raising=False)

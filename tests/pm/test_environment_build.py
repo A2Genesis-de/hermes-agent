@@ -83,7 +83,7 @@ def locked_project(tmp_path):
     config.mkdir()
     env = {key: value for key, value in os.environ.items()
            if not key.startswith(("UV_", "PYTHON")) and key != "VIRTUAL_ENV"}
-    env.update(HOME=str(home), USERPROFILE=str(home), HERMES_HOME=str(home / ".hermes"),
+    env.update(HOME=str(home), USERPROFILE=str(home), A2ASSISTANT_HOME=str(home / ".hermes"),
                XDG_CONFIG_HOME=str(config), XDG_CONFIG_DIRS=str(config),
                UV_CACHE_DIR=str(tmp_path / "cache"), UV_PYTHON=sys.executable, UV_OFFLINE="1")
     _run([uv, "lock", "--python", sys.executable], cwd=source, env=env)
@@ -161,7 +161,7 @@ def test_public_build_installs_all_extras_at_explicit_destination(installable_pr
     assert (site / "construction_root.pth").is_file(), "load-bearing .pth must survive sealing"
     assert (source / "uv.lock").read_bytes() == locked
     assert dict(os.environ) == before
-    assert not Path(env["HERMES_HOME"]).exists()
+    assert not Path(env["A2ASSISTANT_HOME"]).exists()
 
 
 @pytest.mark.parametrize("selection, expected", [
@@ -189,7 +189,7 @@ def test_public_dependency_only_build_needs_no_application_source(installable_pr
     ))
     assert result == [*expected, False]
     assert (source / "uv.lock").read_bytes() == locked
-    assert not Path(env["HERMES_HOME"]).exists()
+    assert not Path(env["A2ASSISTANT_HOME"]).exists()
 
 
 
@@ -252,7 +252,7 @@ def test_first_bundle_extension_preserves_shipped_extras(locked_project, build_w
                          cache=tmp_path / "cache", offline=True, explicit=True)
     (tmp_path / "manifest.json").write_text(json.dumps({"repo": source.name, "venv": base.name}), encoding="utf-8")
     write_features(["chosen"], tmp_path)
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     home.mkdir(exist_ok=True)
     (home / "config.yaml").write_text(f"security:\n  allow_lazy_installs: {str(lazy).lower()}\n", encoding="utf-8")
     assert selected_venv(source) == base
@@ -344,7 +344,7 @@ def test_build_backend_output_is_streamed_before_build_finishes(installable_proj
     import io
     from pm.environment import PythonEnvironment
 
-    monkeypatch.setenv("HERMES_VERBOSE", "1")  # live backend output is the streamed (CI) view's contract
+    monkeypatch.setenv("A2ASSISTANT_VERBOSE", "1")  # live backend output is the streamed (CI) view's contract
     source, uv, env = installable_project
     release = tmp_path / "release-build"
     stdout_marker = "construction-root: backend stdout"
@@ -438,7 +438,7 @@ def test_child_output_is_live_and_keeps_explicit_index_credentials(tmp_path, mon
     import io
     from pm.environment import PythonEnvironment
 
-    monkeypatch.setenv("HERMES_VERBOSE", "1")  # CI's streamed log, not the contained view
+    monkeypatch.setenv("A2ASSISTANT_VERBOSE", "1")  # CI's streamed log, not the contained view
 
     released = tmp_path / "release-child"
 
@@ -486,7 +486,7 @@ def streaming_runner(request, tmp_path, monkeypatch):
     from pm.cli import _run_live
     from pm.environment import PythonEnvironment
 
-    monkeypatch.setenv("HERMES_VERBOSE", "1")  # CI's streamed log, not the contained view
+    monkeypatch.setenv("A2ASSISTANT_VERBOSE", "1")  # CI's streamed log, not the contained view
 
     output = io.StringIO()
     environment = PythonEnvironment(
@@ -659,7 +659,7 @@ def test_explicit_environment_installs_locked_members_without_live_selection(loc
     assert result == [sys.base_prefix, "1.0", True]
     assert (source / "uv.lock").read_bytes() == before_lock
     assert not (source / ".venv").exists()
-    assert not (Path(env["HERMES_HOME"])).exists()
+    assert not (Path(env["A2ASSISTANT_HOME"])).exists()
     assert env == before_env
     assert dict(os.environ) == before_process
 
@@ -748,7 +748,7 @@ def test_real_sync_retains_selection_until_commit(locked_project, tmp_path, monk
     engine.sync_venv(["chosen"], plugins=Members([]), explicit=True)
     old = selected_venv(source)
     facts = paths.runtime_facts_path().read_bytes()
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     config = home / "config.yaml"
     config.write_text("plugins: {enabled: []}\nsecurity: {allow_lazy_installs: true}\n", encoding="utf-8")
     config_bytes = config.read_bytes()
@@ -790,7 +790,7 @@ def test_live_apply_keeps_selection_on_failed_union(locked_project, tmp_path, mo
     _run([str(uv), "lock", "--python", sys.executable], cwd=source, env=env)
     source_lock = (source / "uv.lock").read_bytes()
     monkeypatch.setattr(Path, "home", lambda: tmp_path / "isolated-home")
-    monkeypatch.setenv("HERMES_HOME", env["HERMES_HOME"])
+    monkeypatch.setenv("A2ASSISTANT_HOME", env["A2ASSISTANT_HOME"])
     monkeypatch.setattr(pm.paths, "repo_root", lambda: source)
     # Tool acquisition is the adapter's job; the same prepared env is not mutated.
     monkeypatch.setattr("pm._uv._toolchain", lambda **kwargs: (uv, Path(sys.executable)))

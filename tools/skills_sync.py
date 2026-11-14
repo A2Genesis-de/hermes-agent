@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Skills Sync -- manifest-based seeding and updating of bundled skills. Copies repo skills/ into
-~/.hermes/skills/, tracking each synced skill's origin hash in .bundled_manifest (v2 "name:hash"
+~/.a2assistant/skills/, tracking each synced skill's origin hash in .bundled_manifest (v2 "name:hash"
 lines; v1 plain names auto-migrate). NEW skills are copied and recorded; EXISTING skills update
 only when bundled changed AND the user copy still matches the origin hash (else user-customized
 -> SKIP); user-DELETED skills are not re-added; upstream-REMOVED ones leave the manifest once no active or
@@ -134,7 +134,7 @@ def _read_suppressed_names() -> set:
     """Built-in skills the curator pruned — must NOT be re-seeded on sync.
 
     Delegates to ``tools.skill_usage`` (single source of truth) and falls back
-    to reading ``~/.hermes/skills/.curator_suppressed`` directly if that import
+    to reading ``~/.a2assistant/skills/.curator_suppressed`` directly if that import
     is unavailable in a packaged/update context.
     """
     try:
@@ -247,7 +247,7 @@ def _recover_renamed_skill(st: "_SyncState", skill_name: str, dest: Path) -> Opt
             st.say(
                 f"  ⚠ {skill_name}: upstream moved this skill to {_rel_skills_posix(dest)}, but your "
                 f"modified copy at {rel} was kept — it will not receive updates. "
-                f"Run `hermes skills reset {skill_name} --restore` to move to the new location.")
+                f"Run `a2assistant skills reset {skill_name} --restore` to move to the new location.")
             continue
         try:
             _move_dir(candidate, dest)
@@ -317,7 +317,7 @@ def _install_new_skill(st: _SyncState, skill_name: str, skill_src: Path, dest: P
             else:
                 st.say(
                     f"  ⚠ {skill_name}: bundled version shipped but you already have a local skill "
-                    f"by this name — yours was kept. Run `hermes skills reset {skill_name}` to "
+                    f"by this name — yours was kept. Run `a2assistant skills reset {skill_name}` to "
                     f"replace it with the bundled version.")
         else:
             _copy_dir(skill_src, dest)
@@ -394,7 +394,7 @@ def _seed_category_descriptions(bundled_dir: Path, only_dirs: Optional[set[Path]
 
 
 def sync_skills(quiet: bool = False) -> dict:
-    """Sync bundled skills into ~/.hermes/skills/ using the manifest; returns the per-category
+    """Sync bundled skills into ~/.a2assistant/skills/ using the manifest; returns the per-category
     result dict. Opted-out profiles seed ONLY ESSENTIAL_SKILLS (the system prompt always
     points at ``hermes-agent``)."""
     essential_only = (_hermes_home() / NO_BUNDLED_SKILLS_MARKER).exists()
@@ -460,7 +460,7 @@ def sync_skills(quiet: bool = False) -> dict:
 def _rmtree_writable(path: Path) -> None:
     """rmtree that first makes read-only entries writable (Nix/deb/rpm keep r-x dirs; unlinking
     a child needs a writable parent, so chmod both). Scope guard: refuses anything not a STRICT
-    child of the active skills root (bad join / missing HERMES_HOME / malicious manifest entry).
+    child of the active skills root (bad join / missing A2ASSISTANT_HOME / malicious manifest entry).
 
     Handles immutable package sources (Nix store, deb/rpm installs) that preserve read-only permissions on
     copied files *and* directories (``r-xr-xr-x``). Removing a child requires write permission on its parent
@@ -481,7 +481,7 @@ def _rmtree_writable(path: Path) -> None:
 
 
 if __name__ == "__main__":
-    print("Syncing bundled skills into ~/.hermes/skills/ ...")
+    print("Syncing bundled skills into ~/.a2assistant/skills/ ...")
     result = sync_skills(quiet=False)
     parts = [f"{len(result['copied'])} new", f"{len(result['updated'])} updated", f"{result['skipped']} unchanged"]
     if names := result["user_modified"]:

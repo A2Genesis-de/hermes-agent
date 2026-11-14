@@ -147,7 +147,7 @@ test('decideWindowsGpuStackCookieLaunch enables sticky fallback, re-probes on ve
   const overrideOff = decideWindowsGpuStackCookieLaunch({
     platform: 'win32',
     marker: { state: 'fallback', reason: 'renderer-crash-loop', version: '1.2.3' },
-    env: { HERMES_DESKTOP_DISABLE_GPU: '0' },
+    env: { A2ASSISTANT_DESKTOP_DISABLE_GPU: '0' },
     appVersion: '1.2.3'
   })
 
@@ -174,10 +174,10 @@ test('decideWindowsGpuStackCookieLaunch enables sticky fallback, re-probes on ve
   assert.equal(legacy.enable, true)
 })
 
-test('alreadyHasDisableGpu honors argv and HERMES_DESKTOP_DISABLE_GPU', () => {
+test('alreadyHasDisableGpu honors argv and A2ASSISTANT_DESKTOP_DISABLE_GPU', () => {
   assert.equal(alreadyHasDisableGpu(['--foo', '--disable-gpu'], {}), true)
-  assert.equal(alreadyHasDisableGpu([], { HERMES_DESKTOP_DISABLE_GPU: '1' }), true)
-  assert.equal(alreadyHasDisableGpu([], { HERMES_DESKTOP_DISABLE_GPU: 'true' }), true)
+  assert.equal(alreadyHasDisableGpu([], { A2ASSISTANT_DESKTOP_DISABLE_GPU: '1' }), true)
+  assert.equal(alreadyHasDisableGpu([], { A2ASSISTANT_DESKTOP_DISABLE_GPU: 'true' }), true)
   assert.equal(alreadyHasDisableGpu(['--disable-gpu-compositing'], {}), false)
   assert.equal(alreadyHasDisableGpu(['--no-sandbox'], {}), false)
 })
@@ -218,7 +218,7 @@ test('decideWindowsGpuStackCookieLaunch honors argv --disable-gpu even without a
   const overrideOffBeatsArgv = decideWindowsGpuStackCookieLaunch({
     platform: 'win32',
     argv: ['--disable-gpu'],
-    env: { HERMES_DESKTOP_DISABLE_GPU: '0' },
+    env: { A2ASSISTANT_DESKTOP_DISABLE_GPU: '0' },
     marker: { state: 'fallback', reason: 'renderer-crash-loop', version: '1.2.3' },
     appVersion: '1.2.3'
   })

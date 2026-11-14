@@ -1,4 +1,4 @@
-"""The image's root s6 supervision tree must stay out of the unprivileged ``hermes`` user's reach.
+"""The image's root s6 supervision tree must stay out of the unprivileged ``a2assistant`` user's reach.
 
 Everything under the root ``s6-svscan`` scandir (``/run/service``) is supervised by a root
 ``s6-supervise``, which executes each slot's ``run``/``finish``/``log/run`` as root and writes
@@ -47,7 +47,7 @@ def _fake_bin(tmp_path: Path, log: Path, names: dict[str, str], sub: str = "fake
 
 
 def _run(script: Path, bindir: Path, *args: str) -> subprocess.CompletedProcess[str]:
-    env = {k: v for k, v in os.environ.items() if k != "HERMES_DASHBOARD"}
+    env = {k: v for k, v in os.environ.items() if k != "A2ASSISTANT_DASHBOARD"}
     env["PATH"] = f"{bindir}{os.pathsep}{os.environ.get('PATH', '')}"
     return subprocess.run([_sh(), str(script), *args], capture_output=True, text=True, env=env, check=False)
 

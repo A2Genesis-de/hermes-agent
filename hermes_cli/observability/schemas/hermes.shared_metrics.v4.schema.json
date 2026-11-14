@@ -22,7 +22,7 @@
       "$ref": "#/$defs/uuid"
     },
     "install_id": {
-      "description": "Random persistent identifier scoped to one HERMES_HOME.",
+      "description": "Random persistent identifier scoped to one A2ASSISTANT_HOME.",
       "$ref": "#/$defs/uuid"
     },
     "period_start": {

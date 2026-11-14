@@ -41,7 +41,7 @@ def test_hermes_model_offers_reasoning_whenever_a_pick_is_saved(tmp_path, monkey
     from hermes_cli.auth import _save_model_choice
     from hermes_cli.config import load_config, save_config
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     save_config({**load_config(), "model": {"default": "m", "provider": "openrouter"}})
     prompted = []
     monkeypatch.setattr("hermes_cli.main_provider_setup._prompt_main_reasoning_effort",

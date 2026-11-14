@@ -39,9 +39,9 @@ class _ApprovalEntry:
         approvers = _ctx._get_approval_config().get("approvers")
         # ``chat_type`` picks the admin scope (DM or group) every surface checks against. The requester is
         # the turn's ACTOR (who asked): USER_ID is the route, empty in a shared observed group.
-        self.authority = {"requester_id": _ctx._session_env("HERMES_SESSION_ACTOR_ID"),
-                          "requester_name": _ctx._session_env("HERMES_SESSION_ACTOR_NAME"),
-                          "chat_type": _ctx._session_env("HERMES_SESSION_CHAT_TYPE"),
+        self.authority = {"requester_id": _ctx._session_env("A2ASSISTANT_SESSION_ACTOR_ID"),
+                          "requester_name": _ctx._session_env("A2ASSISTANT_SESSION_ACTOR_NAME"),
+                          "chat_type": _ctx._session_env("A2ASSISTANT_SESSION_CHAT_TYPE"),
                           "approvers": ["*"] if approvers is None else approvers}
         self.acknowledged = False
         # Surface hook run once when the wait ends by ANY path (answer, timeout, interrupt, /approve from

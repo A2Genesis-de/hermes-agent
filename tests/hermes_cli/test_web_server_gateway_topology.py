@@ -78,7 +78,7 @@ class TestCollectProfileGatewayTopology:
         solo.mkdir(parents=True)
         (solo / "config.yaml").write_text("gateway:\n  standalone: true\n")
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
         monkeypatch.setattr(profiles, "_check_gateway_running", lambda home: home == solo)
         topo = _collect_profile_gateway_topology()
         assert "solo" in topo["profiles"]
@@ -396,7 +396,7 @@ class TestStatusEndpointTopology:
         home.mkdir()
         # The resolver names a default root by IDENTITY, not basename: only the root the
         # process resolves (HERMES_HOME here) folds as "default".
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         record = {
             "gateway_state": "running",
             "served_profiles": ["default", "coder"],

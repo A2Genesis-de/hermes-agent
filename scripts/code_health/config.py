@@ -107,7 +107,7 @@ RULES: tuple[Rule, ...] = (
          " takes `# health: allow HX001 -- <why>`", "ast",
          blocking=WARN_UNTIL_REPLAYED,
          exclude=SINGLE_PROFILE + ("hermes_constants.py",)),
-    Rule("HX002", "new HERMES_* environment variable", "behavioural settings go in"
+    Rule("HX002", "new A2ASSISTANT_* environment variable", "behavioural settings go in"
          " config.yaml, secrets through the secret scope; `.env` is for credentials only",
          "ast", exclude=SINGLE_PROFILE),
     Rule("HX004", "UnscopedSecretError falls back to os.getenv", "bind the owning profile's"

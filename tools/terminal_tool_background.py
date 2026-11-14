@@ -55,22 +55,22 @@ _AUTO_BACKGROUND_NOTE = (
 
 _ASYNC_UNSUPPORTED_NOTE = (
     'notify_on_complete / watch_patterns are not available in this session — it cannot receive '
-    'an async completion after the turn ends (a one-shot runner such as `hermes -z`, a /bg '
+    'an async completion after the turn ends (a one-shot runner such as `a2assistant -z`, a /bg '
     'background task, a cron job, a Kanban worker, or a stateless HTTP endpoint). The process is running in the '
     "background; retrieve its result with process(action='poll') or process(action='wait')."
 )
 
 # proc_session attribute -> HERMES_SESSION_* env var carrying it.
 _ROUTING_FIELDS = (
-    ("watcher_chat_id", "HERMES_SESSION_CHAT_ID"),
-    ("watcher_user_id", "HERMES_SESSION_USER_ID"),
-    ("watcher_user_name", "HERMES_SESSION_USER_NAME"),
-    ("watcher_thread_id", "HERMES_SESSION_THREAD_ID"),
-    ("watcher_message_id", "HERMES_SESSION_MESSAGE_ID"),
+    ("watcher_chat_id", "A2ASSISTANT_SESSION_CHAT_ID"),
+    ("watcher_user_id", "A2ASSISTANT_SESSION_USER_ID"),
+    ("watcher_user_name", "A2ASSISTANT_SESSION_USER_NAME"),
+    ("watcher_thread_id", "A2ASSISTANT_SESSION_THREAD_ID"),
+    ("watcher_message_id", "A2ASSISTANT_SESSION_MESSAGE_ID"),
     # The spawning conversation's session-db id lets the gateway's completion
     # pre-flight drop the notification if the user closed this session (/new)
     # before the process finished, instead of injecting it into the NEW one.
-    ("parent_session_id", "HERMES_SESSION_ID"),
+    ("parent_session_id", "A2ASSISTANT_SESSION_ID"),
 )
 
 
@@ -84,7 +84,7 @@ def _looks_like_homebrew_ci_poller(command: str) -> bool:
 def _stamp_gateway_routing(proc_session, get_session_env) -> None:
     """Copy the spawning chat's routing metadata onto the process session so
     completion / watch notifications reach the right chat/thread."""
-    platform = get_session_env("HERMES_SESSION_PLATFORM", "")
+    platform = get_session_env("A2ASSISTANT_SESSION_PLATFORM", "")
     if not platform:
         return
     proc_session.watcher_platform = platform

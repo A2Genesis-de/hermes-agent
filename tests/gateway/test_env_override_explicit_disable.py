@@ -1,7 +1,7 @@
 """Regression tests for #48820 Bug 2: an explicit ``platforms.<x>.enabled: false``
 in config.yaml must survive ``_apply_env_overrides`` when that platform's
 credentials are present in the environment. These tests drive the real
-``load_gateway_config`` against a temp HERMES_HOME — real YAML I/O, no mocks of
+``load_gateway_config`` against a temp A2ASSISTANT_HOME — real YAML I/O, no mocks of
 the code under test.
 """
 
@@ -27,7 +27,7 @@ def _isolate(monkeypatch, tmp_path, env):
             monkeypatch.delenv(key, raising=False)
     hermes_home = tmp_path / ".hermes"
     hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     for k, v in env.items():
         monkeypatch.setenv(k, v)
     return hermes_home

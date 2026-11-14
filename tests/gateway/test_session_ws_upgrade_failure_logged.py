@@ -63,7 +63,7 @@ def test_a_failed_session_upgrade_is_logged_with_its_cause(tmp_path):
     }))
     root = Path(__file__).resolve().parents[2]
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home),
                PYTHONPATH=str(root), PYTHONUNBUFFERED='1', OPENAI_API_KEY='loopback-only')
     with (tmp_path / 'owner.out').open('w+') as out:
         owner = subprocess.Popen([sys.executable, '-c', _BROKEN_OWNER], cwd=root, env=env,

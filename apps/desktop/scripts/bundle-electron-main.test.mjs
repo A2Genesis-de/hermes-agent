@@ -71,7 +71,7 @@ function launch(env, config, extraEnv = {}) {
     encoding: 'utf8',
     env: {
       PATH: process.env.PATH,
-      HERMES_HOME: home,
+      A2ASSISTANT_HOME: home,
       NODE_OPTIONS: `--import=${pathToFileURL(preload).href}`,
       ...env,
       ...extraEnv
@@ -114,14 +114,14 @@ test('the bundled entry reads desktop.electron_flags through a suffixed home', (
 
   expect(
     launch({ XDG_SESSION_TYPE: 'wayland', WAYLAND_DISPLAY: 'wayland-0', DISPLAY: ':0' }, undefined, {
-      HERMES_DATA_DIR_SUFFIX: '-canary',
-      HERMES_HOME: '',
+      A2ASSISTANT_DATA_DIR_SUFFIX: '-canary',
+      A2ASSISTANT_HOME: '',
       HOME: home
     })
   ).toEqual({ relaunched: ['.', '--ozone-platform=x11'] })
 })
 
-test('the bundled entry reads desktop.electron_flags from the parent of a profiles/-rooted HERMES_HOME', () => {
+test('the bundled entry reads desktop.electron_flags from the parent of a profiles/-rooted A2ASSISTANT_HOME', () => {
   const config = 'desktop:\n  electron_flags:\n    - --ozone-platform=x11\n'
   const home = mkdtempSync(join(root, 'profiles-home-'))
   mkdirSync(home, { recursive: true })
@@ -129,7 +129,7 @@ test('the bundled entry reads desktop.electron_flags from the parent of a profil
 
   expect(
     launch({ XDG_SESSION_TYPE: 'wayland', WAYLAND_DISPLAY: 'wayland-0', DISPLAY: ':0' }, undefined, {
-      HERMES_HOME: join(home, 'profiles', 'alpha')
+      A2ASSISTANT_HOME: join(home, 'profiles', 'alpha')
     })
   ).toEqual({ relaunched: ['.', '--ozone-platform=x11'] })
 })

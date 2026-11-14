@@ -50,7 +50,7 @@ def _mount(host_path: Path | str, container_path: str) -> dict[str, str]:
 
 
 def _contained_host_path(rel: str, hermes_home: Path, abs_msg: str, traversal_msg: str) -> Optional[Path]:
-    """Resolve *rel* under HERMES_HOME, refusing absolute paths and escapes."""
+    """Resolve *rel* under A2ASSISTANT_HOME, refusing absolute paths and escapes."""
     if os.path.isabs(rel):
         logger.warning(abs_msg, rel)
         return None
@@ -64,16 +64,16 @@ def _contained_host_path(rel: str, hermes_home: Path, abs_msg: str, traversal_ms
 
 
 def register_credential_file(relative_path: str, container_base: str = "/root/.hermes") -> bool:
-    """Register a HERMES_HOME-relative credential file for mounting; True if it exists and was registered.
+    """Register a A2ASSISTANT_HOME-relative credential file for mounting; True if it exists and was registered.
 
-    Rejects absolute paths and traversal out of HERMES_HOME. Containment alone is not
-    enough: HERMES_HOME holds the MASTER stores (``.env``, ``auth.json``, ``mcp-tokens/``),
+    Rejects absolute paths and traversal out of A2ASSISTANT_HOME. Containment alone is not
+    enough: A2ASSISTANT_HOME holds the MASTER stores (``.env``, ``auth.json``, ``mcp-tokens/``),
     which are refused via the canonical read deny-list so the mount surface cannot hand a
     skill what the read surface denies. Fails CLOSED (logged) if the guard is unavailable or raises.
     """
     resolved = _contained_host_path(
         relative_path, get_hermes_home(),
-        "credential_files: rejected absolute path %r (must be relative to HERMES_HOME)",
+        "credential_files: rejected absolute path %r (must be relative to A2ASSISTANT_HOME)",
         "credential_files: rejected path traversal %r (%s)")
     if resolved is None:
         return False
@@ -316,7 +316,7 @@ def map_cache_path_to_container(host_path: str, container_base: str = "/root/.he
     """POSIX container path for a host path under an auto-mounted cache dir, else None.
 
     Also matches through symlinks: ``@file:`` expansion hands over RESOLVED paths while the mount roots keep
-    HERMES_HOME's configured spelling, so a symlinked home (``~/.hermes`` -> dotfiles, macOS ``/var`` ->
+    A2ASSISTANT_HOME's configured spelling, so a symlinked home (``~/.a2assistant`` -> dotfiles, macOS ``/var`` ->
     ``/private/var``) left a staged attachment's host path in front of the sandboxed agent (#103147)."""
     def join(root: str, rel: Path) -> str:
         return posixpath.join(root, rel.as_posix())
@@ -359,19 +359,19 @@ def to_agent_visible_cache_path(host_path: str, container_base: str = "/root/.he
     """Translate a host cache path to where the active backend (TERMINAL_ENV) sees it.
 
     Mirrors ``_agent_cache_base_for_env`` in tools/image_generation_tool.py: docker mounts at
-    ``/root/.hermes``; ssh under ``~/.hermes``; plugin backends declare
+    ``/root/.hermes``; ssh under ``~/.a2assistant``; plugin backends declare
     ``cache_path_base`` (None = host paths stay correct, e.g. the singularity plugin); local/unknown
     unchanged.
 
     * docker — bind-mounted at ``/root/.hermes`` (the *container_base* default).
     * ssh — file-synced under the remote user's home;
-    ``~/.hermes`` is shell-expanded by the remote shell, so tool commands resolve it regardless of the
+    ``~/.a2assistant`` is shell-expanded by the remote shell, so tool commands resolve it regardless of the
     actual remote home. Previously these backends synced the bytes but still rendered the dangling host path
     (#76577 gap).
     """
     backend = _terminal_backend()
     if backend in _HOME_RELATIVE_BACKENDS:
-        container_base = "~/.hermes"
+        container_base = "~/.a2assistant"
     elif backend != "docker":
         try:
             from agent.terminal_env_registry import provider_flag

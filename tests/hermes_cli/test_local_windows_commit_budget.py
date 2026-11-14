@@ -119,7 +119,7 @@ def test_growth_counts_the_outgoing_model_at_its_commit_charge(spark):
 
 
 def _staged(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     gguf = tmp_path / "model.gguf"
     gguf.touch()
     monkeypatch.setattr(presets, "read_gguf_header", lambda p: SimpleNamespace(path=p, sampling_defaults={}))

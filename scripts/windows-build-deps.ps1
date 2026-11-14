@@ -6,7 +6,7 @@
 # has its own copy: this file is dot-sourced by the build entry point and
 # setup-hermes.ps1, which never load the installer.
 function Test-HermesBuildQuiet {
-    if ($env:CI -or $env:GITHUB_ACTIONS -or $env:HERMES_INSTALL_VERBOSE -or -not $script:HermesBuildLog) { return $false }
+    if ($env:CI -or $env:GITHUB_ACTIONS -or $env:A2ASSISTANT_INSTALL_VERBOSE -or -not $script:HermesBuildLog) { return $false }
     try { return -not [Console]::IsOutputRedirected } catch { return $false }
 }
 

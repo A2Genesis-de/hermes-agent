@@ -72,7 +72,7 @@ def test_tui_real_turn_snapshot_next_turn_and_child_threads(turn_env, marker_hom
 
 @pytest.mark.parametrize("initial", [False, True])
 def test_cli_callbacks_honor_bound_snapshot_not_file(tmp_path, monkeypatch, initial):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     agent = Agent()
     agent._notification_config = {"display": {"suppress_warning_notifications": initial}}
     surface = CLI()
@@ -88,8 +88,8 @@ def test_cli_callbacks_honor_bound_snapshot_not_file(tmp_path, monkeypatch, init
 @pytest.mark.parametrize("fail", [False, True])
 def test_cli_real_chat_binds_refreshes_and_restores_snapshot(tmp_path, monkeypatch, initial, fail):
     from hermes_cli.cli_chat_turn_mixin import CLIChatTurnMixin
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(tmp_path / "managed"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(tmp_path / "managed"))
     cfg = tmp_path / "config.yaml"
     def configure(value):
         cfg.write_text(yaml.safe_dump({"display": {"suppress_warning_notifications": value}}))

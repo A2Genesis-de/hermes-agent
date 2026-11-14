@@ -1,4 +1,4 @@
-"""A one-shot run (``hermes chat -q`` / ``-z``) has nobody to ask, steer, or live-control children for.
+"""A one-shot run (``a2assistant chat -q`` / ``-z``) has nobody to ask, steer, or live-control children for.
 
 It drops ``clarify``, the mid-turn steering briefing and ``delegate_task``'s live-control parameters on both
 paths that build its surface (the agent's tool build and the gateway's session inventory). An interactive
@@ -19,9 +19,9 @@ def _built_agent(monkeypatch, oneshot: bool, disabled=None):
     from agent.agent_init import _load_tools
 
     if oneshot:
-        monkeypatch.setenv("HERMES_SINGLE_QUERY_SESSION", "1")
+        monkeypatch.setenv("A2ASSISTANT_SINGLE_QUERY_SESSION", "1")
     else:
-        monkeypatch.delenv("HERMES_SINGLE_QUERY_SESSION", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_SINGLE_QUERY_SESSION", raising=False)
     agent = SimpleNamespace(platform="cli", quiet_mode=True)
     _load_tools(agent, ["hermes-cli"], disabled)
     return agent
@@ -70,7 +70,7 @@ def test_gateway_oneshot_inventory_drops_clarify(tmp_path, monkeypatch):
     from gateway.session_local_inventory import _policy_tools
     from gateway.session_policy import build_policy, policy_scope
 
-    monkeypatch.delenv("HERMES_SINGLE_QUERY_SESSION", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SINGLE_QUERY_SESSION", raising=False)
 
     def names(source):
         policy = build_policy({"source": source, "cwd": str(tmp_path), "model": "m"}, {})

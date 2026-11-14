@@ -1,6 +1,6 @@
-"""Upgrade-path E2E: a real release N-1 git install updated to HEAD by the real `hermes update`.
+"""Upgrade-path E2E: a real release N-1 git install updated to HEAD by the real `a2assistant update`.
 
-Class C6 (bricked installs, stale code, lost state after `hermes update`). Each leg:
+Class C6 (bricked installs, stale code, lost state after `a2assistant update`). Each leg:
 
 1. stages a local bare ``origin`` (``--shared`` onto this repository, so no network and no
    object copy) with ``main`` parked at release N-1 (``git describe --tags --abbrev=0 HEAD~1``);
@@ -12,7 +12,7 @@ Class C6 (bricked installs, stale code, lost state after `hermes update`). Each 
    job, and a hand-edited config.yaml at the N-1 schema version with comments, long quoted
    unicode values and a legacy MCP ``disabled: true`` entry (the one documented N-1 -> HEAD
    migration);
-4. moves ``origin/main`` to HEAD and runs the real ``hermes update --yes --branch main``
+4. moves ``origin/main`` to HEAD and runs the real ``a2assistant update --yes --branch main``
    non-interactively. A branch-explicit update follows the historical git-source path,
    without depending on the separately published R2 channel record.
 
@@ -25,7 +25,7 @@ live gap fixed by #120339); ``kill_before_deps``
 
 Invariants after every leg (fresh processes only): the final update's exit code matches reality
 (0 and HEAD checked out and the editable install serves HEAD's tree, or non-zero and nothing
-changed); ``hermes --version``, ``hermes doctor`` and a one-shot turn succeed; state.db and the
+changed); ``a2assistant --version``, ``a2assistant doctor`` and a one-shot turn succeed; state.db and the
 profile's state.db pass ``integrity_check`` with unchanged row counts and byte-identical
 pre-existing messages (also after HEAD's first real use of the DB); the cron job survives; the
 venv satisfies HEAD's dependency set; config.yaml of both profiles equals exactly what HEAD's own
@@ -38,7 +38,7 @@ The install's origin is the official URL rewritten (``url.<store>.insteadOf``) t
 store, so the updater takes the normal non-fork path and never touches the network.
 
 All processes run in the bubblewrap sandbox from ``_helpers`` (own PID namespace, no user
-systemd bus, real ~/.hermes read-only): the updater's all-profile gateway scan cannot reach a
+systemd bus, real ~/.a2assistant read-only): the updater's all-profile gateway scan cannot reach a
 live gateway on the host.
 """
 
@@ -210,7 +210,7 @@ QUICK_CMD = "echo 'deploy: step one' && echo \"step two # still a string\" && pr
 
 def user_config(base_url: str, version: int) -> str:
     return (
-        "# Hand-edited by the user. Every comment and value below must survive `hermes update`.\n"
+        "# Hand-edited by the user. Every comment and value below must survive `a2assistant update`.\n"
         "model:\n"
         "  provider: custom\n"
         f"  base_url: {base_url}  # local fake provider\n"
@@ -386,7 +386,7 @@ def make_leg(root: Path, template_home: Path | None, base: str | None = None) ->
                         env=uv_env, capture_output=True, text=True, timeout=1800, check=False)
     assert cp.returncode == 0, f"N-1 venv install from its uv.lock failed:\n{cp.stderr[-4000:]}"
     env_probe = H.isolated_env(root)
-    hermes_home = Path(env_probe["HERMES_HOME"])
+    hermes_home = Path(env_probe["A2ASSISTANT_HOME"])
     if template_home is not None:
         shutil.rmtree(hermes_home)
         shutil.copytree(template_home, hermes_home, symlinks=True, ignore=_sockets)
@@ -458,7 +458,7 @@ def migrate_oracle(leg: Leg, name: str, before: bytes) -> bytes:
     if oroot.exists():
         shutil.rmtree(oroot)
     env = H.isolated_env(oroot, pythonpath=H.WORKTREE)
-    home = Path(env["HERMES_HOME"])
+    home = Path(env["A2ASSISTANT_HOME"])
     (home / "config.yaml").write_bytes(before)
     src_env = _profile_homes(leg)[name] / ".env"
     if src_env.exists():
@@ -474,7 +474,7 @@ def migrate_oracle(leg: Leg, name: str, before: bytes) -> bytes:
 def assert_healthy_at_head(leg: Leg, provider: FakeLLMServer, final: subprocess.CompletedProcess) -> None:
     before = leg.snapshot
     # 1. exit code matches reality
-    assert final.returncode == 0, "final `hermes update` failed:\n" + H.describe(final)
+    assert final.returncode == 0, "final `a2assistant update` failed:\n" + H.describe(final)
     assert _git("rev-parse", "HEAD", cwd=leg.install) == _refs().head, "update exited 0 but HEAD is not the target"
     assert not (leg.install / ".git" / "index.lock").exists(), "update left .git/index.lock behind"
     # The active interpreter must serve the pulled tree (stale editable finder, #119466):
@@ -564,7 +564,7 @@ def provider():
 
 @pytest.fixture(scope="module")
 def template_home(tmp_path_factory, provider) -> Path:
-    """HERMES_HOME populated by the N-1 CLI itself (sessions, profile, cron, config)."""
+    """A2ASSISTANT_HOME populated by the N-1 CLI itself (sessions, profile, cron, config)."""
     seed = make_leg(tmp_path_factory.mktemp("seed"), None)
     version = _base_config_version(seed)
     cfg = user_config(provider.base_url, version)
@@ -703,9 +703,9 @@ def test_kill_mid_pull_then_retry_heals(leg, provider, torn):
     final = _update(leg)
     # Merge-order safe (see _pending_fixes.known_failure): only the import-time death excuses torn-tree.
     gate = known_failure(
-        r"(?s)^final `hermes update` failed:.*(cannot import name|No module named)",
+        r"(?s)^final `a2assistant update` failed:.*(cannot import name|No module named)",
         "#120339 (merged; passes once N-1 is a release carrying it): a fast-forward killed half-way leaves a prefix of the changed files at HEAD while "
-        "HEAD still names N-1; every entry point, including `hermes update`, then dies at import (cannot import "
+        "HEAD still names N-1; every entry point, including `a2assistant update`, then dies at import (cannot import "
         "name ... from 'utils'), so nothing can heal the install without manual git") if torn else contextlib.nullcontext()
     with gate:
         assert_healthy_at_head(leg, provider, final)

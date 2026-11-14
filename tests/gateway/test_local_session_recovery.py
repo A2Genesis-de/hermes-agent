@@ -81,7 +81,7 @@ def test_messaging_session_history_follows_the_compression_tip(tmp_path, monkeyp
     from gateway.session_local_recovery import local_history
     from hermes_state import SessionDB
     from hermes_state_runtime import begin_runtime_epoch
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     with SessionDB(db_path=tmp_path / 'state.db') as db:
         db.create_session('root', source='telegram', session_key='agent:telegram:dm:1')
         db.append_message('root', 'user', 'BEFORE_COMPRESSION')

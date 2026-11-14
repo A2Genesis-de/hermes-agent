@@ -1,4 +1,4 @@
-"""``hermes plugins disable`` must reach the running gateway, or say a restart is needed (LC-3).
+"""``a2assistant plugins disable`` must reach the running gateway, or say a restart is needed (LC-3).
 
 Under one gateway the daemon holds the plugin manager for every session, so "takes effect on next
 session" was false: new sessions kept the disabled plugin's hooks and tools until a restart. The
@@ -23,7 +23,7 @@ def home(tmp_path, monkeypatch):
     (plugin_dir / "plugin.yaml").write_text("name: probe\nversion: '1.0'\n", encoding="utf-8")
     (plugin_dir / "__init__.py").write_text("def register(ctx):\n    pass\n", encoding="utf-8")
     (hermes_home / "config.yaml").write_text("plugins:\n  enabled: [probe]\n  disabled: []\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     def admit(enabled, disabled, **_kwargs):
         cfg = load_config()
@@ -129,7 +129,7 @@ def test_disable_without_an_answering_gateway_says_a_restart_is_needed(home, mon
 
     out = capsys.readouterr().out
     assert "next session" not in out
-    assert "hermes gateway restart" in out
+    assert "a2assistant gateway restart" in out
 
 
 def test_disable_says_the_running_gateway_unloaded_it(home, monkeypatch, capsys):
@@ -142,7 +142,7 @@ def test_disable_says_the_running_gateway_unloaded_it(home, monkeypatch, capsys)
     assert "running gateway reloaded its plugins and unloaded probe" in out, out
     assert "new sessions" not in out, out
     # callbacks the plugin already wired into platform adapters outlive the reload (plugin guide)
-    assert "platform hooks it already wired up stay until" in out and "hermes gateway restart" in out, out
+    assert "platform hooks it already wired up stay until" in out and "a2assistant gateway restart" in out, out
 
 
 @pytest.mark.parametrize("reloaded", [True, False])
@@ -162,4 +162,4 @@ def test_enable_prints_only_the_outcome_that_applies(home, monkeypatch, capsys, 
     out = " ".join(capsys.readouterr().out.split())
     assert "Plugin probe enabled." in out and "next session" not in out, out
     assert ("active in the running gateway now" in out) is reloaded, out
-    assert ("hermes gateway restart" in out) is (not reloaded), out
+    assert ("a2assistant gateway restart" in out) is (not reloaded), out

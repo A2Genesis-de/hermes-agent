@@ -2,7 +2,7 @@
 
 On a LAN or own-URL Webapp a browser signs in with the dashboard's sign-in (a password, or an OAuth
 provider) and keeps that login in cookies. Each login on the Webapp is bound to the gateway's browser
-credential, so ``hermes webapp --sign-out``, which replaces that credential, ends every one of them:
+credential, so ``a2assistant webapp --sign-out``, which replaces that credential, ends every one of them:
 the login's requests get 401 and the sign-in view, the sockets and host terminals it opened close with
 4401, tickets it minted open nothing, and its cookies replayed from anywhere get nothing. The provider
 tokens those cookies hold work only as those cookies: the Webapp's listener refuses them as a bearer

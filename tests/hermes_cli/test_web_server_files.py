@@ -45,7 +45,7 @@ def _close_client(client):
 @pytest.fixture
 def forced_files_client(monkeypatch, tmp_path):
     root = tmp_path / "data"
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(root))
 
     client, prev_auth_required, prev_bound_host = _client_with_app_state()
     try:
@@ -59,8 +59,8 @@ def forced_files_client(monkeypatch, tmp_path):
 def local_files_client(monkeypatch, tmp_path):
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     monkeypatch.setenv("HOME", str(home))
 
     client, prev_auth_required, prev_bound_host = _client_with_app_state()
@@ -166,7 +166,7 @@ def test_download_resolves_paths_in_the_originating_profile_session(
     client, home = local_files_client
     monkeypatch.setattr(Path, "home", lambda: home)
     hermes_home = home / "isolated-hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     session_cwd = home / "project"
     session_cwd.mkdir()
     gateway_cwd = home / "gateway"
@@ -307,7 +307,7 @@ def test_stream_file_uri_uses_host_resolution_without_bypassing_policy(
     client, root = forced_files_client
     artifact = _seed_file(client, root, name="out/a b.mp4")
     if not locked:
-        monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT")
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_FILES_ROOT")
 
     params = {"path": artifact.as_uri()}
     response = client.get("/api/files/stream", params=params, headers={"Range": "bytes=1-3"})
@@ -436,7 +436,7 @@ _PNG = base64.b64encode(b"\x89PNG\r\n\x1a\n" + b"\0" * 16).decode()
 def test_a_locked_root_still_reads_back_the_images_the_browser_just_uploaded(
     forced_files_client, monkeypatch, tmp_path,
 ):
-    """With ``HERMES_DASHBOARD_FILES_ROOT`` naming a folder that does not hold the profile home, a
+    """With ``A2ASSISTANT_DASHBOARD_FILES_ROOT`` naming a folder that does not hold the profile home, a
     pasted image (``<home>/cache/images``) and a picked file (``<home>/uploads/web-*``) still read
     back through ``/api/fs/read-data-url`` to be sent: they are files this server wrote for the
     browser, not part of the managed tree. Every other file in the profile home stays outside the
@@ -446,7 +446,7 @@ def test_a_locked_root_still_reads_back_the_images_the_browser_just_uploaded(
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "uploads").mkdir()
     (home / "uploads" / "notes.txt").write_text("not a staged upload", encoding="utf-8")
     (home / "memories.md").write_text("profile file", encoding="utf-8")
@@ -738,7 +738,7 @@ def test_other_credential_store_basenames_blocked(forced_files_client):
     """Regression: the managed-files guard must cover the same credential
     basenames as gateway.platforms.base._ROOT_CREDENTIAL_FILES and
     agent.file_safety.get_read_block_error, not just .env — an operator can
-    point the managed root at HERMES_HOME itself (#57505), which contains
+    point the managed root at A2ASSISTANT_HOME itself (#57505), which contains
     all of these live secret stores."""
     client, root = forced_files_client
     root.mkdir(parents=True, exist_ok=True)

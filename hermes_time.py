@@ -1,7 +1,7 @@
 """Timezone-aware clock for Hermes.
 
 ``now()`` returns a tz-aware datetime in the user's configured IANA timezone. Resolution order:
-``HERMES_TIMEZONE`` env var, then ``timezone`` in ``~/.hermes/config.yaml``, else server-local
+``A2ASSISTANT_TIMEZONE`` env var, then ``timezone`` in ``~/.a2assistant/config.yaml``, else server-local
 time. Invalid timezone values log a warning and fall back — never crash.
 """
 
@@ -65,14 +65,14 @@ def safe_strftime(value: datetime, fmt: str) -> str:
 
 
 def _env_timezone() -> str:
-    """``HERMES_TIMEZONE`` when it may speak for the active profile. Under the multiplexed
+    """``A2ASSISTANT_TIMEZONE`` when it may speak for the active profile. Under the multiplexed
     gateway the env var holds only the DEFAULT profile's value (bridged from its config.yaml at
     startup), so every routed profile must read its own config.yaml instead."""
     from agent.secret_scope import is_multiplex_active  # lazy: secret_scope pulls in more than a clock needs
 
     if is_multiplex_active():
         return ""
-    return os.getenv("HERMES_TIMEZONE", "").strip()
+    return os.getenv("A2ASSISTANT_TIMEZONE", "").strip()
 
 
 def _timezone_cache_identity() -> tuple[str, str]:

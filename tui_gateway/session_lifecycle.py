@@ -206,7 +206,7 @@ def _canonical_ledger_refusal(session: dict):
     logger.info("Refusing legacy turn for %s: canonical ledger holds %s work", key, row[0])
     refusal = ActiveSessionRefusal(
         f"Session {key} has {'outcome-unknown' if row[0] == 'unknown' else 'pending'} work in the gateway's "
-        "durable queue. Resume it through the gateway (hermes chat --resume, Desktop or the TUI) to "
+        "durable queue. Resume it through the gateway (a2assistant chat --resume, Desktop or the TUI) to "
         "resolve it; nothing was run here.", SESSION_NOT_OWNED)
     # prompt.submit forwards a typed prompt to the owner's FIFO for work that ends on its own
     # (tui_gateway/owner_forward.py); an ``unknown`` admission is never forwarded past.

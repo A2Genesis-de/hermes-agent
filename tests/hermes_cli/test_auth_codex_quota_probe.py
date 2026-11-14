@@ -225,7 +225,7 @@ def test_resolver_recovers_when_probe_confirms_reset(tmp_path, monkeypatch):
     probe must clear the cooldown and return the pool credential."""
     hermes_home = tmp_path / "hermes"
     _write_auth_store(hermes_home, _pool_only_rate_limited_store())
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     monkeypatch.setattr(
         auth_mod, "_probe_codex_quota_restored", lambda token, **kw: True
@@ -264,7 +264,7 @@ def test_resolver_selects_entry_with_expired_millisecond_reset(tmp_path, monkeyp
     store["credential_pool"]["openai-codex"].append(reserve)
     hermes_home = tmp_path / "hermes"
     _write_auth_store(hermes_home, store)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setattr(auth_mod, "_probe_codex_quota_restored", lambda token, **kw: False)
     monkeypatch.setattr(auth_codex, "_probe_codex_quota_restored", lambda token, **kw: False)
 
@@ -291,7 +291,7 @@ def test_pool_probe_not_fired_for_non_quota_exhaustion(tmp_path, monkeypatch):
     entry["last_error_code"] = 401
     entry["last_error_reason"] = "token_expired"
     entry["last_error_message"] = "expired"
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     _write_auth_store(tmp_path / "hermes", store)
 
     from agent.credential_pool import load_pool
@@ -366,7 +366,7 @@ def test_resolver_refreshes_expired_token_before_probe(tmp_path, monkeypatch):
     now = time.time()
     hermes_home = tmp_path / "hermes"
     _write_auth_store(hermes_home, _expired_jwt_pool_store(now))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     fresh = _jwt({"exp": now + 3600})
     refresh_calls: list = []
     _fake_refresh(monkeypatch, fresh, refresh_calls)
@@ -394,7 +394,7 @@ def test_pool_selection_refreshes_expired_token_before_probe(tmp_path, monkeypat
     store["providers"]["openai-codex"] = {
         "tokens": {"access_token": stale["access_token"], "refresh_token": "rf-old"}}
     _write_auth_store(hermes_home, store)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     fresh = _jwt({"exp": now + 3600})
     refresh_calls: list = []
     _fake_refresh(monkeypatch, fresh, refresh_calls)
@@ -424,7 +424,7 @@ def test_pool_selection_keeps_probe_rotated_tokens_when_quota_restored(tmp_path,
     store = _expired_jwt_pool_store(now)
     store["credential_pool"]["openai-codex"][0]["source"] = "manual:device_code"  # no singleton re-sync
     _write_auth_store(hermes_home, store)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     fresh = _jwt({"exp": now + 3600})
     refresh_calls: list = []
     _fake_refresh(monkeypatch, fresh, refresh_calls)
@@ -449,7 +449,7 @@ def test_pool_selection_throttles_failing_pre_probe_refresh(tmp_path, monkeypatc
     now = time.time()
     hermes_home = tmp_path / "hermes"
     _write_auth_store(hermes_home, _expired_jwt_pool_store(now))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     attempts: list = []
 
     def _failing_refresh(access_token, refresh_token, **kw):

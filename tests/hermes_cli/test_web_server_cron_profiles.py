@@ -614,11 +614,11 @@ async def test_create_cron_job_without_profile_uses_backend_own_profile(
     isolated_profiles, monkeypatch
 ):
     """A pool backend scoped to a named profile must not default creates to
-    ``~/.hermes`` when the request carries no explicit ``profile`` (the
+    ``~/.a2assistant`` when the request carries no explicit ``profile`` (the
     Desktop app's pre-profileScoped clients sent none)."""
 
     monkeypatch.setenv(
-        "HERMES_HOME", str(isolated_profiles["worker_alpha"])
+        "A2ASSISTANT_HOME", str(isolated_profiles["worker_alpha"])
     )
 
     job = await _rt_cron.create_cron_job(
@@ -639,10 +639,10 @@ async def test_create_cron_job_without_profile_uses_backend_own_profile(
 async def test_create_cron_job_without_profile_defaults_when_unscoped(
     isolated_profiles, monkeypatch
 ):
-    """HERMES_HOME at the default home (or unrecognized) keeps the legacy
+    """A2ASSISTANT_HOME at the default home (or unrecognized) keeps the legacy
     ``default`` fallback."""
 
-    monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["default"]))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(isolated_profiles["default"]))
 
     job = await _rt_cron.create_cron_job(
         _web_models.CronJobCreate(
@@ -933,7 +933,7 @@ class TestCronRunHistoryFallback:
         """The filename stem is written by save_job_output via hermes_time.now()
         — the configured zone. Reading it back must use that zone, not the
         server's (review of #61403: a fixed-offset snapshot was off by hours
-        when HERMES_TIMEZONE differs from the server zone)."""
+        when A2ASSISTANT_TIMEZONE differs from the server zone)."""
         from zoneinfo import ZoneInfo
         from hermes_time import _tz_cache
 
@@ -942,7 +942,7 @@ class TestCronRunHistoryFallback:
         # Wall time 2026-07-10_00-14-10 in Asia/Taipei (+08:00) = 2026-07-09 16:14:10 UTC.
         self._write_output_doc(monkeypatch, home, job_id, "2026-07-10_00-14-10.md", "tz output\n")
 
-        monkeypatch.setenv("HERMES_TIMEZONE", "Asia/Taipei")
+        monkeypatch.setenv("A2ASSISTANT_TIMEZONE", "Asia/Taipei")
         _tz_cache.clear()
 
         monkeypatch.setattr(_rt_cron, "_job_owner_profile", lambda _job_id, _profile: "default")
@@ -956,7 +956,7 @@ class TestCronRunHistoryFallback:
         try:
             result = _rt_cron._list_cron_job_runs_sync(job_id, limit=5)
         finally:
-            monkeypatch.delenv("HERMES_TIMEZONE", raising=False)
+            monkeypatch.delenv("A2ASSISTANT_TIMEZONE", raising=False)
             _tz_cache.clear()
 
         started = result["runs"][0]["started_at"]
@@ -1103,7 +1103,7 @@ class TestCronRunHistoryFallback:
     ):
         """Review of #42433: the filename stem is written with the OWNER
         profile's configured zone. A cross-profile request must decode it in
-        that zone — not the dashboard's — with no global HERMES_TIMEZONE set
+        that zone — not the dashboard's — with no global A2ASSISTANT_TIMEZONE set
         (both profiles configure config.yaml timezones, so a shared env var
         cannot mask the mix-up)."""
         from zoneinfo import ZoneInfo

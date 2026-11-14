@@ -8,7 +8,7 @@ credential routing + ``/models`` parse). See ``_helpers.py`` for the matrix.
 Spend: cheap models only, three scripted turns (plus at most one cache warm-up
 retry on cache-capable routes), bounded max_tokens/iterations and a hard
 per-test token + dollar guard. Usage and estimated cost are printed per test
-(``LIVE-USAGE {...}``) and appended to ``$HERMES_LIVE_USAGE_FILE`` when set.
+(``LIVE-USAGE {...}``) and appended to ``$A2ASSISTANT_LIVE_USAGE_FILE`` when set.
 """
 
 from __future__ import annotations
@@ -67,7 +67,7 @@ def live_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     home.mkdir()
     hermes_home.mkdir()
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     return hermes_home
 
 

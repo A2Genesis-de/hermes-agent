@@ -23,7 +23,7 @@ def profile_env(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
     real = pwd.getpwuid(os.getuid())
     fake = pwd.struct_passwd((real.pw_name, real.pw_passwd, real.pw_uid, real.pw_gid,
@@ -55,7 +55,7 @@ def test_rename_removes_the_old_names_service_while_the_gateway_is_stopped(profi
     unit = _host_unit_path(old_dir)
     assert "coder" in unit.name
     unit.parent.mkdir(parents=True, exist_ok=True)
-    unit.write_text("installed by `hermes -p coder gateway install`\n", encoding="utf-8")
+    unit.write_text("installed by `a2assistant -p coder gateway install`\n", encoding="utf-8")
 
     new_dir = profiles.rename_profile("coder", "dev")
 

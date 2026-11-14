@@ -47,7 +47,7 @@ def test_loop_liveness_watchdog_stop_during_dump_disarms_hard_exit():
 
 def test_loop_liveness_death_leaves_its_stacks_in_the_dump_file(tmp_path, monkeypatch):
     # A console-less launcher discards stderr; the file is the only copy that survives (#120356).
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     exit_codes, ref, handle_ready = [], {}, threading.Event()
 
     def exit_and_stop(code: int) -> None:  # a patched exit returns, so stop the loop like a real one

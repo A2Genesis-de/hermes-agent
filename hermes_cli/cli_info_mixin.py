@@ -212,7 +212,7 @@ class CLIInfoMixin:
         # the background and let its output land above the prompt (patch_stdout-safe).
         if isinstance((gateway_inventory or {}).get("tool_availability_warnings"), list):
             self._print_gateway_tool_warnings(gateway_inventory["tool_availability_warnings"])
-        elif not on_gateway and os.environ.get("HERMES_DEFER_AGENT_STARTUP") != "1":
+        elif not on_gateway and os.environ.get("A2ASSISTANT_DEFER_AGENT_STARTUP") != "1":
             if getattr(self, "_defer_tool_warnings", False):
                 threading.Thread(
                     target=self._show_tool_availability_warnings,
@@ -1030,7 +1030,7 @@ class CLIInfoMixin:
             print(f"  {t('gateway.reload_mcp.failed', error=str(e))}")
 
     def _reload_skills(self) -> None:
-        """Reload skills: rescan ~/.hermes/skills/ and queue a note for the next user turn.
+        """Reload skills: rescan ~/.a2assistant/skills/ and queue a note for the next user turn.
 
         Skills are invoked at runtime (``/skill-name``, ``skills_list``, ``skill_view``), not from
         the system prompt, so this does NOT clear the prompt cache. If anything was added/removed

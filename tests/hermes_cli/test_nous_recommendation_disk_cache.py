@@ -51,7 +51,7 @@ def fetch_in_new_process(home, base, *, force=False):
          "import json, sys; print(json.dumps(fetch_nous_recommended_models(sys.argv[1], force_refresh=sys.argv[2] == 'True')))",
          base, str(force)],
         cwd=Path(__file__).resolve().parents[2],
-        env={**os.environ, "HERMES_HOME": str(home)},
+        env={**os.environ, "A2ASSISTANT_HOME": str(home)},
         capture_output=True, text=True, check=True, timeout=30,
     )
     return json.loads(result.stdout)

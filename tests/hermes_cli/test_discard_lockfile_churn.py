@@ -1,4 +1,4 @@
-"""`hermes update` lockfile-churn cleanup reverts only npm's own rewrites (#112378).
+"""`a2assistant update` lockfile-churn cleanup reverts only npm's own rewrites (#112378).
 
 The npm projects (``scripts/whatsapp-bridge``, the Photon sidecar) carry their own ``package-lock.json``;
 npm rewrites them non-deterministically, so a lock whose sibling manifest is clean is churn. A dirty

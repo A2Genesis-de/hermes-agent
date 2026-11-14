@@ -12,7 +12,7 @@ from hermes_cli.observability import shared_metrics_gateway as smg
 
 @pytest.fixture
 def cron_rows(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     got = []
     monkeypatch.setattr(rsm, "enabled", lambda: True)
     monkeypatch.setattr(rsm, "record_process_mark", lambda mark, data: got.append((mark, dict(data))))

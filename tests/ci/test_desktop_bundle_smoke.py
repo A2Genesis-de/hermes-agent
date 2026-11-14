@@ -46,7 +46,7 @@ def smoke_fetch_script():
 
 
 def transport_env(tmp_path, server, *, commit=False):
-    return dict(HERMES_PAYLOAD_TAG='' if commit else TAG, HERMES_BUILD_COMMIT=SHA if commit else '',
+    return dict(A2ASSISTANT_PAYLOAD_TAG='' if commit else TAG, A2ASSISTANT_BUILD_COMMIT=SHA if commit else '',
                 RELEASE_TAG='' if commit else TAG, RELEASE_COMMIT=SHA, COMMIT_BUILD=str(commit).lower(),
                 PUBLIC_BASE=f'http://127.0.0.1:{server.server_port}/hermes-releases',
                 CLOUDFLARE_R2_PUBLIC_URL=f'http://127.0.0.1:{server.server_port}/hermes-releases',
@@ -187,8 +187,8 @@ def test_stable_phase_result_requires_smoke_but_preserves_other_phases(tmp_path,
 
 def test_canary_publisher_consumes_staged_bytes_and_writes_pointer_last(tmp_path, r2_server):
     tag = 'v0.28.1+canary.20260818T101010Z'
-    env = {**transport_env(tmp_path, r2_server), 'HERMES_DESKTOP_VARIANT': 'bundled',
-           'HERMES_PAYLOAD_TAG': tag, 'RELEASE_TAG': tag}
+    env = {**transport_env(tmp_path, r2_server), 'A2ASSISTANT_DESKTOP_VARIANT': 'bundled',
+           'A2ASSISTANT_PAYLOAD_TAG': tag, 'RELEASE_TAG': tag}
     # Use the real assembly identity derivation with a stable base available.
     for file in ['scripts/msix-shared.mjs', 'scripts/release-content-types.json',
                  'apps/desktop/product-identity.cjs', 'apps/desktop/package.json']:

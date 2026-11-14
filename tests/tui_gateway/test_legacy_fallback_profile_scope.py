@@ -16,7 +16,7 @@ def homes(tmp_path, monkeypatch):
     launch = tmp_path / 'root'
     bee = launch / 'profiles' / 'bee'
     bee.mkdir(parents=True)
-    monkeypatch.setenv('HERMES_HOME', str(launch))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(launch))
     monkeypatch.setattr(server, '_hermes_home', launch)
     monkeypatch.setattr(server, '_db', None)
     return server, launch, bee

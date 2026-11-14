@@ -437,7 +437,7 @@ def _new_sdk_client(sdk, kwargs: dict[str, Any], headers: dict[str, str], route:
     keyed by; ``kwargs["base_url"]`` has it stripped) for the per-provider ``extra_headers`` lookup.
 
     The SDK fills whichever of ``api_key`` / ``auth_token`` we left unset from ANTHROPIC_API_KEY /
-    ANTHROPIC_AUTH_TOKEN in the environment (both loaded from ~/.hermes/.env) and then sends dual
+    ANTHROPIC_AUTH_TOKEN in the environment (both loaded from ~/.a2assistant/.env) and then sends dual
     auth — x-api-key *and* Authorization: Bearer — shipping a foreign credential to Portal / MiniMax
     / OAuth / Entra / third-party endpoints (#26970, #105774). An ``Omit()`` default header is the
     SDK-sanctioned way to drop the other header, and unlike an attribute clear it survives
@@ -531,7 +531,7 @@ def build_anthropic_bedrock_client(region: str, timeout: float | None = None):
     from agent.bedrock_adapter import bedrock_guardrail_headers, scoped_aws_session_kwargs
     sdk = _require_sdk("the Bedrock provider")
     if not hasattr(sdk, "AnthropicBedrock"):
-        raise ImportError("anthropic.AnthropicBedrock not available. Run: hermes pm repair")
+        raise ImportError("anthropic.AnthropicBedrock not available. Run: a2assistant pm repair")
     # Routed multiplex profile: its own AWS_* from the secret scope (the SDK would otherwise read the
     # launch profile's process env); unscoped passes nothing and keeps the default chain.
     scoped = scoped_aws_session_kwargs()

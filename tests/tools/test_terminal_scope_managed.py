@@ -21,7 +21,7 @@ from tools.terminal_scope import TerminalPolicyUnavailable, build_profile_termin
 def managed(tmp_path, monkeypatch):
     md = tmp_path / "managed"
     md.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(md))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(md))
     managed_scope.invalidate_managed_cache()
     yield md
     managed_scope.invalidate_managed_cache()

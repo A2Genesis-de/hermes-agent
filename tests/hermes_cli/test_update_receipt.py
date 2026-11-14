@@ -22,12 +22,12 @@ from hermes_cli import update_cmd, update_cmd_maint
 
 @pytest.fixture()
 def receipt_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME for receipt writes."""
+    """Isolated A2ASSISTANT_HOME for receipt writes."""
     home = tmp_path / ".hermes"
     home.mkdir()
     # ``_receipt_dir`` resolves through ``hermes_constants.get_hermes_home`` (env var), not
     # ``hermes_cli.config`` — patch where production reads.
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     # The open receipt is per-context; the scope isolates it from any enclosing receipt.
     with ur.update_receipt_scope():
         yield home
@@ -43,7 +43,7 @@ class TestReceiptLifecycle:
         ur.record_step("pre_update_backup", True, "snapshot=abc123")
         ur.record_skip("gateway_restart", "no gateways running")
         ur.record_gateway_restart(
-            restarted_services=["hermes-gateway"],
+            restarted_services=["a2assistant-gateway"],
             relaunched_profiles=["work"],
             killed_pids=[123],
             failed_units=[],
@@ -60,7 +60,7 @@ class TestReceiptLifecycle:
         assert payload["steps"][0]["ok"] is True
         assert payload["skips"][0]["reason"] == "no gateways running"
         gr = payload["gateway_restart"]
-        assert gr["restarted_services"] == ["hermes-gateway"]
+        assert gr["restarted_services"] == ["a2assistant-gateway"]
         assert gr["relaunched_profiles"] == ["work"]
         assert gr["killed_pids"] == [123]
         assert gr["incomplete"] is False
@@ -261,12 +261,12 @@ def _desktop_correlated_receipt(home, correlation):
 
 
 class TestLauncherCorrelation:
-    """Desktop matches the remote receipt by HERMES_UPDATE_CORRELATION_ID (#101516)."""
+    """Desktop matches the remote receipt by A2ASSISTANT_UPDATE_CORRELATION_ID (#101516)."""
 
     CORRELATION = "1e7cb007-a6f8-4f6c-badb-d80e204942bf"
 
     def test_receipt_carries_launcher_correlation(self, receipt_home, monkeypatch):
-        monkeypatch.setenv("HERMES_UPDATE_CORRELATION_ID", self.CORRELATION)
+        monkeypatch.setenv("A2ASSISTANT_UPDATE_CORRELATION_ID", self.CORRELATION)
         ur.begin_update_receipt()
         update_id = ur.current_correlation_id()
         _finalize("success")
@@ -278,25 +278,25 @@ class TestLauncherCorrelation:
         assert payload["update_id"] == update_id != self.CORRELATION
 
     def test_handoff_receipt_keeps_correlation(self, receipt_home, monkeypatch):
-        monkeypatch.setenv("HERMES_UPDATE_CORRELATION_ID", self.CORRELATION)
+        monkeypatch.setenv("A2ASSISTANT_UPDATE_CORRELATION_ID", self.CORRELATION)
         ur.begin_update_receipt()
         pre_swap = dict(ur._current.get().data)
         with ur.update_receipt_scope():
             # The post-swap interpreter need not inherit the env var.
-            monkeypatch.delenv("HERMES_UPDATE_CORRELATION_ID")
+            monkeypatch.delenv("A2ASSISTANT_UPDATE_CORRELATION_ID")
             ur.begin_update_receipt(previous=pre_swap, correlation_id=pre_swap["update_id"])
             _finalize("success")
         assert _desktop_correlated_receipt(receipt_home, self.CORRELATION) is not None
 
     def test_legacy_handoff_receipt_gains_correlation(self, receipt_home, monkeypatch):
         # A pre-swap receipt from an older updater has no correlation_id field.
-        monkeypatch.setenv("HERMES_UPDATE_CORRELATION_ID", self.CORRELATION)
+        monkeypatch.setenv("A2ASSISTANT_UPDATE_CORRELATION_ID", self.CORRELATION)
         ur.begin_update_receipt(previous={"update_id": "abc123", "steps": []}, correlation_id="abc123")
         _finalize("success")
         assert _desktop_correlated_receipt(receipt_home, self.CORRELATION)["update_id"] == "abc123"
 
     def test_no_launcher_correlation_is_null(self, receipt_home, monkeypatch):
-        monkeypatch.delenv("HERMES_UPDATE_CORRELATION_ID", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_UPDATE_CORRELATION_ID", raising=False)
         ur.begin_update_receipt()
         _finalize("success")
         assert ur.read_latest_receipt()["correlation_id"] is None
@@ -341,7 +341,7 @@ class TestFleetClassification:
 
         home = tmp_path / "fleet_home"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         monkeypatch.setattr(
             "hermes_cli.version_info.get_code_identity",
             lambda refresh=False: {"sha": "a" * 40, "short_sha": "a" * 8,

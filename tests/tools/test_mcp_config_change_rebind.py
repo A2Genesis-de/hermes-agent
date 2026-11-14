@@ -10,7 +10,7 @@ import pytest
 
 @pytest.mark.no_isolate
 def test_reconnect_adopts_changed_url_from_config_yaml(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from tools import mcp_tool_config
     from tools.mcp_tool import MCPServerTask
 
@@ -49,7 +49,7 @@ def test_reconnect_adopts_changed_url_from_config_yaml(monkeypatch, tmp_path):
 def test_unchanged_or_missing_definition_keeps_the_running_config(monkeypatch, tmp_path):
     """No rebuild churn when config.yaml agrees with the running dict (or no longer lists the
     server): the start-time config stays bound byte-for-byte."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from tools import mcp_tool_config
     from tools.mcp_tool import MCPServerTask
 
@@ -69,7 +69,7 @@ def test_plugin_remote_server_keeps_its_rendered_header_across_a_rebuild(monkeyp
     from types import SimpleNamespace
     from unittest.mock import patch
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setenv("PKG_API_KEY", "k-123")
     from tools import mcp_tool_config
     from tools.mcp_tool import MCPServerTask
@@ -97,7 +97,7 @@ def test_unscoped_multiplex_load_keeps_plugin_servers_after_a_templated_one(monk
 
     from agent.secret_scope import set_multiplex_active
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from tools import mcp_tool_config
 
     portable = {"srv": {"url": "https://mcp.example.test/mcp", "headers": {"apikey": "${VENDOR_KEY}"}},

@@ -428,7 +428,7 @@ async def _start_nous_device_code(profile: Optional[str]) -> dict[str, Any]:
     from hermes_cli.web_server_profiles import _config_profile_scope
     pconfig = PROVIDER_REGISTRY["nous"]
     portal_base_url = (
-        os.getenv("HERMES_PORTAL_BASE_URL") or os.getenv("NOUS_PORTAL_BASE_URL") or pconfig.portal_base_url
+        os.getenv("A2ASSISTANT_PORTAL_BASE_URL") or os.getenv("NOUS_PORTAL_BASE_URL") or pconfig.portal_base_url
     ).rstrip("/")
 
     # The session is registered BEFORE the generator exists, so a cancel landing in the start
@@ -624,7 +624,7 @@ def _oauth_provider_disconnect_hint(provider: dict[str, Any], status: dict[str, 
 def _build_oauth_catalog() -> list[dict[str, Any]]:
     """Accounts-tab provider list: ``_OAUTH_PROVIDER_CATALOG`` cards first (curated
     order, win on metadata), then every other accounts-tab ``provider_catalog()`` entry
-    in ``hermes model`` order, so plugin-added OAuth/external providers appear automatically."""
+    in ``a2assistant model`` order, so plugin-added OAuth/external providers appear automatically."""
     rows: list[dict[str, Any]] = []
     seen: set[str] = set()
     for entry in _OAUTH_PROVIDER_CATALOG:
@@ -658,7 +658,7 @@ def _profile_account_row(d) -> Optional[dict[str, Any]]:
     return {
         "id": d.slug, "name": card.get("name") or d.label,
         "flow": "device_code" if device else card.get("flow") or "external",
-        "cli_command": card.get("cli_command") or f"hermes auth add {d.slug}",
+        "cli_command": card.get("cli_command") or f"a2assistant auth add {d.slug}",
         "docs_url": card.get("docs_url") or d.signup_url or "",
         "status_fn": getattr(prof, "account_status", None),
     }

@@ -39,8 +39,8 @@ def _stream_through_relay(tmp_path, monkeypatch, response_body: bytes, *, finali
     from agent import chat_completion_helpers, relay_llm, relay_runtime
     from run_agent import AIAgent
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
-    monkeypatch.setenv("HERMES_STREAM_RETRIES", "0")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("A2ASSISTANT_STREAM_RETRIES", "0")
 
     def respond(request):
         return httpx.Response(200, headers={"content-type": "text/event-stream"},

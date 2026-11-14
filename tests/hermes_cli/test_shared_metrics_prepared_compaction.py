@@ -31,7 +31,7 @@ RESOURCE = {"architecture": "x86_64", "hermes_version": "test", "install_method"
 
 def test_snapshot_reports_prepare_ahead_and_older_snapshots_still_package(tmp_path, monkeypatch):
     jsonschema = pytest.importorskip("jsonschema")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     states = {
         value: collect_install_snapshot({"compression": {"prepare_ahead": value}})["compression_prepare_ahead"]
         for value in (True, "yes", "on", False, "false", None)

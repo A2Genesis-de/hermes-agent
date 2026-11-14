@@ -12,7 +12,7 @@
  *
  * Usage (current CI checkout with locked driver dependencies):
  *   node launch-from-spec.mjs --spec /path/launch-spec.json \
- *     [--result $HERMES_HOME/.hermes-update-result.json] \
+ *     [--result $A2ASSISTANT_HOME/.hermes-update-result.json] \
  *     [--expect-sha <sha> --repo-dir <install dir>] [--no-update]
  *
  * --no-update: require a real desktop chat, then close gracefully.
@@ -154,14 +154,14 @@ async function main() {
     // This unpublished E2E target has no R2 channel record. Only the test
     // probe selects the real checker's explicit branch path.
     prepareSourceBranchEnvironment(values['repo-dir'], values['expect-sha'],
-      process.env.HERMES_E2E_REAL_GIT, capturedEnv, launchEnv);
+      process.env.A2ASSISTANT_E2E_REAL_GIT, capturedEnv, launchEnv);
   }
-  log(`launching ${launch.executablePath} (shape: ${spec.matchedShape}, isolated userData: ${launchEnv.HERMES_DESKTOP_USER_DATA_DIR})`);
+  log(`launching ${launch.executablePath} (shape: ${spec.matchedShape}, isolated userData: ${launchEnv.A2ASSISTANT_DESKTOP_USER_DATA_DIR})`);
 
   phase('launch');
   const app = await _electron.launch({
     executablePath: launch.executablePath,
-    args: isolatedElectronArgs(launch.args, launchEnv.HERMES_DESKTOP_USER_DATA_DIR),
+    args: isolatedElectronArgs(launch.args, launchEnv.A2ASSISTANT_DESKTOP_USER_DATA_DIR),
     cwd: launch.cwd,
     env: launchEnv,
   });
@@ -177,7 +177,7 @@ async function main() {
     mockUrl: values['mock-url'], outDir: values['chat-out'],
     expectCommit: values['old-sha'],
     root: values['repo-dir'], origin: 'source', executable: launch.executablePath,
-    userData: launchEnv.HERMES_DESKTOP_USER_DATA_DIR,
+    userData: launchEnv.A2ASSISTANT_DESKTOP_USER_DATA_DIR,
   });
 
   if (values['no-update']) {
@@ -228,7 +228,7 @@ async function main() {
   phase('about-update');
   const updateNow = await waitForUpdate(window, ui);
   const observe = observeSourceUpdate({
-    home: spec.env.HERMES_HOME,
+    home: spec.env.A2ASSISTANT_HOME,
     resultPath: values.result,
     expectSha: values['expect-sha'],
   });
@@ -257,7 +257,7 @@ async function main() {
       // The driver's real git: a fresh-machine leg takes every git off PATH
       // so the product must provision its own, and an observer that cannot
       // spawn git would read '' forever instead of failing.
-      return execFileSync(process.env.HERMES_E2E_REAL_GIT || 'git', ['-C', /** @type {string} */ (repoDir), 'rev-parse', 'HEAD'], {
+      return execFileSync(process.env.A2ASSISTANT_E2E_REAL_GIT || 'git', ['-C', /** @type {string} */ (repoDir), 'rev-parse', 'HEAD'], {
         encoding: 'utf8',
       }).trim();
     } catch {

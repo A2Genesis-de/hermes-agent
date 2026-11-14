@@ -2,9 +2,9 @@
 
 The dashboard is ONE machine-level management surface: config, env, MCP,
 model, and chat-PTY endpoints accept an optional ``profile`` so the global
-profile switcher can target any profile's HERMES_HOME. These tests pin:
+profile switcher can target any profile's A2ASSISTANT_HOME. These tests pin:
 reads/writes land in the REQUESTED profile, the dashboard's own profile
-stays untouched, and the chat PTY env is scoped via HERMES_HOME.
+stays untouched, and the chat PTY env is scoped via A2ASSISTANT_HOME.
 """
 import json
 from pathlib import Path
@@ -348,7 +348,7 @@ class TestProfileScopedPostSetup:
         self, client, isolated_profiles, monkeypatch
     ):
         """Post-setup runs in a -p scoped subprocess so hooks that read
-        config / write per-profile state see the same HERMES_HOME the rest
+        config / write per-profile state see the same A2ASSISTANT_HOME the rest
         of the drawer's writes targeted."""
 
         calls = []
@@ -574,9 +574,9 @@ class TestProfileScopedChatPty:
         )
         _argv, _cwd, env = _web_server_chat._resolve_chat_argv(profile="worker_beta")
         assert env is not None
-        assert env["HERMES_HOME"] == str(isolated_profiles["worker_beta"])
+        assert env["A2ASSISTANT_HOME"] == str(isolated_profiles["worker_beta"])
         # Scoped chat must NOT attach to the dashboard's in-memory gateway.
-        assert "HERMES_TUI_GATEWAY_URL" not in env
+        assert "A2ASSISTANT_TUI_GATEWAY_URL" not in env
 
     def test_chat_argv_bridges_selected_profile_terminal_config(
         self, isolated_profiles, monkeypatch
@@ -607,7 +607,7 @@ class TestProfileScopedChatPty:
         _argv, _cwd, env = _web_server_chat._resolve_chat_argv(profile="worker_beta")
 
         assert env is not None
-        assert env["HERMES_HOME"] == str(isolated_profiles["worker_beta"])
+        assert env["A2ASSISTANT_HOME"] == str(isolated_profiles["worker_beta"])
         assert env["TERMINAL_ENV"] == "ssh"
         assert env["TERMINAL_SSH_HOST"] == "worker.example.test"
         assert env["TERMINAL_CWD"] == "~"
@@ -691,7 +691,7 @@ class TestProfileScopedChatPty:
             _argv, _cwd, env = _web_server_chat._resolve_chat_argv(profile="worker_beta")
 
         assert env is not None
-        assert env["HERMES_HOME"] == str(isolated_profiles["worker_beta"])
+        assert env["A2ASSISTANT_HOME"] == str(isolated_profiles["worker_beta"])
         assert "TERMINAL_ENV" not in env
 
 

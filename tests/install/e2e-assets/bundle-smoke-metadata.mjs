@@ -11,8 +11,8 @@ const identityModule = fileURLToPath(new URL('../../../apps/desktop/product-iden
 
 function admitChannelRequest(request, commit, tag) {
   if (tag || request?.commit !== commit) throw new Error('Channel request conflicts with commit or tag')
-  return channelBuildRequest({ ...process.env, HERMES_DESKTOP_VARIANT: 'bundled',
-    HERMES_BUILD_COMMIT: '', HERMES_PAYLOAD_TAG: '', HERMES_PAYLOAD_VERSION: '',
+  return channelBuildRequest({ ...process.env, A2ASSISTANT_DESKTOP_VARIANT: 'bundled',
+    A2ASSISTANT_BUILD_COMMIT: '', A2ASSISTANT_PAYLOAD_TAG: '', A2ASSISTANT_PAYLOAD_VERSION: '',
     _HERMES_CHANNEL_REQUEST_JSON: JSON.stringify(request) })
 }
 
@@ -29,8 +29,8 @@ export function bundleIdentity(commit, tag = '', channelRequest = null) {
   // mutating the driver's environment or returning a cached variant identity.
   const identity = JSON.parse(execFileSync(process.execPath, ['-e',
     'console.log(JSON.stringify(require(process.argv[1])))', identityModule], {
-    encoding: 'utf8', env: { ...process.env, HERMES_DESKTOP_VARIANT: 'bundled',
-      HERMES_PAYLOAD_TAG: tag, HERMES_BUILD_COMMIT: tag ? '' : commit, _HERMES_CHANNEL_REQUEST_JSON: '' },
+    encoding: 'utf8', env: { ...process.env, A2ASSISTANT_DESKTOP_VARIANT: 'bundled',
+      A2ASSISTANT_PAYLOAD_TAG: tag, A2ASSISTANT_BUILD_COMMIT: tag ? '' : commit, _HERMES_CHANNEL_REQUEST_JSON: '' },
   }))
   return { appId: identity.appId, msixIdentity: identity.msixAppIdWithOrg,
     applicationId: identity.appNamePascal, publisher: OUT_OF_STORE_PUBLISHER }
@@ -137,8 +137,8 @@ function main() {
     // Preserve the raw JSON for the protocol decoder's duplicate-key checks.
     const raw = fs.readFileSync(values['channel-request'], 'utf8')
     if (!raw) throw new Error('Empty channel request')
-    values.channelRequest = channelBuildRequest({ ...process.env, HERMES_DESKTOP_VARIANT: 'bundled',
-      HERMES_BUILD_COMMIT: '', HERMES_PAYLOAD_TAG: '', HERMES_PAYLOAD_VERSION: '', _HERMES_CHANNEL_REQUEST_JSON: raw })
+    values.channelRequest = channelBuildRequest({ ...process.env, A2ASSISTANT_DESKTOP_VARIANT: 'bundled',
+      A2ASSISTANT_BUILD_COMMIT: '', A2ASSISTANT_PAYLOAD_TAG: '', A2ASSISTANT_PAYLOAD_VERSION: '', _HERMES_CHANNEL_REQUEST_JSON: raw })
   }
   const commands = {
     identity: () => bundleIdentity(values.commit, values.tag, values.channelRequest),

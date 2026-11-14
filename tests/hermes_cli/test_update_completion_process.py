@@ -80,7 +80,7 @@ def transition(tmp_path):
         "import os\n"
         "from pathlib import Path\n"
         "def get_process_hermes_home():\n"
-        "    return Path(os.environ['HERMES_HOME'])\n"
+        "    return Path(os.environ['A2ASSISTANT_HOME'])\n"
     )
     (package / "venv_sync.py").write_text(
         "from hermes_cli.probe import event\n"
@@ -90,11 +90,11 @@ def transition(tmp_path):
         "from pathlib import Path\n"
         "import os\n"
         "def arm_completion(root):\n"
-        "    path = Path(os.environ['HERMES_HOME']) / 'completion-pending'\n"
+        "    path = Path(os.environ['A2ASSISTANT_HOME']) / 'completion-pending'\n"
         "    path.write_text('owed')\n"
         "    return path\n"
         "def clear_completion(root):\n"
-        "    (Path(os.environ['HERMES_HOME']) / 'completion-pending').unlink()\n"
+        "    (Path(os.environ['A2ASSISTANT_HOME']) / 'completion-pending').unlink()\n"
     )
     (package / "source_build.py").write_text(
         "from hermes_cli.probe import event\n"
@@ -176,7 +176,7 @@ def transition(tmp_path):
         "def amend_terminal_followup(*args): pass\n"
         "def record_user_action(*args): pass\n"
         "def _receipt_dir():\n"
-        "    return pathlib.Path(os.environ['HERMES_HOME']) / 'logs/update_receipts'\n"
+        "    return pathlib.Path(os.environ['A2ASSISTANT_HOME']) / 'logs/update_receipts'\n"
         "def read_run_record(update_id):\n"
         "    for path in _receipt_dir().glob(f'update_*_{update_id}.json'):\n"
         "        return path, json.loads(path.read_text(encoding='utf-8-sig'))\n"
@@ -184,7 +184,7 @@ def transition(tmp_path):
         "    r = _current.get()\n"
         "    if r is None: return\n"
         "    r.data.update(exit_code=code, outcome='success' if code == 0 else 'failed', finished_at='now')\n"
-        "    path = pathlib.Path(os.environ['HERMES_HOME']) / 'logs/update_receipts'\n"
+        "    path = pathlib.Path(os.environ['A2ASSISTANT_HOME']) / 'logs/update_receipts'\n"
         "    path.mkdir(parents=True, exist_ok=True)\n"
         "    path = path / ('update_test_' + r.correlation_id + '.json')\n"
         "    path.write_text(json.dumps(r.data, ensure_ascii=False), encoding=r.data.get('encoding', 'utf-8'))\n"
@@ -234,7 +234,7 @@ def test_old_process_new_git_tree_completes_in_fresh_python(transition, tmp_path
     )
     result = subprocess.run(
         [sys.executable, "-c", driver, update_completion.__file__, new, json.dumps(request)],
-        cwd=root, env={**os.environ, "PYTHONPATH": str(root), "HERMES_HOME": request["home"]},
+        cwd=root, env={**os.environ, "PYTHONPATH": str(root), "A2ASSISTANT_HOME": request["home"]},
         capture_output=True, text=True, timeout=30,
         check=False,
     )
@@ -262,11 +262,11 @@ def test_old_process_new_git_tree_completes_in_fresh_python(transition, tmp_path
 
 
 def _run_cmd_update(monkeypatch, request, capsys):
-    """``hermes update --gateway`` whose impl hands this request to the real post-commit completion."""
+    """``a2assistant update --gateway`` whose impl hands this request to the real post-commit completion."""
     from types import SimpleNamespace
     from hermes_cli import main, update_cmd, update_receipt
 
-    monkeypatch.setenv("HERMES_HOME", request["home"])
+    monkeypatch.setenv("A2ASSISTANT_HOME", request["home"])
     monkeypatch.setattr(main, "_update_preflight_handled", lambda args: False)
     monkeypatch.setattr(main, "_install_hangup_protection", lambda **kw: None)
     monkeypatch.setattr(main, "_finalize_update_output", lambda state: None)
@@ -410,11 +410,11 @@ def test_interrupt_after_child_success_demotes_gateway_marker_at_boundary(transi
     marker = Path(request["home"]) / ".update_exit_code"
     (root / "hermes_cli/update_completion.py").write_text(
         "import os, pathlib, time\n"
-        "(pathlib.Path(os.environ['HERMES_HOME']) / '.update_exit_code').write_text('0\\n')\n"
+        "(pathlib.Path(os.environ['A2ASSISTANT_HOME']) / '.update_exit_code').write_text('0\\n')\n"
         "print('SUCCESS_PUBLISHED', flush=True)\n"
         "time.sleep(30)\n"
     )
-    monkeypatch.setenv("HERMES_HOME", request["home"])
+    monkeypatch.setenv("A2ASSISTANT_HOME", request["home"])
     monkeypatch.setattr(main, "_update_preflight_handled", lambda args: False)
     monkeypatch.setattr(main, "_install_hangup_protection", lambda **kw: None)
     monkeypatch.setattr(main, "_finalize_update_output", lambda state: None)

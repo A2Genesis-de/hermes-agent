@@ -22,10 +22,10 @@ from hermes_cli import kanban_db_workspace as kbw
 
 @pytest.fixture
 def kanban_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with an empty kanban DB."""
+    """Isolated A2ASSISTANT_HOME with an empty kanban DB."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home
@@ -331,7 +331,7 @@ def test_rate_limit_exit_requeues_without_counting_failure(
     from hermes_cli import kanban_db_dispatch as _kbd
 
     monkeypatch.setattr(_kb, "_pid_alive", lambda _pid: False)
-    monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_CRASH_GRACE_SECONDS", "0")
 
     with kbc.connect() as conn:
         host = _kb._claimer_id().split(":", 1)[0]
@@ -394,7 +394,7 @@ def test_terminal_provider_exit_blocks_after_one_attempt_in_either_lane(kanban_h
     from hermes_cli import kanban_db_dispatch as _kbd
 
     monkeypatch.setattr(_kb, "_pid_alive", lambda _pid: False)
-    monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_CRASH_GRACE_SECONDS", "0")
 
     with kbc.connect() as conn:
         host = _kb._claimer_id().split(":", 1)[0]
@@ -438,7 +438,7 @@ def test_respawn_guard_defers_rate_limited_within_cooldown(
     fall into ``blocker_auth`` (which would defer forever)."""
     import hermes_cli.kanban_db as _kb
 
-    monkeypatch.setenv("HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "300")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "300")
     now = 5_000_000
 
     with kbc.connect() as conn:
@@ -492,7 +492,7 @@ def test_respawn_guard_blocker_auth_curated_not_open_stem(
     ordinary English words like "author"/"authored"/"authoring"/"authoritative"
     in worker progress prose, parking a healthy ``ready`` card forever (#117009).
     The auth family must be a curated set of real auth-failure tokens."""
-    monkeypatch.setenv("HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "0")
 
     with kbc.connect() as conn:
         tid = kb.create_task(conn, title="prose", assignee="a")
@@ -565,7 +565,7 @@ def test_infrastructure_spawn_refusal_never_charges_the_card(
     monkeypatch.setattr(process_registry, "_is_supervised_gateway_process", lambda: True)
     monkeypatch.setenv("INVOCATION_ID", "managed-gateway")
     monkeypatch.setattr(process_registry, "_systemd_run_user_scope_available", lambda: False)
-    monkeypatch.setenv("HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "0")
 
     def spawn_via_real_boundary(task, workspace, board=None):
         kbd._restart_safe_worker_argv(task, ["hermes", "chat"])  # raises: real probe verdict, real _degrade()
@@ -587,11 +587,11 @@ def test_infrastructure_spawn_refusal_never_charges_the_card(
         assert [r["outcome"] for r in runs] == ["spawn_failed"] * 3
         assert all(json.loads(r["metadata"])["infrastructure"] is True for r in runs)
 
-        monkeypatch.setenv("HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "300")
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "300")
         assert kbd.check_respawn_guard(conn, tid) == "infrastructure_cooldown"
 
         # Control: an ordinary spawn failure on the same card still spends budget.
-        monkeypatch.setenv("HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "0")
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS", "0")
 
         def spawn_broken(task, workspace, board=None):
             raise RuntimeError("profile launcher exploded")
@@ -1042,12 +1042,12 @@ def test_symlinked_workspaces_root_does_not_widen_scratch_cleanup(kanban_home, t
 
 class TestSharedBoardPaths:
     """`kanban_home`/`kanban_db_path`/`workspaces_root`/`worker_log_path`
-    must anchor at the **shared root**, not the active profile's HERMES_HOME."""
+    must anchor at the **shared root**, not the active profile's A2ASSISTANT_HOME."""
 
     def _set_home(self, monkeypatch, tmp_path, hermes_home):
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-        monkeypatch.delenv("HERMES_KANBAN_HOME", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
+        monkeypatch.delenv("A2ASSISTANT_KANBAN_HOME", raising=False)
 
 
     def test_profile_worker_resolves_to_shared_root(
@@ -1100,7 +1100,7 @@ class TestSharedBoardPaths:
             task_id = kb.create_task(conn, title="cross-profile")
 
         # Worker switches to the profile HERMES_HOME and reads.
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
         with kbc.connect() as conn:
             task = kb.get_task(conn, task_id)
         assert task is not None
@@ -1160,14 +1160,14 @@ class TestSharedBoardPaths:
         kbd._default_spawn(task, str(tmp_path / "ws"))
 
         env = captured["env"]
-        assert env["HERMES_KANBAN_DB"] == str(default_home / "kanban.db")
-        assert env["HERMES_KANBAN_WORKSPACES_ROOT"] == str(
+        assert env["A2ASSISTANT_KANBAN_DB"] == str(default_home / "kanban.db")
+        assert env["A2ASSISTANT_KANBAN_WORKSPACES_ROOT"] == str(
             default_home / "kanban" / "workspaces"
         )
-        assert env["HERMES_KANBAN_TASK"] == "t_dispatch_env"
-        assert env["HERMES_KANBAN_BRANCH"] == "wt/t_dispatch_env"
+        assert env["A2ASSISTANT_KANBAN_TASK"] == "t_dispatch_env"
+        assert env["A2ASSISTANT_KANBAN_BRANCH"] == "wt/t_dispatch_env"
         for key in sc._VAR_MAP:
-            if key == "HERMES_SESSION_SOURCE":
+            if key == "A2ASSISTANT_SESSION_SOURCE":
                 # Re-set by the dispatcher, so what matters is that it carries
                 # the worker's own tag rather than the inherited routing value.
                 assert env[key] == "kanban"
@@ -1212,7 +1212,7 @@ def test_connect_falls_back_to_delete_on_locking_protocol(tmp_path, monkeypatch,
 
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
     # These tests exercise the WAL-attempt path; assume a fixed SQLite so the
@@ -1273,7 +1273,7 @@ def test_connect_works_when_wal_is_silently_refused(tmp_path, monkeypatch, caplo
 
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
     kb._INITIALIZED_PATHS.clear()
@@ -1449,7 +1449,7 @@ def test_unlink_tasks_triggers_recompute_ready(kanban_home):
     complete_task and unblock_task.
 
     Before the fix, child stayed 'todo' indefinitely after unlink; only the
-    next dispatcher tick or a manual 'hermes kanban recompute' would promote it.
+    next dispatcher tick or a manual 'a2assistant kanban recompute' would promote it.
     """
     with kbc.connect() as conn:
         # A is done.
@@ -1576,19 +1576,19 @@ def test_connect_heals_reduced_tasks_schema_seeded_by_external_harness(kanban_ho
 
 
 def test_resolve_hermes_argv_prefers_module_form_over_path_shim(monkeypatch):
-    """A `hermes` on PATH must not shadow the running install (#111569):
+    """A `a2assistant` on PATH must not shadow the running install (#111569):
     the module argv wins whenever ``hermes_cli`` is importable; only an
-    explicit ``$HERMES_BIN`` overrides it."""
+    explicit ``$A2ASSISTANT_BIN`` overrides it."""
     import shutil
     import sys
     from hermes_cli import kanban_db_dispatch as kbd
 
-    monkeypatch.delenv("HERMES_BIN", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_BIN", raising=False)
     monkeypatch.setattr(shutil, "which", lambda name: "/tmp/planted/hermes")
     monkeypatch.setattr(kbd, "_safe_which_no_cwd", lambda name: "/tmp/planted/hermes")
     assert kbd._resolve_hermes_argv() == [sys.executable, "-m", "hermes_cli.main"]
 
-    monkeypatch.setenv("HERMES_BIN", "/opt/hermes/bin/hermes")
+    monkeypatch.setenv("A2ASSISTANT_BIN", "/opt/hermes/bin/hermes")
     assert kbd._resolve_hermes_argv() == ["/opt/hermes/bin/hermes"]
 
 
@@ -1608,7 +1608,7 @@ def test_resolve_hermes_argv_module_actually_runs():
     from unittest import mock
 
     with mock.patch.dict(os.environ, {}, clear=False):
-        os.environ.pop("HERMES_BIN", None)
+        os.environ.pop("A2ASSISTANT_BIN", None)
         with mock.patch.object(shutil, "which", return_value=None):
             argv = kbd._resolve_hermes_argv()
     offline = {**os.environ, "HTTPS_PROXY": "http://127.0.0.1:9", "https_proxy": "http://127.0.0.1:9", "NO_PROXY": "", "no_proxy": ""}
@@ -1626,8 +1626,8 @@ def test_default_spawn_pins_repo_root_on_module_worker_pythonpath(tmp_path, monk
     the claim to the profile owner), and the worker env scrub strips Hermes-owned PYTHONPATH
     entries, so a bare module child died on import and the board auto-blocked (#122299,
     #122487, #122500). The spawned env must put the running install's root first on
-    PYTHONPATH. Main's carve-out for a resolved ``hermes`` shim path does not apply here: the
-    worker never runs the resolved CLI argv, so a ``$HERMES_BIN``/PATH shim can neither replace
+    PYTHONPATH. Main's carve-out for a resolved ``a2assistant`` shim path does not apply here: the
+    worker never runs the resolved CLI argv, so a ``$A2ASSISTANT_BIN``/PATH shim can neither replace
     the module child nor drop the pin.
     """
     import os
@@ -1640,10 +1640,10 @@ def test_default_spawn_pins_repo_root_on_module_worker_pythonpath(tmp_path, monk
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_KANBAN_HOME", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_HOME", raising=False)
     monkeypatch.delenv("PYTHONPATH", raising=False)
-    monkeypatch.delenv("HERMES_BIN", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_BIN", raising=False)
 
     captured = {}
 

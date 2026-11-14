@@ -78,7 +78,7 @@ function ownedLock(over: any = {}) {
     port: 40000,
     profile: '',
     hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.hermes',
+    hermesHome: '~/.a2assistant',
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE),
     tokenFingerprint: fingerprintToken('stored-token'),
     startedAt: '2026-07-14T00:00:00.000Z',
@@ -152,7 +152,7 @@ test('POSIX relaunch gate refuses live and uncertain install markers without exe
           return 'Linux\nx86_64\n'
         }
 
-        if (command.includes('HERMES_HOME')) {
+        if (command.includes('A2ASSISTANT_HOME')) {
           return '/home/alice/.hermes\n'
         }
 
@@ -202,7 +202,7 @@ test('POSIX relaunch gate rechecks after token upload immediately before process
         return 'Linux\nx86_64\n'
       }
 
-      if (command.includes('HERMES_HOME')) {
+      if (command.includes('A2ASSISTANT_HOME')) {
         return '/home/alice/.hermes\n'
       }
 
@@ -245,7 +245,7 @@ test('POSIX relaunch gate rechecks after token upload immediately before process
 
 test('readRemoteInstallId reads the backend identity without spawning a dashboard or minting one', async () => {
   const ssh = fakeSsh([
-    [/HERMES_HOME/, '/Users/zillajr/.hermes\n'],
+    [/A2ASSISTANT_HOME/, '/Users/zillajr/.hermes\n'],
     [/cat .*install_id/, '0f8a1c2b3d4e5f60718293a4b5c6d7e8\n']
   ])
 
@@ -261,7 +261,7 @@ test('readRemoteInstallId reports the INSTALL root id for a profile-pinned home'
   // The whole point of the id: two ssh connections to one machine — one pinned at a profile,
   // one at the root — must report the SAME backend so their roster rows collapse.
   const pinned = fakeSsh([
-    [/HERMES_HOME/, '/Users/zillajr/.hermes/profiles/dixie\n'],
+    [/A2ASSISTANT_HOME/, '/Users/zillajr/.hermes/profiles/dixie\n'],
     [/cat .*install_id/, '0f8a1c2b3d4e5f60718293a4b5c6d7e8\n']
   ])
 
@@ -279,7 +279,7 @@ test('readRemoteInstallId reports the INSTALL root id for a profile-pinned home'
 test('readRemoteInstallId reports no id rather than a bad one', async () => {
   for (const payload of ['', 'not-an-id\n', 'ABCDEF\n', '0f8a1c2b3d4e5f60718293a4b5c6d7e8extra\n']) {
     const ssh = fakeSsh([
-      [/HERMES_HOME/, '/Users/zillajr/.hermes\n'],
+      [/A2ASSISTANT_HOME/, '/Users/zillajr/.hermes\n'],
       [/cat .*install_id/, payload]
     ])
 
@@ -291,7 +291,7 @@ test('readRemoteInstallId reports no id rather than a bad one', async () => {
 
 test('listRemoteHermesProfiles inventories Mini-style profile dirs without spawning a dashboard', async () => {
   const ssh = fakeSsh([
-    [/HERMES_HOME/, '/Users/zillajr/.hermes\n'],
+    [/A2ASSISTANT_HOME/, '/Users/zillajr/.hermes\n'],
     [/ls -1/, 'bob\ndixie\ngoose\nrambo\nbob.rollback-old\n']
   ])
 
@@ -302,8 +302,8 @@ test('listRemoteHermesProfiles inventories Mini-style profile dirs without spawn
   )
 })
 
-test('listRemoteHermesProfiles rejects a hostile HERMES_HOME', async () => {
-  const ssh = fakeSsh([[/HERMES_HOME/, '/tmp/x; echo pwned\n']])
+test('listRemoteHermesProfiles rejects a hostile A2ASSISTANT_HOME', async () => {
+  const ssh = fakeSsh([[/A2ASSISTANT_HOME/, '/tmp/x; echo pwned\n']])
 
   await assert.rejects(
     () => listRemoteHermesProfiles(ssh),
@@ -353,8 +353,8 @@ test('locateHermes falls back to the login-shell command -v probe', async () => 
 })
 
 test('locateHermes preserves an installer wrapper instead of resolving its interpreter', async () => {
-  // install.sh venv mode writes: exec "$HERMES_BIN" "$HERMES_ENTRYPOINT" "$@",
-  // where $HERMES_BIN is the venv python. The old canonicalization returned
+  // install.sh venv mode writes: exec "$A2ASSISTANT_BIN" "$A2ASSISTANT_ENTRYPOINT" "$@",
+  // where $A2ASSISTANT_BIN is the venv python. The old canonicalization returned
   // that interpreter, so `<python> --version` printed "Python x.y.z" and
   // `<python> serve --help` failed outright (#74411). The wrapper itself is
   // executable and forwards args correctly — return it untouched.
@@ -398,7 +398,7 @@ test('locateHermes falls back to ~/.local/bin/hermes when the login-shell probe 
 
 test('locateHermes tries the conventional venv path last', async () => {
   const ssh = fakeSsh([[/\[ -x .*venv\/bin\/hermes/, 'OK']])
-  assert.equal(await locateHermes(ssh, ''), '~/.hermes/hermes-agent/venv/bin/hermes')
+  assert.equal(await locateHermes(ssh, ''), '~/.a2assistant/app/venv/bin/hermes')
 })
 
 test('locateHermes throws a hermes-not-found error with an install hint', async () => {
@@ -450,9 +450,9 @@ test('probeRemotePlatform rejects unsupported remote platforms', async () => {
 })
 
 test('ownership paths are isolated by ownership ID and spawn nonce', () => {
-  assert.equal(ownershipDirectory(OWNERSHIP_ID), `~/.hermes/desktop-ssh/${OWNERSHIP_ID}`)
-  assert.equal(lockfilePath(OWNERSHIP_ID), `~/.hermes/desktop-ssh/${OWNERSHIP_ID}/backend.lock.json`)
-  assert.equal(spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE), `~/.hermes/desktop-ssh/${OWNERSHIP_ID}/${SPAWN_NONCE}.log`)
+  assert.equal(ownershipDirectory(OWNERSHIP_ID), `~/.a2assistant/desktop-ssh/${OWNERSHIP_ID}`)
+  assert.equal(lockfilePath(OWNERSHIP_ID), `~/.a2assistant/desktop-ssh/${OWNERSHIP_ID}/backend.lock.json`)
+  assert.equal(spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE), `~/.a2assistant/desktop-ssh/${OWNERSHIP_ID}/${SPAWN_NONCE}.log`)
 })
 
 test('readLockfile returns null ONLY for a missing/empty lockfile', async () => {
@@ -638,7 +638,7 @@ test.skipIf(process.platform === 'win32')(
     const launcher = path.join(temp, 'hermes launcher')
     const python: string = (await exec('command -v python3', { shell })).stdout.trim()
     const tokenPath: string = path.join(temp, spawnTokenPath(OWNERSHIP_ID, SPAWN_NONCE).replace(/^~\//, ''))
-    const env: NodeJS.ProcessEnv = { ...process.env, HOME: temp, HERMES_HOME: temp }
+    const env: NodeJS.ProcessEnv = { ...process.env, HOME: temp, A2ASSISTANT_HOME: temp }
 
     await mkdir(venvBin, { recursive: true })
     await symlink(python, pythonLink)
@@ -956,7 +956,7 @@ test('buildSpawnCommand is headless serve, detached, token not in argv', () => {
   assert.match(cmd, /<\/dev\/null/)
   assert.match(cmd, /echo \$!/)
   assert.ok(!cmd.includes('tok_secret_value'), 'token must not appear in spawn command')
-  assert.ok(!cmd.includes('HERMES_DASHBOARD_SESSION_TOKEN'), 'token env var must not appear')
+  assert.ok(!cmd.includes('A2ASSISTANT_DASHBOARD_SESSION_TOKEN'), 'token env var must not appear')
 })
 
 test('buildSpawnCommand never pins a non-slug profile into the remote argv', () => {
@@ -1011,7 +1011,7 @@ mv "$report.tmp" "$report"
         logPath
       })
 
-      await exec(command, { shell, env: { ...process.env, HOME: directory, HERMES_HOME: directory } })
+      await exec(command, { shell, env: { ...process.env, HOME: directory, A2ASSISTANT_HOME: directory } })
 
       for (let attempt: number = 0; attempt < 100; attempt += 1) {
         try {
@@ -1056,10 +1056,10 @@ test('spawnRemoteDashboard returns exact ownership artifacts', async () => {
 })
 
 test('READY_RE accepts both serve and dashboard sentinels', () => {
-  assert.equal(READY_RE.exec('HERMES_BACKEND_READY port=4321')?.[1], '4321')
-  assert.equal(READY_RE.exec('HERMES_DASHBOARD_READY port=8765')?.[1], '8765')
+  assert.equal(READY_RE.exec('A2ASSISTANT_BACKEND_READY port=4321')?.[1], '4321')
+  assert.equal(READY_RE.exec('A2ASSISTANT_DASHBOARD_READY port=8765')?.[1], '8765')
   // The remote log is `>> log 2>&1`, so a stderr chunk without a newline can be spliced onto the sentinel.
-  assert.equal(READY_RE.exec('INFO  Started server process [4711]HERMES_BACKEND_READY port=65238')?.[1], '65238')
+  assert.equal(READY_RE.exec('INFO  Started server process [4711]A2ASSISTANT_BACKEND_READY port=65238')?.[1], '65238')
 })
 
 test('spawnRemoteDashboard rejects when no pid is returned', async () => {
@@ -1142,7 +1142,7 @@ test('connect() spawns fresh when there is no lockfile, adopts the served token'
     [/setsid/, '777\n'],
     // The wrapper may exit before the detached daemon writes READY; startup
     // must rely on the bounded log wait rather than kill -0 on this pid.
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=51999\n'],
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=51999\n'],
     // The post-readiness served-token adoption still verifies the daemon.
     [/kill -0 777/, 'ALIVE']
   ])
@@ -1191,7 +1191,7 @@ test('managed SSH maps a local scope to a different non-default remote profile',
     [/printf '%s\\n'/, ''],
     [/setsid/, '778\n'],
     [/kill -0 778/, 'ALIVE'],
-    [/cat .*\.log/, 'HERMES_BACKEND_READY port=52000\n']
+    [/cat .*\.log/, 'A2ASSISTANT_BACKEND_READY port=52000\n']
   ])
 
   await connect(
@@ -1246,7 +1246,7 @@ test('connect() respawns when the requested remote profile differs from the lock
     [/python3 -c/, ''],
     [/setsid/, '890\n'],
     [/kill -0 890/, 'ALIVE'],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=52050\n']
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=52050\n']
   ])
 
   const result = await connect(
@@ -1274,7 +1274,7 @@ test('connect() respawns when the lockfile hermesPath differs from the resolved 
     [/grep -q ssh-session-token-file/, 'YES\n'],
     [/python3 -c/, ''],
     [/setsid/, '890\n'],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=52050\n']
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=52050\n']
   ])
 
   const result = await connect(
@@ -1306,7 +1306,7 @@ test('connect() respawns when the lockfile protocolVersion is incompatible', asy
     [/python3 -c/, ''],
     [/setsid/, '901\n'],
     [/kill -0 901/, 'ALIVE'],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=44100\n']
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=44100\n']
   ])
 
   const result = await connect(connectDeps(ssh, { reuseToken, adoptServedToken: async () => 'fresh' }))
@@ -1321,13 +1321,13 @@ test('connect() fresh spawn writes hermesHome + protocolVersion into the lockfil
     [/uname/, 'Linux\nx86_64'],
     [/\[ -x/, 'OK'],
     [/cat .*lock\.json/, ''], // no lockfile
-    [/HERMES_HOME/, '/home/alice/.hermes\n'],
+    [/A2ASSISTANT_HOME/, '/home/alice/.hermes\n'],
     [/grep -q ssh-session-token-file/, 'YES\n'],
     [/python3 -c/, ''],
     [/printf '%s\\n'/, ''],
     [/setsid/, '700\n'],
     [/kill -0 700/, 'ALIVE'],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=45500\n'],
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=45500\n'],
     [
       /printf '%s' '/,
       c => {
@@ -1357,7 +1357,7 @@ test('connect() respawns when the lockfile pid is dead (killed dashboard)', asyn
     [/python3 -c/, ''],
     [/setsid/, '888\n'],
     [/kill -0 888/, 'ALIVE'],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=42000\n']
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=42000\n']
   ])
 
   const result = await connect(connectDeps(ssh, { reuseToken: 't', adoptServedToken: async () => 'fresh' }))
@@ -1502,7 +1502,7 @@ test('connect() respawns when the dashboard is wedged (alive pid, probe fails)',
     [/python3 -c/, ''],
     [/setsid/, '999\n'],
     [/kill -0 999/, 'ALIVE'],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=43000\n']
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=43000\n']
   ])
 
   const result = await connect(
@@ -1588,7 +1588,7 @@ test('validateRemotePath accepts absolute POSIX paths', () => {
 
 test('validateRemotePath accepts ~/ prefix paths', () => {
   assert.doesNotThrow(() => validateRemotePath('~/bin/hermes'))
-  assert.doesNotThrow(() => validateRemotePath('~/.hermes/logs/desktop-ssh.log'))
+  assert.doesNotThrow(() => validateRemotePath('~/.a2assistant/logs/desktop-ssh.log'))
   assert.doesNotThrow(() => validateRemotePath('~'))
 })
 
@@ -1618,7 +1618,7 @@ test('validateRemotePath preserves shell metacharacters as path data', () => {
 })
 
 test('expandRemotePath expands ~/ to "$HOME"/', () => {
-  const result = expandRemotePath('~/.hermes/logs/desktop-ssh.log')
+  const result = expandRemotePath('~/.a2assistant/logs/desktop-ssh.log')
   assert.match(result, /\$HOME/)
   assert.ok(!result.includes('eval'), 'must not use eval')
   assert.ok(!result.includes('echo'), 'must not use echo for expansion')
@@ -1637,7 +1637,7 @@ test('expandRemotePath preserves spaces as data', () => {
 
 test('buildSpawnCommand includes --ssh-session-token-file when tokenFilePath is provided', () => {
   const cmd = buildSpawnCommand('/x/hermes', 'work', {
-    tokenFilePath: `~/.hermes/desktop-ssh/${OWNERSHIP_ID}/${SPAWN_NONCE}.token`,
+    tokenFilePath: `~/.a2assistant/desktop-ssh/${OWNERSHIP_ID}/${SPAWN_NONCE}.token`,
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE),
     spawnNonce: SPAWN_NONCE
   })
@@ -1813,7 +1813,7 @@ test('spawnRemoteDashboard fails with update-required when remote lacks --ssh-se
 })
 
 test('readLockfile treats a log path outside the exact ownership and spawn path as skew', async () => {
-  const lock = ownedLock({ logPath: '~/.hermes/desktop-ssh/other.log' })
+  const lock = ownedLock({ logPath: '~/.a2assistant/desktop-ssh/other.log' })
   const ssh = fakeSsh([[/cat .*lock\.json/, JSON.stringify(lock)]])
   assert.equal(isLockfileSkew(await readLockfile(ssh, OWNERSHIP_ID)), true)
 })
@@ -1824,7 +1824,7 @@ test('cleanupStale never deletes a lock-supplied unexpected log path', async () 
     [cmd => /pidfd_open/.test(cmd), 'TERMINATED\n']
   ])
 
-  await cleanupStale(ssh, OWNERSHIP_ID, ownedLock({ logPath: '~/.hermes/unrelated.log' }))
+  await cleanupStale(ssh, OWNERSHIP_ID, ownedLock({ logPath: '~/.a2assistant/unrelated.log' }))
   assert.ok(!ssh.calls.some(command => command.includes('unrelated.log')))
 })
 
@@ -1893,7 +1893,7 @@ test('connect replaces an exact-owned backend only after authenticated stale pro
     [/python3 -c/, ''],
     [/setsid/, '999\n'],
     [/kill -0 999/, 'ALIVE'],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=43000\n']
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=43000\n']
   ])
 
   const result = await connect(
@@ -2062,7 +2062,7 @@ test.skipIf(process.platform === 'win32')(
     // characters to the remote python. Parse the composed command with a real sh,
     // as the remote login shell does, and require every path to come out clean.
     const cmd = buildSpawnCommand('/x/hermes', 'work', {
-      hermesHome: '~/.hermes',
+      hermesHome: '~/.a2assistant',
       logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE),
       ownershipId: OWNERSHIP_ID,
       reservationNonce: SPAWN_NONCE,
@@ -2139,7 +2139,7 @@ test('connect() does not declare a live dashboard dead when the liveness probe a
     [/printf '%s\\n'/, ''],
     [/setsid/, '777\n'],
     [(cmd: string) => /kill -0 777/.test(cmd) && !cmd.includes('while'), () => (liveness++ === 0 ? '' : 'ALIVE\n')],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=51999\n']
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=51999\n']
   ])
 
   const result = await connect(connectDeps(ssh, { platform: { os: 'Linux', arch: 'x86_64' } }))
@@ -2197,7 +2197,7 @@ test('connect() post-spawn cleanup that cannot prove ownership keeps the origina
     [/printf '%s\\n'/, ''],
     [/setsid/, '777\n'],
     [/kill -0 777/, 'ALIVE\n'],
-    [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=51999\n'],
+    [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=51999\n'],
     [/print\("OWNED"/, '']
   ])
 
@@ -2222,21 +2222,21 @@ test('connect() post-spawn cleanup that cannot prove ownership keeps the origina
 // ---------------------------------------------------------------------------
 // resolveReadyTimeoutMs (issue #94642): cold-start-tolerant remote budgets
 // ---------------------------------------------------------------------------
-test('honors a valid HERMES_DESKTOP_REMOTE_READY_TIMEOUT_MS override', () => {
-  const env = { HERMES_DESKTOP_REMOTE_READY_TIMEOUT_MS: '180000' }
+test('honors a valid A2ASSISTANT_DESKTOP_REMOTE_READY_TIMEOUT_MS override', () => {
+  const env = { A2ASSISTANT_DESKTOP_REMOTE_READY_TIMEOUT_MS: '180000' }
   assert.equal(resolveReadyTimeoutMs(env), 180_000)
 })
 test('clamps an override below the floor up to the 45s minimum', () => {
-  const env = { HERMES_DESKTOP_REMOTE_READY_TIMEOUT_MS: '1000' }
+  const env = { A2ASSISTANT_DESKTOP_REMOTE_READY_TIMEOUT_MS: '1000' }
   assert.equal(resolveReadyTimeoutMs(env), MIN_READY_TIMEOUT_MS)
 })
 test('rounds a fractional override', () => {
-  const env = { HERMES_DESKTOP_REMOTE_READY_TIMEOUT_MS: '60000.7' }
+  const env = { A2ASSISTANT_DESKTOP_REMOTE_READY_TIMEOUT_MS: '60000.7' }
   assert.equal(resolveReadyTimeoutMs(env), 60_001)
 })
 test('falls back to the default for malformed / non-positive overrides', () => {
   for (const bad of ['', 'abc', '0', '-5', 'NaN', undefined]) {
-    const env = bad === undefined ? {} : { HERMES_DESKTOP_REMOTE_READY_TIMEOUT_MS: bad }
+    const env = bad === undefined ? {} : { A2ASSISTANT_DESKTOP_REMOTE_READY_TIMEOUT_MS: bad }
     assert.equal(
       resolveReadyTimeoutMs(env),
       DEFAULT_READY_TIMEOUT_MS,

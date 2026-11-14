@@ -51,7 +51,7 @@ def profile_env(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     default_home = tmp_path / ".hermes"
     default_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     return tmp_path
 
 
@@ -477,7 +477,7 @@ class TestUpdate:
 
     def test_an_owned_category_keeps_skills_the_installer_added_to_it(self, profile_env):
         """``distribution_owned: [skills/research/]`` owns the author's research skills, not the
-        category: ``hermes skills install`` and agent-created skills land in ``skills/<category>/``
+        category: ``a2assistant skills install`` and agent-created skills land in ``skills/<category>/``
         too. The category was replaced wholesale, deleting them (the #25120 loss, still live for
         the explicit form the docs show)."""
         staged, plan = self._owned_category(profile_env, "rb")
@@ -691,7 +691,7 @@ class TestDescribe:
 
 
     def test_describe_missing_profile_raises(self, profile_env):
-        with pytest.raises(DistributionError, match="No profile named .*hermes profile list"):
+        with pytest.raises(DistributionError, match="No profile named .*a2assistant profile list"):
             describe_distribution("nonexistent")
 
 

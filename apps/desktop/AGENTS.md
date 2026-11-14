@@ -66,7 +66,7 @@ identity on no-ops.
 ## Switching context is a re-home, not a reboot
 
 A connection/mode apply is a SOFT re-home (shell stays, gateway-bound stores wiped explicitly, then
-reconnect); a runtime `HERMES_HOME` change is a HARD re-home (reload); a live profile swap merges
+reconnect); a runtime `A2ASSISTANT_HOME` change is a HARD re-home (reload); a live profile swap merges
 lists while background profiles keep streaming. After any swap the active socket, profile and
 connection atoms must agree.
 

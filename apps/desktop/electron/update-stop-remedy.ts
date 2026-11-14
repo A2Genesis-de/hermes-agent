@@ -23,7 +23,7 @@ export interface UpdateStopExplanation {
 }
 
 /**
- * Receipts live under the ROOT home: `hermes -p <name> update` files its receipt
+ * Receipts live under the ROOT home: `a2assistant -p <name> update` files its receipt
  * in `<root>/logs/update_receipts/`, and the hand-off script resolves the same
  * root before it reads the receipt back (scripts/desktop-update/posix.sh,
  * `update_committed_after_exit`). A profile home passed here therefore still
@@ -40,7 +40,7 @@ export function receiptDirectory(hermesHome: string): string {
  * This run's own stop, read from the receipt the update wrote.
  *
  * `correlation_id` is the hand-off `run_id` (the launcher exports it as
- * `HERMES_UPDATE_CORRELATION_ID`), so a receipt left behind by an earlier run
+ * `A2ASSISTANT_UPDATE_CORRELATION_ID`), so a receipt left behind by an earlier run
  * cannot explain this one. A record still `running` keeps `finished_at` null and
  * never matches — the same rule the hand-off script applies before it trusts an
  * outcome. Anything missing or unexpected returns null and the caller keeps its
@@ -94,7 +94,7 @@ const STOP_EXPLANATIONS: Record<string, UpdateStopExplanation> = {
       'The updater refused to move this install back to the release it offered, because that release predates the ' +
       'gateway runtime your session stores already use. Downgrading is unsupported, and nothing was changed: you are ' +
       'still on the version you had.\n\n' +
-      'To follow this checkout instead of the release channel, run `hermes update --set-channel main`, or pick a ' +
+      'To follow this checkout instead of the release channel, run `a2assistant update --set-channel main`, or pick a ' +
       `channel in About ▸ Updates.\n\n${UPDATES_GUIDE}`
   }
 }

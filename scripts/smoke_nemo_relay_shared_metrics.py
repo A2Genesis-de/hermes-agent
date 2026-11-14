@@ -251,7 +251,7 @@ def _arguments() -> argparse.Namespace:
         "--output-dir",
         type=Path,
         default=None,
-        help="Directory for the isolated HERMES_HOME and captured output",
+        help="Directory for the isolated A2ASSISTANT_HOME and captured output",
     )
     return parser.parse_args()
 
@@ -823,7 +823,7 @@ def main() -> int:
     try:
         _write_config(home, server.server_port)
         env = os.environ.copy()
-        env["HERMES_HOME"] = str(home)
+        env["A2ASSISTANT_HOME"] = str(home)
         python_paths = [str(hermes_repo)]
         if relay_python is not None:
             python_paths.append(str(relay_python))

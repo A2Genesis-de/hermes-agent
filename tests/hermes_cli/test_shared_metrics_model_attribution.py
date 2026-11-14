@@ -112,7 +112,7 @@ def test_shipped_provider_and_public_model_are_reported_as_is(direct_runtime, tm
 
 
 def test_user_provider_plugin_name_and_model_never_leave(direct_runtime, tmp_path, monkeypatch):
-    """A ``$HERMES_HOME/plugins/model-providers`` profile joins PROVIDER_REGISTRY under a name (and
+    """A ``$A2ASSISTANT_HOME/plugins/model-providers`` profile joins PROVIDER_REGISTRY under a name (and
     aliases) the user chose: every metric, the provider-setup marker and the snapshot read
     ``custom``/``custom``. An in-tree provider plugin (``deepinfra``) keeps its public name."""
     from hermes_cli import auth, auth_plugin_providers, models_catalog_static as mcs

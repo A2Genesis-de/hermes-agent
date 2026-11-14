@@ -30,7 +30,7 @@ def _invoke(monkeypatch, *args: str) -> int:
 def test_computer_use_status_reports_pm_without_polling_vendor(monkeypatch, capsys, tmp_path):
     from hermes_cli import tools_config_cua as cua
 
-    monkeypatch.delenv("HERMES_CUA_DRIVER_CMD", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_CUA_DRIVER_CMD", raising=False)
     monkeypatch.setattr(cua_backend_driver, "resolve_cua_driver_cmd", lambda: str(tmp_path / "cua-driver"))
     monkeypatch.setattr(cua, "_cua_driver_contract_status", lambda _binary=None: {"ready": True, "version": "0.20.0"})
     assert _invoke(monkeypatch, "status") == 0
@@ -51,9 +51,9 @@ def test_computer_use_status_reports_unusable_driver(monkeypatch, capsys, tmp_pa
 
     driver = str(tmp_path / "cua-driver")
     if override:
-        monkeypatch.setenv("HERMES_CUA_DRIVER_CMD", driver)
+        monkeypatch.setenv("A2ASSISTANT_CUA_DRIVER_CMD", driver)
     else:
-        monkeypatch.delenv("HERMES_CUA_DRIVER_CMD", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_CUA_DRIVER_CMD", raising=False)
     monkeypatch.setattr(cua_backend_driver, "resolve_cua_driver_cmd", lambda: driver)
     monkeypatch.setattr(cua, "_cua_driver_contract_status", lambda _binary=None: {
         "ready": False, "reason": "manifest is invalid",
@@ -62,10 +62,10 @@ def test_computer_use_status_reports_unusable_driver(monkeypatch, capsys, tmp_pa
     output = capsys.readouterr().out
     assert "Repair required" in output
     if override:
-        assert "custom binary from HERMES_CUA_DRIVER_CMD" in output
+        assert "custom binary from A2ASSISTANT_CUA_DRIVER_CMD" in output
         assert "unset the override" in output
     else:
-        assert "Run: hermes computer-use install" in output
+        assert "Run: a2assistant computer-use install" in output
 
 
 @pytest.mark.parametrize("ready", [False, True])
@@ -97,4 +97,4 @@ def test_permissions_status_names_the_stale_tcc_row_for_the_missing_grant(
     out = capsys.readouterr().out
     assert "tccutil reset Accessibility com.trycua.driver" in out
     assert "ScreenCapture" not in out
-    assert "hermes computer-use permissions grant" in out
+    assert "a2assistant computer-use permissions grant" in out

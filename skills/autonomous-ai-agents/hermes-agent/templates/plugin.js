@@ -1,7 +1,7 @@
 /**
  * A2Assistant desktop plugin template. Save as:
  *   <hermes home>/desktop-plugins/<id>/plugin.js   (folder name == id)
- * where <hermes home> is ~/.hermes by default, or ~/.hermes/profiles/<name>
+ * where <hermes home> is ~/.a2assistant by default, or ~/.a2assistant/profiles/<name>
  * when running a named profile (`a2assistant -p <name>`). Run `a2assistant doctor` (or
  * check the app's Settings → Plugins folder path) if unsure which is active.
  * Then run "Reload desktop plugins" from ⌘K in the desktop app.

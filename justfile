@@ -113,7 +113,7 @@ desktop-build:
 tui:
     pnpm --dir ui-tui run dev
 
-# Run a command against a throwaway HERMES_HOME (scripts/dev-sandbox.sh)
+# Run a command against a throwaway A2ASSISTANT_HOME (scripts/dev-sandbox.sh)
 [group('dev')]
 [positional-arguments]
 sandbox *args:

@@ -106,7 +106,7 @@ export interface RosterRow {
   /** An offline twin of a selected bot, kept visible so the row doesn't vanish. */
   ghost?: boolean
   handle?: string
-  /** A default row whose source also has a real (pre-reservation) `hermes`
+  /** A default row whose source also has a real (pre-reservation) `a2assistant`
    *  profile: that profile keeps @hermes and this row answers to @default.
    *  Set by `claimDefaultHandles`. */
   hermesHandleTaken?: boolean
@@ -132,7 +132,7 @@ export interface RosterRow {
   /** Nullable: the gateway sends `null` for a profile with no configured role,
    *  and the create form threads its own optional title through the same shape. */
   title?: null | string
-  /** Canonical ids this profile was previously known by (`hermes profile
+  /** Canonical ids this profile was previously known by (`a2assistant profile
    *  rename` records them in profile.yaml; the gateway surfaces them on
    *  profiles.list). Lets group chats re-link persisted member descriptors
    *  after a rename (#110200). */

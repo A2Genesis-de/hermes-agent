@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 
 def split_targets(target: str, sender: Any) -> list[str]:
     """``target`` as the recipients it names: one name, or a comma-separated list deduplicated by
-    the destination each name reaches (``hermes`` and ``default`` are one bot; a registered peer
+    the destination each name reaches (``a2assistant`` and ``default`` are one bot; a registered peer
     and a local bot whose friendly name matches it are two). A friendly name that itself contains
     a comma ('QA, Release') still resolves whole."""
     from tools.bot_mode_dm import _resolve_local_name
@@ -127,7 +127,7 @@ def _start_combined(collected: list[dict], sender: Any) -> dict:
 
 def _runner_output(command: str) -> str:
     """How a sub-runner reports: the live lane (``--run-delivery query-file``) prints one JSON
-    payload; the relay waiter and the ``hermes peer dm`` transport print the reply as text."""
+    payload; the relay waiter and the ``a2assistant peer dm`` transport print the reply as text."""
     from tools.bot_mode_dm import _runner_argv
 
     argv = shlex.split(command)

@@ -48,7 +48,7 @@ mode = "overwrite"
     )
     session_id = "cwd-e2e-session"
     task_id = "cwd-e2e-task"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv(relay_runtime.RELAY_PLUGINS_CONFIG_ENV, str(config))
     monkeypatch.chdir(session_cwd)
     monkeypatch.setattr(

@@ -46,8 +46,8 @@ def locked_wheelhouse(tmp_path_factory):
 @pytest.fixture
 def isolated_builder(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path / "home")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
     monkeypatch.chdir(tmp_path)
     # Neither the caller's config nor a populated uv cache may supply this graph.
     (tmp_path / "uv.toml").write_text('required-version = "<0.1"\n', encoding="utf-8")

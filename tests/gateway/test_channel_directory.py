@@ -23,7 +23,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def _isolate_channel_aliases(tmp_path_factory):
     """Point the alias overlay at a nonexistent path by default so a real
-    ~/.hermes/channel_aliases.json never leaks into directory tests. Tests
+    ~/.a2assistant/channel_aliases.json never leaks into directory tests. Tests
     that exercise aliases patch CHANNEL_ALIASES_PATH themselves inside the
     test body, which takes precedence over this outer patch."""
     missing = tmp_path_factory.mktemp("aliases") / "none.json"
@@ -210,7 +210,7 @@ class TestBuildFromSessions:
             },
         })
 
-        with patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}):
+        with patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path)}):
             entries = _build_from_sessions("telegram")
 
         assert len(entries) == 2

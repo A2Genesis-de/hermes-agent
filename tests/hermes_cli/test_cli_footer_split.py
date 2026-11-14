@@ -58,7 +58,7 @@ def _render_once(layout, kb, style, tty, rows=50, columns=200):
 
 
 def test_footer_survives_a_row_appearing_between_measure_and_paint(monkeypatch):
-    monkeypatch.setenv("HERMES_DEFER_AGENT_STARTUP", "1")
+    monkeypatch.setenv("A2ASSISTANT_DEFER_AGENT_STARTUP", "1")
     from cli import HermesCLI
 
     cli = HermesCLI(model="fixture", provider="openai-compat", api_key="fixture", base_url="http://127.0.0.1:1/v1")

@@ -1,6 +1,6 @@
 """The Windows CLI restart stamps the planned-restart marker — after the old gateway is gone.
 
-``hermes gateway restart`` on Windows is ``stop()`` + ``start()`` (no SIGUSR1), so nothing else would
+``a2assistant gateway restart`` on Windows is ``stop()`` + ``start()`` (no SIGUSR1), so nothing else would
 ever write ``.restart_pending.json`` and the next boot would skip the "Gateway online" home-channel
 notice. The marker has to land *after* the old process is gone — written before ``stop()`` it is
 visible to a still-draining gateway, which can replay the notice and unlink it — and *before*
@@ -18,7 +18,7 @@ MARKER = ".restart_pending.json"
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
     return tmp_path
 

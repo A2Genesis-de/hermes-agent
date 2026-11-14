@@ -60,10 +60,10 @@ except ImportError:
     except Exception:
         raise SystemExit(
             "Web UI requires fastapi and uvicorn.\n"
-            "Run hermes pm repair, then restart A2Assistant."
+            "Run a2assistant pm repair, then restart A2Assistant."
         )
 
-WEB_DIST = Path(os.environ["HERMES_WEB_DIST"]) if "HERMES_WEB_DIST" in os.environ else Path(__file__).parent / "web_dist"
+WEB_DIST = Path(os.environ["A2ASSISTANT_WEB_DIST"]) if "A2ASSISTANT_WEB_DIST" in os.environ else Path(__file__).parent / "web_dist"
 _log = logging.getLogger(__name__)
 
 
@@ -96,7 +96,7 @@ def _gateway_owns_cron(name: str, home) -> bool:
 def _start_desktop_cron_ticker(stop_event: threading.Event, interval: int = 60) -> None:
     """Tick the cron scheduler from inside the desktop dashboard backend.
 
-    The desktop spawns a ``hermes dashboard`` backend, not a gateway, so without
+    The desktop spawns a ``a2assistant dashboard`` backend, not a gateway, so without
     this a cron created in the app would never fire (no live adapters; delivery
     falls back to the per-platform send path). The primary backend outlives the
     per-profile pool (reaped after ~10 idle minutes), so it ticks EVERY local
@@ -673,7 +673,7 @@ _LAST_GATEWAY_RESTART: Optional[tuple[float, subprocess.Popen, tuple[str, ...]]]
 
 
 def _spawn_gateway_restart(profile: Optional[str] = None, *, interrupt: bool = False) -> tuple[subprocess.Popen, bool]:
-    """Spawn ``hermes gateway restart``, reusing an in-flight or recent restart.
+    """Spawn ``a2assistant gateway restart``, reusing an in-flight or recent restart.
 
     Concurrent children race each other on the kill-and-start path, so a live
     child is reused; requests within ``GATEWAY_RESTART_COOLDOWN_SECONDS`` for the
@@ -859,7 +859,7 @@ def _no_auth_provider_message(host: str) -> str:
         fix_hint = (
             "If this dashboard should be LOCAL-ONLY (no reverse "
             f"proxy), remove {setting} from config.yaml "
-            + ("(and unset HERMES_DASHBOARD_PUBLIC_URL) " if own_url is None else "")
+            + ("(and unset A2ASSISTANT_DASHBOARD_PUBLIC_URL) " if own_url is None else "")
             + "to restore the unauthenticated loopback mode.\n"
         )
     else:
@@ -874,7 +874,7 @@ def _no_auth_provider_message(host: str) -> str:
         "plugins.dashboard_auth.basic import hash_password; "
         "print(hash_password('your-password'))\")\n"
         "  • OAuth: install a DashboardAuthProvider plugin.\n"
-        "  • Deployment token: provision HERMES_DASHBOARD_SESSION_TOKEN "
+        "  • Deployment token: provision A2ASSISTANT_DASHBOARD_SESSION_TOKEN "
         "(a literal token, or 'file:<path>' naming a secret-manager-decrypted "
         "token file) — the bundled session-token provider then authorizes "
         "bearer REST + /api/ws ?token= for token-mode clients such as the "
@@ -900,7 +900,7 @@ def _no_auth_provider_message(host: str) -> str:
                 "plugins.disabled but dashboard.basic_auth is "
                 "configured.\n"
                 "Remove 'basic' from plugins.disabled (or run "
-                "`hermes plugins enable basic`), then restart the "
+                "`a2assistant plugins enable basic`), then restart the "
                 "dashboard.\n\n"
             ) + fix_hint
     except Exception:
@@ -1242,10 +1242,10 @@ def _on_server_started(
     # (#60772) still matches the legacy sentinel, while current parsers match
     # either. The legacy `dashboard` backend keeps its own single token.
     if headless:
-        _write_machine_sentinel_line(f"HERMES_BACKEND_READY port={actual_port}")
-        _write_machine_sentinel_line(f"HERMES_DASHBOARD_READY port={actual_port}")
+        _write_machine_sentinel_line(f"A2ASSISTANT_BACKEND_READY port={actual_port}")
+        _write_machine_sentinel_line(f"A2ASSISTANT_DASHBOARD_READY port={actual_port}")
     else:
-        _write_machine_sentinel_line(f"HERMES_DASHBOARD_READY port={actual_port}")
+        _write_machine_sentinel_line(f"A2ASSISTANT_DASHBOARD_READY port={actual_port}")
     if headless:
         # Auth-gated JSON-RPC/WS only — announce the bind, not a URL. flush:
         # a piped stdout otherwise surfaces this minutes after the sentinel.
@@ -1381,7 +1381,7 @@ def _start_server_runtime(
 
     ``initial_profile`` is appended to the auto-opened URL as ``?profile=<name>``
     (profile alias ``<profile> dashboard``). ``headless`` is the ``serve`` path:
-    JSON-RPC/WS backend, no UI build, no SPA mount (``HERMES_SERVE_HEADLESS``).
+    JSON-RPC/WS backend, no UI build, no SPA mount (``A2ASSISTANT_SERVE_HEADLESS``).
     ``isolated`` (``--isolated``) is recorded in the spawn ledger so attach-first
     discovery never adopts this process.
     ``ssh_session_token``/``ssh_owner_nonce`` are process-local Desktop SSH

@@ -52,7 +52,7 @@ def repo(tmp_path: Path, monkeypatch) -> Iterator[_Repo]:
     """main: a CalVer release, v0.9.0, v0.10.0 with its candidate, a canary. ``release/0.10`` forks
     at v0.10.0; v0.10.1 is published from a side branch, and v0.10.2 is cut as a merge whose first
     parent is the release branch tip and whose second parent is v0.10.1 (v0.22.2's shape)."""
-    for name in ("HERMES_E2E_UPGRADE_BASE", "HERMES_E2E_N1_REF", "CI", "GITHUB_ACTIONS"):
+    for name in ("A2ASSISTANT_E2E_UPGRADE_BASE", "A2ASSISTANT_E2E_N1_REF", "CI", "GITHUB_ACTIONS"):
         monkeypatch.delenv(name, raising=False)
     r = _Repo(tmp_path / "repo")
     monkeypatch.setattr(H, "WORKTREE", r.path)
@@ -85,7 +85,7 @@ def test_a_tagged_head_starts_from_the_release_before_it(repo):
 
 
 def test_no_release_before_head_fails_on_ci_and_skips_locally(tmp_path, monkeypatch):
-    for name in ("HERMES_E2E_UPGRADE_BASE", "HERMES_E2E_N1_REF", "CI", "GITHUB_ACTIONS"):
+    for name in ("A2ASSISTANT_E2E_UPGRADE_BASE", "A2ASSISTANT_E2E_N1_REF", "CI", "GITHUB_ACTIONS"):
         monkeypatch.delenv(name, raising=False)
     r = _Repo(tmp_path / "tagless")
     r.commit("only commit", "rc.1-v0.1.0")

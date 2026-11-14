@@ -382,7 +382,7 @@ test('decideMigration returns null when no candidate scores and legacy is invali
 test('decideMigration suppresses write when best is default (single-profile fallback)', () => {
   // The whole point of the migration is to migrate AWAY from default when a
   // better candidate exists. If 'default' wins the score, the install is
-  // default-primary and we leave it alone. Default's DB is $HERMES_HOME/state.db,
+  // default-primary and we leave it alone. Default's DB is $A2ASSISTANT_HOME/state.db,
   // not profiles/default/state.db.
   const deps = baseDeps()
 
@@ -468,7 +468,7 @@ test('migrateActiveProfileIfMissing writes heuristic choice with _migrated=true'
 test('migrateActiveProfileIfMissing is a no-op for single-profile (default-only) installs', () => {
   // No heuristic candidate can beat 'default', so the orchestrator must NOT
   // write a file — preserves legacy launch behavior for the 99% case.
-  // Production default DB is ~/.hermes/state.db, not profiles/default/state.db.
+  // Production default DB is ~/.a2assistant/state.db, not profiles/default/state.db.
   let written: unknown = null
 
   const fs = makeFs({
@@ -524,7 +524,7 @@ test('migrateActiveProfileIfMissing prefers a single running gateway over heuris
 })
 
 // ---------------------------------------------------------------------------
-// Production layout: default is ~/.hermes, not ~/.hermes/profiles/default
+// Production layout: default is ~/.a2assistant, not ~/.a2assistant/profiles/default
 // ---------------------------------------------------------------------------
 
 test('profileStateDbPath puts default at hermesHome, named under profilesRoot', () => {
@@ -570,7 +570,7 @@ test('findRunningGatewayProfiles sees default gateway.pid at hermesHome', () => 
 
 test('migrateActiveProfileIfMissing does not pin a tiny named profile over a large default DB', () => {
   // Regression for #100576: first-boot after update listed only
-  // ~/.hermes/profiles/<name>, never scored ~/.hermes/state.db, and wrote
+  // ~/.a2assistant/profiles/<name>, never scored ~/.a2assistant/state.db, and wrote
   // { profile: named, _migrated: true }.
   let written: unknown = null
 

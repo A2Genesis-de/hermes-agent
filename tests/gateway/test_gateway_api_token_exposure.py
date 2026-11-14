@@ -23,7 +23,7 @@ async def test_gateway_listener_never_publishes_the_session_token(tmp_path, monk
     (dist / "assets").mkdir(parents=True)
     (dist / "index.html").write_text("<html><head></head><body>spa</body></html>", encoding="utf-8")
     monkeypatch.setattr(web_server, "WEB_DIST", dist)
-    monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SERVE_HEADLESS", raising=False)
     # The process app mounted its SPA at import against the packaged dist; mount the same
     # routes over a built dist so GET / renders the bootstrap script the token rides in.
     spa = FastAPI()

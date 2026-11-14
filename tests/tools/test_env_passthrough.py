@@ -91,7 +91,7 @@ class TestConfigPassthrough:
         config = {"terminal": {"env_passthrough": ["MY_CUSTOM_KEY", "ANOTHER_TOKEN"]}}
         config_path = tmp_path / "config.yaml"
         config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         _ep_mod._config_passthrough.clear()
 
         assert is_env_passthrough("MY_CUSTOM_KEY")
@@ -103,7 +103,7 @@ class TestConfigPassthrough:
         config = {"terminal": {"env_passthrough": ["CONFIG_KEY"]}}
         config_path = tmp_path / "config.yaml"
         config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         _ep_mod._config_passthrough.clear()
 
         register_env_passthrough(["SKILL_KEY"])
@@ -351,7 +351,7 @@ class TestTerminalIntegration:
         config = {"terminal": {"env_passthrough": ["openai_api_key", "MY_OWN_KEY"]}}
         config_path = tmp_path / "config.yaml"
         config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         _ep_mod._config_passthrough.clear()
 
         assert not is_env_passthrough("openai_api_key")

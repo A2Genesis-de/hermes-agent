@@ -1166,7 +1166,7 @@ export function useSubmitPrompt(deps: SubmitPromptDeps) {
                   }
 
                   // 4094 is an explicit PRE-admission capability refusal; 4000 is the
-                  // legacy `hermes serve` contract refusing `submission_id` as an unknown
+                  // legacy `a2assistant serve` contract refusing `submission_id` as an unknown
                   // key (version skew) before any handler ran. Both are pre-admission and
                   // safe to retry identityless. Never downgrade on a timeout, malformed
                   // ACK or an ambiguous retry.

@@ -30,8 +30,8 @@ def _fake_pm_chromium(store):
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
     (tmp_path / "home").mkdir()
     monkeypatch.setattr(browser_runtime, "BAKED_EXECUTABLE_FILE", tmp_path / "etc" / "chromium-executable-path")
     return tmp_path
@@ -118,7 +118,7 @@ def test_system_chromium_only_where_pm_builds_none(homes, monkeypatch):
     # A target pm builds Chromium for: a system chromium on PATH is not picked up.
     monkeypatch.setattr(pm, "current_target", lambda: "linux-x64")
     assert browser_runtime.chromium_executable() is None
-    assert browser_runtime.chromium_missing_hint() == "Chromium is not installed: run `hermes pm install chromium`."
+    assert browser_runtime.chromium_missing_hint() == "Chromium is not installed: run `a2assistant pm install chromium`."
     # Termux (linux-arm64-bionic): pm builds no Chromium, the system one is used.
     monkeypatch.setattr(pm, "current_target", lambda: "linux-arm64-bionic")
     assert browser_runtime.chromium_executable() == str(exe)

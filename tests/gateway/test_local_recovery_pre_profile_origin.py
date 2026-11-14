@@ -18,7 +18,7 @@ def _build_runtime(tmp_path, monkeypatch):
     from gateway import run
     root = tmp_path / '.hermes'
     root.mkdir(mode=0o700, exist_ok=True)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     # The autouse isolation fixture pins hermes_state.DEFAULT_DB_PATH to its own fake home once
     # hermes_state is imported; per-home stores must follow the scoped HERMES_HOME here.
     import hermes_state

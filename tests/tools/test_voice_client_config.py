@@ -1,6 +1,6 @@
 """E2E tests for tools.voice_client_config — the /api/audio/voice-config resolver.
 
-Real config files in a temp HERMES_HOME, real resolution chains (no mocked
+Real config files in a temp A2ASSISTANT_HOME, real resolution chains (no mocked
 resolvers): what the endpoint hands the desktop must be exactly what the
 gateway's own relay endpoints would resolve for the same profile.
 """
@@ -14,14 +14,14 @@ import hermes_yaml as yaml
 
 @pytest.fixture()
 def voice_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME + reloaded config modules; yields a config writer."""
+    """Isolated A2ASSISTANT_HOME + reloaded config modules; yields a config writer."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     # Hermetic: no ambient provider keys may leak into resolution.
     for var in (
         "OPENAI_API_KEY", "VOICE_TOOLS_OPENAI_KEY", "STT_OPENAI_BASE_URL",
-        "HERMES_LOCAL_STT_LANGUAGE",
+        "A2ASSISTANT_LOCAL_STT_LANGUAGE",
     ):
         monkeypatch.delenv(var, raising=False)
 

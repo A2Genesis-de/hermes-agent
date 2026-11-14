@@ -17,24 +17,24 @@ from hermes_cli.gateway_runtime_service import RuntimeStartError, remaining
 # prefill file, provider request, project plugins) ride each session's ``client_env`` instead
 # (agent.session_client_env); an operator-started gateway keeps its own environment.
 DAEMON_STRIPPED_ENV = (
-    "HERMES_PROFILE", "HERMES_YOLO_MODE", "HERMES_IGNORE_RULES", "HERMES_SAFE_MODE",
-    "HERMES_IGNORE_USER_CONFIG", "HERMES_ACCEPT_HOOKS", "HERMES_SESSION_SOURCE", "TERMINAL_CWD",
-    "HERMES_KANBAN_TASK", "HERMES_KANBAN_WORKSPACE", "HERMES_KANBAN_BRANCH", "HERMES_KANBAN_RUN_ID",
-    "HERMES_KANBAN_CLAIM_LOCK", "HERMES_KANBAN_CLAIM_TTL_SECONDS", "HERMES_KANBAN_GOAL_MODE",
-    "HERMES_KANBAN_GOAL_MAX_TURNS", "HERMES_KANBAN_DB", "HERMES_KANBAN_WORKSPACES_ROOT",
-    "HERMES_KANBAN_BOARD", "HERMES_TENANT", "HERMES_SESSION_SOURCE_EXPLICIT", "HERMES_TURN_AUTHOR",
+    "A2ASSISTANT_PROFILE", "A2ASSISTANT_YOLO_MODE", "A2ASSISTANT_IGNORE_RULES", "A2ASSISTANT_SAFE_MODE",
+    "A2ASSISTANT_IGNORE_USER_CONFIG", "A2ASSISTANT_ACCEPT_HOOKS", "A2ASSISTANT_SESSION_SOURCE", "TERMINAL_CWD",
+    "A2ASSISTANT_KANBAN_TASK", "A2ASSISTANT_KANBAN_WORKSPACE", "A2ASSISTANT_KANBAN_BRANCH", "A2ASSISTANT_KANBAN_RUN_ID",
+    "A2ASSISTANT_KANBAN_CLAIM_LOCK", "A2ASSISTANT_KANBAN_CLAIM_TTL_SECONDS", "A2ASSISTANT_KANBAN_GOAL_MODE",
+    "A2ASSISTANT_KANBAN_GOAL_MAX_TURNS", "A2ASSISTANT_KANBAN_DB", "A2ASSISTANT_KANBAN_WORKSPACES_ROOT",
+    "A2ASSISTANT_KANBAN_BOARD", "A2ASSISTANT_TENANT", "A2ASSISTANT_SESSION_SOURCE_EXPLICIT", "A2ASSISTANT_TURN_AUTHOR",
     # Human-presence/one-shot markers: inherited, every messaging/cron turn would read as attended or -q.
-    "HERMES_INTERACTIVE", "HERMES_GATEWAY_SESSION", "HERMES_SINGLE_QUERY_SESSION",
-    "HERMES_EPHEMERAL_SYSTEM_PROMPT", "HERMES_PREFILL_MESSAGES_FILE", "HERMES_INFERENCE_PROVIDER",
-    "HERMES_ENABLE_PROJECT_PLUGINS", "HERMES_TUI_CLIENT_ENV",
+    "A2ASSISTANT_INTERACTIVE", "A2ASSISTANT_GATEWAY_SESSION", "A2ASSISTANT_SINGLE_QUERY_SESSION",
+    "A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT", "A2ASSISTANT_PREFILL_MESSAGES_FILE", "A2ASSISTANT_INFERENCE_PROVIDER",
+    "A2ASSISTANT_ENABLE_PROJECT_PLUGINS", "A2ASSISTANT_TUI_CLIENT_ENV",
     # A terminal's shell under a systemd service (gnome-terminal-server, a user unit) carries these; the
     # unmanaged daemon would then identify as "systemd" and maintenance would refuse it as supervised.
     "INVOCATION_ID", "JOURNAL_STREAM",
     # Same for any process below a launchd/--external-supervisor gateway (its agents' tools, scripts they
     # run): the daemon would identify as "launchd", never arm --idle-exit, and outlive every client.
     # HERMES_S6_SUPERVISED_CHILD stays: without it `gateway run` in an s6 container redirects to s6.
-    "XPC_SERVICE_NAME", "LAUNCHD_SOCKET", "HERMES_LAUNCHD_LABEL",
-    "HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "HERMES_SUPERVISED_CHILD",
+    "XPC_SERVICE_NAME", "LAUNCHD_SOCKET", "A2ASSISTANT_LAUNCHD_LABEL",
+    "A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR", "A2ASSISTANT_SUPERVISED_CHILD",
     # systemd's notify socket and watchdog name the unit's main process: the daemon would feed them.
     "NOTIFY_SOCKET", "WATCHDOG_USEC", "WATCHDOG_PID",
 )
@@ -70,7 +70,7 @@ def spawn_unmanaged_gateway(profile_home: Path, *, deadline: float, idle_exit: b
             raise RuntimeStartError("windows_interpreter_unavailable")
         env.update(overlay)
         env[_WINDOWS_GATEWAY_BREAKAWAY_ENV] = "1"
-    env.update(HERMES_HOME=str(home), HERMES_GATEWAY_DETACHED="1", PYTHONIOENCODING="utf-8")
+    env.update(A2ASSISTANT_HOME=str(home), A2ASSISTANT_GATEWAY_DETACHED="1", PYTHONIOENCODING="utf-8")
     # Profile selection is the explicit home, not the invoking client's display
     # name. Launch-only approval/context/config flags ride the launching session's frozen
     # policy, not the shared daemon or every later session.

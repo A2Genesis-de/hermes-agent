@@ -1,7 +1,7 @@
 """``browser.*`` config knobs and resolution of a plugin-registered cloud browser provider (explicit
 ``browser.cloud_provider`` only, per-profile cache).
 
-Every config read is profile-scoped: under a routed profile (multiplexed gateway, HERMES_HOME override)
+Every config read is profile-scoped: under a routed profile (multiplexed gateway, A2ASSISTANT_HOME override)
 the cached slots are bypassed or keyed by ``hermes_home_key()``, so one profile's engine / headed /
 private-URL policy never reaches another.
 """
@@ -111,7 +111,7 @@ def executable_path() -> str:
 
 def user_data_dir() -> str:
     """``browser.user_data_dir``: a persistent profile every session shares ("" = fresh per session).
-    ``~`` expands; a relative path is anchored at this profile's HERMES_HOME."""
+    ``~`` expands; a relative path is anchored at this profile's A2ASSISTANT_HOME."""
     import os
     raw = browser_cfg("user_data_dir", "", lambda v: str(v or "").strip())
     if not raw:

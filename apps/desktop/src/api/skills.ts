@@ -43,7 +43,7 @@ export function setSkillEnabled(
   })
 }
 
-/** Lock/unlock a skill against AGENT edits (`hermes curator lock`); the user's own edits stay allowed. */
+/** Lock/unlock a skill against AGENT edits (`a2assistant curator lock`); the user's own edits stay allowed. */
 export function setSkillLocked(
   name: string,
   locked: boolean,
@@ -103,7 +103,7 @@ export function editLearningNode(
 }
 
 // ---------------------------------------------------------------------------
-// Skills hub — search / preview / scan / install (parity with `hermes skills`
+// Skills hub — search / preview / scan / install (parity with `a2assistant skills`
 // and the dashboard's Browse-hub tab). Installs spawn background actions whose
 // logs are tailed via getActionStatus().
 // ---------------------------------------------------------------------------

@@ -1,10 +1,11 @@
-"""Gateway fleet restart + post-update verification for ``hermes update``.
+"""Gateway fleet restart + post-update verification for ``a2assistant update``.
 
 Split out of ``hermes_cli/update_cmd.py``; every name is re-imported there so
 ``hermes_cli.update_cmd.<name>`` keeps resolving/monkeypatching. Origin helpers are
 imported lazily inside each function (no import cycle; test patches stay effective).
 """
 
+from hermes_constants import unset_env
 import json
 import logging
 import re
@@ -16,6 +17,11 @@ import time as _time
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from hermes_cli.service_names import (
+    SYSTEMD_GATEWAY_UNITS,
+    is_gateway_unit,
+    is_launchd_label,
+)
 from hermes_cli.update_cmd_common import _best_effort
 from hermes_cli.update_host_obligation import PROFILE_MARKER_NAME
 from hermes_cli.update_inventory import _gateway_service_matches_profile
@@ -33,7 +39,7 @@ _FRESH_RESTART_SUPERVISORS = frozenset({"systemd", "launchd", "service", "s6"})
 
 _SYSTEMD_SCOPES = (("user", ["systemctl", "--user"]), ("system", ["systemctl"]))
 _LIST_GATEWAY_UNITS = [
-    "list-units", "hermes-gateway*", "hermes-serve*", "hermes-dashboard*",
+    "list-units", *(f"{unit}*" for unit in SYSTEMD_GATEWAY_UNITS), "hermes-serve*", "hermes-dashboard*",
     "--plain", "--no-legend", "--no-pager",
 ]
 
@@ -53,7 +59,7 @@ def _write_gateway_update_exit_code(ok: bool) -> None:
 
 
 def _fleet_restart_pending_marker_path() -> Path:
-    """LEGACY per-``HERMES_HOME`` breadcrumb. Read-compat only — nothing writes it any more.
+    """LEGACY per-``A2ASSISTANT_HOME`` breadcrumb. Read-compat only — nothing writes it any more.
 
     One host runs one multiplexing gateway, so the pull→restart obligation is host-scoped
     (``hermes_cli/update_host_obligation.py``). An obligation armed by the old per-profile code
@@ -152,7 +158,7 @@ def _receipt_looks_unfinished(receipt: dict) -> bool:
 
     The command boundary stamps a ``stop_reason`` on every receipt, including clean
     ones (``completed at command boundary``, ``sys.exit(0)``); it must not make a
-    successful receipt look unfinished, or the next ``hermes update`` retriggers
+    successful receipt look unfinished, or the next ``a2assistant update`` retriggers
     ``fleet_restart_pending`` from pre-pull plan SHAs (#98022).
     """
     exit_code = receipt.get("exit_code")
@@ -496,10 +502,10 @@ def _update_owes_fleet_restart(*, receipt: dict | None = None, pending_manual: l
 def _warn_pending_fleet_restart(*, startup: bool = False) -> None:
     """Print the specific interrupted-update fleet-restart warning."""
     stream = sys.stderr if startup else sys.stdout
-    print("⚠ A previous `hermes update` pulled new code but did not restart running gateways.", file=stream)
+    print("⚠ A previous `a2assistant update` pulled new code but did not restart running gateways.", file=stream)
     print("  Gateways may still be serving pre-update modules (mixed sys.modules).", file=stream)
     if startup:
-        print("  Run `hermes update` or `hermes gateway restart`.", file=stream)
+        print("  Run `a2assistant update` or `a2assistant gateway restart`.", file=stream)
 
 
 def _warn_pending_fleet_restart_on_startup() -> None:
@@ -563,10 +569,10 @@ def _unit_main_pid(scope_cmd: list, svc_name: str) -> int:
 
 
 def _restart_systemd_gateway_units_best_effort(failed: list, listings) -> None:
-    """Restart every hermes-gateway/serve unit ONCE PER LIVE HOST PROCESS.
+    """Restart every a2assistant-gateway/serve unit ONCE PER LIVE HOST PROCESS.
 
     One host runs one multiplexing gateway, so leftover per-profile units
-    (``hermes-gateway-<profile>.service``) all point at the SAME live ``MainPID``; restarting
+    (``a2assistant-gateway-<profile>.service``) all point at the SAME live ``MainPID``; restarting
     each in turn restarts the host gateway N times — a self-inflicted N-fold outage triggered
     by one update. Units that share a live main PID are collapsed to one representative and the
     others are named as LEGACY units to migrate, never silently dropped.
@@ -597,7 +603,7 @@ def _restart_systemd_gateway_units_best_effort(failed: list, listings) -> None:
         print(
             f"  • {unit_key} is a legacy per-profile unit sharing one host gateway process with "
             f"{owner_key}; restarting it again would restart that process twice. Fold the units "
-            "together with: hermes gateway migrate"
+            "together with: a2assistant gateway migrate"
         )
 
     for key in keys:
@@ -642,7 +648,7 @@ def _restart_identity_sha() -> str:
 
     ``_current_checkout_sha()`` is ``None`` on every non-git install (zip, pip, Docker), and an
     empty stamp can never match, so the per-host restart-once guard would be inert exactly on the
-    installs it exists for: each profile's ``hermes update`` would re-kill the one shared
+    installs it exists for: each profile's ``a2assistant update`` would re-kill the one shared
     multiplexer. The obligation's own ``expected_sha`` — else the receipt's post-update identity —
     names the same pulled code.
     """
@@ -665,9 +671,9 @@ def _fleet_restart_skip_reason(plan) -> str | None:
 
     Every route (pulled, already-current, ZIP) now finishes through the same completion
     tail, so the guards the old catch-up path carried live here: one host runs ONE
-    multiplexing gateway, so a second profile's ``hermes update`` attaches to the restart the
+    multiplexing gateway, so a second profile's ``a2assistant update`` attaches to the restart the
     first one already stamped (#95294), and a fleet already serving the checkout code (a
-    no-op update, a manual ``hermes gateway restart`` seconds ago) is not re-killed (#117051).
+    no-op update, a manual ``a2assistant gateway restart`` seconds ago) is not re-killed (#117051).
 
     The second guard needs BOTH the pre-update plan and the live probe: the live matrix only
     lists gateways, so a planned ``serve`` still on pre-update code (or any runtime without a
@@ -710,8 +716,8 @@ def _systemctl_reset_and_restart(manage_cmd: list, svc_name: str, *, scope_cmd: 
 def _systemd_unit_owned_by_update(scope_cmd: list, svc_name: str) -> bool:
     """Gate a unit restart on the unit's home being one this update owns (#93349).
 
-    ``hermes-gateway*`` is an account-wide namespace: a second install's ``hermes update`` used
-    to drain and restart the account's real ``hermes-gateway.service`` because the unit was
+    ``a2assistant-gateway*`` is an account-wide namespace: a second install's ``a2assistant update`` used
+    to drain and restart the account's real ``a2assistant-gateway.service`` because the unit was
     listed, not because it ran the updated code. Foreign or unreadable ownership prints a notice
     and leaves the unit alone; it is not a failed restart.
     """
@@ -754,14 +760,13 @@ def _is_hermes_gateway_unit(unit: str) -> bool:
     return (
         # list-units is already pattern-filtered, but keep the name gate so a stray non-gateway/serve line
         # cannot enter the restart path. See #83595.
-        unit == "hermes-gateway.service"
-        or unit.startswith("hermes-gateway-")
+        (unit.endswith(".service") and is_gateway_unit(unit.removesuffix(".service")))
         or _is_serve_or_dashboard_unit(unit)
     )
 
 
 def _for_each_systemd_gateway_unit(list_units_stdout: str, *, process_unit, on_unit_timeout) -> None:
-    """Process each hermes-gateway*/hermes-serve* unit from ``systemctl list-units``.
+    """Process each a2assistant-gateway*/hermes-serve* unit from ``systemctl list-units``.
 
     ``TimeoutExpired`` from ``process_unit`` is isolated per unit via ``on_unit_timeout``
     so one wedged systemctl call cannot abort the rest of the fleet.
@@ -785,14 +790,14 @@ def _for_each_systemd_gateway_unit(list_units_stdout: str, *, process_unit, on_u
 def _service_unit_supports_graceful_sigusr1_restart(svc_name: str) -> bool:
     """Whether *svc_name* wires SIGUSR1 to a graceful drain-then-restart.
 
-    Only ``hermes-gateway*`` runs ``gateway/run.py`` (the handler); SIGUSR1 would just
+    Only ``a2assistant-gateway*`` runs ``gateway/run.py`` (the handler); SIGUSR1 would just
     kill ``hermes-serve*`` and burn the drain budget, so those go straight to the blunt
     restart. Same exact/hyphenated shape as ``_for_each_systemd_gateway_unit`` so a
     near-prefix unit like ``hermes-gatewayd`` is never signalled.
 
     See #83438.
     """
-    return svc_name == "hermes-gateway" or svc_name.startswith("hermes-gateway-")
+    return is_gateway_unit(svc_name)
 
 
 def _warn_incomplete_gateway_fleet_restart(failed_units: list) -> None:
@@ -811,17 +816,17 @@ def _warn_incomplete_gateway_fleet_restart(failed_units: list) -> None:
         # See #88848.
         print("  Listed services may be deregistered from launchd, or still")
         print("  running pre-update code (mixed sys.modules). Recover with:")
-        print("    hermes gateway status")
+        print("    a2assistant gateway status")
         print("    launchctl list | grep <label>")
         print("    launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/<label>.plist")
         return
     print("  Skipped units may still be running pre-update code (mixed")
     print("  sys.modules). Restart them manually, then verify:")
-    print("    hermes gateway status")
-    if any(not name.startswith("ai.hermes.") for name in ordered):
+    print("    a2assistant gateway status")
+    if any(not is_launchd_label(name) for name in ordered):
         print("    systemctl --user restart <unit>   # user-scope")
         print("    sudo systemctl restart <unit>     # system-scope")
-    if any(name.startswith("ai.hermes.") for name in ordered):
+    if any(is_launchd_label(name) for name in ordered):
         print("    launchctl kickstart -k gui/$UID/<label>   # macOS (or user/$UID)")
 
 
@@ -864,7 +869,7 @@ def _restart_launchd_gateway_after_update(
             print(
                 f"  ⚠ Gateway restart failed: {stderr}\n"
                 "    The gateway may be DOWN on pre-update code. "
-                "Recover manually: hermes gateway restart"
+                "Recover manually: a2assistant gateway restart"
             )
             return [], [current_label]
     except (FileNotFoundError, subprocess.TimeoutExpired) as e:
@@ -874,7 +879,7 @@ def _restart_launchd_gateway_after_update(
             # The old code `pass`ed here (#74973's second silent variant); count it and tell the operator.
             "  ⚠ Could not restart the gateway "
             f"({e.__class__.__name__}: {e}).\n"
-            "    Recover manually: hermes gateway restart"
+            "    Recover manually: a2assistant gateway restart"
         )
         return [], [current_label]
 
@@ -898,7 +903,7 @@ def _restart_launchd_gateway_after_update(
         return [current_label], []
     print(
         f"  ✗ {current_label} restarted but launchd is not supervising a new process for it.\n"
-        "    Check logs, then: hermes gateway restart"
+        "    Check logs, then: a2assistant gateway restart"
     )
     return [], [current_label]
 
@@ -909,7 +914,7 @@ def _restart_macos_launchd_gateways(
 ) -> None:
     """Restart every launchd-managed gateway after an update (macOS).
 
-    The pull is shared across profiles, so every ``ai.hermes.gateway*`` LaunchAgent
+    The pull is shared across profiles, so every ``de.a2genesis.a2assistant.gateway*`` LaunchAgent
     must reload it or siblings stay on pre-update ``sys.modules`` (systemd parity).
     Invoking profile uses ``launchd_restart()``; siblings get the same drain-first
     sequence with their domain (``gui/<uid>`` vs ``user/<uid>``) resolved per label so
@@ -1100,8 +1105,8 @@ def _warn_gateway_restart_phase_aborted(exc: BaseException, pids) -> None:
         print("  Any gateway still running is serving pre-update code")
         print("  (mixed sys.modules) against the updated checkout.")
     print("  Restart it manually, then verify:")
-    print("    hermes gateway restart")
-    print("    hermes gateway status")
+    print("    a2assistant gateway restart")
+    print("    a2assistant gateway status")
 
 
 def _drain_or_signal_gateway_for_update(
@@ -1150,7 +1155,7 @@ def _drain_or_signal_gateway_for_update(
 
 
 def _gateway_home_for_pid(pid: int):
-    """HERMES_HOME of the gateway ``pid`` per the fleet inventory, else None (own profile's file)."""
+    """A2ASSISTANT_HOME of the gateway ``pid`` per the fleet inventory, else None (own profile's file)."""
     with suppress(Exception):
         from hermes_cli.update_receipt import _profile_homes
         from gateway.status import read_runtime_status
@@ -1184,7 +1189,7 @@ def _resolve_manage_cmd(cache: dict, scope_: str, scope_cmd_: list, svc_name_: s
     Manage-units verbs on a *system* service trigger a polkit prompt for non-root
     users, which flashes and dies inside our captured 10-15s subprocess. Root → plain
     systemctl; else ``sudo -n`` blanket probe, then a targeted ``reset-failed`` probe
-    so a least-privilege sudoers entry scoped to hermes-gateway* qualifies (idempotent
+    so a least-privilege sudoers entry scoped to a2assistant-gateway* qualifies (idempotent
     no-op we run before every privileged restart anyway). On None the caller must SKIP
     the restart (without draining first!). ``--no-ask-password`` prevents polkit hangs.
     """
@@ -1220,19 +1225,19 @@ def _repair_unit_without_fatal_exit_park(svc_name: str, scope: str) -> None:
     if system and not _needs_sudo(scope) and svc_name == get_service_name() and not past_commit_point():
         # The refresh adopts the unit's HERMES_HOME into os.environ (sudo strips it); the rest of the
         # update keeps running for the invoking profile.
-        launch_home = os.environ.get("HERMES_HOME")
+        launch_home = os.environ.get("A2ASSISTANT_HOME")
         try:
             refresh_systemd_unit_if_needed(system=True)
         finally:
             if launch_home is None:
-                os.environ.pop("HERMES_HOME", None)
+                unset_env(os.environ, "HOME")
             else:
-                os.environ["HERMES_HOME"] = launch_home
+                os.environ["A2ASSISTANT_HOME"] = launch_home
         return
     print(
         f"  ⚠ {svc_name} lacks RestartPreventExitStatus={GATEWAY_FATAL_CONFIG_EXIT_CODE}: a permanent refusal "
         f"(exit {GATEWAY_FATAL_CONFIG_EXIT_CODE}) would crash-loop it instead of parking.\n"
-        f"    Repair: {'sudo ' if system else ''}hermes gateway install{' --system' if system else ''}"
+        f"    Repair: {'sudo ' if system else ''}a2assistant gateway install{' --system' if system else ''}"
     )
 
 
@@ -1306,7 +1311,7 @@ def _restart_one_systemd_gateway_unit(
             f"  ⚠ {svc_name} is a system service and restarting it needs root.\n"
             f"    Restart it manually to load the new version:\n"
             f"      sudo systemctl restart {svc_name}\n"
-            f"    To let `hermes update` restart it automatically, allow\n"
+            f"    To let `a2assistant update` restart it automatically, allow\n"
             f"    passwordless sudo for systemctl, or run updates with sudo."
         )
         return
@@ -1345,7 +1350,7 @@ def _restart_one_systemd_gateway_unit(
 def _restart_systemd_gateway_units(
     restarted_services, failed_or_stale_units, restarted_scoped_units, drain_budget, self_restart_pending=None,
 ):
-    """Restart every active hermes-gateway*/hermes-serve* systemd unit (user + system).
+    """Restart every active a2assistant-gateway*/hermes-serve* systemd unit (user + system).
 
     Settled units → ``restarted_services`` (bare) and ``restarted_scoped_units``
     (``scope/name``); failures → ``failed_or_stale_units``. Per-unit timeouts isolated.
@@ -1362,7 +1367,7 @@ def _restart_systemd_gateway_units(
         print(
             f"  ⚠ systemctl timed out listing {scope}-scope "
             f"gateway units ({exc.cmd if exc.cmd else 'unknown command'}). "
-            f"Check the gateway with: hermes gateway status"
+            f"Check the gateway with: a2assistant gateway status"
         )
 
     def _on_unit_timeout(svc_name: str, exc: subprocess.TimeoutExpired) -> None:
@@ -1399,7 +1404,7 @@ def _restart_systemd_gateway_units(
         print(
             f"  • {unit_key} is a legacy per-profile unit sharing one host gateway process with "
             f"{owner_key}; restarting it again would restart that process twice. Fold the units "
-            "together with: hermes gateway migrate"
+            "together with: a2assistant gateway migrate"
         )
 
     from hermes_cli.update_cmd_posix_pause import already_restarted
@@ -1573,9 +1578,9 @@ def _restart_manual_gateways(out: _GatewayRestartOutcome, _drain_budget) -> None
         unmapped_count = (len(out.killed_pids) - len(out.relaunched_profiles) - len(out.externally_supervised_profiles))
         if unmapped_count:
             print(f"  → Stopped {unmapped_count} manual gateway process(es)")
-            print("    Restart manually: hermes gateway run")
+            print("    Restart manually: a2assistant gateway run")
             if unmapped_count > 1:
-                print("    (or: hermes -p <profile> gateway run  for each profile)")
+                print("    (or: a2assistant -p <profile> gateway run  for each profile)")
 
 
 def _force_kill_stuck_gateways(killed_pids) -> None:

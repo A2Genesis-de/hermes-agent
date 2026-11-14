@@ -15,11 +15,11 @@ bash -n "$SCRIPT" && echo "syntax OK" || exit 1
 if command -v cygpath >/dev/null 2>&1; then ROOT="$(cygpath -m "$(mktemp -d)")"; else ROOT="$(mktemp -d)"; fi
 export HOME="$ROOT/home"; mkdir -p "$HOME"
 export GIT_CONFIG_GLOBAL="$ROOT/gitconfig-test"; : > "$GIT_CONFIG_GLOBAL"
-export HERMES_HOME="$ROOT/home/.hermes"
-export HERMES_DESKTOP_USER_DATA_DIR="$ROOT/electron-user-data"
-export HERMES_STOP_LOG="$ROOT/gateway-stop.log"
+export A2ASSISTANT_HOME="$ROOT/home/.hermes"
+export A2ASSISTANT_DESKTOP_USER_DATA_DIR="$ROOT/electron-user-data"
+export A2ASSISTANT_STOP_LOG="$ROOT/gateway-stop.log"
 
-H="$HERMES_HOME"; INSTALL="$H/hermes-agent"
+H="$A2ASSISTANT_HOME"; INSTALL="$H/hermes-agent"
 
 echo "--- fixture under $ROOT ---"
 mkdir -p "$H/plugins/mnemosyne-wrapper" "$H/photon/sidecar/node_modules" "$H/memories"
@@ -65,7 +65,7 @@ mkdir -p "$INSTALL/.hermes/bin" "$INSTALL/.hermes-runtime/python"
 cat > "$INSTALL/.hermes/bin/hermes" <<'SH'
 #!/bin/sh
 if [ "$1" = backup ] && [ "$2" = -o ]; then printf 'fake-zip\n' > "$3"; exit 0; fi
-if [ "$1" = gateway ] && [ "$2" = stop ]; then printf '%s\n' "$HERMES_HOME" > "$HERMES_STOP_LOG"; exit 0; fi
+if [ "$1" = gateway ] && [ "$2" = stop ]; then printf '%s\n' "$A2ASSISTANT_HOME" > "$A2ASSISTANT_STOP_LOG"; exit 0; fi
 exit 1
 SH
 chmod +x "$INSTALL/.hermes/bin/hermes"
@@ -76,11 +76,11 @@ SYMLINKS_OK=0
 [ -L "$HOME/.local/bin/hermes" ] && SYMLINKS_OK=1
 echo "host symlink support: $SYMLINKS_OK"
 
-mkdir -p "$HERMES_DESKTOP_USER_DATA_DIR/Local Storage/leveldb" "$HERMES_DESKTOP_USER_DATA_DIR/Cache"
-printf '{"window":{}}\n' > "$HERMES_DESKTOP_USER_DATA_DIR/Preferences"
-printf '{"session":"t"}\n' > "$HERMES_DESKTOP_USER_DATA_DIR/connection.json"
-printf 'x' > "$HERMES_DESKTOP_USER_DATA_DIR/Local Storage/leveldb/000001.ldb"
-printf 'junk' > "$HERMES_DESKTOP_USER_DATA_DIR/Cache/data.bin"
+mkdir -p "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/Local Storage/leveldb" "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/Cache"
+printf '{"window":{}}\n' > "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/Preferences"
+printf '{"session":"t"}\n' > "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/connection.json"
+printf 'x' > "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/Local Storage/leveldb/000001.ldb"
+printf 'junk' > "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/Cache/data.bin"
 
 BACKUPS="$ROOT/backups"
 RUN=("$SCRIPT")
@@ -95,7 +95,7 @@ STATUS_BEFORE="$(git -C "$INSTALL" status --porcelain)"
 # A pristine copy of both trees: post is checked against it for exactness.
 mkdir -p "$ROOT/pristine/home" "$ROOT/pristine/userdata"
 cp -a "$H/." "$ROOT/pristine/home/"
-cp -a "$HERMES_DESKTOP_USER_DATA_DIR/." "$ROOT/pristine/userdata/"
+cp -a "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/." "$ROOT/pristine/userdata/"
 "${RUN[@]}" pre --source "$INSTALL" --backup-root "$BACKUPS" > "$ROOT/pre.log" 2>&1
 check $? "pre exits 0"
 SNAP="$(ls -1d "$BACKUPS"/*/ | head -1)"; SNAP="${SNAP%/}"
@@ -138,15 +138,15 @@ printf 'timezone: changed-by-update\n' > "$H/config.yaml"
 rm "$H/memories/note.md"
 printf 'print(2)\n' > "$INSTALL/added_by_update.py"
 mkdir -p "$H/photon/sidecar/node_modules/newdep"; printf 'x' > "$H/photon/sidecar/node_modules/newdep/index.js"
-printf '{"window":{"changed":true}}\n' > "$HERMES_DESKTOP_USER_DATA_DIR/Preferences"
-printf '{}\n' > "$HERMES_DESKTOP_USER_DATA_DIR/new-after-update.json"
-! diff -r --no-dereference "$ROOT/pristine/home" "$H" >/dev/null 2>&1; check $? "the simulated update changed HERMES_HOME"
+printf '{"window":{"changed":true}}\n' > "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/Preferences"
+printf '{}\n' > "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/new-after-update.json"
+! diff -r --no-dereference "$ROOT/pristine/home" "$H" >/dev/null 2>&1; check $? "the simulated update changed A2ASSISTANT_HOME"
 
 echo
 echo "--- post ---"
 "${RUN[@]}" post --backup-root "$BACKUPS" --yes > "$ROOT/post.log" 2>&1
 check $? "post exits 0"
-[ "$(cat "$HERMES_STOP_LOG" 2>/dev/null)" = "$H" ]; check $? "post stops only this home's gateway"
+[ "$(cat "$A2ASSISTANT_STOP_LOG" 2>/dev/null)" = "$H" ]; check $? "post stops only this home's gateway"
 [ -f "$H/config.yaml" ]; check $? "config.yaml restored"
 [ -f "$H/.env" ]; check $? ".env restored"
 [ -f "$H/memories/note.md" ]; check $? "memories restored"
@@ -156,7 +156,7 @@ check $? "post exits 0"
 [ -d "$INSTALL/.git" ]; check $? "checkout restored"
 [ "$(git -C "$INSTALL" rev-parse HEAD)" = "$HEAD_SHA" ]; check $? "checkout HEAD restored"
 [ "$(git -C "$INSTALL" config --get remote.origin.url)" = "https://github.com/NousResearch/hermes-agent.git" ]; check $? "origin remote restored"
-[ -f "$HERMES_DESKTOP_USER_DATA_DIR/connection.json" ]; check $? "userData connection.json restored"
+[ -f "$A2ASSISTANT_DESKTOP_USER_DATA_DIR/connection.json" ]; check $? "userData connection.json restored"
 [ "$(git -C "$INSTALL" config --local --get-regexp 'insteadOf' 2>/dev/null | wc -l | tr -d ' ')" = 0 ]; check $? "no stale insteadOf left in the checkout"
 [ ! -f "$H/.skip_upstream_prompt" ]; check $? "upstream-prompt marker removed"
 git -C "$INSTALL" remote get-url origin | grep -q 'NousResearch'; check $? "origin resolves officially again"
@@ -173,9 +173,9 @@ fi
 echo
 echo "--- the acceptance criterion: every file identical before/after ---"
 diff -r --no-dereference "$ROOT/pristine/home" "$H" > "$ROOT/home.diff" 2>&1
-check $? "HERMES_HOME identical to before pre"
+check $? "A2ASSISTANT_HOME identical to before pre"
 [ -s "$ROOT/home.diff" ] && sed 's/^/    /' "$ROOT/home.diff" | head -30
-diff -r --no-dereference "$ROOT/pristine/userdata" "$HERMES_DESKTOP_USER_DATA_DIR" > "$ROOT/userdata.diff" 2>&1
+diff -r --no-dereference "$ROOT/pristine/userdata" "$A2ASSISTANT_DESKTOP_USER_DATA_DIR" > "$ROOT/userdata.diff" 2>&1
 check $? "userData identical to before pre"
 [ -s "$ROOT/userdata.diff" ] && sed 's/^/    /' "$ROOT/userdata.diff" | head -30
 

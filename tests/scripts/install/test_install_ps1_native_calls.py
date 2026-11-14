@@ -55,11 +55,11 @@ def _git(repo: Path, *args: str) -> str:
 @pytest.fixture
 def _ready_git(pinned_git_store, monkeypatch):
     """The repository-stage tests share one ready pinned Git (see conftest.py)."""
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(pinned_git_store))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(pinned_git_store))
 
 
 def _stage(origin: Path, home: Path, *extra: str, **env_extra: str) -> tuple[subprocess.CompletedProcess, dict]:
-    env = dict(os.environ, HERMES_REPO_URL=str(origin), HERMES_HOME=str(home), **env_extra)
+    env = dict(os.environ, A2ASSISTANT_REPO_URL=str(origin), A2ASSISTANT_HOME=str(home), **env_extra)
     result = subprocess.run([_powershell(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(INSTALLER),
                              "-Stage", "repository", "-Json", *extra],
                             env=env, capture_output=True, text=True, timeout=180, check=False)

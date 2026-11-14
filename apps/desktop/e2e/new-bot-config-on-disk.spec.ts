@@ -9,7 +9,7 @@ import { expect, test } from './test'
 // its own config.yaml and its introduction turn must actually run — a profile
 // whose config.yaml lacks the block is dead on arrival ("No LLM provider
 // configured" on the first message). Verified against storage truth (the
-// created profile's config.yaml under HERMES_HOME), not the toast.
+// created profile's config.yaml under A2ASSISTANT_HOME), not the toast.
 
 let fixture: MockBackendFixture | null = null
 

@@ -1,4 +1,4 @@
-"""A Kanban worker spawned while `hermes update` drains the owner waits for it instead of failing.
+"""A Kanban worker spawned while `a2assistant update` drains the owner waits for it instead of failing.
 
 The dispatcher keeps spawning workers during an update window; the owner answers ``draining``
 until the update releases the install. Exiting 1 there books a crash against the card, and two
@@ -44,7 +44,7 @@ async def test_worker_waits_out_a_draining_owner_and_submits_once(monkeypatch, t
     monkeypatch.setattr(kanban_worker_client.asyncio, "sleep", _no_sleep)
     from gateway import session_kanban
     monkeypatch.setattr(session_kanban, "worker_result", lambda *_: {"exit_code": 0, "last_output": "card closed"})
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_GATEWAY_URL", raising=False)
 
     assert await kanban_worker_client.run({"task_id": "t1"}, str(tmp_path / "kanban.db")) == 0
     assert submitted == ["kanban.run"]
@@ -55,7 +55,7 @@ async def test_worker_fails_at_once_when_the_owner_is_not_transiently_down(monke
     submitted = []
     monkeypatch.setattr(gateway_client, "connect_gateway", _owner(["inaccessible"], submitted))
     monkeypatch.setattr(kanban_worker_client.asyncio, "sleep", _no_sleep)
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_GATEWAY_URL", raising=False)
 
     with pytest.raises(gateway_client.GatewayClientError):
         await kanban_worker_client.run({"task_id": "t1"}, str(tmp_path / "kanban.db"))

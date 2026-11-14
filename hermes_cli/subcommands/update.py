@@ -1,4 +1,4 @@
-"""``hermes update`` subcommand parser."""
+"""``a2assistant update`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -36,11 +36,11 @@ def build_update_parser(subparsers, *, cmd_update: Callable) -> None:
     )
     update_parser.add_argument(
         "--backup", action="store_true", default=False,
-        help="Force a FULL pre-update backup (quick state snapshot + HERMES_HOME zip) for this run, regardless of updates.pre_update_backup",
+        help="Force a FULL pre-update backup (quick state snapshot + A2ASSISTANT_HOME zip) for this run, regardless of updates.pre_update_backup",
     )
     update_parser.add_argument(
         "--yes", "-y", action="store_true", default=False,
-        help="Run without blocking on prompts: accepts the config-migration and stash-restore prompts. API-key entry is skipped; run 'hermes config migrate' separately for those.",
+        help="Run without blocking on prompts: accepts the config-migration and stash-restore prompts. API-key entry is skipped; run 'a2assistant config migrate' separately for those.",
     )
     update_parser.add_argument(
         "--keep-stash", action="store_true", default=False,

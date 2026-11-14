@@ -1,6 +1,6 @@
 """Standalone backend -> owning gateway for Group Chat calls (WA-19).
 
-A standalone ``hermes serve``/``hermes dashboard`` has no session authority: on its own it keeps
+A standalone ``a2assistant serve``/``a2assistant dashboard`` has no session authority: on its own it keeps
 rooms in the root ``shared-state.db`` and drives them here. Once a ready gateway serves the
 profile, that gateway's store is the one Group Chat list native Desktop and the Webapp share, so
 the room calls a Desktop makes go to it instead (the owner-forward path prompts already use:

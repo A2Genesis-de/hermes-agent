@@ -1,4 +1,4 @@
-"""``hermes config set display.language`` accepts every ``supported_languages()`` id — bundled, alias,
+"""``a2assistant config set display.language`` accepts every ``supported_languages()`` id — bundled, alias,
 and a plugin language pack found through real discovery — and refuses unknown ids naming the options."""
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ def home(tmp_path, monkeypatch):
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     i18n_layers._reset_registry_for_tests()
     i18n.reset_language_cache()

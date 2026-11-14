@@ -1,4 +1,4 @@
-"""Resolve HERMES_HOME for standalone skill scripts.
+"""Resolve A2ASSISTANT_HOME for standalone skill scripts.
 
 Skill scripts may run outside the Hermes process (e.g. system Python,
 nix env, CI) where ``hermes_constants`` is not importable.  This module
@@ -11,7 +11,7 @@ picked up automatically.  The fallback path replicates the core logic
 from ``hermes_constants.py`` using only the stdlib.
 
 All scripts under ``google-workspace/scripts/`` should import from here
-instead of duplicating the ``HERMES_HOME = Path(os.getenv(...))`` pattern.
+instead of duplicating the ``A2ASSISTANT_HOME = Path(os.getenv(...))`` pattern.
 """
 
 from __future__ import annotations
@@ -25,10 +25,10 @@ try:
 except (ModuleNotFoundError, ImportError):
 
     def get_hermes_home() -> Path:
-        """Return the Hermes home directory (default: ~/.hermes).
+        """Return the Hermes home directory (default: ~/.a2assistant).
 
         Mirrors ``hermes_constants.get_hermes_home()``."""
-        val = os.environ.get("HERMES_HOME", "").strip()
+        val = os.environ.get("A2ASSISTANT_HOME", "").strip()
         return Path(val) if val else Path.home() / ".hermes"
 
     def display_hermes_home() -> str:

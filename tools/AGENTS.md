@@ -22,7 +22,7 @@ private vision check.
 
 ## Adding a core tool (2 files) — only when the user is explicitly contributing a core tool
 
-For custom/local-only tools do NOT edit core: create `~/.hermes/plugins/<name>/plugin.yaml` +
+For custom/local-only tools do NOT edit core: create `~/.a2assistant/plugins/<name>/plugin.yaml` +
 `__init__.py` and call `ctx.register_tool(...)`; plugin toolsets are discovered automatically and
 toggled without touching `tools/` or `toolsets.py` (`plugins/AGENTS.md`).
 
@@ -64,7 +64,7 @@ Rules for tool code:
   `INLINE_TOOL_EXECUTORS` table (`agent/inline_tool_executors.py`; `agent/AGENTS.md`).
 - **`_last_resolved_tool_names`** is a process-global in `model_tools.py`; `_run_single_child()` in
   `delegate_tool.py` saves/restores it around child runs — readers may see it stale mid-delegation.
-- New tools integrate with existing setup UX (`hermes tools`, `hermes setup`, auto-install) rather
+- New tools integrate with existing setup UX (`a2assistant tools`, `a2assistant setup`, auto-install) rather
   than a raw env var; secrets go in `OPTIONAL_ENV_VARS` (`hermes_cli/AGENTS.md`).
 
 ## Toolsets (`toolsets.py`)
@@ -73,7 +73,7 @@ Single `TOOLSETS` dict. Keys today: `browser, clarify, code_execution, cronjob, 
 delegation, file, image_gen,
 kanban, memory, messaging, moa, rl, safe, search, session_search, skills, terminal, todo,
 tts, video, vision, web` (don't assert the list in tests). Per-platform enable/disable via
-`hermes tools` (curses) or `tools.<platform>.enabled/disabled` in config.yaml. `browser_exec` is the
+`a2assistant tools` (curses) or `tools.<platform>.enabled/disabled` in config.yaml. `browser_exec` is the
 one core browser tool (beside `browser_cdp` / `browser_dialog` / `browser_vault`, all CDP).
 
 ## Browser runtime
@@ -91,7 +91,7 @@ is fresh unless a persistent profile is configured (`browser.user_data_dir`, Bot
 browser per cache key (`--remote-debugging-port=0` + `DevToolsActivePort`). State lives in
 `browser_session.py`; siblings late-import it inside functions. Every launched Chromium is stopped
 parent-first and recorded in a private 0700 dir (a throwaway profile's in
-`<HERMES_HOME>/cache/browser/chromium-records`; a persistent profile's per OS user under the host lock dir,
+`<A2ASSISTANT_HOME>/cache/browser/chromium-records`; a persistent profile's per OS user under the host lock dir,
 one for every home pinning it) so a later process reaps a crashed owner's browser after checking pid + start
 time + its `--user-data-dir` argv token; the reaper walks every served home and every shared profile.
 `browser_tool.py` and `browser_tool_install.py` are frozen old-updater stubs only (see their
@@ -119,7 +119,7 @@ Put new embed-cost rules there, never a second counter in a tool.
 **Every spawn goes through one env builder.** `environments/local.py::build_subprocess_env` (+
 `hermes_constants.apply_subprocess_home_env`, `env_passthrough.py::resolve_passthrough_value`) is
 how a terminal, `execute_code`, background process, delegation child, ACP or MCP stdio child gets
-its environment; a child that acts FOR the served profile (`hermes -p X` workers, `key_cmd`
+its environment; a child that acts FOR the served profile (`a2assistant -p X` workers, `key_cmd`
 helpers, browser drivers, Bot Chat relay turns) uses `environments/local.py::
 served_profile_child_env(target_home=, inherit_credentials=)`: launch-profile `.env` /
 `TERMINAL_*` residue dropped (`strip_launch_profile_env`), the target home pinned, only the
@@ -185,7 +185,7 @@ interrupted entry's `summary` is the child's last real assistant text (`_build_r
 `tests/tools/`. Test the handler through the registry (real dispatch), not the bare function only;
 assert contracts ("every registered tool has a toolset", "no schema description names a tool from
 another toolset") rather than tool counts. Approval/security-boundary tools are E2E'd with real
-imports against a temp `HERMES_HOME` (see `tests/tools/test_approval_config_readonly.py`).
+imports against a temp `A2ASSISTANT_HOME` (see `tests/tools/test_approval_config_readonly.py`).
 
 ## Surface capability is a property of the SESSION, never of the process env
 
@@ -193,7 +193,7 @@ A tool that works only because of *who is on the other end* (desktop panes, in-a
 message reactions, Projects) must resolve availability from the **session's own source**, not
 from an env var on the backend. Client and backend are separate machines: the desktop app may
 drive a locally spawned backend, one over SSH, one behind URL + token, or Hermes Cloud, and
-only the first two carry `HERMES_DESKTOP=1`. An env-keyed gate is a silent no-op on the other
+only the first two carry `A2ASSISTANT_DESKTOP=1`. An env-keyed gate is a silent no-op on the other
 topologies — the tool is stripped from the schema while the platform hint tells the model it
 is "inside the Hermes desktop app". The pattern:
 
@@ -203,9 +203,9 @@ is "inside the Hermes desktop app". The pattern:
 - **`check_fn` answers reachability or opt-in, not surface.** "Is the bridge wired?" — fine.
   "Was I spawned by Electron?" — not. `check_fn` results are TTL-cached process-wide
   (`tools/registry.py`); a per-session answer does not belong there.
-- **Ask which identity you mean.** `HERMES_DESKTOP=1` legitimately means "this backend was
+- **Ask which identity you mean.** `A2ASSISTANT_DESKTOP=1` legitimately means "this backend was
   spawned by the app" (cron ticker, web-dist handling). It does NOT mean "a GUI is watching";
-  the embedded terminal pane (`hermes --tui` against that backend) is the counterexample.
+  the embedded terminal pane (`a2assistant --tui` against that backend) is the counterexample.
 
 Test: if the capability still makes sense with the client on another machine, it is
 session-scoped. Assert the GUI session gets the tool **with the env var absent**.

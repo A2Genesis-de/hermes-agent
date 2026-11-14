@@ -25,7 +25,7 @@ async def owner(tmp_path, monkeypatch):
     home.mkdir()
     (home / 'config.yaml').write_text(
         'model: {default: fake-model, provider: custom, base_url: "http://127.0.0.1:9/v1"}\n')
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     monkeypatch.setattr(run, '_hermes_home', home)
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     runner = SimpleNamespace(session_store=store, _session_db=store._db, adapters={}, _draining=False,
@@ -193,7 +193,7 @@ async def test_concurrent_cron_runs_never_wait_on_the_pool_their_jobs_need(owner
     # The fire is submitted to the owner bound to the home of the authority's store (bind_owner).
     home = Path(owner.authority.db.db_path).resolve().parent
     (home / 'config.yaml').write_text((owner.home / 'config.yaml').read_text())
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     ids = [create_job('ping', 'every 2h', name=name)['id'] for name in ('one', 'two')]
     sid = (await owner.call('session.create', request_id='r', source='cli', cwd=str(owner.workdir)))['session_id']
     asyncio.get_running_loop().set_default_executor(concurrent.futures.ThreadPoolExecutor(1))

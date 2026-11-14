@@ -11,11 +11,11 @@ root, tag = sys.argv[1:3]
 sys.path.insert(0, root)
 os.chdir(root)
 for k in list(os.environ):
-    if any(s in k for s in ('API_KEY','TOKEN','SECRET')) or k.startswith('HERMES_'):
+    if any(s in k for s in ('API_KEY','TOKEN','SECRET')) or k.startswith('A2ASSISTANT_'):
         os.environ.pop(k, None)
 home = tempfile.mkdtemp(prefix='cap-review-')
-os.environ['HERMES_HOME'] = home
-os.environ['HERMES_DISABLE_REDACTION'] = 'true'
+os.environ['A2ASSISTANT_HOME'] = home
+os.environ['A2ASSISTANT_DISABLE_REDACTION'] = 'true'
 import hermes_yaml as yaml
 cfg = {'model': {'default': 'anthropic/claude-fable-5.1', 'provider':'openai-compat', 'base_url':'http://127.0.0.1:1/v1', 'context_length':1000000}, 'compression':{'threshold':0.85}, 'delegation': {}}
 if len(sys.argv)>3:

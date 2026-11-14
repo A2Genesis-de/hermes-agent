@@ -16,7 +16,7 @@ def test_invalid_config_refuses_desktop_channel_probe(tmp_path, content):
     root = Path(__file__).resolve().parents[2]
     result = subprocess.run(
         [sys.executable, "-m", "hermes_cli.source_check", "--install-root", str(root), "--home", str(home)],
-        cwd=root, env={**os.environ, "HERMES_HOME": str(home), "HERMES_IGNORE_USER_CONFIG": "0"},
+        cwd=root, env={**os.environ, "A2ASSISTANT_HOME": str(home), "A2ASSISTANT_IGNORE_USER_CONFIG": "0"},
         capture_output=True, text=True, timeout=30,
         check=False,
     )

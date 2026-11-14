@@ -3,12 +3,12 @@
 Catalogs are flat dotted-key mappings resolved through layers, top first:
 
 1. plugin language packs (``PluginContext.register_locale``; last registered wins) — ``agent.i18n_layers``
-2. the user overlay ``$HERMES_HOME/locales/<lang>.yaml`` of the current profile home
+2. the user overlay ``$A2ASSISTANT_HOME/locales/<lang>.yaml`` of the current profile home
 3. the bundled ``locales/<lang>.yaml``
 4. the same chain for ``en``
 5. the bare key
 
-Every layer may be partial. Language resolution: explicit ``lang=`` > ``HERMES_LANGUAGE`` >
+Every layer may be partial. Language resolution: explicit ``lang=`` > ``A2ASSISTANT_LANGUAGE`` >
 ``display.language`` > ``en``; any id that some layer supplies is accepted, so a pack-only language
 (``pl``) works the moment its plugin loads. ``t()`` is a hot path: one cached merged dict per
 ``(home, lang)``, invalidated by :func:`reset_language_cache` (which every pack registration calls).
@@ -70,17 +70,17 @@ _catalog_lock = threading.Lock()
 
 
 def _locales_dir() -> Path:
-    """Locale dir: ``HERMES_BUNDLED_LOCALES`` (sealed packaging, e.g. Nix) if it exists, else ``<repo-root>/locales``.
+    """Locale dir: ``A2ASSISTANT_BUNDLED_LOCALES`` (sealed packaging, e.g. Nix) if it exists, else ``<repo-root>/locales``.
 
     The source path is returned even when missing so ``_load_bundled`` can log
     the path it looked at rather than raise.
     """
-    override = os.getenv("HERMES_BUNDLED_LOCALES", "").strip()
+    override = os.getenv("A2ASSISTANT_BUNDLED_LOCALES", "").strip()
     if override and Path(override).is_dir():
         return Path(override)
     if override:
         logger.warning(
-            "HERMES_BUNDLED_LOCALES points to a non-directory path (%s); "
+            "A2ASSISTANT_BUNDLED_LOCALES points to a non-directory path (%s); "
             "falling back to bundled/source locale resolution", override,
         )
     return Path(__file__).resolve().parent.parent / "locales"
@@ -109,7 +109,7 @@ def supported_languages(home: str | None = None) -> tuple[str, ...]:
 @lru_cache(maxsize=4)
 def _bundled_surfaces(locales_dir: str) -> frozenset[tuple[str, str]]:
     """``(lang, surface)`` for every bundled ``locales/<lang>[.<surface>].yaml``. Keyed by directory so a
-    ``HERMES_BUNDLED_LOCALES`` switch re-scans; cleared with the other layer views by
+    ``A2ASSISTANT_BUNDLED_LOCALES`` switch re-scans; cleared with the other layer views by
     :func:`reset_language_cache`."""
     return frozenset((lang, surface) for lang, surface, _path in i18n_layers.scan_locale_dir(Path(locales_dir)))
 
@@ -131,7 +131,7 @@ def language_surfaces(home: str | None = None) -> dict[str, tuple[str, ...]]:
 
 def resolve_language_id(value: Any, home: str | None = None) -> str | None:
     """Canonical supported id for a user-supplied value (code, alias, regional tag), or ``None`` when no
-    layer supplies it — the validation ``hermes config set display.language`` runs."""
+    layer supplies it — the validation ``a2assistant config set display.language`` runs."""
     key = i18n_layers.normalize_language_id(value)
     if not key:
         return None
@@ -231,14 +231,14 @@ def reset_language_cache() -> None:
 def _resolve_language(home: str) -> str:
     from agent.secret_scope import UnscopedSecretError, get_secret
     try:
-        env_lang = get_secret("HERMES_LANGUAGE")
+        env_lang = get_secret("A2ASSISTANT_LANGUAGE")
     except UnscopedSecretError:
-        env_lang = os.environ.get("HERMES_LANGUAGE")  # unscoped default-profile path: environ IS its own value
+        env_lang = os.environ.get("A2ASSISTANT_LANGUAGE")  # unscoped default-profile path: environ IS its own value
     return _normalize_lang(env_lang, home) if env_lang else _config_language_cached(home) or DEFAULT_LANGUAGE
 
 
 def get_language() -> str:
-    """Resolve the active language using env > config > default order. ``HERMES_LANGUAGE`` is a
+    """Resolve the active language using env > config > default order. ``A2ASSISTANT_LANGUAGE`` is a
     per-profile ``.env`` value, so it is read through the secret scope: under multiplexing a raw
     environ read would impose the default profile's language on every other profile."""
     return _resolve_language(_current_home())

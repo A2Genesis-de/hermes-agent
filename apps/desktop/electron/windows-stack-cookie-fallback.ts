@@ -82,7 +82,7 @@ export function isWindowsStackCookieExit(exitCode: unknown): boolean {
 }
 
 export function isHermesDesktopGpuOverrideOff(env: NodeJS.ProcessEnv = process.env): boolean {
-  const override = String(env.HERMES_DESKTOP_DISABLE_GPU || '')
+  const override = String(env.A2ASSISTANT_DESKTOP_DISABLE_GPU || '')
     .trim()
     .toLowerCase()
 
@@ -91,7 +91,7 @@ export function isHermesDesktopGpuOverrideOff(env: NodeJS.ProcessEnv = process.e
 
 /**
  * True when this process already launched with GPU off — Chromium argv
- * (`--disable-gpu`) or HERMES_DESKTOP_DISABLE_GPU on. Mirrors
+ * (`--disable-gpu`) or A2ASSISTANT_DESKTOP_DISABLE_GPU on. Mirrors
  * `alreadyHasNoSandbox`: the crash-loop relaunch MUST pass these switches so
  * the next process is protected even if the sticky marker write failed.
  */
@@ -100,7 +100,7 @@ export function alreadyHasDisableGpu(argv: readonly string[] = [], env: NodeJS.P
     return true
   }
 
-  const override = String(env.HERMES_DESKTOP_DISABLE_GPU || '')
+  const override = String(env.A2ASSISTANT_DESKTOP_DISABLE_GPU || '')
     .trim()
     .toLowerCase()
 
@@ -266,7 +266,7 @@ export function shouldSurfaceErrorForRendererStackCookieCrashLoop(
  * - `--disable-gpu` already in argv (crash-loop relaunch / Chromium switch)
  *   is honored even if the sticky marker write failed, but is NOT made sticky
  *   from argv alone.
- * - `HERMES_DESKTOP_DISABLE_GPU` explicitly off (`0`/`false`/`no`/`off`)
+ * - `A2ASSISTANT_DESKTOP_DISABLE_GPU` explicitly off (`0`/`false`/`no`/`off`)
  *   fail-opens: do not disable GPU.
  */
 export function decideWindowsGpuStackCookieLaunch(

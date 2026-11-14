@@ -26,7 +26,7 @@ def marks(monkeypatch):
 
 
 def _install_platform_plugin(home, monkeypatch, *, dir_name, platform, catalog_name=None):
-    """A user plugin under $HERMES_HOME/plugins registering ``platform``; ``catalog_name`` writes the
+    """A user plugin under $A2ASSISTANT_HOME/plugins registering ``platform``; ``catalog_name`` writes the
     installer-owned record a plugin-catalog install leaves (a URL install writes none)."""
     from gateway.platform_registry import PlatformEntry, platform_registry
 
@@ -54,7 +54,7 @@ def _install_platform_plugin(home, monkeypatch, *, dir_name, platform, catalog_n
 
 def test_platform_names_are_published_or_proven_by_the_installer_record(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     cleanup = [
         _install_platform_plugin(home, monkeypatch, dir_name="vk", platform="vk", catalog_name="vk-platform"),
         # A URL install claiming a catalog name everywhere it can (tree sidecar, manifest name) stays anonymous.

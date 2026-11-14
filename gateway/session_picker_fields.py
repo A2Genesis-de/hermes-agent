@@ -1,7 +1,7 @@
 """What a session picker shows for each ``session.list`` row (``picker: true``), and the folder filter (#150091).
 
 Location (``cwd``, ``workspace``) comes from the conversation's first row: the row ``workspace`` filters
-by (``list_sessions_rich`` filters root rows, as ``hermes -c`` does), and the row a workspace move
+by (``list_sessions_rich`` filters root rows, as ``a2assistant -c`` does), and the row a workspace move
 rewrites with every other one. The rest comes from its current segment (a local receipt's entry, else
 the compression tip), as ``list_sessions_rich`` projects a compressed chain onto its tip: the first
 prompt there (``preview``), its branch, pin, newest activity and newest reply. The stored feed passes the
@@ -13,7 +13,7 @@ from __future__ import annotations
 
 def workspace_members(db, session_ids, workspace):
     """The ids among *session_ids* whose row is in *workspace* (``SessionDB.sessions_in_workspace``: the
-    clause ``list_sessions_rich`` filters the stored feed by, ``hermes -c``'s rule)."""
+    clause ``list_sessions_rich`` filters the stored feed by, ``a2assistant -c``'s rule)."""
     return db.sessions_in_workspace(session_ids, workspace)
 
 

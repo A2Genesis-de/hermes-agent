@@ -27,7 +27,7 @@ QUOTA_MSG = "Codex provider quota exhausted (429); retry after 123518s. Credenti
 def tmp_cron_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 

@@ -1,4 +1,4 @@
-"""Cron ``deliver: room:<id>`` posts into a real hosted room store under a temp HERMES_HOME."""
+"""Cron ``deliver: room:<id>`` posts into a real hosted room store under a temp A2ASSISTANT_HOME."""
 
 from __future__ import annotations
 

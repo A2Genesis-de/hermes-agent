@@ -95,7 +95,7 @@ class TestStartupPlatformIsolation:
         # Skip the boot warm-up and boot-path sends: unrelated to platform
         # isolation, and with create_task stubbed below the bounded wait on
         # the (never-started) send task would hold start() for 30 s.
-        monkeypatch.setenv("HERMES_STARTUP_WARMUP_TIMEOUT", "0")
+        monkeypatch.setenv("A2ASSISTANT_STARTUP_WARMUP_TIMEOUT", "0")
         runner = _make_runner()
         runner._await_startup_boot_sends = AsyncMock()
         runner.config = GatewayConfig(

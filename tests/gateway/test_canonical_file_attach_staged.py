@@ -19,7 +19,7 @@ def test_a_staged_browser_upload_attaches_only_from_its_own_backend_and_profile(
     home.mkdir()
     user.mkdir()
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home),
                PYTHONPATH=str(root), PYTHONUNBUFFERED='1')
     result = subprocess.run([sys.executable, str(root / 'tests/gateway/fixtures/staged_file_attach_peer.py')],
                             cwd=root, env=env, capture_output=True, text=True, timeout=90, check=False)

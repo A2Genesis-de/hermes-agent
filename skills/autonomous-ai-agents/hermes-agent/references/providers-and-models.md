@@ -55,7 +55,7 @@ model_aliases:
     key_env: THETA_API_KEY        # or: api_key: "${THETA_API_KEY}"
 
 # Short form ("provider/model"), also via CLI:
-#   hermes config set model.aliases.fav openrouter/anthropic/claude-sonnet-4.6
+#   a2assistant config set model.aliases.fav openrouter/anthropic/claude-sonnet-4.6
 model:
   aliases:
     fav: openrouter/anthropic/claude-sonnet-4.6

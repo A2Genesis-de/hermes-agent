@@ -123,7 +123,7 @@ def _restart_notify_payload(event: MessageEvent) -> dict:
 
 
 def _spawn_detached_update(hermes_cmd, output_path, exit_code_path) -> None:
-    """Spawn ``hermes update --gateway`` detached so it survives the gateway restart it may trigger.
+    """Spawn ``a2assistant update --gateway`` detached so it survives the gateway restart it may trigger.
     setsid is portable (works where ``systemd-run --user`` lacks a D-Bus session); ``--gateway``
     enables file-based IPC so interactive prompts are forwarded; PYTHONUNBUFFERED lets the gateway
     stream output live.  Windows has no setsid: an inline helper runs the updater as a module under
@@ -1221,7 +1221,7 @@ class GatewaySlashCommandsMixin(
         return await self._deliver_approval_confirmation(event, confirmation_text, "deny")
 
     async def _handle_curator_command(self, event: MessageEvent) -> str:
-        """Handle /curator — the ``hermes curator`` handler set (status by default), as main's CLI ran
+        """Handle /curator — the ``a2assistant curator`` handler set (status by default), as main's CLI ran
         it in-process; its printed report is the reply. Runs in the executor with the session's
         context so the profile's skills tree and curator state are the ones read and written."""
         import io
@@ -1244,7 +1244,7 @@ class GatewaySlashCommandsMixin(
 
     async def _handle_debug_command(self, event: MessageEvent) -> str:
         """Handle /debug — the redacted summary report for a local session; chats get a pointer to
-        ``hermes debug share`` on the host, since the report never leaves the machine."""
+        ``a2assistant debug share`` on the host, since the report never leaves the machine."""
         if getattr(event.source, "platform", None) != Platform.LOCAL:
             return t("gateway.debug.chat_refused")
         from hermes_cli.debug import collect_share_bundle
@@ -1255,7 +1255,7 @@ class GatewaySlashCommandsMixin(
         return await self._run_in_executor_with_context(_collect_local)
 
     async def _handle_update_command(self, event: MessageEvent) -> str:
-        """Handle /update — spawn ``hermes update`` detached (``setsid``) so it survives the gateway
+        """Handle /update — spawn ``a2assistant update`` detached (``setsid``) so it survives the gateway
         restart it may trigger; marker files let this or the next gateway process notify the user."""
         import json
         from gateway.run import _hermes_home, _resolve_hermes_bin

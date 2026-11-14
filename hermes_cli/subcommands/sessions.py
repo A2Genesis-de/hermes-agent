@@ -1,4 +1,4 @@
-"""``hermes sessions`` subcommand parser."""
+"""``a2assistant sessions`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ def _flag(parser, *names, help, **kw):
 
 
 def cmd_sessions_lazy(args, **kwargs):
-    """``hermes sessions`` handler; sessions_cmd imports only when the subcommand runs."""
+    """``a2assistant sessions`` handler; sessions_cmd imports only when the subcommand runs."""
     from hermes_cli.sessions_cmd import cmd_sessions
 
     return cmd_sessions(args, **kwargs)
@@ -334,7 +334,7 @@ def build_sessions_parser(subparsers, *, cmd_sessions: Callable) -> None:
         "import", help="Import a Claude Code or Codex CLI session into A2Assistant",
         description="Pull a conversation started in Claude Code (~/.claude/projects) "
             "or Codex CLI (~/.codex/sessions) into the A2Assistant session store "
-            "so it can be resumed with 'hermes --resume <id>'. The foreign "
+            "so it can be resumed with 'a2assistant --resume <id>'. The foreign "
             "files are only read, never modified.")
     sessions_import.add_argument("--from", dest="from_source", choices=["claude", "codex"],
         help="Which tool to import from (default: pick across both)")

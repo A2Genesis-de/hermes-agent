@@ -1,4 +1,4 @@
-"""`hermes chat --safe-mode` is an owner-frozen policy executed out of process, not client env.
+"""`a2assistant chat --safe-mode` is an owner-frozen policy executed out of process, not client env.
 
 Contract recipe D-F: sentinels seeded in a disposable profile fire on an ordinary turn
 (positive control); the canonical safe launch through the real CLI gets a loopback reply from
@@ -151,7 +151,7 @@ def test_canonical_safe_launch_is_frozen_policy_executed_in_isolated_worker(tmp_
         "        _busy.on = False\n"
         "sys.addaudithook(witness)\n", encoding='utf-8')
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), TERM='xterm',
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), TERM='xterm',
                PYTHONPATH=os.pathsep.join([str(site), str(root)]), OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
 
     def query(sql, args=()):
@@ -232,7 +232,7 @@ def test_canonical_safe_launch_is_frozen_policy_executed_in_isolated_worker(tmp_
             assert len(safe) == 1 and safe[0]['auth'] == 'Bearer fixture' and safe[0]['path'] == '/v1/chat/completions', \
                 [(r['path'], [str(m.get('content'))[:80] for m in r['body']['messages']]) for r in peer.requests]
             assert not any(s in system_text(safe[0]) for s in ('SOUL_SENTINEL', 'RULES_SENTINEL', 'SKILL_SENTINEL'))
-            assert 'HERMES_SAFE_MODE' not in Path(f'/proc/{owner.pid}/environ').read_bytes().decode('utf-8', 'replace')
+            assert 'A2ASSISTANT_SAFE_MODE' not in Path(f'/proc/{owner.pid}/environ').read_bytes().decode('utf-8', 'replace')
 
             # Malformed profile YAML: bypass launch still works and neither repairs nor rewrites it.
             (home / 'config.yaml').write_text('model: [unterminated\n', encoding='utf-8')

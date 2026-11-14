@@ -10,7 +10,7 @@ resolves offline local path-source fixtures):
    join the pm workspace union, because pm scans only plugin roots.
 2. Conflict admission. Through the PUBLIC admission authority
    (hermes_cli.plugins_admission.admit_plugin_set_change — the one path
-   `hermes plugins enable/install` use), a candidate union with no
+   `a2assistant plugins enable/install` use), a candidate union with no
    valid solution is REFUSED before anything is published: the
    candidate stays unenabled (so the loader never imports it), the
    plugin trees and every home's config.yaml survive untouched, the
@@ -82,7 +82,7 @@ def test_sidecar_no_root_pyproject_excludes_nested_and_external(tmp_path, monkey
     )
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     assert ws._is_member_candidate(wrapper) is False, (
         "a wrapper root without pyproject/dep keys must never be a member candidate"
@@ -134,7 +134,7 @@ def _local_conflict_members(home: Path) -> tuple[Path, Path, Path, Path]:
 
 @pytest.fixture
 def admission_env(tmp_path, monkeypatch):
-    """Fake core repo + temp HERMES_HOME so the REAL pm.install.sync_venv
+    """Fake core repo + temp A2ASSISTANT_HOME so the REAL pm.install.sync_venv
     transaction (lock, receipts, config publication) runs entirely under
     tmp — the production path, temp homes."""
     core = tmp_path / "core"
@@ -160,11 +160,11 @@ def admission_env(tmp_path, monkeypatch):
     import pm.paths
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(pm.paths, "repo_root", lambda: core)
     monkeypatch.setattr(ws.paths, "repo_root", lambda: core)
     monkeypatch.setattr(ensure, "lazy_installs_allowed", lambda: True)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
     # Exercise the real dependency transaction in-process so the local uv
     # fixture owns provisioning; worker transport is covered separately. The
     # facade's project_root selects a foreign checkout for the worker; this
@@ -306,12 +306,12 @@ def test_malformed_secondary_cannot_evict_recorded_member(admission_env, monkeyp
 
     home_b = tmp_path / "home-b"
     _write_enabled(home_b, [])
-    monkeypatch.setenv("HERMES_HOME", str(home_b))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home_b))
     sync_venv(explicit=True)
     assert selected_venv(core).is_dir()
     assert Facts(runtime_facts_path(core), strict=True).get("venv")["stamp"] != recorded["stamp"]
 
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home_a))
     with pytest.raises(ValueError, match="config.yaml"):
         sync_venv(explicit=True)
     assert selected_venv(core) == selected
@@ -404,7 +404,7 @@ def test_update_sync_disables_plugin_excluded_by_requires_python(admission_env):
     work = yaml.safe_load((profile / "config.yaml").read_text(encoding="utf-8"))
     assert work["memory"]["provider"] == "too-old" and work["plugins"]["disabled"] == ["too-old"]
     assert "too-old" in json.dumps(_latest_receipt(home).get("warnings"))
-    assert "hermes plugins enable too-old" in json.dumps(_latest_receipt(home).get("warnings"))
+    assert "a2assistant plugins enable too-old" in json.dumps(_latest_receipt(home).get("warnings"))
     assert venv_is_current(project_root=core) is True
 
     for plugin in (home / "plugins" / "too-old", profile / "plugins" / "too-old"):
@@ -734,14 +734,14 @@ def test_active_context_home_exported_to_wrapper_subprocess(monkeypatch, tmp_pat
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
     from tools.environments.local import build_subprocess_env
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "ambient"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "ambient"))
     active = tmp_path / "custom-root/profiles/worker"
     active.mkdir(parents=True)
     token = set_hermes_home_override(active)
     try:
         child_env = build_subprocess_env()
         child = subprocess.run(
-            [sys.executable, "-c", "import os; print(os.environ['HERMES_HOME'], end='')"],
+            [sys.executable, "-c", "import os; print(os.environ['A2ASSISTANT_HOME'], end='')"],
             env=child_env, capture_output=True, text=True, check=True, timeout=60,
         )
         assert child.stdout == str(active)

@@ -40,7 +40,7 @@ def test_shutdown_closes_each_cloud_session_under_its_owning_profile(tmp_path, m
     launch, routed = tmp_path / "launch", tmp_path / "routed"
     for home in (launch, routed):
         home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(_ProfileProvider, "closed", [])
     monkeypatch.setattr(browser_config, "get_cloud_provider", _ProfileProvider)
     isolated_sessions["task@routed"] = {"session_name": "bb_1", "bb_session_id": "bb-routed", "features": {},

@@ -168,7 +168,7 @@ export interface CanonicalPeerSeat {
   source: GroupMember
 }
 
-/** A Bot's own connection name as a handle suffix (`hermes` on "Mac Mini" joins as `hermes-mac-mini`). */
+/** A Bot's own connection name as a handle suffix (`a2assistant` on "Mac Mini" joins as `hermes-mac-mini`). */
 const slug = (value: unknown) => String(value ?? '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '')
 
 /** A short, stable digest (FNV-1a) of a connection id: the last resort for telling two apart. */
@@ -390,7 +390,7 @@ interface CreateErrorLabels {
 
 /** A failed create in the reader's words: a roster problem found here, or the gateway's refusal
  *  followed by its reason. Any coded answer is the gateway refusing: the session gateway names the
- *  member in `data.detail` (4001); `hermes serve`, which Desktop's own backend and SSH, URL and
+ *  member in `data.detail` (4001); `a2assistant serve`, which Desktop's own backend and SSH, URL and
  *  Cloud connections reach, puts the reason in the message (4110, or 4123/5111 for a missing worker
  *  or a failure). Rejections arrive as Errors or, across the IPC bridge, as plain objects. */
 /** What a person can do next after a create that didn't finish, when a retry settles it. */

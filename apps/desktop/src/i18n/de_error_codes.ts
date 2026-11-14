@@ -24,6 +24,6 @@ export const deErrorCodes: Partial<ThreadCopy['errorCodes']> = {
     title: 'Lokaler Modellserver nicht erreichbar',
     body: 'Der lokale Modellserver läuft noch nicht: Er startet möglicherweise noch. Versuchen Sie es gleich noch einmal oder wechseln Sie zu einem anderen Modell.',
     bodyNoRetry:
-      'Der lokale Modellserver ist ausgeschaltet. Starten Sie ihn in der A2Assistant-Desktop-App oder mit `hermes model` im Terminal, oder wechseln Sie zu einem anderen Modell.'
+      'Der lokale Modellserver ist ausgeschaltet. Starten Sie ihn in der A2Assistant-Desktop-App oder mit `a2assistant model` im Terminal, oder wechseln Sie zu einem anderen Modell.'
   }
 }

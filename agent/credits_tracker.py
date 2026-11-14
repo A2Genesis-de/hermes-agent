@@ -675,10 +675,10 @@ _DEV_FIXTURES: dict[str, dict] = {
 
 
 def dev_fixture_credits_state() -> Optional[CreditsState]:
-    """Fixture CreditsState for HERMES_DEV_CREDITS_FIXTURE, or None (unknown name / unset). Prod-leak guard:
-    applies ONLY when HERMES_DEV_CREDITS is also on, so a stray fixture env var never surfaces fabricated balances."""
-    name = os.environ.get("HERMES_DEV_CREDITS_FIXTURE", "").strip()
-    if not name or not is_truthy_value(os.environ.get("HERMES_DEV_CREDITS")):
+    """Fixture CreditsState for A2ASSISTANT_DEV_CREDITS_FIXTURE, or None (unknown name / unset). Prod-leak guard:
+    applies ONLY when A2ASSISTANT_DEV_CREDITS is also on, so a stray fixture env var never surfaces fabricated balances."""
+    name = os.environ.get("A2ASSISTANT_DEV_CREDITS_FIXTURE", "").strip()
+    if not name or not is_truthy_value(os.environ.get("A2ASSISTANT_DEV_CREDITS")):
         return None
     if os.path.sep in name or "/" in name:  # looks like a path → read the name from the file
         try:

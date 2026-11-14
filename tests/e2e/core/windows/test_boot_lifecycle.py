@@ -4,12 +4,12 @@
   one-shot chat turn: the reply is
   printed, the prompt reached the wire, and both messages persisted to ``state.db`` under
   the session id the CLI announced.
-* ``hermes serve`` (the Desktop backend) — announces its port on stdout, and after the
+* ``a2assistant serve`` (the Desktop backend) — announces its port on stdout, and after the
   Desktop's Windows quit path (``taskkill /T /F``) leaves no process behind that it
   spawned (found by ownership of the scratch profile, not by parent links, which a
   detached grandchild does not keep) and a fresh backend boots again over the leftover
   host records.
-* ``hermes gateway run`` + ``hermes gateway stop`` — the Windows graceful-stop IPC (stop
+* ``a2assistant gateway run`` + ``a2assistant gateway stop`` — the Windows graceful-stop IPC (stop
   marker, not TerminateProcess) drains the gateway: it exits on its own, records
   ``stopped``, removes its pid file, and nothing it spawned survives.
 """
@@ -91,7 +91,7 @@ def _port_open(port: int) -> bool:
 
 def _spawn_serve(home: WinHome) -> subprocess.Popen:
     # Desktop spawn shape (electron/main.ts): token + desktop flag in env, stdin closed.
-    env = {"HERMES_DESKTOP": "1", "HERMES_DASHBOARD_SESSION_TOKEN": nonce("tok"),
+    env = {"A2ASSISTANT_DESKTOP": "1", "A2ASSISTANT_DASHBOARD_SESSION_TOKEN": nonce("tok"),
            "TERMINAL_CWD": str(home.project)}
     return subprocess.Popen(
         hermes_argv("serve", "--host", "127.0.0.1", "--port", "0"), cwd=home.profile, env=home.env(env),
@@ -112,7 +112,7 @@ def _serve_ready(home: WinHome) -> tuple[subprocess.Popen, int]:
         for raw in proc.stdout:
             line = raw.decode("utf-8", errors="replace")
             seen.append(line)
-            m = None if announced else re.search(r"HERMES_BACKEND_READY port=(\d+)", line)
+            m = None if announced else re.search(r"A2ASSISTANT_BACKEND_READY port=(\d+)", line)
             if m:
                 announced = True
                 found.put(int(m.group(1)))

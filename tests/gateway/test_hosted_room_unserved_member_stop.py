@@ -21,7 +21,7 @@ def deferred(tmp_path, monkeypatch):
     a turn deferred because that daemon never confirmed its Stop. Yields a factory."""
     from gateway.session_hosted_service import CanonicalHostedRoomService
     root = tmp_path.resolve()
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     dbs = []
 
     def build(member_home):

@@ -6,7 +6,7 @@ import pytest
 
 def test_resume_accepts_the_creation_alias_and_still_refuses_another_model(tmp_path, monkeypatch):
     from hermes_cli import gateway_chat, model_switch
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         "model:\n  provider: custom\n  base_url: http://127.0.0.1:1/v1\n  default: model-main\n"
         "model_aliases:\n  fast: {model: model-alias, provider: custom, base_url: http://127.0.0.1:3/v1}\n",

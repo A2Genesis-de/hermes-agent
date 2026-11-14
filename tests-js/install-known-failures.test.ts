@@ -17,7 +17,7 @@ const lockedLog = [
 const base = {
   platform: 'windows', phase: 'update', commit: 'a370ab8391ca5f8de7ebbc449f05cb0df36ade7c',
   installMethod: 'installer-script', updateMethod: 'hermes-update',
-  error: 'E2E ASSERTION FAILED: hermes update exited 1 (expected 0)', logs: { update: lockedLog },
+  error: 'E2E ASSERTION FAILED: a2assistant update exited 1 (expected 0)', logs: { update: lockedLog },
 }
 
 describe('known install failures', () => {
@@ -40,14 +40,14 @@ describe('known install failures', () => {
     const sample = {
       ...base, commit: '7c1a029553d87c43ecff8a3821336bc95872213b',
       updateMethod: 'hermes-desktop-app-update',
-      error: 'E2E ASSERTION FAILED: app driven via captured hermes desktop spec; update completed',
-      logs: { desktop: '[hermes] [updates] no staged updater; surfacing manual `hermes update` for CLI install at C:/install\n[hermes] [updates] manual: hermes update\n' },
+      error: 'E2E ASSERTION FAILED: app driven via captured a2assistant desktop spec; update completed',
+      logs: { desktop: '[hermes] [updates] no staged updater; surfacing manual `a2assistant update` for CLI install at C:/install\n[hermes] [updates] manual: a2assistant update\n' },
     }
 
     expect(matchKnownFailure(sample)?.id).toBe('windows-july-manual-app-update')
     expect(matchKnownFailure({ ...sample, installMethod: 'desktop-installer@latest' })).toBeNull()
     expect(matchKnownFailure({ ...sample, error: 'onboarding timed out' })).toBeNull()
-    expect(matchKnownFailure({ ...sample, logs: { desktop: '[updates] manual: hermes update' } })).toBeNull()
+    expect(matchKnownFailure({ ...sample, logs: { desktop: '[updates] manual: a2assistant update' } })).toBeNull()
   })
 
   it('matches the June dmg updater refusal only on macOS from v2026.7.30 with fresh evidence', () => {

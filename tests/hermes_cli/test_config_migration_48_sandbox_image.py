@@ -16,7 +16,7 @@ def _run(tmp_path, config):
     from hermes_cli.config_migrations import run_migrations
 
     (tmp_path / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
-    with patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}):
+    with patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path)}):
         run_migrations(46, {"env_added": [], "config_added": [], "warnings": []}, quiet=True)
     return yaml.safe_load((tmp_path / "config.yaml").read_text(encoding="utf-8"))["terminal"]
 
@@ -32,7 +32,7 @@ def test_stale_default_is_dropped(tmp_path):
     }})
     assert "docker_image" not in terminal, "the old default is the template copied, not a pin: drop it"
     assert "singularity_image" not in terminal
-    with patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}):
+    with patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path)}):
         merged = load_config()["terminal"]
     assert merged["docker_image"] == DEFAULT_SANDBOX_IMAGE, "the dropped key follows the new default"
 

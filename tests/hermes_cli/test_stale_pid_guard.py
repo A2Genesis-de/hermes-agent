@@ -175,11 +175,11 @@ def test_stop_only_targets_the_invoking_hermes_home(monkeypatch):
     """An argv match from another profile is never a ``--stop`` target."""
     own_home = "/tmp/hermes-own"
     foreign_home = "/tmp/hermes-foreign"
-    monkeypatch.setenv("HERMES_HOME", own_home)
+    monkeypatch.setenv("A2ASSISTANT_HOME", own_home)
 
     with mock.patch.object(
         dashboard_procs, "_scan_dashboard_processes",
-        return_value=[(12345, "hermes serve"), (12346, "hermes serve"), (12347, "hermes serve")],
+        return_value=[(12345, "a2assistant serve"), (12346, "a2assistant serve"), (12347, "a2assistant serve")],
     ), mock.patch.object(dashboard_procs, "_caller_ancestor_pids", return_value=set()), mock.patch.object(
         dashboard_procs, "_hermes_home_for_pid",
         side_effect=lambda pid: {
@@ -202,7 +202,7 @@ class TestHermesHomeForPid:
 
     @pytest.mark.platforms("posix")  # POSIX default home is $HOME/.hermes
     def test_readable_env_without_var_resolves_to_that_process_default_home(self, monkeypatch, tmp_path):
-        """The common install shape exports no HERMES_HOME: the backend lives in its user's
+        """The common install shape exports no A2ASSISTANT_HOME: the backend lives in its user's
         platform default home, and a default-home ``--stop`` must still find it (#113978)."""
         home = str(tmp_path / "alice")
         monkeypatch.setattr(dashboard_procs, "_pid_environ", lambda pid: {"HOME": home})
@@ -220,7 +220,7 @@ class TestHermesHomeForPid:
     # the INSPECTING process's home named another user's directory — and `hermes update` /
     # `--stop` then acted on the wrong profile root.
     def _posix_scrubbed_unit(self, monkeypatch, tmp_path, passwd_home):
-        """A unit whose environment carries neither HOME nor HERMES_HOME, on the POSIX branch."""
+        """A unit whose environment carries neither HOME nor A2ASSISTANT_HOME, on the POSIX branch."""
         monkeypatch.setattr(dashboard_procs.sys, "platform", "linux")
         monkeypatch.setattr(dashboard_procs, "_pid_environ", lambda pid: {})
         monkeypatch.setattr(dashboard_procs, "_pid_passwd_home", lambda pid: passwd_home)
@@ -241,12 +241,12 @@ class TestHermesHomeForPid:
         assert Path(dashboard_procs._hermes_home_for_pid(1)) == tmp_path / "inspecting-user" / ".hermes"
 
     def test_root_shaped_hermes_home_follows_the_flag_and_the_sticky_active_profile(self, monkeypatch, tmp_path):
-        """Mirror ``_apply_profile_override``: an exported root ``HERMES_HOME`` is the root, not the
-        home — ``-p work`` and ``hermes profile use work`` both land in ``<root>/profiles/work``."""
+        """Mirror ``_apply_profile_override``: an exported root ``A2ASSISTANT_HOME`` is the root, not the
+        home — ``-p work`` and ``a2assistant profile use work`` both land in ``<root>/profiles/work``."""
         root = tmp_path / ".hermes"
         root.mkdir()
         monkeypatch.setattr(dashboard_procs, "_pid_environ",
-                            lambda pid: {"HOME": str(tmp_path), "HERMES_HOME": str(root)})
+                            lambda pid: {"HOME": str(tmp_path), "A2ASSISTANT_HOME": str(root)})
         from hermes_cli import main_dashboard
         monkeypatch.setattr(main_dashboard, "_dashboard_cmdline_for_pid",
                             lambda pid: ["hermes", "-p", "work", "serve"] if pid == 2 else ["hermes", "serve"])
@@ -257,7 +257,7 @@ class TestHermesHomeForPid:
         assert dashboard_procs._hermes_home_for_pid(1) == str(root / "profiles" / "work")
         # A profile-shaped HERMES_HOME without a flag is the home itself (root = its grandparent).
         monkeypatch.setattr(dashboard_procs, "_pid_environ",
-                            lambda pid: {"HERMES_HOME": str(root / "profiles" / "ops")})
+                            lambda pid: {"A2ASSISTANT_HOME": str(root / "profiles" / "ops")})
         assert dashboard_procs._hermes_home_for_pid(1) == str(root / "profiles" / "ops")
 
     def test_unreadable_env_is_none_and_spared(self, monkeypatch):

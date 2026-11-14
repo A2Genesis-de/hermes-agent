@@ -38,7 +38,7 @@ def homes(tmp_path, monkeypatch):
         (home / ".env").write_text("", encoding="utf-8")
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     from agent import secret_scope
     from tui_gateway import launch_profile_policy as lpp
@@ -88,7 +88,7 @@ def test_a_managed_gateway_block_for_a_profile_plugin_stays_in_that_profile(clie
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / "config.yaml").write_text(yaml.safe_dump({"gateway": {"workchat": {"enabled": True}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     (work / "config.yaml").write_text(yaml.safe_dump({
         "plugins": {"enabled": ["workchat"]}, "platforms": {"webhook": {"enabled": True}},

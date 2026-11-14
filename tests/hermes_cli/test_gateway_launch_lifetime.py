@@ -50,7 +50,7 @@ def test_retained_tui_worktree_survives_stale_prune_while_its_session_resumes(tm
     subprocess.run([*git, '-C', str(repo), 'add', '.gitignore'], check=True)
     subprocess.run([*git, '-C', str(repo), 'commit', '-qm', 'fixture'], check=True)
     monkeypatch.chdir(repo)
-    monkeypatch.setenv('HERMES_PYTHON', sys.executable)
+    monkeypatch.setenv('A2ASSISTANT_PYTHON', sys.executable)
     wt_info = _setup_worktree(str(repo), sync_base=False)
     # The real launcher exits with the TUI, so its `hermes pid=<pid>` launch lock is dead by the next launch.
     subprocess.run(['git', '-C', str(repo), 'worktree', 'unlock', wt_info['path']], check=True)
@@ -62,13 +62,13 @@ def test_retained_tui_worktree_survives_stale_prune_while_its_session_resumes(tm
 
     def ink(_argv, cwd=None, env=None):
         db = SessionDB(db_path=get_hermes_home() / 'state.db')
-        db.create_session('tui-wt', 'tui', cwd=env['HERMES_TUI_CWD'])
+        db.create_session('tui-wt', 'tui', cwd=env['A2ASSISTANT_TUI_CWD'])
         if resumable:
             db.append_message('tui-wt', 'user', 'keep my checkout')
         db.close()
         _pending_turn(get_hermes_home() / 'state.db', 'tui-wt')
-        Path(env['HERMES_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
-        ink.checkout = Path(env['HERMES_TUI_CWD'])
+        Path(env['A2ASSISTANT_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
+        ink.checkout = Path(env['A2ASSISTANT_TUI_CWD'])
         return 0
 
     monkeypatch.setattr(main_tui_launch.subprocess, 'call', ink)
@@ -99,7 +99,7 @@ def test_retained_tui_worktree_kept_while_any_session_in_it_resumes(tmp_path, mo
 
     home = tmp_path / ('Zoë "q" \\ home' if case == 'quoted_home' else 'home')
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     repo = tmp_path / 'repo'
     git = ['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid']
     subprocess.run(['git', 'init', '-q', '-b', 'main', str(repo)], check=True)
@@ -107,7 +107,7 @@ def test_retained_tui_worktree_kept_while_any_session_in_it_resumes(tmp_path, mo
     subprocess.run([*git, '-C', str(repo), 'add', '.gitignore'], check=True)
     subprocess.run([*git, '-C', str(repo), 'commit', '-qm', 'fixture'], check=True)
     monkeypatch.chdir(repo)
-    monkeypatch.setenv('HERMES_PYTHON', sys.executable)
+    monkeypatch.setenv('A2ASSISTANT_PYTHON', sys.executable)
     monkeypatch.setattr(main_tui_launch, '_make_tui_argv', lambda *_: (['node'], Path('.')))
     monkeypatch.setattr(main_tui_launch, '_print_tui_exit_summary', lambda *_: None)
     if case == 'terminal_closed':
@@ -115,15 +115,15 @@ def test_retained_tui_worktree_kept_while_any_session_in_it_resumes(tmp_path, mo
 
     def ink(_argv, cwd=None, env=None):
         db = SessionDB(db_path=get_hermes_home() / 'state.db')
-        db.create_session('tui-a', 'tui', cwd=env['HERMES_TUI_CWD'])
+        db.create_session('tui-a', 'tui', cwd=env['A2ASSISTANT_TUI_CWD'])
         db.append_message('tui-a', 'user', 'keep my checkout')
         attached = 'tui-a'
         if case == 'after_new':  # /new: the attached session has nothing sent yet
-            db.create_session(attached := 'tui-b', 'tui', cwd=env['HERMES_TUI_CWD'])
+            db.create_session(attached := 'tui-b', 'tui', cwd=env['A2ASSISTANT_TUI_CWD'])
         db.close()
         _pending_turn(get_hermes_home() / 'state.db', attached)
-        Path(env['HERMES_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': attached}))
-        ink.checkout = Path(env['HERMES_TUI_CWD'])
+        Path(env['A2ASSISTANT_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': attached}))
+        ink.checkout = Path(env['A2ASSISTANT_TUI_CWD'])
         return 0
 
     monkeypatch.setattr(main_tui_launch.subprocess, 'call', ink)

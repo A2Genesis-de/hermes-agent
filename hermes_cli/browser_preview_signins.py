@@ -1,4 +1,4 @@
-"""Export the real-profile browser's cookies for the Desktop in-app browser (``hermes browser export-signins``).
+"""Export the real-profile browser's cookies for the Desktop in-app browser (``a2assistant browser export-signins``).
 
 Desktop's Electron main runs this as a LOCAL child of the owning profile and sets the cookies on the in-app
 browser's partition itself. No cookie decryption happens here: the user's REAL browser binary, running on the

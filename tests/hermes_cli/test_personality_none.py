@@ -98,7 +98,7 @@ class TestGatewayPersonalityNone:
         # (rooted at HERMES_HOME) — point both at the same tmp dir.
         return (
             patch("gateway.run._hermes_home", tmp_path),
-            patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}),
+            patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path)}),
         )
 
     @pytest.mark.asyncio

@@ -2,13 +2,13 @@
 
 Every Hermes process these suites spawn runs:
 
-* with a HOME/HERMES_HOME under the test's tmp dir and an environment built from an
-  allowlist (no inherited ``*_API_KEY`` / ``HERMES_*``), so only the fake provider is
+* with a HOME/A2ASSISTANT_HOME under the test's tmp dir and an environment built from an
+  allowlist (no inherited ``*_API_KEY`` / ``A2ASSISTANT_*``), so only the fake provider is
   configured;
 * inside a ``bwrap`` sandbox when bubblewrap is usable: its own PID namespace (the
   updater's process-table scans cannot see, let alone signal, any real gateway on the
   host), a tmpfs over ``/run/user/<uid>`` (no user systemd bus), the real
-  ``~/.hermes`` bind-mounted read-only, and ``--die-with-parent`` so killing the
+  ``~/.a2assistant`` bind-mounted read-only, and ``--die-with-parent`` so killing the
   sandbox kills every descendant (no orphans);
 * with ``systemctl``/``launchctl``/``sudo``/``loginctl`` shims first on PATH that log
   their argv and fail, so a service-restart attempt is observable and never reaches a
@@ -110,7 +110,7 @@ def isolated_env(
     pythonpath: Path | None = None,
     extra: dict[str, str] | None = None,
 ) -> dict[str, str]:
-    """Allowlisted environment with HOME/HERMES_HOME under ``root``."""
+    """Allowlisted environment with HOME/A2ASSISTANT_HOME under ``root``."""
     home = root / "home"
     hermes_home = home / ".hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -120,9 +120,9 @@ def isolated_env(
     env.setdefault("LANG", "C.UTF-8")
     env.update(
         HOME=str(home),
-        HERMES_HOME=str(hermes_home),
+        A2ASSISTANT_HOME=str(hermes_home),
         # The pytest ancestor marks this child as guarded; its HOME is already the sandbox.
-        HERMES_STATE_DB_GUARD_BYPASS="1",
+        A2ASSISTANT_STATE_DB_GUARD_BYPASS="1",
         XDG_RUNTIME_DIR=str(root / "run"),
         XDG_CONFIG_HOME=str(home / ".config"),
         XDG_DATA_HOME=str(home / ".local" / "share"),
@@ -132,7 +132,7 @@ def isolated_env(
         TERM="dumb",
         PYTHONUNBUFFERED="1",
         PYTHONHASHSEED="0",
-        HERMES_DISABLE_LAZY_INSTALLS="1",
+        A2ASSISTANT_DISABLE_LAZY_INSTALLS="1",
         # The pre-upgrade release under test still bundles tirith; keep its scanner off.
         TIRITH_ENABLED="false",
         GIT_TERMINAL_PROMPT="0",

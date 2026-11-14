@@ -35,7 +35,7 @@ def test_a_delete_journal_store_is_not_pinned_and_any_write_makes_it_inconsisten
     home = tmp_path / "hermes-home"
     home.mkdir()
     (home / "config.yaml").write_text(yaml.safe_dump({"database": {"journal_mode": "delete"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     db = SessionDB(db_path=home / "state.db")
     try:
         assert db._wal_active is False

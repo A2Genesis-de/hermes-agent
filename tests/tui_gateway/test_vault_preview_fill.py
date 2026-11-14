@@ -27,7 +27,7 @@ def login(tmp_path, monkeypatch):
     home.mkdir()
     (home / "config.yaml").write_text(json.dumps({"vault": {"onepassword": {"enabled": False},
                                                              "bitwarden": {"enabled": False}}}))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     out = srv._methods["vault.add"](1, {"kind": "login", "label": "Example", "origin": ORIGIN, "secret": {
         "identifier_type": "email", "identifier": "me@example.test", "password": PASSWORD}})
     return out["result"]["id"]

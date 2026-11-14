@@ -5,7 +5,7 @@ instead of importing it. The host process imports it and runs ``register(ctx)``;
 arrives here and is replayed on the plugin's real :class:`~hermes_cli.plugins.PluginContext`, with
 the plugin's callables and provider objects swapped for proxies that call back into the host. From
 then on the rest of Hermes sees ordinary registrations — the registry, hook dispatch, the ledger,
-unload and ``hermes plugins list`` do not know the plugin lives elsewhere, and neither does the
+unload and ``a2assistant plugins list`` do not know the plugin lives elsewhere, and neither does the
 plugin: its code is unchanged and never learns which process or tenant it serves.
 
 Requests the host makes while Hermes is waiting on it (a tool handler calling ``ctx.dispatch_tool``)
@@ -134,7 +134,7 @@ class PluginHost:
         env.update(self._base_context.run(_hosted_ambient_credentials, self._home))
         repo_root = str(Path(__file__).resolve().parents[1])
         env["PYTHONPATH"] = os.pathsep.join(p for p in (repo_root, env.get("PYTHONPATH", "")) if p)
-        env.setdefault("HERMES_PLUGIN_HOST_LOG_LEVEL", "WARNING")
+        env.setdefault("A2ASSISTANT_PLUGIN_HOST_LOG_LEVEL", "WARNING")
         from hermes_cli.plugin_isolation import HOST_PROCESS_ENV
         env[HOST_PROCESS_ENV] = "1"
         return env

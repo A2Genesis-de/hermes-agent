@@ -1,6 +1,6 @@
 """Gateway subcommand for hermes CLI.
 
-Handles: hermes gateway [run|start|stop|restart|status|install|uninstall|setup]
+Handles: a2assistant gateway [run|start|stop|restart|status|install|uninstall|setup]
 """
 
 import asyncio
@@ -21,6 +21,8 @@ import time
 from dataclasses import dataclass
 from pathlib import Path
 from hermes_cli import _startup_fast, gateway_service_owner, setup_platforms
+from hermes_cli.service_names import (SYSTEMD_GATEWAY_UNIT, SYSTEMD_GATEWAY_UNITS, LAUNCHD_GATEWAY_LABELS, gateway_launchd_label,
+                                      gateway_systemd_unit, gateway_systemd_unit_base, is_launchd_gateway_label)
 
 # UV's bundled Python ships a minimal PATH; ensure launchctl/systemctl are discoverable.
 if os.name == "posix":
@@ -123,22 +125,22 @@ def _get_service_pids(all_profiles: bool = False) -> set:
     """PIDs managed by systemd/launchd gateway services (excluded from stale-process sweeps).
 
     Relies on the service manager committing the new PID before the restart command returns.
-    ``all_profiles`` widens the current profile's unit/label to the whole ``hermes-gateway*`` /
-    ``ai.hermes.gateway*`` fleet so update/reaper never kill a sibling's service gateway as "manual".
+    ``all_profiles`` widens the current profile's unit/label to the whole ``a2assistant-gateway*`` /
+    ``de.a2genesis.a2assistant.gateway*`` fleet so update/reaper never kill a sibling's service gateway as "manual".
 
-    ``all_profiles`` widens the launchd branch to every installed ``ai.hermes.gateway*`` LaunchAgent — the
+    ``all_profiles`` widens the launchd branch to every installed ``de.a2genesis.a2assistant.gateway*`` LaunchAgent — the
     update path needs the whole fleet excluded from its sweep (#41403, #73626): sibling-profile launchd
     gateways found by the (BSD-fixed) ps scan must not be misclassified as manual processes and killed.
     Default-scope callers (``gateway status``, cron checks) keep seeing only the current profile's service;
     the orphan reaper passes all_profiles=True for the same friendly-fire reason. The systemd branch mirrors
     this: default scope filters to the current profile's exact unit name; ``all_profiles=True`` widens to
-    the ``hermes-gateway*`` fleet glob.
+    the ``a2assistant-gateway*`` fleet glob.
     """
     pids: set = set()
 
     # --- systemd (Linux): user and system scopes ---
     if supports_systemd_services():
-        pattern = "hermes-gateway*" if all_profiles else get_service_name()
+        patterns = [f"{unit}*" for unit in SYSTEMD_GATEWAY_UNITS] if all_profiles else [get_service_name()]
         for scope_args in [["systemctl", "--user"], ["systemctl"]]:
             try:
                 # Belt-and-suspenders for the EXCLUDE use case (#74075): a bare ``launchctl list`` prefix
@@ -148,7 +150,7 @@ def _get_service_pids(all_profiles: bool = False) -> set:
                 # label-derived set only.
                 result = subprocess.run(
                     scope_args
-                    + ["list-units", pattern, "--plain", "--no-legend", "--no-pager"],
+                    + ["list-units", *patterns, "--plain", "--no-legend", "--no-pager"],
                     timeout=5,
                     **_CAPTURE_TEXT,
                     check=False,
@@ -191,14 +193,12 @@ def _get_service_pids(all_profiles: bool = False) -> set:
             if pid is not None and pid > 0:
                 pids.add(pid)
         if all_profiles:
-            # Prefix scan also catches ai.hermes.gateway* agents the label derivation can't map
-            # (renamed profiles, other installs). Over-inclusion is safe: PIDs are only protected.
             try:
                 result = subprocess.run(["launchctl", "list"], timeout=5, **_CAPTURE_TEXT, check=False)
                 if result.returncode == 0:
                     for line in result.stdout.strip().splitlines():
                         parts = line.split()
-                        if len(parts) >= 3 and parts[-1].startswith("ai.hermes.gateway"):
+                        if len(parts) >= 3 and is_launchd_gateway_label(parts[-1]):
                             try:
                                 pid = int(parts[0])
                                 if pid > 0:
@@ -528,11 +528,11 @@ def _escalate_wedged_gateway(pid: int, *, term_grace: float = 5.0, kill_wait: fl
 
 
 def _get_ancestor_pids() -> set[int]:
-    """PIDs of this process and its ancestors, so scans never count the invoking ``hermes`` CLI as a gateway.
+    """PIDs of this process and its ancestors, so scans never count the invoking ``a2assistant`` CLI as a gateway.
 
     Walks from the current PID up to PID 1 (init) so that process-table scans never match the calling CLI
-    process or any of its parents. This prevents ``hermes gateway status`` from falsely counting the
-    ``hermes`` CLI that invoked it as a running gateway instance (see #13242).
+    process or any of its parents. This prevents ``a2assistant gateway status`` from falsely counting the
+    ``a2assistant`` CLI that invoked it as a running gateway instance (see #13242).
     """
     ancestors: set[int] = set()
     pid = os.getpid()
@@ -753,7 +753,7 @@ def _filter_venv_launcher_stubs(pids: list[int]) -> list[int]:
 
 
 def find_gateway_pids(exclude_pids: set | None = None, all_profiles: bool = False) -> list:
-    """Find running gateway PIDs for the current profile, or every profile with ``all_profiles`` (``hermes update``)."""
+    """Find running gateway PIDs for the current profile, or every profile with ``all_profiles`` (``a2assistant update``)."""
     _exclude = set(exclude_pids or set())
     pids: list[int] = []
     if not all_profiles:
@@ -960,7 +960,7 @@ def _capture_gateway_argv(pid: int) -> list[str] | None:
 
 
 def _prepare_profile_gateway_update_restart(profile: str, pid: int) -> str | None:
-    """Choose who relaunches a profile gateway after ``hermes update``: ``--external-supervisor`` gateways
+    """Choose who relaunches a profile gateway after ``a2assistant update``: ``--external-supervisor`` gateways
     exit back to their manager (a detached watcher would race its replacement); otherwise arm the
     profile-derived detached watcher, falling back to replaying the captured command line.
 
@@ -998,7 +998,7 @@ def launch_detached_profile_gateway_restart(profile: str, old_pid: int) -> bool:
 GATEWAY_RESTART_WATCHER_TIMEOUT_S = 120
 """How long the detached restart watcher waits for the old PID to exit before giving up.
 
-``hermes update``'s post-relaunch liveness check budgets against this: the watcher spawns the new
+``a2assistant update``'s post-relaunch liveness check budgets against this: the watcher spawns the new
 gateway only AFTER the old PID is gone, so a verification window shorter than this can expire
 before the relaunch it is verifying has even started (#107002).
 """
@@ -1129,7 +1129,7 @@ def _spawn_gateway_restart_watcher(old_pid: int, run_argv: list[str], *, host: b
         # Detach the respawn: POSIX setsid; Windows needs CREATE_BREAKAWAY_FROM_JOB, since the watcher may sit in a job
         # object (Electron/Tauri parent) whose teardown would otherwise kill it (_subprocess_compat.windows_detach_flags).
         _popen_kwargs = {{"stdout": _stdio_target, "stderr": _stdio_target}}
-        # Stable cwd + env overlay (VIRTUAL_ENV/PYTHONPATH/HERMES_HOME) the windowless interpreter needs; empty on POSIX.
+        # Stable cwd + env overlay (VIRTUAL_ENV/PYTHONPATH/A2ASSISTANT_HOME) the windowless interpreter needs; empty on POSIX.
         if _respawn_cwd:
             _popen_kwargs["cwd"] = _respawn_cwd
         _base_env = {{**os.environ, **_respawn_env_overlay}}
@@ -1245,17 +1245,17 @@ def _unit_environment_value(unit_path: Path, name: str) -> str | None:
 
 
 def _hermes_home_pinned_by_unit(unit_path: Path) -> str | None:
-    """``HERMES_HOME`` pinned by the unit file at *unit_path*, or None when absent/unreadable."""
-    return _unit_environment_value(unit_path, "HERMES_HOME")
+    """``A2ASSISTANT_HOME`` pinned by the unit file at *unit_path*, or None when absent/unreadable."""
+    return _unit_environment_value(unit_path, "A2ASSISTANT_HOME") or _unit_environment_value(unit_path, "HERMES_HOME")
 
 
 def _hermes_home_from_systemd_unit_file(system: bool = False) -> str | None:
-    """``HERMES_HOME`` from the on-disk unit file - what refresh/compare already read, and reliable under ``sudo``."""
+    """``A2ASSISTANT_HOME`` from the on-disk unit file - what refresh/compare already read, and reliable under ``sudo``."""
     return _hermes_home_pinned_by_unit(get_systemd_unit_path(system=system))
 
 
 def _sync_hermes_home_from_systemd_unit(system: bool) -> None:
-    """Adopt a system-scope unit's ``HERMES_HOME``: under ``sudo`` it is stripped and HOME=/root, so
+    """Adopt a system-scope unit's ``A2ASSISTANT_HOME``: under ``sudo`` it is stripped and HOME=/root, so
     get_hermes_home() would pick the wrong profile for runtime-status/PID reads."""
     if not system:
         return
@@ -1263,9 +1263,9 @@ def _sync_hermes_home_from_systemd_unit(system: bool) -> None:
     unit_home = (_hermes_home_from_systemd_unit_file(system=True) or "").strip()
     if not unit_home:
         env_line = _systemctl_show(("Environment",), system=True).get("Environment", "")
-        unit_home = _parse_kv_pairs(env_line.split()).get("HERMES_HOME", "").strip()
-    if unit_home and os.environ.get("HERMES_HOME", "").strip() != unit_home:
-        os.environ["HERMES_HOME"] = unit_home
+        unit_home = _parse_kv_pairs(env_line.split()).get("A2ASSISTANT_HOME", "").strip()
+    if unit_home and os.environ.get("A2ASSISTANT_HOME", "").strip() != unit_home:
+        os.environ["A2ASSISTANT_HOME"] = unit_home
 
 
 def _read_systemd_unit_properties(
@@ -1360,7 +1360,7 @@ def _wait_for_systemd_service_restart(
                 if gateway_state == "degraded":
                     # Serving, but a configured platform is parked or retrying: a real restart, not a
                     # failure — say so instead of waiting out the timeout and reporting one.
-                    print(f"⚠ {scope_label} gateway is DEGRADED — see `hermes gateway status`")
+                    print(f"⚠ {scope_label} gateway is DEGRADED — see `a2assistant gateway status`")
                 return True
             if gateway_state == "startup_failed":
                 reason = (runtime_state or {}).get("exit_reason") or "startup failed"
@@ -1385,7 +1385,7 @@ def _wait_for_systemd_service_restart(
     sudo, _, user_flag = _systemd_cli_bits(system)
     print(
         f"⚠ {scope_label} service did not become active within {int(timeout)}s.\n"
-        f"  Check status: {sudo}hermes gateway status\n"
+        f"  Check status: {sudo}a2assistant gateway status\n"
         f"  Check logs:   journalctl {user_flag}-u {svc} -l --since '2 min ago'"
     )
     return False
@@ -1428,7 +1428,7 @@ def _print_systemd_start_limit_wait(system: bool = False) -> None:
     sudo, scope_flag, user_flag = _systemd_cli_bits(system)
     print(f"⏳ {scope_label} service is temporarily rate-limited by systemd.")
     print("  systemd is refusing another immediate start after repeated exits.")
-    print(f"  Wait for the start-limit window to expire, then run: {sudo}hermes gateway restart{scope_flag}")
+    print(f"  Wait for the start-limit window to expire, then run: {sudo}a2assistant gateway restart{scope_flag}")
     print(f"  Or clear the failed state manually: systemctl {user_flag}reset-failed {svc}")
     print(f"  Check logs: journalctl {user_flag}-u {svc} -l --since '5 min ago'")
 
@@ -1610,11 +1610,11 @@ def _print_gateway_process_mismatch(snapshot: GatewayRuntimeSnapshot) -> None:
         print("⚠ Gateway is running as a detached fallback process — launchd cannot supervise it")
         print(pids_line)
         print("  Auto-start at login and auto-restart on crash are NOT available.")
-        print("  Stop it with: hermes gateway stop")
+        print("  Stop it with: a2assistant gateway stop")
     else:
         print("⚠ Gateway process is running for this profile, but the service is not active")
         print(pids_line)
-        print("  This is usually a manual foreground/tmux/nohup run, so `hermes gateway`")
+        print("  This is usually a manual foreground/tmux/nohup run, so `a2assistant gateway`")
         print("  can refuse to start another copy until this process stops.")
 
 
@@ -1659,7 +1659,7 @@ def _print_unserved_shared_ingress(profile: str | None) -> None:
 
 
 def _print_other_profiles_gateway_status() -> None:
-    """Print other profiles' running gateways at the bottom of ``hermes gateway status``."""
+    """Print other profiles' running gateways at the bottom of ``a2assistant gateway status``."""
     try:
         from hermes_cli.profiles import get_active_profile_name
         current = get_active_profile_name()
@@ -2045,7 +2045,7 @@ def is_linux() -> bool:
     return sys.platform.startswith("linux")
 
 
-from hermes_constants import is_container, is_termux, is_wsl
+from hermes_constants import default_home_in, is_container, is_termux, is_wsl
 
 
 def _wsl_systemd_operational() -> bool:
@@ -2151,7 +2151,7 @@ def _windows_scheduled_task_supervises(task_name: str) -> bool:
 
 
 def _gateway_detached_env() -> bool:
-    return _truthy_env(os.getenv("HERMES_GATEWAY_DETACHED"))
+    return _truthy_env(os.getenv("A2ASSISTANT_GATEWAY_DETACHED"))
 
 
 def _stdin_is_tty() -> bool | None:
@@ -2163,7 +2163,7 @@ def _stdin_is_tty() -> bool | None:
 
 
 def _windows_gateway_should_absorb_console_controls() -> bool:
-    """True for detached Windows gateway runs that should ignore Ctrl+C (``HERMES_GATEWAY_DETACHED=1``
+    """True for detached Windows gateway runs that should ignore Ctrl+C (``A2ASSISTANT_GATEWAY_DETACHED=1``
     or no interactive stdin); foreground runs stay interruptible."""
     if not is_windows():
         return False
@@ -2195,7 +2195,7 @@ def _windows_gateway_breakaway_state() -> bool | None:
 # Service Configuration
 # =============================================================================
 
-_SERVICE_BASE = "hermes-gateway"
+_SERVICE_BASE = SYSTEMD_GATEWAY_UNIT
 SERVICE_DESCRIPTION = "A2Assistant Gateway - Messaging Platform Integration"
 
 _SYSTEM_UNIT_DIR = Path("/etc/systemd/system")
@@ -2228,13 +2228,13 @@ def _native_service_homes() -> set[Path]:
 
 
 def _bare_unit_pinned_home() -> Path | None:
-    """Resolved ``HERMES_HOME`` pinned by an installed ``hermes-gateway.service``, or None. The unit is the
+    """Resolved ``A2ASSISTANT_HOME`` pinned by an installed ``a2assistant-gateway.service``, or None. The unit is the
     one naming basis that holds still across the sudo mid-command switch (see ``_profile_suffix``) and it
     covers every elevated identity — ``sudo -i`` and cron included, where SUDO_USER is absent.
 
     Root reads the system unit; an unprivileged process reads only its own user unit, never the system
     one — a bare system unit pinning ``profiles/<name>`` would otherwise alias that profile onto the
-    user's default unit. The user unit matters for a custom root: the ``hermes-gateway-<hash>`` naming
+    user's default unit. The user unit matters for a custom root: the ``a2assistant-gateway-<hash>`` naming
     (#105525) left a bare user unit installed before it pinning that same root, so lifecycle commands
     saw "no unit", ``gateway restart`` fell through to a foreground run, and the still-enabled legacy
     unit's ``Restart=always`` looped on the instance lock (#109476). A unit pinning THIS home is this
@@ -2248,7 +2248,7 @@ def _bare_unit_pinned_home() -> Path | None:
     if not is_linux():
         return None
     unit_dir = _SYSTEM_UNIT_DIR if os.geteuid() == 0 else user_systemd_unit_dir()  # windows-footgun: ok — behind is_linux()
-    pinned = _hermes_home_pinned_by_unit(unit_dir / f"{_SERVICE_BASE}.service")
+    pinned = _hermes_home_pinned_by_unit(unit_dir / f"{gateway_systemd_unit_base()}.service")
     if not pinned:
         return None
     try:
@@ -2263,21 +2263,21 @@ def _home_owns_bare_service_name(home: Path) -> bool:
 
 
 def _profile_suffix() -> str:
-    """Service-name suffix for HERMES_HOME: "" for a home that owns the bare name, the profile name for
+    """Service-name suffix for A2ASSISTANT_HOME: "" for a home that owns the bare name, the profile name for
     ``<root>/profiles/<name>``, else a short hash of the path.
 
-    Bare-name owners: this process's platform-native default (``~/.hermes``), under sudo the invoking
-    user's native default, and the home pinned by an installed ``hermes-gateway.service``. Under sudo the
-    naming basis moves MID-COMMAND — sudo strips HERMES_HOME and sets HOME=/root, then
-    ``_sync_hermes_home_from_systemd_unit()`` adopts the unit's own HERMES_HOME into ``os.environ`` — so a
+    Bare-name owners: this process's platform-native default (``~/.a2assistant``), under sudo the invoking
+    user's native default, and the home pinned by an installed ``a2assistant-gateway.service``. Under sudo the
+    naming basis moves MID-COMMAND — sudo strips A2ASSISTANT_HOME and sets HOME=/root, then
+    ``_sync_hermes_home_from_systemd_unit()`` adopts the unit's own A2ASSISTANT_HOME into ``os.environ`` — so a
     basis derived from the process alone names one unit before the adoption and another after it. The
-    unit-pinned check must precede the profile branch: ``sudo hermes gateway install --system`` resolves
+    unit-pinned check must precede the profile branch: ``sudo a2assistant gateway install --system`` resolves
     the BARE name from root's default, then pins the invoking user's remapped home, so the bare unit
     legitimately carries a ``<root>/profiles/<name>`` home.
 
     The bare name is deliberately NOT tied to ``get_default_hermes_root()``: that helper treats any
-    HERMES_HOME outside ``~/.hermes`` (Docker ``/opt/data``, a temp dir) as "the root itself", which let a
-    temp-home harness resolve to the default profile's ``hermes-gateway`` unit and uninstall the
+    A2ASSISTANT_HOME outside ``~/.a2assistant`` (Docker ``/opt/data``, a temp dir) as "the root itself", which let a
+    temp-home harness resolve to the default profile's ``a2assistant-gateway`` unit and uninstall the
     production gateway. Service names are host-wide identities; a home with no installed bare unit and
     no native default keeps its own suffix.
     """
@@ -2311,10 +2311,9 @@ def _profile_arg(hermes_home: str | None = None, default_root: str | Path | None
 
 
 def get_service_name() -> str:
-    """Systemd service name: ``hermes-gateway`` for default HERMES_HOME, ``hermes-gateway-<profile>``
+    """Systemd service name: ``a2assistant-gateway`` for default A2ASSISTANT_HOME, ``a2assistant-gateway-<profile>``
     or ``-<hash>`` otherwise."""
-    suffix = _profile_suffix()
-    return f"{_SERVICE_BASE}-{suffix}" if suffix else _SERVICE_BASE
+    return gateway_systemd_unit(_profile_suffix())
 
 
 def user_systemd_unit_dir() -> Path:
@@ -2323,9 +2322,9 @@ def user_systemd_unit_dir() -> Path:
 
     Hardcoding ``~/.config`` made every unit probe silently false-negative on a host that moves
     XDG_CONFIG_HOME — doctor then reported no gateway unit while systemd was running ours. And
-    ``Path.home()`` trusts a process HOME that profile isolation may point at ``{HERMES_HOME}/home`` — the
+    ``Path.home()`` trusts a process HOME that profile isolation may point at ``{A2ASSISTANT_HOME}/home`` — the
     ACTIVE profile's, not even the one selected with ``-p`` — so ``gateway install`` wrote the unit under
-    ``~/.hermes/profiles/<active>/home/.config/systemd/user/`` where ``systemctl --user`` never looks and
+    ``~/.a2assistant/profiles/<active>/home/.config/systemd/user/`` where ``systemctl --user`` never looks and
     ``enable`` failed with "Unit ... does not exist" (#98699). ``systemctl --user`` targets the login
     user's session, so the unit dir follows the account home like ``get_launchd_plist_path()`` does.
     """
@@ -2516,7 +2515,7 @@ def _raise_user_systemd_unavailable(username: str, *, reason: str, fix_hint: str
         "\n"
         "  Alternative: run the gateway in the foreground (stays up until\n"
         "  you exit / close the terminal):\n"
-        "    hermes gateway run"
+        "    a2assistant gateway run"
     )
     raise UserSystemdUnavailableError(msg)
 
@@ -2564,7 +2563,7 @@ _LEGACY_UNIT_EXECSTART_MARKERS: tuple[str, ...] = (
     "hermes_cli.main gateway",
     "hermes_cli/main.py gateway",
     "gateway/run.py",
-    " hermes gateway ",
+    " a2assistant gateway ",
     "/hermes gateway ",
 )
 
@@ -2580,7 +2579,7 @@ def _find_legacy_hermes_units() -> list[tuple[str, Path, bool]]:
     marker check so profile/third-party units never match; no mutation.
 
     Detects unit files installed by older Hermes versions that used a different service name (e.g. When both
-    a legacy unit and the current ``hermes-gateway.service`` are active, they fight over the same bot token
+    a legacy unit and the current ``a2assistant-gateway.service`` are active, they fight over the same bot token
     — the PR #5646 signal-recovery change turns this into a 30-second SIGTERM flap loop.
     """
     results: list[tuple[str, Path, bool]] = []
@@ -2611,10 +2610,10 @@ def print_legacy_unit_warning() -> None:
     print_warning("Legacy A2Assistant gateway unit(s) detected from an older install:")
     for name, path, is_system in legacy:
         print_info(f"    {path}  ({_service_scope_label(is_system)} scope)")
-    print_info("  These run alongside the current hermes-gateway service and")
+    print_info("  These run alongside the current a2assistant-gateway service and")
     print_info("  cause SIGTERM flap loops — both try to use the same bot token.")
     print_info("  Remove them with:")
-    print_info("    hermes gateway migrate-legacy")
+    print_info("    a2assistant gateway migrate-legacy")
 
 
 def remove_legacy_hermes_units(interactive: bool = True, dry_run: bool = False) -> tuple[int, list[Path]]:
@@ -2636,7 +2635,7 @@ def remove_legacy_hermes_units(interactive: bool = True, dry_run: bool = False) 
         return 0, [p for _, p, _ in legacy]
 
     if interactive and not prompt_yes_no("Remove these legacy units?", True):
-        print("Skipped. Run again with: hermes gateway migrate-legacy")
+        print("Skipped. Run again with: a2assistant gateway migrate-legacy")
         return 0, [p for _, p, _ in legacy]
 
     removed = 0
@@ -2667,7 +2666,7 @@ def remove_legacy_hermes_units(interactive: bool = True, dry_run: bool = False) 
         if os.geteuid() != 0:  # windows-footgun: ok — Linux systemd removal path, guarded by `if system == "Linux"` / systemd-only branch
             print()
             print_warning("System-scope legacy units require root to remove.")
-            print_info("  Re-run with: sudo hermes gateway migrate-legacy")
+            print_info("  Re-run with: sudo a2assistant gateway migrate-legacy")
             remaining.extend(path for _, path in system_units)
         else:
             _remove_units(system_units, system=True)
@@ -2690,8 +2689,8 @@ def print_systemd_scope_conflict_warning() -> None:
     print_info("  This is confusing and can make start/stop/status behavior ambiguous.")
     print_info("  Default gateway commands target the user service unless you pass --system.")
     print_info("  Keep one of these:")
-    print_info("    hermes gateway uninstall")
-    print_info("    sudo hermes gateway uninstall --system")
+    print_info("    a2assistant gateway uninstall")
+    print_info("    sudo a2assistant gateway uninstall --system")
 
 
 def refuses_container_user_scope_install(system: bool) -> bool:
@@ -2711,11 +2710,11 @@ def refuses_container_user_scope_install(system: bool) -> bool:
         "starts the same unit, so a second gateway polls the same bot token outside the container",
         "(Telegram: 'Conflict: terminated by other getUpdates request').",
         "",
-        "  hermes gateway run                                # run as the container's main process",
+        "  a2assistant gateway run                                # run as the container's main process",
         "  docker run --restart unless-stopped ...           # container restart policy",
         "",
         "If systemd manages this container (systemd as PID 1), install an isolated system service instead:",
-        "  sudo hermes gateway install --system --run-as-user <user>",
+        "  sudo a2assistant gateway install --system --run-as-user <user>",
     )
     return True
 
@@ -2793,7 +2792,7 @@ def install_linux_gateway_from_setup(force: bool = False, enable_on_startup: boo
             # Unreachable from the wizard (system scope only offered to root); defensive guard for direct callers.
             print_warning(
                 "  System service install requires root. Re-run setup from a "
-                "root shell, or install a user service instead: hermes gateway install"
+                "root shell, or install a user service instead: a2assistant gateway install"
             )
             return scope, False
 
@@ -2855,10 +2854,10 @@ def get_systemd_linger_status(username: str | None = None) -> tuple[bool | None,
 
 
 def get_launchd_plist_path() -> Path:
-    """``~/Library/LaunchAgents/ai.hermes.gateway[-<profile>].plist`` under the real account home."""
+    """``~/Library/LaunchAgents/de.a2genesis.a2assistant.gateway[-<profile>].plist`` under the real account home."""
     import pwd
-    suffix = _profile_suffix()
-    name = f"ai.hermes.gateway-{suffix}" if suffix else "ai.hermes.gateway"
+
+    name = gateway_launchd_label(_profile_suffix())
     # Real account home: profile mode may point HOME at a profile dir. Sandboxed/app-hosted
     # shells can expose a UID that pwd cannot resolve (#57292); fall back to the shared
     # real-home resolver (HERMES_REAL_HOME → HOME → pwd → ~, profile home skipped) instead
@@ -2874,7 +2873,7 @@ def get_launchd_plist_path() -> Path:
 
 def launchd_gateway_labels_for_install() -> list[str]:
     """Launchd labels for every profile of THIS install (root first, then profiles by name). Derived from
-    the profile layout, NOT by globbing ``~/Library/LaunchAgents``, so a sandboxed HERMES_HOME never
+    the profile layout, NOT by globbing ``~/Library/LaunchAgents``, so a sandboxed A2ASSISTANT_HOME never
     restarts another install's fleet. Names that can't map to a suffix are skipped."""
     import re as _re
     from hermes_cli.profiles import list_profiles
@@ -2882,27 +2881,27 @@ def launchd_gateway_labels_for_install() -> list[str]:
     profile_labels: list[str] = []
     for profile in list_profiles():
         if profile.is_default:
-            root_label.append("ai.hermes.gateway")
+            root_label.append(gateway_launchd_label())
         elif _re.match(r"^[a-z0-9][a-z0-9_-]{0,63}$", profile.name):
-            profile_labels.append(f"ai.hermes.gateway-{profile.name}")
+            profile_labels.append(gateway_launchd_label(profile.name))
     return root_label + sorted(profile_labels)
 
 
 def legacy_launchd_labels_for_install(exclude=()) -> list[str]:
     """Launchd labels of THIS install that the profile-layout derivation can't map (#115254).
 
-    A unit whose label predates the profile-name suffix scheme (``ai.hermes.gateway-<8hex>`` from the
+    A unit whose label predates the profile-name suffix scheme (``de.a2genesis.a2assistant.gateway-<8hex>`` from the
     historical hash suffix) is invisible to ``launchd_gateway_labels_for_install()`` and therefore to
     the update restart pass. This reads the account's LaunchAgents and credits a plist only when its
-    pinned ``HERMES_HOME`` is this install's root or one of its ``profiles/<name>`` homes — ownership
+    pinned ``A2ASSISTANT_HOME`` is this install's root or one of its ``profiles/<name>`` homes — ownership
     judged from the plist's content, never from label shape or directory membership — so the
-    derivation's boundary holds: a sandboxed HERMES_HOME (tests, side-by-side installs) never
+    derivation's boundary holds: a sandboxed A2ASSISTANT_HOME (tests, side-by-side installs) never
     enumerates, let alone restarts, another install's fleet (#41403).
     """
     import plistlib
     import pwd
 
-    from hermes_constants import get_default_hermes_root
+    from hermes_constants import env_value, get_default_hermes_root
 
     try:
         home = Path(pwd.getpwuid(os.getuid()).pw_dir)  # windows-footgun: ok — POSIX launchd (macOS) helper, never invoked on Windows
@@ -2914,15 +2913,16 @@ def legacy_launchd_labels_for_install(exclude=()) -> list[str]:
         return []
     excluded = set(exclude)
     labels: set[str] = set()
-    for plist_path in sorted(agents_dir.glob("ai.hermes.gateway*.plist")):
+    plists = sorted({path for base in LAUNCHD_GATEWAY_LABELS for path in agents_dir.glob(f"{base}*.plist")})
+    for plist_path in plists:
         try:
             data = plistlib.loads(plist_path.read_bytes())
             label = data["Label"]
-            pinned = Path(str(data["EnvironmentVariables"]["HERMES_HOME"])).expanduser().resolve()
+            pinned = Path(env_value(data["EnvironmentVariables"], "HOME")).expanduser().resolve()
             rel = pinned.relative_to(root).parts
         except Exception:
             continue  # unreadable plist, no pinned home, or a home outside this root: not ours — fail closed
-        if not isinstance(label, str) or label in excluded or not label.startswith("ai.hermes.gateway"):
+        if not isinstance(label, str) or label in excluded or not is_launchd_gateway_label(label):
             continue
         if not rel or (len(rel) == 2 and rel[0] == "profiles"):
             labels.add(label)
@@ -3017,7 +3017,7 @@ def _installed_unit_ld_library_path(system: bool) -> str:
 
 def _ld_library_path_line(system: bool, target_home_dir: str | None = None) -> str:
     """Carry the installer's LD_LIBRARY_PATH into the unit (glibc reads it only at process start, so
-    ~/.hermes/.env is too late for CUDA libs — #14613); system units remap caller-home components.
+    ~/.a2assistant/.env is too late for CUDA libs — #14613); system units remap caller-home components.
 
     The installed unit is the fallback source: the unit is regenerated and compared on every
     start/restart/status, and a shell without the export (ssh, cron, ``sudo`` strips ``LD_*``)
@@ -3030,13 +3030,13 @@ def _ld_library_path_line(system: bool, target_home_dir: str | None = None) -> s
 
 
 def _hermes_home_for_target_user(target_home_dir: str) -> str:
-    """Remap the current HERMES_HOME (root's, under sudo) to the target user's equivalent:
+    """Remap the current A2ASSISTANT_HOME (root's, under sudo) to the target user's equivalent:
     ``/root/.hermes[/profiles/x]`` → ``/home/alice/.hermes[/profiles/x]``; custom paths kept as-is."""
-    current_hermes_raw = os.environ.get("HERMES_HOME", "").strip()
+    current_hermes_raw = os.environ.get("A2ASSISTANT_HOME", "").strip()
     current_hermes = Path(current_hermes_raw).expanduser() if current_hermes_raw else get_hermes_home()
     # Keep paths lexical: resolving a non-existent path can bake a different HERMES_HOME into the unit.
-    current_default = Path.home() / ".hermes"
-    target_default = Path(target_home_dir) / ".hermes"
+    current_default = default_home_in(Path.home())
+    target_default = default_home_in(Path(target_home_dir))
     try:
         # Default ~/.hermes or a profile/subdir of it → preserve the relative structure under the target.
         return str(target_default / current_hermes.relative_to(current_default))
@@ -3067,7 +3067,7 @@ def _build_service_path_dirs(project_root: Path | None = None) -> list[str]:
 
 
 def _stable_service_working_dir() -> str:
-    """WorkingDirectory that won't disappear under systemd (HERMES_HOME, else PROJECT_ROOT). cwd is
+    """WorkingDirectory that won't disappear under systemd (A2ASSISTANT_HOME, else PROJECT_ROOT). cwd is
     irrelevant to ``-m`` resolution, and a pinned transient checkout rots: systemd fails at CHDIR
     (status=200) before Python loads, so the unit self-heal never runs and Restart=always crash-loops."""
     try:
@@ -3205,7 +3205,7 @@ def generate_systemd_unit(system: bool = False, run_as_user: str | None = None) 
         username, group_name, home_dir, uid = _system_service_identity(run_as_user)
         hermes_home = _hermes_home_for_target_user(home_dir)
         # Profile arg relative to the TARGET user's ~/.hermes when hermes_home lives under it.
-        target_root = Path(home_dir) / ".hermes"
+        target_root = default_home_in(Path(home_dir))
         try:
             Path(hermes_home).resolve().relative_to(target_root.resolve())
             profile_arg = _profile_arg(hermes_home, default_root=target_root)
@@ -3266,8 +3266,8 @@ Type={systemd_type}
 WorkingDirectory={working_dir}
 {env_lines}Environment="PATH={sane_path}"
 
-Environment="HERMES_HOME={hermes_home}"
-Environment="HERMES_SUPERVISED_CHILD=1"
+Environment="A2ASSISTANT_HOME={hermes_home}"
+Environment="A2ASSISTANT_SUPERVISED_CHILD=1"
 Restart=always
 RestartSec=5
 RestartForceExitStatus={GATEWAY_SERVICE_RESTART_EXIT_CODE}
@@ -3495,14 +3495,14 @@ def _print_system_scope_remediation(action: str) -> None:
     print_info(f"    1. {action.capitalize()} it this time:")
     print_info(f"         sudo systemctl {action} {get_service_name()}")
     print_info("    2. Switch to a per-user service (recommended for personal use):")
-    print_info("         sudo hermes gateway uninstall --system")
-    print_info("         hermes gateway install")
-    print_info("         hermes gateway start")
+    print_info("         sudo a2assistant gateway uninstall --system")
+    print_info("         a2assistant gateway install")
+    print_info("         a2assistant gateway start")
 
 
 def _get_restart_drain_timeout() -> float:
     """Return the configured gateway restart drain timeout in seconds."""
-    raw = os.getenv("HERMES_RESTART_DRAIN_TIMEOUT", "").strip()
+    raw = os.getenv("A2ASSISTANT_RESTART_DRAIN_TIMEOUT", "").strip()
     if not raw:
         cfg = read_raw_config()
         agent_cfg = cfg.get("agent", {}) if isinstance(cfg, dict) else {}
@@ -3527,7 +3527,7 @@ def _get_cron_drain_timeout() -> float:
 
     See #82161.
     """
-    return _agent_timeout_setting("HERMES_CRON_DRAIN_TIMEOUT", "cron_drain_timeout", parse_cron_drain_timeout)
+    return _agent_timeout_setting("A2ASSISTANT_CRON_DRAIN_TIMEOUT", "cron_drain_timeout", parse_cron_drain_timeout)
 
 
 def _get_restart_exit_wait_budget() -> float:
@@ -3535,7 +3535,7 @@ def _get_restart_exit_wait_budget() -> float:
     return resolve_restart_exit_wait_budget(
         _get_restart_drain_timeout(),
         _agent_timeout_setting(
-            "HERMES_RESTART_AFTER_TURN_TIMEOUT", "restart_after_turn_timeout", parse_restart_after_turn_timeout
+            "A2ASSISTANT_RESTART_AFTER_TURN_TIMEOUT", "restart_after_turn_timeout", parse_restart_after_turn_timeout
         ),
         _get_cron_drain_timeout(),
     )
@@ -3619,8 +3619,8 @@ def systemd_install(
     print(f"✓ {scope_label.capitalize()} service {'installed and enabled' if enable_on_startup else 'installed'}!")
     print()
     print("Next steps:")
-    print(f"  {sudo}hermes gateway start{scope_flag}              # Start the service")
-    print(f"  {sudo}hermes gateway status{scope_flag}             # Check status")
+    print(f"  {sudo}a2assistant gateway start{scope_flag}              # Start the service")
+    print(f"  {sudo}a2assistant gateway status{scope_flag}             # Check status")
     print(f"  journalctl {user_flag}-u {get_service_name()} -f  # View logs")
     print()
 
@@ -3653,13 +3653,13 @@ def _systemd_scope_preamble(
 
 
 def _systemd_unit_belongs_to_current_home(system: bool = False) -> bool:
-    """False (with a warning) when the installed unit pins a HERMES_HOME other than this process's: the
+    """False (with a warning) when the installed unit pins a A2ASSISTANT_HOME other than this process's: the
     service name then resolved to ANOTHER install's gateway, and stop/disable/unlink would take it down."""
     foreign = gateway_service_owner.foreign_systemd_unit_home(system)  # before the sync below rewrites this process's home
     if foreign is not None:
         print_warning(
-            f"Refusing to remove {get_systemd_unit_path(system=system)}: it runs HERMES_HOME={foreign}, "
-            f"but this process has HERMES_HOME={get_hermes_home()}"
+            f"Refusing to remove {get_systemd_unit_path(system=system)}: it runs A2ASSISTANT_HOME={foreign}, "
+            f"but this process has A2ASSISTANT_HOME={get_hermes_home()}"
         )
         return False
     _sync_hermes_home_from_systemd_unit(system=system)  # sudo strips HERMES_HOME; adopt the unit's first
@@ -3667,8 +3667,8 @@ def _systemd_unit_belongs_to_current_home(system: bool = False) -> bool:
     if unit_home is None or Path(unit_home).expanduser().resolve() == get_hermes_home().resolve():
         return True
     print_warning(
-        f"Refusing to remove {get_systemd_unit_path(system=system)}: it runs HERMES_HOME={unit_home}, "
-        f"but this process has HERMES_HOME={get_hermes_home()}"
+        f"Refusing to remove {get_systemd_unit_path(system=system)}: it runs A2ASSISTANT_HOME={unit_home}, "
+        f"but this process has A2ASSISTANT_HOME={get_hermes_home()}"
     )
     return False
 
@@ -3692,7 +3692,7 @@ def systemd_uninstall(system: bool = False):
 def _print_service_not_installed(system: bool) -> None:
     sudo, scope_flag, _ = _systemd_cli_bits(system)
     print("✗ Gateway service is not installed")
-    print(f"  Run: {sudo}hermes gateway install{scope_flag}")
+    print(f"  Run: {sudo}a2assistant gateway install{scope_flag}")
 
 
 def _require_service_installed(action: str, system: bool = False) -> None:
@@ -3720,7 +3720,7 @@ def systemd_stop(system: bool = False):
     except subprocess.TimeoutExpired:
         print(
             f"Gateway {_service_scope_label(system)} service is still stopping after 90s; "
-            "check `hermes gateway status` or logs for final shutdown state."
+            "check `a2assistant gateway status` or logs for final shutdown state."
         )
         return
     print(f"✓ {_service_scope_label(system).capitalize()} service stopped")
@@ -3830,7 +3830,7 @@ def _systemd_reset_and_run(action: str, *, system: bool, previous_pid) -> None:
     except subprocess.TimeoutExpired:
         print(
             f"Gateway {_service_scope_label(system)} service is still restarting after 90s; "
-            "check `hermes gateway status` or logs for final state."
+            "check `a2assistant gateway status` or logs for final state."
         )
         return
     _wait_for_systemd_service_restart(system=system, previous_pid=previous_pid)
@@ -3857,7 +3857,7 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
 
     if not systemd_unit_is_current(system=system):
         print("⚠ Installed gateway service definition is outdated")
-        print(f"  Run: {sudo}hermes gateway restart{scope_flag}  # auto-refreshes the unit")
+        print(f"  Run: {sudo}a2assistant gateway restart{scope_flag}  # auto-refreshes the unit")
         print()
 
     status_cmd = ["status", svc, "--no-pager"] + (["-l"] if full else [])
@@ -3867,7 +3867,7 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
         print(f"✓ {scope_label} gateway service is running")
     else:
         print(f"✗ {scope_label} gateway service is stopped")
-        print(f"  Run: {sudo}hermes gateway start{scope_flag}")
+        print(f"  Run: {sudo}a2assistant gateway start{scope_flag}")
 
     configured_user = _read_systemd_user_from_unit(unit_path) if system else None
     if configured_user:
@@ -3882,11 +3882,11 @@ def systemd_status(deep: bool = False, system: bool = False, full: bool = False)
         print("  ⏳ Restart pending: systemd is waiting to relaunch the gateway")
     elif _systemd_unit_is_start_limited(unit_props):
         print("  ⏳ Restart pending: systemd is temporarily rate-limiting starts")
-        print(f"  Run after the start-limit window expires: {sudo}hermes gateway restart{scope_flag}")
+        print(f"  Run after the start-limit window expires: {sudo}a2assistant gateway restart{scope_flag}")
         print(f"  Or clear it manually: systemctl {user_flag}reset-failed {svc}")
     elif active_state == "failed" and unit_props.get("ExecMainStatus", "") == str(GATEWAY_SERVICE_RESTART_EXIT_CODE):
         print("  ⚠ Planned restart is stuck in systemd failed state (exit 75)")
-        print(f"  Run: systemctl {user_flag}reset-failed {svc} && {sudo}hermes gateway start{scope_flag}")
+        print(f"  Run: systemctl {user_flag}reset-failed {svc} && {sudo}a2assistant gateway start{scope_flag}")
     elif active_state == "failed" and result_code:
         print(f"  ⚠ Systemd unit result: {result_code}")
 
@@ -3971,7 +3971,7 @@ _resolved_launchd_domain: str | None = None
 
 def _wait_for_gateway_exit(timeout: float = 10.0, force_after: float | None = 5.0) -> bool:
     """Wait up to ``timeout`` s for the gateway (by gateway.pid, not launchd labels, so multiple
-    HERMES_HOMEs work) to exit; SIGKILL it after ``force_after`` s of graceful waiting."""
+    A2ASSISTANT_HOMEs work) to exit; SIGKILL it after ``force_after`` s of graceful waiting."""
     from gateway.status import get_process_start_time, get_running_pid
     deadline = time.monotonic() + timeout
     force_deadline = (time.monotonic() + force_after) if force_after is not None else None
@@ -4059,7 +4059,7 @@ def _is_official_docker_checkout() -> bool:
 def _running_under_gateway_supervisor() -> bool:
     """True when this process IS the supervisor-launched gateway, so the conflict guard never wedges
     the service into a respawn/refuse loop. Markers: systemd INVOCATION_ID, launchd XPC_SERVICE_NAME
-    (shells inherit "0"), s6 HERMES_S6_SUPERVISED_CHILD, or ``--external-supervisor``."""
+    (shells inherit "0"), s6 A2ASSISTANT_S6_SUPERVISED_CHILD, or ``--external-supervisor``."""
     return is_gateway_supervisor_process()
 
 
@@ -4094,7 +4094,7 @@ def _served_by_another_host_gateway(profile_name: str | None = None):
     """The host gateway serving ``profile_name`` when it is NOT this home's own process.
 
     The owner must never be guarded out of restarting itself: a refusal keyed on "something serves
-    you" would make `hermes gateway restart` impossible for the profile that launched the host
+    you" would make `a2assistant gateway restart` impossible for the profile that launched the host
     process. Guards want "ANOTHER process already serves you", which is this.
     """
     gateway = host_multiplexer_serving(profile_name)
@@ -4164,8 +4164,8 @@ def _served_profile_needs_no_service() -> bool:
     """Print the "already served" note and return True when a setup flow must not install a standalone
     service: a live multiplexing default gateway already serves this named profile, so the unit/plist it
     would register can only sit dead (the start guard refuses it) or double-bind its platforms.
-    Shared by ``hermes setup gateway`` / ``hermes setup`` / ``hermes import`` (``ensure_gateway_service``)
-    and the ``hermes gateway setup`` wizard. See #111958."""
+    Shared by ``a2assistant setup gateway`` / ``a2assistant setup`` / ``a2assistant import`` (``ensure_gateway_service``)
+    and the ``a2assistant gateway setup`` wizard. See #111958."""
     if not named_profile_served_by_running_multiplexer():
         # Not served (yet): a named profile still gets no service of its own — same rule and text
         # as `gateway install`, so `hermes -p X setup` cannot grow a fleet member the verb refuses.
@@ -4191,7 +4191,7 @@ def _named_profile_refused_under_multiplexer(force: bool = False) -> bool:
     double-bind its platforms: two pollers on one token, port fights) or no host gateway runs yet and
     the DEFAULT profile is where it is installed. Refusing only the served case let a host with no
     multiplexer running (or one that had not rescanned yet) grow a brand-new per-profile fleet member.
-    ``--force`` is the one escape (a fleet split across UNIX users or a ``HERMES_HOME`` outside
+    ``--force`` is the one escape (a fleet split across UNIX users or a ``A2ASSISTANT_HOME`` outside
     ``profiles/``); a service it already installed stays startable without it. Shared by ``run`` and the service verbs (``start``/``install``/``restart``): a
     refusal only inside ``gateway run`` leaves the service manager to discover it — systemd parks the
     unit on exit 78 while the CLI prints "started"; launchd (KeepAlive, no exit-status gating)
@@ -4239,18 +4239,18 @@ def _named_profile_refused_under_multiplexer(force: bool = False) -> bool:
     if served:
         print("  Manage the host gateway instead:")
         print()
-        print(f"    hermes -p {owner.profile_label if owner is not None else 'default'} gateway restart")
+        print(f"    a2assistant -p {owner.profile_label if owner is not None else 'default'} gateway restart")
     else:
         print("  Install or start the host gateway from the default profile; it serves this one too:")
         print()
-        print("    hermes gateway install")
+        print("    a2assistant gateway install")
         print()
         print("  Or fold an existing per-profile fleet onto one host gateway:")
         print()
-        print("    hermes gateway migrate --multiplex")
+        print("    a2assistant gateway migrate --multiplex")
     print()
     print("  A separate per-profile gateway (for a fleet split across UNIX users or a")
-    print(f"  HERMES_HOME outside profiles/) needs --force:  hermes -p {suffix} gateway install --force")
+    print(f"  A2ASSISTANT_HOME outside profiles/) needs --force:  a2assistant -p {suffix} gateway install --force")
     print()
     from hermes_constants import display_hermes_home
     from hermes_cli.gateway_multiplex_mode import STANDALONE_DEPRECATION_NOTICE
@@ -4364,7 +4364,7 @@ def _guard_supervised_gateway_conflict(force: bool = False) -> None:
         "  instead:"
     )
     print()
-    print("    hermes gateway restart")
+    print("    a2assistant gateway restart")
     print()
     print(
         "  Pass --force to start a foreground gateway anyway (not recommended\n"
@@ -4376,7 +4376,7 @@ def _guard_supervised_gateway_conflict(force: bool = False) -> None:
 def _guard_existing_gateway_process_conflict(replace: bool = False) -> None:
     """Cheap PID-file preflight before the expensive ``gateway.run`` import (the authoritative lock check):
     supervisor loops re-running bare ``gateway run`` burned memory on plugin discovery just to fail
-    "already running". Same user-facing contract; never scans other HERMES_HOME roots."""
+    "already running". Same user-facing contract; never scans other A2ASSISTANT_HOME roots."""
     if replace or _running_under_gateway_supervisor():
         return
     try:
@@ -4402,15 +4402,15 @@ def _guard_existing_gateway_process_conflict(replace: bool = False) -> None:
         return
 
     print_error(f"A gateway is already running (PID {pid}), so your bots are most likely online already.")
-    print("  Check with `hermes gateway status`.")
-    print("  To restart it: `hermes gateway restart`. To stop it: `hermes gateway stop`.")
-    print("  To replace it from here: `hermes gateway run --replace`.")
+    print("  Check with `a2assistant gateway status`.")
+    print("  To restart it: `a2assistant gateway restart`. To stop it: `a2assistant gateway stop`.")
+    print("  To replace it from here: `a2assistant gateway run --replace`.")
     sys.exit(1)
 
 
 def _guard_official_docker_root_gateway() -> None:
     """Refuse gateway startup when the official Docker privilege drop was bypassed."""
-    if not hasattr(os, "geteuid") or os.geteuid() != 0 or _truthy_env(os.getenv("HERMES_ALLOW_ROOT_GATEWAY")):
+    if not hasattr(os, "geteuid") or os.geteuid() != 0 or _truthy_env(os.getenv("A2ASSISTANT_ALLOW_ROOT_GATEWAY")):
         return
     if not _is_official_docker_checkout():
         return
@@ -4423,9 +4423,9 @@ def _guard_official_docker_root_gateway() -> None:
     )
     print(
         "  Running the gateway as root can leave root-owned files in "
-        "$HERMES_HOME and break later non-root dashboard/gateway runs."
+        "$A2ASSISTANT_HOME and break later non-root dashboard/gateway runs."
     )
-    print("  Set HERMES_ALLOW_ROOT_GATEWAY=1 only if you intentionally accept this risk.")
+    print("  Set A2ASSISTANT_ALLOW_ROOT_GATEWAY=1 only if you intentionally accept this risk.")
     sys.exit(1)
 
 
@@ -4480,11 +4480,11 @@ def _absorb_windows_console_controls() -> None:
 
 def _make_exit_diag():
     """``_exit_diag(tag, **extra)`` recorder writing ``logs/gateway-exit-diag.log`` — captures every way
-    ``asyncio.run()`` can return, for chasing silent Windows gateway deaths. HERMES_GATEWAY_EXIT_DIAG=0 opts out."""
+    ``asyncio.run()`` can return, for chasing silent Windows gateway deaths. A2ASSISTANT_GATEWAY_EXIT_DIAG=0 opts out."""
     from datetime import datetime as _dt, timezone as _tz
 
     def _exit_diag(tag: str, **extra: object) -> None:
-        if os.environ.get("HERMES_GATEWAY_EXIT_DIAG", "1") != "1":
+        if os.environ.get("A2ASSISTANT_GATEWAY_EXIT_DIAG", "1") != "1":
             return
         try:
             from hermes_constants import get_hermes_home as _ghh
@@ -4504,7 +4504,7 @@ def _make_exit_diag():
 
 def _respawn_storm_backoff() -> None:
     """Portable app-level respawn-storm breaker (for supervisors without a floor). Defaults mirror
-    DEFAULT_CONFIG ``gateway.respawn_storm``; HERMES_GATEWAY_MAX_STARTS / HERMES_GATEWAY_START_WINDOW_S
+    DEFAULT_CONFIG ``gateway.respawn_storm``; A2ASSISTANT_GATEWAY_MAX_STARTS / A2ASSISTANT_GATEWAY_START_WINDOW_S
     override; max_starts <= 0 disables. Never blocks startup."""
     try:
         from gateway.status import record_start_and_check_storm
@@ -4523,11 +4523,11 @@ def _respawn_storm_backoff() -> None:
         except Exception:
             pass
         try:
-            _max_starts = int(os.environ["HERMES_GATEWAY_MAX_STARTS"])
+            _max_starts = int(os.environ["A2ASSISTANT_GATEWAY_MAX_STARTS"])
         except (KeyError, ValueError):
             pass
         try:
-            _win = float(os.environ["HERMES_GATEWAY_START_WINDOW_S"])
+            _win = float(os.environ["A2ASSISTANT_GATEWAY_START_WINDOW_S"])
         except (KeyError, ValueError):
             pass
         _storm = record_start_and_check_storm(max_starts=_max_starts, window_s=_win) if _max_starts > 0 else None
@@ -4806,7 +4806,7 @@ def _service_backend(*, windows: bool = True) -> str | None:
 def _service_call(backend: str, verb: str, system: bool | None = False) -> None:
     """Run ``verb`` (start/stop/restart/uninstall) on ``backend``. Names resolve at call time so tests
     can monkeypatch them; only systemd takes a scope, and ``system=None`` omits it (wizard restart).
-    Each systemd/launchd verb refuses a definition pinning another HERMES_HOME itself."""
+    Each systemd/launchd verb refuses a definition pinning another A2ASSISTANT_HOME itself."""
     if backend == "windows":
         return getattr(_gw_windows(), verb)()
     if backend == "launchd":
@@ -4907,13 +4907,13 @@ def gateway_command(args):
 
 def _maybe_redirect_run_to_s6_supervision(args) -> bool:
     """Inside an s6 container, upgrade bare ``gateway run`` to the supervised s6 longrun; True iff dispatched.
-    ``HERMES_S6_SUPERVISED_CHILD`` (set by ``S6ServiceManager._render_run_script``) marks the supervised
+    ``A2ASSISTANT_S6_SUPERVISED_CHILD`` (set by ``S6ServiceManager._render_run_script``) marks the supervised
     child, which must run in foreground or we'd recurse run → start → run; ``--no-supervise`` /
-    HERMES_GATEWAY_NO_SUPERVISE=1 opts out (CI smoke, debugging)."""
+    A2ASSISTANT_GATEWAY_NO_SUPERVISE=1 opts out (CI smoke, debugging)."""
     no_supervise = getattr(args, "no_supervise", False) or \
-        os.environ.get("HERMES_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes")
+        os.environ.get("A2ASSISTANT_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes")
     # HERMES_S6_SUPERVISED_CHILD: we ARE the supervised child; fall through so the gateway starts.
-    if no_supervise or os.environ.get("HERMES_S6_SUPERVISED_CHILD"):
+    if no_supervise or os.environ.get("A2ASSISTANT_S6_SUPERVISED_CHILD"):
         return False
     if not _dispatch_via_service_manager_if_s6("start"):
         return False
@@ -4926,10 +4926,10 @@ def _maybe_redirect_run_to_s6_supervision(args) -> bool:
     # Breadcrumb on stderr (keep stdout clean for scripts); gateway logs follow via s6-log.
     print(
         "→ gateway is now running under s6 supervision (auto-restart on crash,\n"
-        "  dashboard supervised alongside if HERMES_DASHBOARD is set).\n"
+        "  dashboard supervised alongside if A2ASSISTANT_DASHBOARD is set).\n"
         "  This is the recommended setup for the s6 container image — the\n"
         "  gateway will keep running even if it crashes.\n"
-        "  Use `--no-supervise` (or HERMES_GATEWAY_NO_SUPERVISE=1) to opt out\n"
+        "  Use `--no-supervise` (or A2ASSISTANT_GATEWAY_NO_SUPERVISE=1) to opt out\n"
         "  and get the pre-s6 foreground behavior instead.",
         file=sys.stderr,
         flush=True,
@@ -5016,7 +5016,7 @@ def _refuse_from_inside_gateway(verb: str, reason: str) -> None:
         print_error(
             f"Refusing to {verb} the gateway from inside the gateway process.\n"
             f"This command was blocked to prevent {reason}.\n"
-            f"Use `hermes gateway {verb}` from a shell outside the running gateway."
+            f"Use `a2assistant gateway {verb}` from a shell outside the running gateway."
         )
         sys.exit(1)
 
@@ -5052,40 +5052,40 @@ def _cmd_setup(args):
 
 
 _WSL_FOREGROUND_HINT = (
-    "", "  hermes gateway run                              # direct foreground",
-    "  tmux new -s hermes 'hermes gateway run'         # persistent via tmux",
-    "  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # background",
+    "", "  a2assistant gateway run                              # direct foreground",
+    "  tmux new -s hermes 'a2assistant gateway run'         # persistent via tmux",
+    "  nohup a2assistant gateway run > ~/.a2assistant/logs/gateway.log 2>&1 &  # background",
 )
 # ``(exit_code, *lines)`` when a subcommand has no service backend, keyed by (subcommand, reason).
 # Reasons in check order: "termux", "wsl" (no operational systemd), "s6" / "container", "unsupported".
 # ``None`` exit code means plain return.
 _NO_BACKEND_MESSAGES = {
     ("install", "termux"): (1,
-        "Gateway service installation is not supported on Termux.", "Run manually: hermes gateway"),
+        "Gateway service installation is not supported on Termux.", "Run manually: a2assistant gateway"),
     ("install", "wsl"): (1,
         "WSL detected but systemd is not running.",
         "Either enable systemd (add systemd=true to /etc/wsl.conf and restart WSL)",
         "or run the gateway in foreground mode:", *_WSL_FOREGROUND_HINT),
     ("install", "s6"): (None,
         "Per-profile gateways are auto-registered when you create a profile.", "",
-        "  hermes profile create <name>     # creates the s6 service slot",
-        "  hermes -p <name> gateway start   # bring it up via s6",
-        "  hermes status                    # see currently-supervised gateways"),
+        "  a2assistant profile create <name>     # creates the s6 service slot",
+        "  a2assistant -p <name> gateway start   # bring it up via s6",
+        "  a2assistant status                    # see currently-supervised gateways"),
     ("install", "container"): (0,
         "Service installation is not needed inside a Docker container.",
         "The container runtime is your service manager — use Docker restart policies instead:", "",
         "  docker run --restart unless-stopped ...   # auto-restart on crash/reboot",
         "  docker restart <container>                # manual restart", "",
-        "To run the gateway: hermes gateway run"),
+        "To run the gateway: a2assistant gateway run"),
     ("install", "unsupported"): (1,
-        "Service installation not supported on this platform.", "Run manually: hermes gateway run"),
+        "Service installation not supported on this platform.", "Run manually: a2assistant gateway run"),
     ("uninstall", "termux"): (1,
         "Gateway service uninstall is not supported on Termux because there is no managed service to remove.",
-        "Stop manual runs with: hermes gateway stop"),
+        "Stop manual runs with: a2assistant gateway stop"),
     ("uninstall", "s6"): (None,
         "Per-profile gateways are auto-unregistered when you delete the profile.", "",
-        "  hermes profile delete <name>     # tears down the s6 service slot",
-        "  hermes -p <name> gateway stop    # stop without deleting the profile"),
+        "  a2assistant profile delete <name>     # tears down the s6 service slot",
+        "  a2assistant -p <name> gateway stop    # stop without deleting the profile"),
     ("uninstall", "container"): (0,
         "Service uninstall is not applicable inside a Docker container.",
         "To stop the gateway, stop or remove the container:", "",
@@ -5093,10 +5093,10 @@ _NO_BACKEND_MESSAGES = {
     ("uninstall", "unsupported"): (1,
         "Running the gateway as a background service is not available on this platform "
         "(no systemd, launchd or Scheduled Tasks), so there is nothing to uninstall.",
-        "Stop a manually started gateway with: hermes gateway stop"),
+        "Stop a manually started gateway with: a2assistant gateway stop"),
     ("start", "termux"): (1,
         "Gateway service start is not supported on Termux because there is no system service manager.",
-        "Run manually: hermes gateway"),
+        "Run manually: a2assistant gateway"),
     ("start", "wsl"): (1,
         "WSL detected but systemd is not available.",
         "Run the gateway in foreground mode instead:", *_WSL_FOREGROUND_HINT, "",
@@ -5106,11 +5106,11 @@ _NO_BACKEND_MESSAGES = {
         "The gateway runs as the container's main process.", "",
         "  docker start <container>     # start a stopped container",
         "  docker restart <container>   # restart a running container", "",
-        "Or run the gateway directly: hermes gateway run"),
+        "Or run the gateway directly: a2assistant gateway run"),
     ("start", "unsupported"): (1,
         "Running the gateway as a background service is not available on this platform "
         "(no systemd, launchd or Scheduled Tasks).",
-        "Run it directly with: hermes gateway run"),
+        "Run it directly with: a2assistant gateway run"),
 }
 
 
@@ -5161,8 +5161,8 @@ def _install_systemd_from_cli(args, *, force: bool, system: bool, run_as_user) -
     if is_wsl():
         print_warning("WSL detected — systemd services may not survive WSL restarts.")
         _print_info_lines(
-            "  Consider running in foreground instead: hermes gateway run",
-            "  Or use tmux/screen for persistence: tmux new -s hermes 'hermes gateway run'",
+            "  Consider running in foreground instead: a2assistant gateway run",
+            "  Or use tmux/screen for persistence: tmux new -s hermes 'a2assistant gateway run'",
         )
         print()
     # Honor --start-now/--start-on-login; else prompt on a TTY, default True headless.
@@ -5269,7 +5269,7 @@ def _print_unfolded_gateway_note(owner) -> None:
         return
     print(f"  {len(others)} per-profile gateway process(es) still run beside it "
           f"(PIDs: {', '.join(str(p) for p in others)}).")
-    print("  They were left running; fold them in with: hermes gateway migrate --multiplex")
+    print("  They were left running; fold them in with: a2assistant gateway migrate --multiplex")
 
 
 def _cmd_start(args):
@@ -5387,7 +5387,7 @@ def _restart_all(system: bool, detach: bool = False) -> None:
         print(f"  {owner.describe()}")
         print("  `--all` restarts the one host multiplexer, and this profile is not its owner.")
         print()
-        print(f"    hermes -p {owner.profile_label} gateway restart --all")
+        print(f"    a2assistant -p {owner.profile_label} gateway restart --all")
         sys.exit(GATEWAY_FATAL_CONFIG_EXIT_CODE)
     # No live owner: stop/kill/start as the host root, not as the invoking profile (whose own
     # gateway the run-side guard would refuse — the host stayed down after a Desktop update).
@@ -5494,7 +5494,7 @@ def _cmd_restart(args):
                 "", "⚠ Cannot restart gateway as a service — linger is not enabled.",
                 "  The gateway user service requires linger to function on headless servers.", "",
                 f"  Run:  sudo loginctl enable-linger {getpass.getuser()}", "",
-                "  Then restart the gateway:", "    hermes gateway restart",
+                "  Then restart the gateway:", "    a2assistant gateway restart",
             )
             return
 
@@ -5502,7 +5502,7 @@ def _cmd_restart(args):
         _print_lines(
             "", "✗ Gateway service restart failed.",
             "  The service definition exists, but the service manager did not recover it.",
-            "  Fix the service, then retry: hermes gateway start",
+            "  Fix the service, then retry: a2assistant gateway start",
         )
         sys.exit(1)
 
@@ -5536,23 +5536,23 @@ _STATUS_RUNNING_HINTS = {
         "WSL note:", "  The gateway is running in foreground/manual mode (recommended for WSL).",
         "  Use tmux or screen for persistence across terminal closes.",
     ),
-    "windows": ("To install as a Windows Scheduled Task (auto-start on login):", "  hermes gateway install"),
+    "windows": ("To install as a Windows Scheduled Task (auto-start on login):", "  a2assistant gateway install"),
     "other": (
-        "To install as a service:", "  hermes gateway install", "  sudo hermes gateway install --system",
+        "To install as a service:", "  a2assistant gateway install", "  sudo a2assistant gateway install --system",
     ),
 }
 _STATUS_STOPPED_HINTS = {
     "termux": (
-        "  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # Best-effort background start",
+        "  nohup a2assistant gateway run > ~/.a2assistant/logs/gateway.log 2>&1 &  # Best-effort background start",
     ),
     "wsl": (
-        "  tmux new -s hermes 'hermes gateway run'         # persistent via tmux",
-        "  nohup hermes gateway run > ~/.hermes/logs/gateway.log 2>&1 &  # background",
+        "  tmux new -s hermes 'a2assistant gateway run'         # persistent via tmux",
+        "  nohup a2assistant gateway run > ~/.a2assistant/logs/gateway.log 2>&1 &  # background",
     ),
-    "windows": ("  hermes gateway install  # Install as Windows Scheduled Task (auto-start on login)",),
+    "windows": ("  a2assistant gateway install  # Install as Windows Scheduled Task (auto-start on login)",),
     "other": (
-        "  hermes gateway install  # Install as user service",
-        "  sudo hermes gateway install --system  # Install as boot-time system service",
+        "  a2assistant gateway install  # Install as user service",
+        "  sudo a2assistant gateway install --system  # Install as boot-time system service",
     ),
 }
 
@@ -5588,7 +5588,7 @@ def _cmd_status(args):
     if not active_standalone and not snapshot.running and named_profile_served_by_running_multiplexer():
         # Satellite profile: the default multiplexer is the live inbound process for it.
         print("✓ Gateway is running via the default-profile multiplexer")
-        print("  Manage it from the default profile: hermes gateway status")
+        print("  Manage it from the default profile: a2assistant gateway status")
         _print_served_ingress_urls(get_active_profile_name())
         _print_unserved_shared_ingress(get_active_profile_name())
     elif (kind := _installed_service_kind_for(lambda: _windows_service_installed)) is not None:
@@ -5626,7 +5626,7 @@ def _cmd_status(args):
             _print_runtime_health()
             print()
             print("To start:")
-            print("  hermes gateway run      # Run in foreground")
+            print("  a2assistant gateway run      # Run in foreground")
             _print_lines(*_STATUS_STOPPED_HINTS[_status_host_kind()])
 
     _print_duplicate_credential_warnings()

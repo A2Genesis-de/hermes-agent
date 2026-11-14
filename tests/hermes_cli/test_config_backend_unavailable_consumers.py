@@ -36,7 +36,7 @@ def test_readiness_probe_reports_config_backend_unavailable(tmp_path, monkeypatc
     monkeypatch.setattr("hermes_cli.config_backend.read_config_doc_readonly", _outage)
     assert readiness._probe_config(tmp_path)["status"] == "degraded"
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     result = readiness.collect_runtime_readiness(configured_model="m", runtime_status={})
     assert result["status"] == "degraded" and result["checks"]["config"]["status"] == "degraded"
 

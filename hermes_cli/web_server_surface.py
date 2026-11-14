@@ -3,7 +3,7 @@
 The host serving the app records its surface once on ``app.state.ui_surface``; unset, it reads
 as ``gateway`` on the gateway's own listener for native clients (the app has a
 ``gateway_runner``, as the lifespan choice reads) and ``dashboard`` elsewhere (the standalone
-``hermes dashboard`` and ``hermes serve``). Every surface-dependent decision reads this table
+``a2assistant dashboard`` and ``a2assistant serve``). Every surface-dependent decision reads this table
 instead of re-deriving it, and :func:`route_on` keeps a route off the surfaces that do not use
 it. ``auth_required`` is decided at runtime by the auth gate, so the private-launch predicate is
 a function over state, not a table field.

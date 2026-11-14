@@ -17,7 +17,7 @@ def test_exit_state_keeps_runtime_reserved_until_final_cleanup(tmp_path, monkeyp
 
     home = tmp_path / 'runtime'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     monkeypatch.setattr(run, '_hermes_home', home)
     states = []
     runner = SimpleNamespace(

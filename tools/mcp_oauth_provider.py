@@ -101,7 +101,7 @@ class HermesProviderMixin:
                 or ("urn:ietf:params:oauth:grant-type:device_code" in grants and "authorization_code" not in grants)):
             from tools.mcp_oauth import OAuthNonInteractiveError
             raise OAuthNonInteractiveError(
-                "MCP device authorization requires `hermes mcp login <server> --flow device`; "
+                "MCP device authorization requires `a2assistant mcp login <server> --flow device`; "
                 "background reconnects cannot start a device login")
         self._tolerate_missing_iss_for_known_server()
         self._request_google_offline_access()
@@ -496,7 +496,7 @@ class HermesProviderMixin:
 
         Returns True only when disk holds a pair that is BOTH different from
         the one we just failed with AND still live. That is the signature of
-        a writer outside the fence (an interactive ``hermes mcp login`` or a
+        a writer outside the fence (an interactive ``a2assistant mcp login`` or a
         pre-fence Hermes) having rotated the grant between our read and our
         POST -- a recoverable race, not a dead credential.
 

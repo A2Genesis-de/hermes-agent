@@ -1,7 +1,7 @@
 """Additive state.db schema drift: detection, the one-shot browse reconcile, and explicit repair.
 
 Drift (a declared table/column missing) is not corruption. Browsing catches an unowned store up
-once, additive DDL only (:func:`reconcile_drift_for_browse`); ``hermes sessions repair`` reconciles
+once, additive DDL only (:func:`reconcile_drift_for_browse`); ``a2assistant sessions repair`` reconciles
 a protected snapshot so failed DDL never leaves the store partly upgraded or escalates into FTS
 surgery (:func:`repair_declarative_schema`). Neither runs while a gateway owns the store.
 """
@@ -131,27 +131,27 @@ def is_declarative_drift_error(exc: BaseException) -> bool:
 
 
 def _repair_command(home: Path) -> str:
-    """The `hermes sessions repair` invocation that targets *home* (no time limit, additive only)."""
+    """The `a2assistant sessions repair` invocation that targets *home* (no time limit, additive only)."""
     from gateway.status import _profile_label_for_home  # never raises: None when unknown
     label = _profile_label_for_home(home)
     if label == 'default':
-        return 'hermes sessions repair'
+        return 'a2assistant sessions repair'
     if label:
-        return f'hermes -p {label} sessions repair'
-    return f'HERMES_HOME={home} hermes sessions repair'
+        return f'a2assistant -p {label} sessions repair'
+    return f'A2ASSISTANT_HOME={home} a2assistant sessions repair'
 
 
 def _owner_remedy(home: Path) -> tuple[str, str]:
     from gateway.status import _profile_label_for_home  # never raises: None when unknown
     label = _profile_label_for_home(home)
     if label and label != 'default':
-        return label, f'hermes -p {label} gateway restart'
-    return label or str(home), 'hermes gateway restart'
+        return label, f'a2assistant -p {label} gateway restart'
+    return label or str(home), 'a2assistant gateway restart'
 
 
 def _owning_gateway_restart(home: Path) -> str:
     """Restart command for the gateway that holds *home*'s lock. A multiplexer launched from another
-    home (usually the default) records that home in ``hermes_home``; `hermes -p <named> gateway
+    home (usually the default) records that home in ``hermes_home``; `a2assistant -p <named> gateway
     restart` is refused there ("Manage the host gateway instead"), so name the owner's own command."""
     from gateway.runtime_ownership import canonical_home
     from gateway.status import _read_gateway_lock_record
@@ -262,7 +262,7 @@ _BROWSE_SIBLING_POLL_S = 0.1
 
 class CorruptStoreError(sqlite3.DatabaseError):
     """The lagging store is also damaged: browsing must not write DDL into it. Worded like sqlite's
-    own malformed-image error so every caller maps it to the corrupt-store status (``hermes doctor``)."""
+    own malformed-image error so every caller maps it to the corrupt-store status (``a2assistant doctor``)."""
 
     def __init__(self, detail: str):
         super().__init__(f'database disk image is malformed (integrity_check: {detail})')
@@ -410,12 +410,12 @@ def reconcile_drift_for_browse(path: Path) -> bool:
         except RuntimeError as exc:
             raise DeclarativeDriftError(
                 f'Session store is missing its history tables ({reason}); this is not upgrade drift. '
-                'Run `hermes sessions recover`.') from exc
+                'Run `a2assistant sessions recover`.') from exc
     home = path.parent
     label, _ = _owner_remedy(home)
 
     def owned(drift, holder=None):
-        restart = 'hermes gateway restart' if holder else _owning_gateway_restart(home)
+        restart = 'a2assistant gateway restart' if holder else _owning_gateway_restart(home)
         who = f' ({holder})' if holder else ''
         return DeclarativeDriftError(
             f"Session store for profile '{label}' is behind this A2Assistant version ({drift}), and a "
@@ -480,7 +480,7 @@ def reconcile_drift_for_browse(path: Path) -> bool:
                 except DeclarativeDriftError as exc:
                     raise DeclarativeDriftError(
                         f"Session store for profile '{label}' is behind this A2Assistant version and could not "
-                        f'be caught up ({exc}); nothing was changed. Run `hermes sessions repair` for that '
+                        f'be caught up ({exc}); nothing was changed. Run `a2assistant sessions repair` for that '
                         'profile.') from exc
         except BrowseBudgetExceeded as exc:
             raise too_slow() from exc
@@ -491,7 +491,7 @@ def reconcile_drift_for_browse(path: Path) -> bool:
     if after := schema_drift_reason(path):
         raise DeclarativeDriftError(
             f"Session store for profile '{label}' is behind this A2Assistant version and could not be "
-            f'caught up ({after}). Run `hermes sessions repair` for that profile.')
+            f'caught up ({after}). Run `a2assistant sessions repair` for that profile.')
     logging.getLogger(__name__).warning(
         'state.db at %s lagged SCHEMA_SQL (%s); added the missing tables/columns for browsing', path, reason)
     return True

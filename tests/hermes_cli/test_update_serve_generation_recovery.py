@@ -1,10 +1,10 @@
-"""Regression coverage for stale ``hermes serve`` generations after an abort.
+"""Regression coverage for stale ``a2assistant serve`` generations after an abort.
 
-Issue #92145: ``hermes update`` moves the checkout from generation N to N+1
+Issue #92145: ``a2assistant update`` moves the checkout from generation N to N+1
 while the updater still holds the pre-pull module graph.  When the in-process
 restart phase raises, a fresh process retries the *gateway* profiles — but
-``hermes serve`` is not a gateway profile.  It hosts ``tui_gateway.server``,
-systemd lists ``hermes-gateway.service`` before ``hermes-serve.service`` (so
+``a2assistant serve`` is not a gateway profile.  It hosts ``tui_gateway.server``,
+systemd lists ``a2assistant-gateway.service`` before ``hermes-serve.service`` (so
 the serve unit is the one an abort typically never reaches), and the final
 read-back (``collect_fleet_versions``) only inspects gateway state.  A serve
 process left on generation N is therefore invisible to every check, and the
@@ -463,9 +463,9 @@ def test_unrelated_hermes_server_service_is_never_touched(linux_systemctl):
 def test_gateway_units_are_not_restarted_by_the_serve_pass(linux_systemctl):
     """Gateway profiles have their own per-profile relaunch command."""
     fake = _Systemctl(
-        listed=["hermes-gateway.service"],
-        active={"hermes-gateway.service": True},
-        main_pids={"hermes-gateway.service": 5},
+        listed=["a2assistant-gateway.service"],
+        active={"a2assistant-gateway.service": True},
+        main_pids={"a2assistant-gateway.service": 5},
     )
     out = recovery.restart_serve_units(run=fake, sleep=lambda _: None)
     assert fake.restarted == []
@@ -601,7 +601,7 @@ def test_skip_unit_names_are_filtered_to_the_serve_family():
                             "hermes-server",
                             "../../etc/systemd/evil",
                             "hermes-serve; rm -rf /",
-                            "hermes-gateway",
+                            "a2assistant-gateway",
                         ],
                     },
                 }

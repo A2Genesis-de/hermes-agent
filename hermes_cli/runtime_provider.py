@@ -306,7 +306,7 @@ def _maybe_apply_codex_app_server_runtime(*, provider: str, api_mode: str, model
 # ── base_url / credential helpers ──────────────────────────────────────────────────────────
 
 _ANTHROPIC_DEFAULT_BASE_URL = "https://api.anthropic.com"
-_NO_ANTHROPIC_CREDENTIALS_MSG = ("No Anthropic credentials found. Run 'hermes auth add anthropic' to sign in, "
+_NO_ANTHROPIC_CREDENTIALS_MSG = ("No Anthropic credentials found. Run 'a2assistant auth add anthropic' to sign in, "
                                  "or set ANTHROPIC_TOKEN / ANTHROPIC_API_KEY.")
 
 
@@ -365,7 +365,7 @@ def _anthropic_token_or_raise(*, model: str | None = None) -> str:
         # user to re-authenticate would send them chasing a cooldown that lifts on its own.
         if model and resolve_anthropic_token():
             raise AuthError(f"Anthropic credentials are rate-limited for {model}; "
-                            "other Claude models remain available (see `hermes auth list`).")
+                            "other Claude models remain available (see `a2assistant auth list`).")
         raise AuthError(_NO_ANTHROPIC_CREDENTIALS_MSG)
     return token
 
@@ -416,11 +416,11 @@ def _nous_entry_key_usable(entry: Any, min_ttl: int) -> bool:
 
 
 def _nous_min_key_ttl() -> int:
-    return max(60, env_int("HERMES_NOUS_MIN_KEY_TTL_SECONDS", 1800))
+    return max(60, env_int("A2ASSISTANT_NOUS_MIN_KEY_TTL_SECONDS", 1800))
 
 
 def _resolve_nous_creds() -> dict[str, Any]:
-    return resolve_nous_runtime_credentials(timeout_seconds=float(get_secret_str("HERMES_NOUS_TIMEOUT_SECONDS", "15")))
+    return resolve_nous_runtime_credentials(timeout_seconds=float(get_secret_str("A2ASSISTANT_NOUS_TIMEOUT_SECONDS", "15")))
 
 
 def _finalize_base_url(provider: str, api_mode: str, base_url: str) -> str:
@@ -483,7 +483,7 @@ def _get_model_config() -> dict[str, Any]:
 
 
 def resolve_requested_provider(requested: Optional[str] = None) -> str:
-    """Provider request from explicit arg, then config, then ``HERMES_INFERENCE_PROVIDER``, else
+    """Provider request from explicit arg, then config, then ``A2ASSISTANT_INFERENCE_PROVIDER``, else
     "auto". Config beats the env so chat uses the endpoint the user last saved, not a stale
     shell/.env override."""
     if requested and requested.strip():
@@ -493,7 +493,7 @@ def resolve_requested_provider(requested: Optional[str] = None) -> str:
         return cfg_provider.strip().lower()
     from agent.session_client_env import bound_client_env
     client = bound_client_env()  # a local session's turn: its client's export, never the daemon's
-    requested = client.get("HERMES_INFERENCE_PROVIDER", "") if client is not None else get_secret_str("HERMES_INFERENCE_PROVIDER", "")
+    requested = client.get("A2ASSISTANT_INFERENCE_PROVIDER", "") if client is not None else get_secret_str("A2ASSISTANT_INFERENCE_PROVIDER", "")
     return requested.strip().lower() or "auto"
 
 
@@ -530,7 +530,7 @@ def _pool_entry_mode_and_url(provider, entry, model_cfg, effective_model, base_u
             # Pool entries retain the canonical ChatGPT URL, but the profile-wide
             # HERMES_CODEX_BASE_URL override must apply consistently to every
             # credential source, including pooled OAuth credentials.
-            override_url = get_secret_str("HERMES_CODEX_BASE_URL", "").strip().rstrip("/")
+            override_url = get_secret_str("A2ASSISTANT_CODEX_BASE_URL", "").strip().rstrip("/")
             if override_url:
                 return api_mode, override_url
             # model.base_url is the secondary proxy override (same rule as the generic tail below:
@@ -582,7 +582,7 @@ def _openrouter_should_use_pool(requested_provider, model_cfg, explicit_api_key,
 
 def _refresh_nous_pool_entry(pool: CredentialPool, entry: Any, pool_api_key: str):
     """Nous pool entries carry the agent_key (an invoke JWT) which the pool does not refresh on
-    selection (avoids network calls in `hermes auth list`); refresh here before falling back to
+    selection (avoids network calls in `a2assistant auth list`); refresh here before falling back to
     singleton auth resolution. Returns (entry, pool_api_key) — key "" when still unusable."""
     min_ttl = _nous_min_key_ttl()
     if _nous_entry_key_usable(entry, min_ttl):

@@ -23,8 +23,8 @@ def home(monkeypatch, tmp_path):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
     monkeypatch.setattr("tools.browser_config.chromium_args", list)
     bs_cloud.reset_caches()
     yield home

@@ -23,7 +23,7 @@ def launch_db_env(monkeypatch, tmp_path):
     launch_home.mkdir()
     foreign_home.mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
     monkeypatch.setattr(server, "_hermes_home", str(launch_home))
     monkeypatch.setattr(server, "_db", None)
     monkeypatch.setattr(server, "_db_error", None)
@@ -47,14 +47,14 @@ def test_get_db_first_touch_under_foreign_override_uses_launch_path(launch_db_en
 
 
 def test_get_db_follows_a_process_home_redirected_after_import(monkeypatch, tmp_path):
-    """The launch handle resolves ``HERMES_HOME`` at first use, not at import (#112692): a harness
+    """The launch handle resolves ``A2ASSISTANT_HOME`` at first use, not at import (#112692): a harness
     that redirects the env after ``tui_gateway.server`` is imported must not open the import-time
     home's state.db. Only the context-local override is ignored (#102526), never the process env."""
     redirected = tmp_path / "redirected"
     redirected.mkdir()
     monkeypatch.setattr(server, "_db", None)
     monkeypatch.setattr(server, "_db_error", None)
-    monkeypatch.setenv("HERMES_HOME", str(redirected))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(redirected))
     try:
         db = server._get_db()
         assert db is not None

@@ -1,4 +1,4 @@
-"""The standalone Telegram sender (``hermes send``, the ``send_message`` tool, standalone cron
+"""The standalone Telegram sender (``a2assistant send``, the ``send_message`` tool, standalone cron
 delivery) makes the gateway adapter's outbound decisions for the same text: the push-notification
 mode, the invisible-only guard, the ``rich_messages`` fast-path, and a MarkdownV2 retry before
 plain text when Bot API HTML rejects a tag. The ``telegram`` package is stubbed; the bot records
@@ -50,11 +50,11 @@ def _install_telegram_mock(monkeypatch: pytest.MonkeyPatch, bot) -> None:
 
 @pytest.fixture
 def standalone(monkeypatch: pytest.MonkeyPatch, tmp_path):
-    """A temp HERMES_HOME with ``config.yaml`` content of the test's choosing, plus a recording bot."""
+    """A temp A2ASSISTANT_HOME with ``config.yaml`` content of the test's choosing, plus a recording bot."""
     for var in ("TELEGRAM_PROXY", "HTTPS_PROXY", "https_proxy", "HTTP_PROXY", "http_proxy", "ALL_PROXY",
-                "all_proxy", "HERMES_TELEGRAM_NOTIFICATIONS"):
+                "all_proxy", "A2ASSISTANT_TELEGRAM_NOTIFICATIONS"):
         monkeypatch.delenv(var, raising=False)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr("gateway.run._gateway_runner_ref", lambda: None)
     monkeypatch.setattr("gateway.platforms.base._detect_macos_system_proxy", lambda: None)
     bot = MagicMock()

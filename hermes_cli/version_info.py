@@ -18,6 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, cast
 
+from hermes_cli.service_names import home_checkout_dir
 from hermes_cli.steward import UPDATE_MECHANISMS
 from hermes_cli.update_channel import STABLE_TAG_RE
 
@@ -79,7 +80,7 @@ def _resolve_repo_dir() -> Path | None:
     # process-wide, so a profile's context-local override must not pick it.
     from hermes_constants import get_process_hermes_home
 
-    candidate = get_process_hermes_home() / "hermes-agent"
+    candidate = home_checkout_dir(get_process_hermes_home())
     if (candidate / ".git").exists():
         return candidate
     return None

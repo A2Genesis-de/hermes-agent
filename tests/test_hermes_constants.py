@@ -28,8 +28,8 @@ class TestGetDefaultHermesRoot:
 
     @pytest.mark.platforms("linux")
     def test_no_hermes_home_returns_native(self, tmp_path, monkeypatch):
-        """When HERMES_HOME is not set, returns ~/.hermes."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        """When A2ASSISTANT_HOME is not set, returns ~/.a2assistant."""
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         assert get_default_hermes_root() == tmp_path / ".hermes"
@@ -39,13 +39,13 @@ class TestGetDefaultHermesRoot:
 
 
     def test_docker_profile_active(self, tmp_path, monkeypatch):
-        """When a Docker profile is active (HERMES_HOME=<root>/profiles/<name>),
+        """When a Docker profile is active (A2ASSISTANT_HOME=<root>/profiles/<name>),
         returns the Docker root, not the profile dir."""
         docker_root = tmp_path / "opt" / "data"
         profile = docker_root / "profiles" / "coder"
         profile.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(profile))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
         assert get_default_hermes_root() == docker_root
 
     def test_expanded_custom_profile_returns_custom_root(self, tmp_path, monkeypatch):
@@ -53,7 +53,7 @@ class TestGetDefaultHermesRoot:
         home_token = "$" + "HOME"
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.setenv(
-            "HERMES_HOME", f"{home_token}/deployment/profiles/research"
+            "A2ASSISTANT_HOME", f"{home_token}/deployment/profiles/research"
         )
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "native-home")
 
@@ -61,9 +61,9 @@ class TestGetDefaultHermesRoot:
 
     @pytest.mark.platforms("windows")
     def test_no_hermes_home_returns_localappdata_root_on_windows(self, tmp_path, monkeypatch):
-        """Native Windows falls back to %LOCALAPPDATA%\\hermes, not ~/.hermes."""
+        """Native Windows falls back to %LOCALAPPDATA%\\hermes, not ~/.a2assistant."""
         local_appdata = tmp_path / "LocalAppData"
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         monkeypatch.setenv("LOCALAPPDATA", str(local_appdata))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
 
@@ -73,24 +73,24 @@ class TestGetDefaultHermesRoot:
     def test_root_for_another_environment_ignores_this_process(self, tmp_path, monkeypatch):
         """hermes_root_for_environment applies the root rules to the mapping it gets."""
         monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "sandbox-local"))
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "sandbox-home"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "sandbox-home"))
         local = tmp_path / "local"
         user = tmp_path / "user"
         custom = tmp_path / "data"
         cases = [
             ({"LOCALAPPDATA": str(local)}, local / "hermes"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": str(local / "hermes" / "profiles" / "work")},
+            ({"LOCALAPPDATA": str(local), "A2ASSISTANT_HOME": str(local / "hermes" / "profiles" / "work")},
              local / "hermes"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": str(custom / "profiles" / "work")}, custom),
-            ({"LOCALAPPDATA": str(local), "HERMES_DATA_DIR_SUFFIX": "-magic"}, local / "hermes-magic"),
-            ({"localappdata": str(local), "HERMES_HOME": "%LocalAppData%\\data"}, local / "data"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "$LOCALAPPDATA\\data"}, local / "data"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "${LOCALAPPDATA}\\data"}, local / "data"),
-            ({"LOCALAPPDATA": str(local), "USERPROFILE": str(user), "HERMES_HOME": "~\\data"}, user / "data"),
+            ({"LOCALAPPDATA": str(local), "A2ASSISTANT_HOME": str(custom / "profiles" / "work")}, custom),
+            ({"LOCALAPPDATA": str(local), "A2ASSISTANT_DATA_DIR_SUFFIX": "-magic"}, local / "hermes-magic"),
+            ({"localappdata": str(local), "A2ASSISTANT_HOME": "%LocalAppData%\\data"}, local / "data"),
+            ({"LOCALAPPDATA": str(local), "A2ASSISTANT_HOME": "$LOCALAPPDATA\\data"}, local / "data"),
+            ({"LOCALAPPDATA": str(local), "A2ASSISTANT_HOME": "${LOCALAPPDATA}\\data"}, local / "data"),
+            ({"LOCALAPPDATA": str(local), "USERPROFILE": str(user), "A2ASSISTANT_HOME": "~\\data"}, user / "data"),
             ({"USERPROFILE": str(user)}, user / "AppData" / "Local" / "hermes"),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "relative\\data"}, None),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "%UNDEFINED%\\data"}, None),
-            ({"LOCALAPPDATA": str(local), "HERMES_HOME": "~\\data"}, None),
+            ({"LOCALAPPDATA": str(local), "A2ASSISTANT_HOME": "relative\\data"}, None),
+            ({"LOCALAPPDATA": str(local), "A2ASSISTANT_HOME": "%UNDEFINED%\\data"}, None),
+            ({"LOCALAPPDATA": str(local), "A2ASSISTANT_HOME": "~\\data"}, None),
             ({}, None),
         ]
         for environ, root in cases:
@@ -107,7 +107,7 @@ class TestGetHermesHome:
     def test_warn_once_latch_engages_on_first_check_even_without_warning(self, tmp_path, monkeypatch):
         """Regression for #90065: the latch must engage on the first check even when there is
         nothing to warn about, otherwise every get_hermes_home() call re-stats active_profile."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         monkeypatch.setattr(hermes_constants, "_profile_fallback_warned", False)
         monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: tmp_path)
 
@@ -116,9 +116,9 @@ class TestGetHermesHome:
 
     @pytest.mark.platforms("windows")
     def test_windows_fallback_uses_localappdata(self, tmp_path, monkeypatch):
-        """When HERMES_HOME is unset on Windows, use %LOCALAPPDATA%\\hermes."""
+        """When A2ASSISTANT_HOME is unset on Windows, use %LOCALAPPDATA%\\hermes."""
         local_appdata = tmp_path / "LocalAppData"
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         monkeypatch.setenv("LOCALAPPDATA", str(local_appdata))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "Home")
         monkeypatch.setattr(hermes_constants, "_profile_fallback_warned", False)
@@ -136,7 +136,7 @@ class TestGetProcessHermesHome:
 
     def test_env_set_returns_that_path(self, tmp_path, monkeypatch):
         home = tmp_path / "launch-home"
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         assert get_process_hermes_home() == home
 
     def test_process_and_context_homes_expand_environment_and_user_syntax(
@@ -148,7 +148,7 @@ class TestGetProcessHermesHome:
 
         for syntax in (home_token, "~"):
             process_home = tmp_path / "process-home"
-            monkeypatch.setenv("HERMES_HOME", f"{syntax}/process-home")
+            monkeypatch.setenv("A2ASSISTANT_HOME", f"{syntax}/process-home")
             assert get_process_hermes_home() == process_home
 
             override_home = tmp_path / "override-home"
@@ -514,7 +514,7 @@ class TestGetHermesDir:
     """
 
     def _set_home(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     def test_neither_exists_returns_new(self, tmp_path, monkeypatch):
         self._set_home(tmp_path, monkeypatch)
@@ -598,7 +598,7 @@ class TestWslPathTranslation:
 
 
 class TestProjectVenvDirOutOfTree:
-    """#116148: a checkout with no in-tree venv whose interpreter lives in ``$HERMES_HOME/venvs/<name>``
+    """#116148: a checkout with no in-tree venv whose interpreter lives in ``$A2ASSISTANT_HOME/venvs/<name>``
     (the layout the shipped Windows launchers pin) must resolve to the running interpreter's venv,
     never ``None`` — every updater call site turns ``None`` into a fabricated ``<checkout>/venv`` that
     uv cannot inspect, so tool dependencies are never refreshed."""

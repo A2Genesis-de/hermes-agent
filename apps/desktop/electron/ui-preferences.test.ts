@@ -13,7 +13,7 @@ import { readUiPreferences, uiPreferencesPath, uiPreferencesRoot, writeUiPrefere
 // Native Desktop (this module) and the Webapp's Python server must land on ONE
 // file and merge into it without losing each other's keys (#145213).
 const repo = path.resolve(import.meta.dirname, '../../..')
-const python = process.env.HERMES_PYTHON || 'python3'
+const python = process.env.A2ASSISTANT_PYTHON || 'python3'
 const homes: string[] = []
 
 afterEach(() => {
@@ -30,14 +30,14 @@ function scratchHome(): string {
 }
 
 function pythonEnv(home: string, hermesHome: string): NodeJS.ProcessEnv {
-  return { HERMES_HOME: hermesHome, HOME: home, PATH: process.env.PATH, PYTHONPATH: repo }
+  return { A2ASSISTANT_HOME: hermesHome, HOME: home, PATH: process.env.PATH, PYTHONPATH: repo }
 }
 
 const PY_PATH = 'from hermes_cli.ui_preferences import store_path; print(store_path())'
 
-/** The file main's IPC registers for this HERMES_HOME (registerUiPreferencesIpc). */
+/** The file main's IPC registers for this A2ASSISTANT_HOME (registerUiPreferencesIpc). */
 const electronStorePath = (home: string, hermesHome: string) =>
-  uiPreferencesPath(uiPreferencesRoot(resolveDesktopHermesHome({ env: { HERMES_HOME: hermesHome }, home })))
+  uiPreferencesPath(uiPreferencesRoot(resolveDesktopHermesHome({ env: { A2ASSISTANT_HOME: hermesHome }, home })))
 
 test('native Desktop and the Webapp server resolve the same store from a profile home', () => {
   const home = scratchHome()

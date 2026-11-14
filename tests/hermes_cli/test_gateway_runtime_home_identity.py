@@ -2,7 +2,7 @@
 
 ``_canonical_home`` resolves symlinks and case-folds (Windows ``normcase``). A caller
 passing an un-canonicalized spelling of the same directory (the managed worker's
-``WorkerRPC``, a symlinked HERMES_HOME) must still find its owner; otherwise the worker
+``WorkerRPC``, a symlinked A2ASSISTANT_HOME) must still find its owner; otherwise the worker
 sees ``profile_mismatch`` -> ``owner_unavailable`` although the daemon is ready.
 """
 import os
@@ -42,7 +42,7 @@ def test_endpoint_matches_served_home_under_any_canonical_spelling(tmp_path):
 
 def test_ready_endpoint_carries_the_owner_boot_commit(tmp_path):
     """`gateway ensure --json` publishes the code the owner BOOTED from, so Desktop can restart a
-    gateway that outlived `hermes update` instead of re-attaching it forever (503 Restart required)."""
+    gateway that outlived `a2assistant update` instead of re-attaching it forever (503 Restart required)."""
     from hermes_cli.gateway_runtime import _endpoint
     home = tmp_path / 'home'
     home.mkdir()

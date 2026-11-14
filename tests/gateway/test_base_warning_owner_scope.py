@@ -58,7 +58,7 @@ def profiles(tmp_path, monkeypatch):
     root.mkdir()
     # Opposite to the routed opt-in profile; ambient reads must not decide delivery.
     (root / "config.yaml").write_text("display: {suppress_warning_notifications: false}\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     for home in homes.values():
         home.mkdir(parents=True)
     return root, homes

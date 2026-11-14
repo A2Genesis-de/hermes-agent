@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 # Marker comments wrapping the managed section so re-runs can detect what's ours and what's
 # user-edited. Both must appear or strip is a no-op.
 MIGRATION_MARKER = (
-    "# managed by hermes-agent — `hermes codex-runtime migrate` regenerates this section")
+    "# managed by hermes-agent — `a2assistant codex-runtime migrate` regenerates this section")
 MIGRATION_END_MARKER = "# end hermes-agent managed section"
 
 
@@ -370,7 +370,7 @@ _TEST_TEMPDIR_NEEDLES = ("pytest-of-", "/pytest-", "/tmp/pytest", "/private/var/
 def _looks_like_test_tempdir(path: str) -> bool:
     """Heuristic: does ``path`` look like a pytest/transient tempdir?
 
-    Such dirs are reaped between sessions; a HERMES_HOME pointing there burned into
+    Such dirs are reaped between sessions; a A2ASSISTANT_HOME pointing there burned into
     ``~/.codex/config.toml`` makes every codex-routed call fail silently once GC'd. Err on
     refusing: a false positive is far less harmful than silently bricking codex's tool surface.
     """
@@ -381,10 +381,10 @@ def _build_hermes_tools_mcp_entry() -> dict:
     """Codex stdio entry launching Hermes' own tool surface as an MCP server (web/vision/
     image/skills/kanban call-backs).
 
-    HERMES_HOME passes through only IF SET, read from os.environ (not get_hermes_home()): when
-    unset the codex subprocess must inherit its launcher's runtime HERMES_HOME (systemd, gateway,
+    A2ASSISTANT_HOME passes through only IF SET, read from os.environ (not get_hermes_home()): when
+    unset the codex subprocess must inherit its launcher's runtime A2ASSISTANT_HOME (systemd, gateway,
     kanban), not a migrate-time default burned into config.toml that pins the wrong profile. The
-    pytest-tempdir guard keeps a sibling test's monkeypatched HERMES_HOME out of the user's real
+    pytest-tempdir guard keeps a sibling test's monkeypatched A2ASSISTANT_HOME out of the user's real
     config. PYTHONPATH passes through so a worktree-launched hermes finds the branch's modules.
     """
     import sys
@@ -397,14 +397,14 @@ def _build_hermes_tools_mcp_entry() -> dict:
     # profile. The pytest-tempdir guard below catches the issue #26250 Bug C scenario: a sibling test's
     # monkeypatch.setenv("HERMES_HOME", tmp_path) would otherwise leak a transient pytest tempdir into the
     # user's real ~/.codex/config.toml and silently brick codex once the tempdir is GC'd.
-    hermes_home = os.environ.get("HERMES_HOME") or ""
+    hermes_home = os.environ.get("A2ASSISTANT_HOME") or ""
     if hermes_home and not _looks_like_test_tempdir(hermes_home):
-        env["HERMES_HOME"] = hermes_home
+        env["A2ASSISTANT_HOME"] = hermes_home
     if os.environ.get("PYTHONPATH"):
         env["PYTHONPATH"] = os.environ["PYTHONPATH"]
     # Quiet mode + redaction defaults so the MCP wire stays clean.
-    env["HERMES_QUIET"] = "1"
-    env["HERMES_REDACT_SECRETS"] = env.get("HERMES_REDACT_SECRETS", "true")
+    env["A2ASSISTANT_QUIET"] = "1"
+    env["A2ASSISTANT_REDACT_SECRETS"] = env.get("A2ASSISTANT_REDACT_SECRETS", "true")
     return {
         "command": sys.executable,
         # -P: codex starts this in the user's workspace, which must not shadow Hermes' own packages.
@@ -486,7 +486,7 @@ def migrate(
             except tomllib.TOMLDecodeError:
                 # codex could not load the pre-broken file, so plugin/list failed for that reason.
                 report.plugin_query_error += (
-                    "; existing config.toml was unloadable — re-run `hermes codex-runtime migrate` "
+                    "; existing config.toml was unloadable — re-run `a2assistant codex-runtime migrate` "
                     "to migrate plugins")
         without_managed = _strip_existing_managed_block(existing)
         if plugin_query_succeeded:

@@ -150,7 +150,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
     def _adapter_disconnect_timeout_secs(self) -> float:
         """Return the per-adapter disconnect timeout used during shutdown."""
         from gateway.run import _ADAPTER_DISCONNECT_TIMEOUT_SECS_DEFAULT
-        override = self._env_timeout_override("HERMES_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT")
+        override = self._env_timeout_override("A2ASSISTANT_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT")
         return _ADAPTER_DISCONNECT_TIMEOUT_SECS_DEFAULT if override is None else override
 
     def _platform_connect_timeout_secs(self, platform=None, *, initial: bool = False) -> float:
@@ -165,7 +165,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
             _PLATFORM_CONNECT_TIMEOUT_SECS_DEFAULT, _TELEGRAM_CONNECT_TIMEOUT_SECS_DEFAULT,
             _TELEGRAM_INITIAL_CONNECT_TIMEOUT_SECS_DEFAULT,
         )
-        override = self._env_timeout_override("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT")
+        override = self._env_timeout_override("A2ASSISTANT_GATEWAY_PLATFORM_CONNECT_TIMEOUT")
         if override is not None:
             return override
         if platform != Platform.TELEGRAM:
@@ -295,7 +295,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
     def _on_all_adapters_down(self) -> str:
         """Normalized ``GatewayConfig.on_all_adapters_down``: ``"exit"`` (default — a supervising
         service manager restarts the process) or ``"stay_alive"`` (launchers with no supervisor,
-        e.g. the desktop app's direct ``hermes serve`` child, where a failure exit only severs the
+        e.g. the desktop app's direct ``a2assistant serve`` child, where a failure exit only severs the
         UI's websockets and drops in-flight assistant messages; #118080)."""
         value = getattr(getattr(self, "config", None), "on_all_adapters_down", None)
         return value if value in ON_ALL_ADAPTERS_DOWN_POLICIES else "exit"
@@ -753,7 +753,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
         logger.warning(
             "%s has been failing/reconnecting continuously for %.1f hours (%d attempts) — flagging "
             "NEEDS_ATTENTION. Retries continue, but this usually means a permanent problem (revoked "
-            "credentials, missing intents, broken sidecar). Check `hermes status` / `/platform list`.",
+            "credentials, missing intents, broken sidecar). Check `a2assistant status` / `/platform list`.",
             status_key or platform.value, queued_for / 3600.0, info.get("attempts", 0),
         )
         self._update_platform_runtime_status(
@@ -963,7 +963,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
 
     async def _start_secondary_profile_adapters(self) -> int:
         """Bring up adapters for every non-active profile (multiplex only); returns connected count.
-        Each profile connects under its own HERMES_HOME + secret scope; credential/listener collisions
+        Each profile connects under its own A2ASSISTANT_HOME + secret scope; credential/listener collisions
         are refused here — the only point seeing every profile's credentials together."""
         from gateway.run import MultiplexConfigError, _multiplex_profile_homes
         from gateway.run_profile_reconcile import profile_serve_signature
@@ -1041,7 +1041,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
 
     def _record_served_profiles(self, active: str, profile_homes) -> None:
         """Record the served set (eligible for routing/HTTP prefixes/cron/runtime scope — broader
-        than "has a connected adapter") for `hermes status`; seed per-profile PairingStores."""
+        than "has a connected adapter") for `a2assistant status`; seed per-profile PairingStores."""
         with _log_suppressed(logging.DEBUG, "could not record served_profiles", exc_info=True):
             from gateway.status import publish_runtime_status
             from gateway.pairing import PairingStore
@@ -1199,7 +1199,7 @@ class GatewayAdapterLifecycleMixin(GatewaySecondaryReconnectMixin):
 
     def _note_unserved_secondary_platform(self, profile_name: str, platform: Platform) -> None:
         """Report an unpaired WhatsApp once: log the remedy and stamp a ``<profile>:<platform>``
-        status entry so ``hermes gateway status --profile X`` and the dashboard show *why* the
+        status entry so ``a2assistant gateway status --profile X`` and the dashboard show *why* the
         channel is dead instead of nothing at all."""
         noted = getattr(self, "_unserved_secondary_platforms", None)
         if noted is None:

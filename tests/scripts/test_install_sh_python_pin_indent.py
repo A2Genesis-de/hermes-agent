@@ -58,7 +58,7 @@ def test_bootstrap_python_reads_pin_independent_of_indentation(tmp_path, indent,
         f'INSTALL_DIR="{core.as_posix()}"\n'
         "bootstrap_python\n"
     )
-    env = dict(os.environ, HOME=str(tmp_path), HERMES_HOME=str(tmp_path / ".hermes"))
+    env = dict(os.environ, HOME=str(tmp_path), A2ASSISTANT_HOME=str(tmp_path / ".hermes"))
     result = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
     # A layout-sensitive reader resolves no version, falls back to "3.14", and

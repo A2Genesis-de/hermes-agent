@@ -54,8 +54,8 @@ def _write_plugin(root: Path, name: str, body: str) -> None:
 
 def _run_probe(hermes_home: Path, code: str) -> subprocess.CompletedProcess:
     env = os.environ.copy()
-    env["HERMES_HOME"] = str(hermes_home)
-    env.pop("HERMES_PROFILE", None)
+    env["A2ASSISTANT_HOME"] = str(hermes_home)
+    env.pop("A2ASSISTANT_PROFILE", None)
     env["PYTHONPATH"] = os.pathsep.join(
         [str(REPO_ROOT), env.get("PYTHONPATH", "")]
     ).rstrip(os.pathsep)
@@ -177,7 +177,7 @@ def test_post_discovery_registration_is_mirrored(_isolated_registries, monkeypat
 
 
 def test_user_plugin_alias_repoints_and_display_name_follows(_isolated_registries, monkeypatch, tmp_path):
-    """A $HERMES_HOME plugin owns the aliases it declares and the display name of a same-name row.
+    """A $A2ASSISTANT_HOME plugin owns the aliases it declares and the display name of a same-name row.
 
     Ownership split (#116668): ``providers.get_provider_profile`` already followed the user's
     profile for the alias, while the auth registry kept the alias on whichever row got there first

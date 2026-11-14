@@ -4,7 +4,7 @@ from hermes_cli.plugin_validate_private_imports import private_import_findings
 
 
 def test_persist_model_selection_writes_the_model_section(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         "model:\n  default: old\n  provider: openrouter\n  api_key: inline-secret\n")
     from hermes_cli.model_setup import persist_model_selection

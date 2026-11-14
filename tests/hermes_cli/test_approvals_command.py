@@ -35,8 +35,8 @@ def test_shared_command_refuses_managed_mode_override(tmp_path, monkeypatch):
     managed = tmp_path / "managed"
     home.mkdir()
     managed.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     (managed / "config.yaml").write_text("approvals:\n  mode: manual\n", encoding="utf-8")
     managed_scope.invalidate_managed_cache()
 

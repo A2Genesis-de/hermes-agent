@@ -1,4 +1,4 @@
-"""Tests for ``hermes plugins validate`` (hermes_cli/plugin_validate.py).
+"""Tests for ``a2assistant plugins validate`` (hermes_cli/plugin_validate.py).
 
 Static manifest checks + subprocess-isolated capability probing against a
 recording stub context.
@@ -37,7 +37,7 @@ def _portable_plugin(root: Path, servers: dict, declarations: dict) -> Path:
     (root / "plugin.json").write_text(json.dumps({
         "$schema": PLUGIN_SCHEMA_V1,
         "name": "example-plugin",
-        "extensions": {"com.nousresearch.hermes": {"servers": declarations}},
+        "extensions": {"de.a2genesis.a2assistant": {"servers": declarations}},
     }), encoding="utf-8")
     (root / "mcp.json").write_text(json.dumps({
         "$schema": MCP_SCHEMA_V1,

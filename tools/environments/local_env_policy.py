@@ -34,7 +34,7 @@ _STATIC_PROVIDER_ENV_BLOCKLIST = frozenset({
     "SIGNAL_ALLOWED_USERS", "SIGNAL_GROUP_ALLOWED_USERS", "SIGNAL_HOME_CHANNEL",
     "SIGNAL_HOME_CHANNEL_NAME", "SIGNAL_IGNORE_STORIES",
     "EMAIL_ADDRESS", "EMAIL_PASSWORD", "EMAIL_IMAP_HOST", "EMAIL_SMTP_HOST",
-    "EMAIL_HOME_ADDRESS", "EMAIL_HOME_ADDRESS_NAME", "HERMES_DASHBOARD_SESSION_TOKEN",
+    "EMAIL_HOME_ADDRESS", "EMAIL_HOME_ADDRESS_NAME", "A2ASSISTANT_DASHBOARD_SESSION_TOKEN",
     "GATEWAY_ALLOWED_USERS", "GH_TOKEN", "GITHUB_APP_ID", "GITHUB_APP_PRIVATE_KEY_PATH",
     "GITHUB_APP_INSTALLATION_ID", "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET",
     "DAYTONA_API_KEY", "VERCEL_OIDC_TOKEN", "VERCEL_TOKEN",
@@ -45,9 +45,9 @@ _STATIC_PROVIDER_ENV_BLOCKLIST = frozenset({
     "NOUS_API_KEY", "QWEN_API_KEY",
     # Hermes' own secrets read in code: the anonymous-inference secret, dashboard auth
     # (basic, OIDC, drain) and the Google Meet realtime key.
-    "HERMES_ANON_API_SECRET", "HERMES_DASHBOARD_BASIC_AUTH_PASSWORD",
-    "HERMES_DASHBOARD_BASIC_AUTH_SECRET", "HERMES_DASHBOARD_DRAIN_SECRET",
-    "HERMES_DASHBOARD_OIDC_CLIENT_SECRET", "HERMES_MEET_REALTIME_KEY",
+    "A2ASSISTANT_ANON_API_SECRET", "A2ASSISTANT_DASHBOARD_BASIC_AUTH_PASSWORD",
+    "A2ASSISTANT_DASHBOARD_BASIC_AUTH_SECRET", "A2ASSISTANT_DASHBOARD_DRAIN_SECRET",
+    "A2ASSISTANT_DASHBOARD_OIDC_CLIENT_SECRET", "A2ASSISTANT_MEET_REALTIME_KEY",
 })
 
 
@@ -244,7 +244,7 @@ def _buzz_terminal_context_active() -> bool:
     try:
         from gateway.session_context import get_session_env
 
-        return get_session_env("HERMES_SESSION_PLATFORM", "").strip().lower() == "buzz"
+        return get_session_env("A2ASSISTANT_SESSION_PLATFORM", "").strip().lower() == "buzz"
     except Exception:
         return False
 
@@ -284,20 +284,20 @@ _ACTIVE_VENV_MARKER_VARS = ("VIRTUAL_ENV", "CONDA_PREFIX", "PYTHONHOME")
 # sets them for every process of the unit, and the gateway-child dispatch reads them there), and the
 # launch markers HERMES_SUPERVISED_CHILD / HERMES_S6_SUPERVISED_CHILD (profile pinning, s6 redirect).
 _SUPERVISED_PROCESS_IDENTITY_VARS = (
-    "HERMES_LAUNCHD_LABEL", "HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "NOTIFY_SOCKET", "WATCHDOG_USEC", "WATCHDOG_PID",
+    "A2ASSISTANT_LAUNCHD_LABEL", "A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR", "NOTIFY_SOCKET", "WATCHDOG_USEC", "WATCHDOG_PID",
 )
 # The supervisor markers are also profile pins: a CLI under them skips the sticky active_profile
 # (``hermes_cli.main._under_gateway_supervisor``, #74872), and HERMES_GATEWAY_EXTERNAL_SUPERVISOR is an
 # --external-supervisor gateway's ONLY one. A child that loses a marker keeps the pin under a name the
 # restart-route and launch-identity probes never read, so it stays on the gateway's profile without
 # claiming the supervisor.
-GATEWAY_PROFILE_PIN_ENV = "HERMES_GATEWAY_PROFILE_PIN"
+GATEWAY_PROFILE_PIN_ENV = "A2ASSISTANT_GATEWAY_PROFILE_PIN"
 
 
 def carry_gateway_profile_pin(env: dict) -> dict:
     """Mark *env* with :data:`GATEWAY_PROFILE_PIN_ENV` while it still holds a pinning supervisor marker."""
-    if env.get("HERMES_SUPERVISED_CHILD") or str(
-            env.get("HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "")).strip().lower() in {"1", "true", "yes", "on"}:
+    if env.get("A2ASSISTANT_SUPERVISED_CHILD") or str(
+            env.get("A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR", "")).strip().lower() in {"1", "true", "yes", "on"}:
         env[GATEWAY_PROFILE_PIN_ENV] = "1"
     return env
 
@@ -375,7 +375,7 @@ def is_profile_gate_env(name: str, _prefixes: Optional[frozenset] = None) -> boo
     for ANOTHER profile must never inherit. A gate is a platform prefix AND a gate-shaped suffix;
     an operator variable that merely contains ``_ALLOWED_`` is not one."""
     upper = name.upper()
-    if upper.startswith("HERMES_") or upper.startswith("_"):
+    if upper.startswith("A2ASSISTANT_") or upper.startswith("_"):
         return False
     if not any(marker in upper for marker in _PROFILE_GATE_ENV_MARKERS):
         return False
@@ -413,12 +413,12 @@ _ALWAYS_STRIP_KEYS: frozenset[str] = frozenset({
     # Gateway / messaging bot tokens and access control
     "TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "SLACK_BOT_TOKEN", "SLACK_APP_TOKEN",
     "SLACK_SIGNING_SECRET", "GATEWAY_ALLOWED_USERS", "GATEWAY_ALLOW_ALL_USERS",
-    "EMAIL_PASSWORD", "HERMES_DASHBOARD_SESSION_TOKEN",
+    "EMAIL_PASSWORD", "A2ASSISTANT_DASHBOARD_SESSION_TOKEN",
     # Dashboard auth: the basic-auth password and session-signing secret, the OIDC client
     # secret and the drain bearer. They let a holder mint or forge dashboard sessions, and no
     # child (credentialed CLIs included) consumes them.
-    "HERMES_DASHBOARD_BASIC_AUTH_PASSWORD", "HERMES_DASHBOARD_BASIC_AUTH_SECRET",
-    "HERMES_DASHBOARD_OIDC_CLIENT_SECRET", "HERMES_DASHBOARD_DRAIN_SECRET",
+    "A2ASSISTANT_DASHBOARD_BASIC_AUTH_PASSWORD", "A2ASSISTANT_DASHBOARD_BASIC_AUTH_SECRET",
+    "A2ASSISTANT_DASHBOARD_OIDC_CLIENT_SECRET", "A2ASSISTANT_DASHBOARD_DRAIN_SECRET",
     # Remote-compute / infrastructure secrets
     "MODAL_TOKEN_ID", "MODAL_TOKEN_SECRET", "DAYTONA_API_KEY",
 }) | _ADAPTER_SECRET_ENV | _left_core_env(secrets_only=True)  # every declared adapter secret is Tier 1

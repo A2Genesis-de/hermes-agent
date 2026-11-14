@@ -13,8 +13,8 @@ def _exercise_relocated_pm_runtime(tmp_path, monkeypatch):
     from scripts.bundles import native
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path / "home")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
     uv = shutil.which("uv")
     assert uv, "the packaging test requires uv"
     root = tmp_path / "build"
@@ -97,8 +97,8 @@ def test_pm_builder_ignores_ambient_uv_configuration(tmp_path, monkeypatch, pois
     from pm import stage_manager_runtime
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path / "home")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
     monkeypatch.setenv("APPDATA", str(tmp_path / "config"))
     monkeypatch.chdir(tmp_path)

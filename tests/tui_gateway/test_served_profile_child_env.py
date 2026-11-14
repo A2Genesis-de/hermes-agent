@@ -1,7 +1,7 @@
 """A child spawned FOR a served profile carries that profile's env, never the launch profile's.
 
 Under ``gateway.multiplex_profiles`` one process serves several profiles and ``os.environ`` holds the
-LAUNCH profile's ``.env``. Every ``hermes -p X`` / helper child (slash worker, relay delivery, A2A
+LAUNCH profile's ``.env``. Every ``a2assistant -p X`` / helper child (slash worker, relay delivery, A2A
 forward, ``key_cmd`` helper, browser driver) must start from X's env: X's home pinned, X's own
 secrets, and none of the launch profile's residue. The same build reaches every site through
 ``served_profile_child_env``; the slash worker is spawned through its production class here.
@@ -19,7 +19,7 @@ from agent.secret_scope import set_multiplex_active
 from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
 _PROBE = ("import json,os;print(json.dumps({k:os.environ.get(k) for k in "
-          "('HERMES_HOME','A_MARKER','B_MARKER','TERMINAL_ENV','HERMES_MODEL','FIRECRAWL_API_KEY')}))")
+          "('A2ASSISTANT_HOME','A_MARKER','B_MARKER','TERMINAL_ENV','A2ASSISTANT_MODEL','FIRECRAWL_API_KEY')}))")
 
 
 @pytest.fixture
@@ -28,11 +28,11 @@ def mux_homes(tmp_path, monkeypatch):
     a = tmp_path / ".hermes"
     b = a / "profiles" / "b"
     b.mkdir(parents=True)
-    (a / ".env").write_text("A_MARKER=a\nHERMES_MODEL=a-model\nTERMINAL_ENV=docker\nFIRECRAWL_API_KEY=a-fc\n",
+    (a / ".env").write_text("A_MARKER=a\nA2ASSISTANT_MODEL=a-model\nTERMINAL_ENV=docker\nFIRECRAWL_API_KEY=a-fc\n",
                             encoding="utf-8")
     (b / ".env").write_text("B_MARKER=b\nFIRECRAWL_API_KEY=b-fc\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(a))
-    for key, val in (("A_MARKER", "a"), ("HERMES_MODEL", "a-model"), ("TERMINAL_ENV", "docker"),
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(a))
+    for key, val in (("A_MARKER", "a"), ("A2ASSISTANT_MODEL", "a-model"), ("TERMINAL_ENV", "docker"),
                      ("FIRECRAWL_API_KEY", "a-fc")):
         monkeypatch.setenv(key, val)
     monkeypatch.delenv("B_MARKER", raising=False)
@@ -49,8 +49,8 @@ def _child_view(env: dict) -> dict:
 
 
 def _assert_is_b_env(seen: dict, b: Path, *, with_secrets: bool):
-    assert seen["HERMES_HOME"] == str(b)
-    assert seen["A_MARKER"] is None and seen["TERMINAL_ENV"] is None and seen["HERMES_MODEL"] is None
+    assert seen["A2ASSISTANT_HOME"] == str(b)
+    assert seen["A_MARKER"] is None and seen["TERMINAL_ENV"] is None and seen["A2ASSISTANT_MODEL"] is None
     assert seen["B_MARKER"] == ("b" if with_secrets else None)
 
 
@@ -81,7 +81,7 @@ def test_slash_worker_child_runs_in_the_served_profiles_env(mux_homes, monkeypat
         # Outside multiplex the launch profile's own worker keeps its env untouched.
         set_multiplex_active(False)
         server._SlashWorker("sess", "", profile_home=None)
-        assert captured["env"]["A_MARKER"] == "a" and captured["env"]["HERMES_HOME"] == str(a)
+        assert captured["env"]["A_MARKER"] == "a" and captured["env"]["A2ASSISTANT_HOME"] == str(a)
     _assert_is_b_env(_child_view(served_env), b, with_secrets=True)
 
 
@@ -111,7 +111,7 @@ def test_launch_profile_worker_spawns_with_own_home_after_multiplex_flip(mux_hom
         server._SlashWorker("sess", "", profile_home=None)
     # No UnscopedSecretError: the worker is launched under the launch profile's own home, not routed.
     env = captured["env"]
-    assert env["HERMES_HOME"] == str(a)
+    assert env["A2ASSISTANT_HOME"] == str(a)
     assert env["A_MARKER"] == "a"  # launch residual retained (target is not a routed/foreign home)
 
 
@@ -124,7 +124,7 @@ def test_helper_children_resolve_secrets_through_the_served_profile(mux_homes):
 
     _a, b = mux_homes
     helper = (f"{sys.executable} -c \"import os;print(os.environ.get('B_MARKER','-')+'|'"
-              f"+os.environ.get('A_MARKER','-')+'|'+os.environ.get('HERMES_HOME',''))\"")
+              f"+os.environ.get('A_MARKER','-')+'|'+os.environ.get('A2ASSISTANT_HOME',''))\"")
     with _profile_runtime_scope(b, hydrate_secrets=False):
         token, _ttl = _mint(helper, "b-provider")
         browser_env = build_browser_env()

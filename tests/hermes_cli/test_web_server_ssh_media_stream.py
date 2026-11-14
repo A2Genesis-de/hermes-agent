@@ -73,8 +73,8 @@ def ssh(monkeypatch, tmp_path):
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", raising=False)
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
     workspace = FakeSshWorkspace()
     monkeypatch.setattr(

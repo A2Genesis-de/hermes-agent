@@ -81,7 +81,7 @@ def test_stop_acknowledged_during_spawn_never_bootstraps_the_worker(tmp_path, mo
     from hermes_state import SessionDB
     from hermes_state_runtime import begin_runtime_epoch, claim_session_input
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')
     runner = SimpleNamespace(_draining=False, _cached_agent_for=lambda route: None,

@@ -1,6 +1,6 @@
 """The dashboard session token: where its value comes from.
 
-The desktop shell mints the token via HERMES_DASHBOARD_SESSION_TOKEN; a
+The desktop shell mints the token via A2ASSISTANT_DASHBOARD_SESSION_TOKEN; a
 "file:<path>" value instead names a file to read it from (the Nix modules
 render backend.sessionTokenFile this way, so a path -- not a secret -- sits
 in the service environment). With no variable, a fresh token is minted per
@@ -14,7 +14,7 @@ from pathlib import Path
 
 
 def resolve_session_token() -> str:
-    env_token = os.environ.get("HERMES_DASHBOARD_SESSION_TOKEN")
+    env_token = os.environ.get("A2ASSISTANT_DASHBOARD_SESSION_TOKEN")
     if not env_token:
         return secrets.token_urlsafe(32)
     # A "file:" prefix means the value is a token-file path, not a token:
@@ -28,11 +28,11 @@ def resolve_session_token() -> str:
             token = Path(token_file).read_text(encoding="utf-8-sig").strip()
         except (OSError, UnicodeError) as exc:
             raise SystemExit(
-                f"HERMES_DASHBOARD_SESSION_TOKEN names an unreadable token file ({token_file}): {exc}"
+                f"A2ASSISTANT_DASHBOARD_SESSION_TOKEN names an unreadable token file ({token_file}): {exc}"
             ) from exc
         if not token:
             raise SystemExit(
-                f"HERMES_DASHBOARD_SESSION_TOKEN names an empty token file ({token_file})"
+                f"A2ASSISTANT_DASHBOARD_SESSION_TOKEN names an empty token file ({token_file})"
             )
         return token
     return env_token

@@ -4,6 +4,7 @@ are rebound onto server.py's globals (method_ctx.bind_module) and reference them
 Keys match exactly except ``details_mode.<section>`` (prefix) and ``_DISPLAY_TOGGLE_KEYS``.
 """
 
+from hermes_constants import unset_env
 import os
 
 from hermes_cli.config_backend import ConfigWriteError
@@ -25,7 +26,7 @@ class ManagedKeyError(ConfigWriteError):
 
 def _refuse_managed_keys(*key_paths: str) -> None:
     """Refuse the whole write when the managed scope pins any of these exact dotted leaves, with
-    the refusal ``hermes config set`` prints for the same key."""
+    the refusal ``a2assistant config set`` prints for the same key."""
     from hermes_cli import managed_scope
     from hermes_cli.config import _managed_source
     for key_path in key_paths:
@@ -368,11 +369,11 @@ def _set_yolo(rid, params, key, value, session):
         enable = toggle_session_yolo(session["session_key"], _BOOL_WORDS.get(raw), persist=persist)
         _emit_session_info(params.get("session_id", ""), session)
     else:
-        enable = _BOOL_WORDS.get(raw, not is_truthy_value(os.environ.get("HERMES_YOLO_MODE")))
+        enable = _BOOL_WORDS.get(raw, not is_truthy_value(os.environ.get("A2ASSISTANT_YOLO_MODE")))
         if enable:
-            os.environ["HERMES_YOLO_MODE"] = "1"
+            os.environ["A2ASSISTANT_YOLO_MODE"] = "1"
         else:
-            os.environ.pop("HERMES_YOLO_MODE", None)
+            unset_env(os.environ, "YOLO_MODE")
     return _kv(rid, key, "1" if enable else "0", scope=scope if scope == "global" else "session")
 
 

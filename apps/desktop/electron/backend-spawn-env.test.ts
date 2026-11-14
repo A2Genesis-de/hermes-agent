@@ -6,18 +6,18 @@ import { desktopBackendSpawnEnv } from './backend-spawn-env'
 
 test('desktopBackendSpawnEnv keeps the base env and stamps stay_alive last', () => {
   const base = {
-    HERMES_HOME: '/tmp/home',
-    HERMES_DESKTOP: '1',
+    A2ASSISTANT_HOME: '/tmp/home',
+    A2ASSISTANT_DESKTOP: '1',
     GATEWAY_ON_ALL_ADAPTERS_DOWN: 'exit',
     PATH: '/usr/bin'
   }
 
   const env = desktopBackendSpawnEnv(base)
 
-  assert.equal(env.HERMES_HOME, base.HERMES_HOME)
-  assert.equal(env.HERMES_DESKTOP, base.HERMES_DESKTOP)
+  assert.equal(env.A2ASSISTANT_HOME, base.A2ASSISTANT_HOME)
+  assert.equal(env.A2ASSISTANT_DESKTOP, base.A2ASSISTANT_DESKTOP)
   assert.equal(env.PATH, base.PATH)
-  // The desktop spawns `hermes serve` with no supervising service manager, so the
+  // The desktop spawns `a2assistant serve` with no supervising service manager, so the
   // child must stay alive on all-adapters-down instead of exiting EX_TEMPFAIL
   // (#118080). Stamped unconditionally — an inherited value cannot opt the child
   // back into the failure exit.

@@ -75,7 +75,7 @@ async def test_idle_restart_ack_carries_the_ordinary_reply_routing(monkeypatch, 
 
 @pytest.mark.asyncio
 async def test_local_restart_returns_its_ack(monkeypatch, tmp_path):
-    """A LOCAL session (``hermes chat -q "/restart"``) shows the handler's RETURNED reply; its
+    """A LOCAL session (``a2assistant chat -q "/restart"``) shows the handler's RETURNED reply; its
     adapter's send is a no-op, so an early send there would leave the ack nowhere."""
     from types import SimpleNamespace
     from gateway.config import Platform

@@ -74,7 +74,7 @@ export const slashCmdCoreEn = {
     copy: {
       copiedCharsOne: (count: string) => `copied ${count} character`,
       copiedCharsOther: (count: string) => `copied ${count} characters`,
-      clipboardFailed: 'clipboard copy failed — try HERMES_TUI_FORCE_OSC52=1 to force the escape sequence',
+      clipboardFailed: 'clipboard copy failed — try A2ASSISTANT_TUI_FORCE_OSC52=1 to force the escape sequence',
       usage: 'usage: /copy [number]',
       nothingToCopy: 'nothing to copy — start a conversation first',
       sentOsc52: 'sent OSC52 copy sequence (terminal support required)',
@@ -178,7 +178,7 @@ export const slashCmdCoreEn = {
       cancelled: '↺ Rewind cancelled; nothing was removed.',
       imagesKeptAsNotes: (count: number) =>
         `${count} image${count === 1 ? '' : 's'} could not be re-attached: the gateway's files are not readable on this machine, so the image notes stay in the text`,
-      unsupported: '/rewind needs the shared gateway (hermes serve)',
+      unsupported: '/rewind needs the shared gateway (a2assistant serve)',
       done: (turn: string, count: string) => `rewound to prompt ${turn} (${count} messages removed)`,
       forked: (turn: string) => `forked from before prompt ${turn} — edit the prompt and press Enter to send`
     },

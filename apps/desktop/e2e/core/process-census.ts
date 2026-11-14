@@ -2,13 +2,13 @@
  * Process census for the core lane, per platform.
  *
  * Linux reads /proc: a process belongs to a sandbox when its environment names the sandbox
- * HERMES_HOME (orphans reparented to init included). Other platforms have no readable foreign
+ * A2ASSISTANT_HOME (orphans reparented to init included). Other platforms have no readable foreign
  * environment, so membership is the process tree rooted at every gateway pid a sandbox
  * `gateway.lock` has ever recorded (remembered per sandbox, so the census still sees a stopped
  * gateway's orphans after its lock is gone). Windows keeps a dead parent's id in
  * ParentProcessId, so the tree walk still reaches orphans there.
  *
- * `HERMES_E2E_PROC_CENSUS=ps` forces the tree census on Linux (how the non-/proc path is tested).
+ * `A2ASSISTANT_E2E_PROC_CENSUS=ps` forces the tree census on Linux (how the non-/proc path is tested).
  */
 
 import { spawnSync } from 'node:child_process'
@@ -21,7 +21,7 @@ export interface ProcInfo {
   cmdline: string
 }
 
-export const procfsCensus = process.env.HERMES_E2E_PROC_CENSUS !== 'ps' && fs.existsSync('/proc/self/environ')
+export const procfsCensus = process.env.A2ASSISTANT_E2E_PROC_CENSUS !== 'ps' && fs.existsSync('/proc/self/environ')
 
 export function readProc(pid: number): null | { environ: string; cmdline: string; ppid: number } {
   try {
@@ -89,10 +89,10 @@ function lockedGatewayPids(hermesHome: string): number[] {
   })
 }
 
-/** Every live process belonging to the sandbox whose HERMES_HOME is `hermesHome` (orphans included). */
+/** Every live process belonging to the sandbox whose A2ASSISTANT_HOME is `hermesHome` (orphans included). */
 export function sandboxProcessesOf(hermesHome: string, exclude = process.pid): ProcInfo[] {
   if (procfsCensus) {
-    const needle = `HERMES_HOME=${hermesHome}\0`
+    const needle = `A2ASSISTANT_HOME=${hermesHome}\0`
 
     return fs.readdirSync('/proc').flatMap(entry => {
       const pid = Number(entry)
@@ -135,7 +135,7 @@ export function sandboxProcessesOf(hermesHome: string, exclude = process.pid): P
 /**
  * Every live process whose executable lives under `dir` (Linux /proc only).
  *
- * The HERMES_HOME census cannot see Electron 44+ processes: Chromium's process-title
+ * The A2ASSISTANT_HOME census cannot see Electron 44+ processes: Chromium's process-title
  * rewrite zeroes the browser's and every child's /proc/<pid>/environ right after start
  * (Electron 40 kept it readable). A packaged app's install directory names its processes
  * just as precisely, whatever their environment shows.

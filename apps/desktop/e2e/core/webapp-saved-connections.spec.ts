@@ -16,8 +16,8 @@
  *  - removing the connection closes the relayed socket.
  *
  * Linux (the /proc ancestry walk, 127.0.0.0/8 aliases); needs the Webapp renderer
- * (`npm run build:webapp`) and a Chromium Playwright can launch (or HERMES_E2E_CHROMIUM).
- * HERMES_E2E_RELAY_VIDEO=<dir> records the tab.
+ * (`npm run build:webapp`) and a Chromium Playwright can launch (or A2ASSISTANT_E2E_CHROMIUM).
+ * A2ASSISTANT_E2E_RELAY_VIDEO=<dir> records the tab.
  */
 import { spawnSync } from 'node:child_process'
 import * as fs from 'node:fs'
@@ -52,8 +52,8 @@ const U = (n: number) => `U${n}-relay${nonce}`
 const A = (n: number) => `A${n}-relay${nonce}`
 const AI = (n: number) => `A${n}i-relay${nonce}`
 
-const PYTHON = process.env.HERMES_E2E_PYTHON || 'python3'
-const VIDEO_DIR = process.env.HERMES_E2E_RELAY_VIDEO || ''
+const PYTHON = process.env.A2ASSISTANT_E2E_PYTHON || 'python3'
+const VIDEO_DIR = process.env.A2ASSISTANT_E2E_RELAY_VIDEO || ''
 
 function freePort(host: string): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -184,7 +184,7 @@ test("a Webapp reaches a saved gateway through its own, with that gateway's save
     gateways.push(mini)
     const ancestry = path.join(mini.sandbox.root, 'tool-ancestry.txt')
 
-    browser = await chromium.launch({ executablePath: process.env.HERMES_E2E_CHROMIUM || undefined })
+    browser = await chromium.launch({ executablePath: process.env.A2ASSISTANT_E2E_CHROMIUM || undefined })
 
     const context = await browser.newContext({
       viewport: { width: 1280, height: 820 },
@@ -294,7 +294,7 @@ test("a Webapp reaches a saved gateway through its own, with that gateway's save
       const session = await api.start({ cols: 100, restoreKey: 'relay-e2e', rows: 24 })
       let output = ''
       const off = api.onData(session.id, (chunk: string) => void (output += chunk))
-      await api.write(session.id, 'echo "home=$HERMES_HOME"\r')
+      await api.write(session.id, 'echo "home=$A2ASSISTANT_HOME"\r')
       const deadline = Date.now() + 20_000
 
       while (!/home=\//.test(output) && Date.now() < deadline) {

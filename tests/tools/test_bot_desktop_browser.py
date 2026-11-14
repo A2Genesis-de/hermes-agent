@@ -19,7 +19,7 @@ from tools.bot_desktop import browser, placement, runtime
 def _browser_config(monkeypatch, home: Path, **browser_cfg) -> None:
     """This profile's real config.yaml with a ``browser:`` section."""
     home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "config.yaml").write_text(json.dumps({"browser": browser_cfg}), encoding="utf-8")
 
 
@@ -74,7 +74,7 @@ def test_pinned_profile_honours_tilde_and_resolves_relative_paths_against_hermes
     """Regression for #110029: the docs say pinning a user-data-dir pins your own, but only an absolute value
     was honoured — `~/pin` and `pin` silently fell back to the default and the human's dock browser and the
     agent's browser could end up on different jars. A relative path is anchored where the rest of this
-    profile's screen state lives (its HERMES_HOME), so two profiles never share one 'pin'."""
+    profile's screen state lives (its A2ASSISTANT_HOME), so two profiles never share one 'pin'."""
     home = tmp_path / "hermes-home"
     monkeypatch.setattr(runtime, "get_hermes_home", lambda: home)
     monkeypatch.setattr(Path, "home", lambda: tmp_path / "user")
@@ -272,7 +272,7 @@ def test_status_reports_the_headed_browser_or_its_absence(monkeypatch):
 
 def test_dock_exec_line_survives_spaces_in_the_executable_and_profile_paths():
     """The launcher used to split the shell line on the first space to find the executable, so a
-    Chromium under '/opt/Google Chrome/' or a profile under a spaced HERMES_HOME broke the dock icon.
+    Chromium under '/opt/Google Chrome/' or a profile under a spaced A2ASSISTANT_HOME broke the dock icon.
     Exec= follows the Desktop Entry spec: each argument double-quoted, with the reserved characters
     backslash-escaped inside the quotes."""
     exe = "/opt/Google Chrome/chrome"

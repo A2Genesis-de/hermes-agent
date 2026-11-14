@@ -18,11 +18,11 @@ _SPACED = " spaced" if sys.platform == "win32" else " spaced "
 @pytest.mark.parametrize("suffix", ["", "-asdfasdf", "magic-test", _SPACED])
 def test_suffix_scopes_default_home_and_profiles(tmp_path, suffix):
     env = dict(os.environ)
-    env.pop("HERMES_HOME", None)
+    env.pop("A2ASSISTANT_HOME", None)
     env.update(
         HOME=str(tmp_path), USERPROFILE=str(tmp_path),
         LOCALAPPDATA=str(tmp_path / "AppData" / "Local"),
-        HERMES_DATA_DIR_SUFFIX=suffix,
+        A2ASSISTANT_DATA_DIR_SUFFIX=suffix,
     )
     script = """
 import json
@@ -36,10 +36,10 @@ profile.mkdir(parents=True)
 (profile / 'config.yaml').write_text('', encoding='utf-8')
 result = [str(get_hermes_home()), str(get_process_hermes_home()), str(root),
           str(_get_profiles_root()), str(_get_active_profile_path()), resolve_profile_env('coder')]
-os.environ['HERMES_HOME'] = str(profile)
+os.environ['A2ASSISTANT_HOME'] = str(profile)
 result.extend([str(get_hermes_home()), str(get_default_hermes_root())])
-os.environ.pop('HERMES_HOME')
-os.environ['HERMES_DATA_DIR_SUFFIX'] += '-changed'
+os.environ.pop('A2ASSISTANT_HOME')
+os.environ['A2ASSISTANT_DATA_DIR_SUFFIX'] += '-changed'
 result.append(str(get_default_hermes_root()))
 print(json.dumps(result))
 """
@@ -68,8 +68,8 @@ def test_startup_readers_use_the_suffixed_home(tmp_path, monkeypatch):
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
-    monkeypatch.delenv("HERMES_HOME", raising=False)
-    monkeypatch.setenv("HERMES_DATA_DIR_SUFFIX", "magic-test")
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_DATA_DIR_SUFFIX", "magic-test")
     monkeypatch.delenv("SUFFIX_TEST_CREDENTIAL", raising=False)
     home = get_process_hermes_home()
     home.mkdir(parents=True)
@@ -91,8 +91,8 @@ def test_suffix_does_not_change_explicit_or_context_home(tmp_path, monkeypatch):
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "AppData" / "Local"))
     explicit = tmp_path / "explicit"
     scoped = tmp_path / "scoped"
-    monkeypatch.setenv("HERMES_HOME", str(explicit))
-    monkeypatch.setenv("HERMES_DATA_DIR_SUFFIX", "magic-test")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(explicit))
+    monkeypatch.setenv("A2ASSISTANT_DATA_DIR_SUFFIX", "magic-test")
     assert get_hermes_home() == get_process_hermes_home() == get_default_hermes_root() == explicit
     token = set_hermes_home_override(scoped)
     try:

@@ -79,7 +79,7 @@ def _dead_pid() -> int:
 
 
 def _env(home: Path, **extra: str) -> dict[str, str]:
-    return {**os.environ, 'HERMES_HOME': str(home), 'HERMES_RUNTIME_DIR': str(home / 'empty-store'), **extra}
+    return {**os.environ, 'A2ASSISTANT_HOME': str(home), 'A2ASSISTANT_RUNTIME_DIR': str(home / 'empty-store'), **extra}
 
 
 def _script(home: Path, *args: str, install: Path | None = None, **env: str) -> subprocess.Popen:

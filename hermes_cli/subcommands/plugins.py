@@ -1,4 +1,4 @@
-"""``hermes plugins`` subcommand parser."""
+"""``a2assistant plugins`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -40,7 +40,7 @@ def build_plugins_parser(subparsers, *, cmd_plugins: Callable) -> None:
         help="Auto-enable the plugin after install (skip confirmation prompt)")
     _install_enable_group.add_argument(
         "--no-enable", action="store_true",
-        help="Install disabled (skip confirmation prompt); enable later with `hermes plugins enable <name>`",
+        help="Install disabled (skip confirmation prompt); enable later with `a2assistant plugins enable <name>`",
     )
 
     plugins_validate = plugins_subparsers.add_parser(

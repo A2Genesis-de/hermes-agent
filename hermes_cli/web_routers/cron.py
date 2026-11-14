@@ -201,7 +201,7 @@ def _cron_output_run_timestamp(path: Path) -> Optional[float]:
     """Epoch seconds for an output filename's wall time.
 
     save_job_output writes the stem with hermes_time.now() — the configured
-    IANA timezone (HERMES_TIMEZONE / config), falling back to server-local.
+    IANA timezone (A2ASSISTANT_TIMEZONE / config), falling back to server-local.
     Read it back with that same ZONE, not a fixed offset snapshot of today's
     local offset: a snapshot is wrong when the configured zone differs from
     the server's, and off by an hour for a historical file across a DST

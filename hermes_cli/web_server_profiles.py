@@ -37,7 +37,7 @@ def _is_current_profile(profile: Optional[str]) -> bool:
 @contextmanager
 def _hermes_home_scope(path) -> Any:
     """Scope ``load_config``/``save_config`` (anything resolving ``get_hermes_home()`` at call
-    time) to ``path`` for the block via the context-local HERMES_HOME override."""
+    time) to ``path`` for the block via the context-local A2ASSISTANT_HOME override."""
     from hermes_constants import set_hermes_home_override, reset_hermes_home_override
     token = set_hermes_home_override(str(path))
     try:
@@ -54,7 +54,7 @@ def serving_profile_name() -> str:
     switcher has resolved: a destructive route now 400s on an unnamed profile as soon as
     the host serves more than one, and "" would otherwise mean "whichever home this
     process launched with" anyway. Naming it is only safe if the name cannot resolve
-    ELSEWHERE, so a custom HERMES_HOME outside ``profiles/`` (``get_active_profile_name()``
+    ELSEWHERE, so a custom A2ASSISTANT_HOME outside ``profiles/`` (``get_active_profile_name()``
     answers ``"custom"``) returns "" and keeps the old unnamed behaviour rather than
     risking a wrong-profile write.
     """
@@ -200,7 +200,7 @@ def _resolve_profile_dir(name: str) -> Path:
 
 
 def _write_profile_mcp_servers(profile_dir: Path, servers: list[MCPServerCreate]) -> int:
-    """Write MCP server entries into ``profile_dir``'s config.yaml (HERMES_HOME-scoped).
+    """Write MCP server entries into ``profile_dir``'s config.yaml (A2ASSISTANT_HOME-scoped).
 
     Mirrors the per-server shape ``POST /api/mcp/servers`` builds, batched so the whole
     profile-create write is one config save. Returns the number of servers written.
@@ -249,7 +249,7 @@ def _profile_scope(profile: Optional[str]):
     under a lock and restored after. For the dashboard's own profile config resolution is
     untouched, but the skill-module globals are still retargeted to the *current*
     ``get_hermes_home()`` so writes land in the live home even when the import-time binding
-    is stale (test isolation, late HERMES_HOME override). Yields the profile dir for a named
+    is stale (test isolation, late A2ASSISTANT_HOME override). Yields the profile dir for a named
     profile, None for the current one.
 
     ``tools.skills_sync`` (reset/diff/list-modified/opt-in/opt-out/ repair-official) needs NO retargeting:
@@ -275,7 +275,7 @@ def _profile_scope(profile: Optional[str]):
 
 @contextmanager
 def _config_profile_scope(profile: Optional[str]):
-    """Await-safe profile scope: the task-local HERMES_HOME contextvar PLUS the profile's secret
+    """Await-safe profile scope: the task-local A2ASSISTANT_HOME contextvar PLUS the profile's secret
     scope, never the process-global skills-module attributes ``_profile_scope`` swaps (holding
     those across an ``await`` lets a concurrent request restore THIS request's dir on its
     ``finally``). None/""/"current" = no override.
@@ -437,10 +437,10 @@ def _aux_task_summary(aux_rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def _profile_cli_args(profile: Optional[str]) -> list[str]:
     """``["-p", <name>]`` for a validated named profile, else ``[]``. Hub actions run in
-    a fresh ``hermes`` subprocess whose ``_apply_profile_override()`` reads ``-p`` from argv —
+    a fresh ``a2assistant`` subprocess whose ``_apply_profile_override()`` reads ``-p`` from argv —
     the only mechanism that reaches import-time-bound globals like ``skills_hub.SKILLS_DIR``.
     ``default`` is a real named target, not an alias for the dashboard's own profile:
-    selector-less argv would make the child resolve the ambient ``HERMES_HOME`` (the launch
+    selector-less argv would make the child resolve the ambient ``A2ASSISTANT_HOME`` (the launch
     profile under a pooled ``-p X serve``), not the default home."""
     requested = (profile or "").strip()
     if not requested or requested.lower() == "current":

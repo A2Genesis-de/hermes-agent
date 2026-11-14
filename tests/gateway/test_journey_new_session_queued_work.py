@@ -48,7 +48,7 @@ def test_new_session_never_absorbs_or_drops_earlier_queued_work(tmp_path, restar
         'gateway': {'multiplex_profiles': False},
         'model': {'provider': 'custom', 'default': 'view-model', 'base_url': url},
         'auxiliary': {'title_generation': {'enabled': False}}, 'platform_toolsets': {'cli': []}}))
-    env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env = child_env() | dict(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                              OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
 
     def admissions():

@@ -1,7 +1,7 @@
 """Guard: Hermes-owned subprocesses must not resolve managed runtimes by bare PATH.
 
-Hermes installs runtimes for itself — ``uv`` at ``$HERMES_HOME/bin/uv``, Node at
-``$HERMES_HOME/node``. Neither directory is on the ambient PATH of an arbitrary
+Hermes installs runtimes for itself — ``uv`` at ``$A2ASSISTANT_HOME/bin/uv``, Node at
+``$A2ASSISTANT_HOME/node``. Neither directory is on the ambient PATH of an arbitrary
 process, so ``shutil.which("uv")`` / ``shutil.which("node")`` in Hermes's own
 code has two failure modes:
 
@@ -325,7 +325,7 @@ def test_no_unreviewed_bare_managed_runtime_lookups():
     assert not unexpected, (
         "Bare PATH lookup for an A2Assistant-managed runtime.\n\n"
         + "\n".join(f"  {rel}:{lineno}  which({cmd!r})" for rel, cmd, lineno in unexpected)
-        + "\n\n$HERMES_HOME/bin (uv) and $HERMES_HOME/node are not on an "
+        + "\n\n$A2ASSISTANT_HOME/bin (uv) and $A2ASSISTANT_HOME/node are not on an "
         "arbitrary process's PATH, so this resolves a system copy — or nothing "
         "— on an install that has a managed one.\n"
         "Use instead:\n"

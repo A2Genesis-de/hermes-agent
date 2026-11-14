@@ -66,7 +66,7 @@ function Get-HermesRuntimeCommand {
     # --version surface reports the bound source root; never trust PATH alone.
     if (Test-Path -LiteralPath (Join-Path $InstallRoot 'hermes_cli/_launchers.py') -PathType Leaf) {
         $directories = @(
-            (Join-Path $env:HERMES_HOME 'bin'),
+            (Join-Path $env:A2ASSISTANT_HOME 'bin'),
             (Join-Path (Split-Path -Parent $InstallRoot) 'bin')
         )
         if ($env:LOCALAPPDATA) { $directories += Join-Path $env:LOCALAPPDATA 'hermes/bin' }

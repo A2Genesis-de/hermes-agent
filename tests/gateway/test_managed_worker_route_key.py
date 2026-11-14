@@ -89,10 +89,10 @@ def test_keyless_worker_reads_its_own_profile_home_not_the_default(tmp_path, mon
     (default / '.env').write_text(f'{KEY_ENV}={other}\n')
     (profile / '.env').write_text(f'{KEY_ENV}={own}\n')
     monkeypatch.setenv('HOME', str(tmp_path))
-    monkeypatch.setenv('HERMES_HOME', str(default))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(default))
     monkeypatch.setenv(KEY_ENV, other)
     env = _worker_env(SimpleNamespace(profile_id=str(profile)))
-    assert env is not None and env['HERMES_HOME'] == str(profile)
+    assert env is not None and env['A2ASSISTANT_HOME'] == str(profile)
     for name in list(os.environ):
         monkeypatch.delenv(name)
     for name, value in env.items():

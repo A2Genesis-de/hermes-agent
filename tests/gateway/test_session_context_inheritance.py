@@ -11,7 +11,7 @@ variant that the ``_UNSET``-strip guard does NOT catch:
     *concurrent* message A had ALREADY called ``set_session_vars``, B inherits
     A's **set** ContextVars. Between B's task start and B's own
     ``set_session_vars`` call, any subprocess B spawns reads A's
-    ``HERMES_SESSION_*`` identity through the subprocess-env bridge. The bridge's
+    ``A2ASSISTANT_SESSION_*`` identity through the subprocess-env bridge. The bridge's
     strip-on-``_UNSET`` rule is no help: the inherited vars are set-to-A, not
     ``_UNSET``.
 
@@ -94,9 +94,9 @@ def _spawn_view():
     """What a subprocess spawned right now would see for the session vars."""
     env = _make_run_env({})
     return {
-        "HERMES_SESSION_CHAT_ID": env.get("HERMES_SESSION_CHAT_ID"),
-        "HERMES_SESSION_THREAD_ID": env.get("HERMES_SESSION_THREAD_ID"),
-        "HERMES_SESSION_KEY": env.get("HERMES_SESSION_KEY"),
+        "A2ASSISTANT_SESSION_CHAT_ID": env.get("A2ASSISTANT_SESSION_CHAT_ID"),
+        "A2ASSISTANT_SESSION_THREAD_ID": env.get("A2ASSISTANT_SESSION_THREAD_ID"),
+        "A2ASSISTANT_SESSION_KEY": env.get("A2ASSISTANT_SESSION_KEY"),
     }
 
 
@@ -138,14 +138,14 @@ def test_reset_session_vars_closes_inheritance_leak():
     captured = asyncio.run(_child_turn(reset_first=True))
 
     window = captured["window"]
-    for var in ("HERMES_SESSION_CHAT_ID", "HERMES_SESSION_THREAD_ID", "HERMES_SESSION_KEY"):
+    for var in ("A2ASSISTANT_SESSION_CHAT_ID", "A2ASSISTANT_SESSION_THREAD_ID", "A2ASSISTANT_SESSION_KEY"):
         assert window[var] is None, (
             f"{var} leaked the parent session after reset: {window[var]!r}"
         )
 
     # B's own session still binds correctly after the reset window.
-    assert captured["bound"]["HERMES_SESSION_CHAT_ID"] == "FOREIGN_CHAT"
-    assert captured["bound"]["HERMES_SESSION_KEY"] == FOREIGN["session_key"]
+    assert captured["bound"]["A2ASSISTANT_SESSION_CHAT_ID"] == "FOREIGN_CHAT"
+    assert captured["bound"]["A2ASSISTANT_SESSION_KEY"] == FOREIGN["session_key"]
 
 
 # ---------------------------------------------------------------------------

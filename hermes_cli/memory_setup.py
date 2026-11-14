@@ -1,4 +1,4 @@
-"""hermes memory setup|status — configure memory provider plugins."""
+"""a2assistant memory setup|status — configure memory provider plugins."""
 
 from __future__ import annotations
 
@@ -185,7 +185,7 @@ def cmd_setup_provider(provider_name: str) -> None:
         if install:
             print(f"  It is a catalog plugin that is not installed. Install it with: {install}\n")
         else:
-            print("  Run 'hermes memory setup' to see available providers.\n")
+            print("  Run 'a2assistant memory setup' to see available providers.\n")
         return
     name, _, provider = match
 
@@ -262,7 +262,7 @@ def cmd_setup(args) -> None:
     providers = _get_available_providers()
     if not providers:
         print("\n  No memory provider plugins detected.")
-        print("  Install a plugin to ~/.hermes/plugins/ and try again.\n")
+        print("  Install a plugin to ~/.a2assistant/plugins/ and try again.\n")
         return
 
     items = [(name, f"— {desc}") for name, desc, _ in providers]
@@ -326,7 +326,7 @@ def _write_env_vars(
     through the same input-validation gate as every other ``.env`` writer:
     the ``_ENV_VAR_NAME_RE`` regex (no malformed identifiers), the
     ``_ENV_VAR_NAME_DENYLIST`` (no ``LD_PRELOAD`` / ``PYTHONPATH`` /
-    ``HERMES_HOME`` / etc.), CR/LF stripping on the value, and the atomic
+    ``A2ASSISTANT_HOME`` / etc.), CR/LF stripping on the value, and the atomic
     0o600-from-creation write (no TOCTOU permission window).
 
     Validation failures (``ValueError`` from ``save_env_value`` — a
@@ -425,7 +425,7 @@ def cmd_status(args) -> None:
                         if url and not is_set:
                             line += f"  → {url}"
                         print(line)
-                print("  Note: systemd/gateway services do not inherit ~/.hermes/.env —")
+                print("  Note: systemd/gateway services do not inherit ~/.a2assistant/.env —")
                 print("        set any variables above in the service environment.")
         else:
             print("\n  Plugin:    NOT installed ✗")
@@ -433,7 +433,7 @@ def cmd_status(args) -> None:
             if install:
                 print(f"  Install it with: {install}")
             else:
-                print(f"  Install the '{provider_name}' memory plugin to ~/.hermes/plugins/")
+                print(f"  Install the '{provider_name}' memory plugin to ~/.a2assistant/plugins/")
 
     if providers:
         print("\n  Installed plugins:")

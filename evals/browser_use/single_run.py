@@ -17,7 +17,7 @@ Environment:
     BENCH_CDP_URL      CDP endpoint both arms drive (default http://127.0.0.1:9333)
     OPENROUTER_API_KEY provider credential for the runs
 
-The run gets a throwaway HERMES_HOME so no local config leaks in, and the
+The run gets a throwaway A2ASSISTANT_HOME so no local config leaks in, and the
 web-fetch credential env vars are stripped so every arm must actually drive
 the browser (no web_extract shortcuts).
 
@@ -61,7 +61,7 @@ import hermes_yaml as yaml
 
 with open(os.path.join(hh, "config.yaml"), "w", encoding="utf-8") as f:
     yaml.safe_dump(cfg, f)
-os.environ["HERMES_HOME"] = hh
+os.environ["A2ASSISTANT_HOME"] = hh
 # Strip web-fetch shortcuts: every arm must drive the browser.
 for k in ("FIRECRAWL_API_KEY", "NOUS_API_KEY", "TAVILY_API_KEY", "SERPER_API_KEY"):
     os.environ.pop(k, None)

@@ -30,8 +30,8 @@ def main():
     receipt = Path(os.environ['HANDOFF_CAPTURE'])
     previous = receipt.read_text(encoding='utf-8') if receipt.exists() else ''
     with receipt.open('a', encoding='utf-8') as stream:
-        stream.write(json.dumps({'argv': sys.argv[1:], 'home': os.environ.get('HERMES_HOME'),
-                                 'install_root': os.environ.get('HERMES_INSTALL_ROOT'),
+        stream.write(json.dumps({'argv': sys.argv[1:], 'home': os.environ.get('A2ASSISTANT_HOME'),
+                                 'install_root': os.environ.get('A2ASSISTANT_INSTALL_ROOT'),
                                  'cwd': os.getcwd()}) + '\\n')
     print('Desktop build failed') if os.environ.get('HANDOFF_EXIT') else None
     sys.exit(int(os.environ['HANDOFF_EXIT']) if 'HANDOFF_EXIT' in os.environ else (1 if not previous else 0))
@@ -69,19 +69,19 @@ def _run_handoff(tmp_path, target, *, windows=False, inherited_home=True, modern
         **os.environ,
         "HOME": str(tmp_path),
         "TMPDIR": str(tmp_path),
-        "HERMES_INSTALL_ROOT": str(install),
+        "A2ASSISTANT_INSTALL_ROOT": str(install),
         "HANDOFF_CAPTURE": str(capture),
     }
     env.pop("PYTHONPATH", None)
     env.pop("PYTHONHOME", None)
-    env.pop("HERMES_HOME", None)
+    env.pop("A2ASSISTANT_HOME", None)
     if inherited_home:
-        env["HERMES_HOME"] = str(home)
+        env["A2ASSISTANT_HOME"] = str(home)
     if modern:
         env["HANDOFF_EXIT"] = str(code)
         if foreign:
             env["HANDOFF_FOREIGN"] = str(tmp_path)
-        env["HERMES_RUNTIME_DIR"] = str(tmp_path / "empty-store")
+        env["A2ASSISTANT_RUNTIME_DIR"] = str(tmp_path / "empty-store")
     if windows:
         # The disposable runtime has only the fixture CLI; verification is outside
         # this transport contract and runs its own harmless fixture implementation.

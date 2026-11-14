@@ -1,4 +1,4 @@
-"""``hermes browser export-signins``: the pipe Desktop reads the real-profile browser's cookies from."""
+"""``a2assistant browser export-signins``: the pipe Desktop reads the real-profile browser's cookies from."""
 
 from __future__ import annotations
 

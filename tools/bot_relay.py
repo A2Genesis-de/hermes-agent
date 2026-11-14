@@ -490,12 +490,14 @@ def _hermes_cli() -> str:
     """
     # Do not select batch shims: cmd.exe reinterprets otherwise literal argv
     # (for example an ampersand in a query-file path), even with shell=False.
-    name = "hermes.exe" if sys.platform == "win32" else "hermes"
+    from hermes_cli.branding import CLI_COMMAND
+
+    name = f"{CLI_COMMAND}.exe" if sys.platform == "win32" else CLI_COMMAND
     published = Path(__file__).resolve().parents[1] / ".hermes" / "bin" / name
     if published.is_file():
         return str(published)
     sibling = Path(sys.executable or "").parent / name
-    return str(sibling) if sibling.is_file() else shutil.which("hermes") or "hermes"
+    return str(sibling) if sibling.is_file() else shutil.which(CLI_COMMAND) or CLI_COMMAND
 
 
 class DeliveryAuthor:
@@ -533,8 +535,8 @@ def _delivery_child_session_env_names() -> tuple[str, ...]:
     """Session-bound env names to strip from a delivery child, from ``gateway.session_context``.
 
     Synced with the session binding surface as vars are added; deliberately NOT a
-    ``HERMES_SESSION_*`` prefix match, which would also strip non-identity knobs
-    (e.g. ``HERMES_SESSION_STALL_TIMEOUT``)."""
+    ``A2ASSISTANT_SESSION_*`` prefix match, which would also strip non-identity knobs
+    (e.g. ``A2ASSISTANT_SESSION_STALL_TIMEOUT``)."""
     from gateway.session_context import _VAR_MAP
 
     return tuple(_VAR_MAP)
@@ -554,14 +556,14 @@ def relaying_principal_author(principal: str) -> dict:
 
 
 def delivery_env(author: Optional[dict], profile_home: str | Path | None = None) -> dict[str, str]:
-    """Environment for one delivery turn's ``hermes -p <profile>`` child. The dispatcher's own
-    HERMES_TURN_AUTHOR is dropped first so a delivery without an author never inherits the author of the turn
+    """Environment for one delivery turn's ``a2assistant -p <profile>`` child. The dispatcher's own
+    A2ASSISTANT_TURN_AUTHOR is dropped first so a delivery without an author never inherits the author of the turn
     that sent it. Dispatcher session identity (the canonical ``gateway.session_context`` session env names) is
     dropped too: a nested recipient that ``message_agent``s onward must not stamp that grandchild
     notify with the grandparent's key, or the live recipient never resumes. The child runs the target
     profile's Bot Chat turn, so it starts from THAT profile's env (``served_profile_child_env``: launch
     profile ``.env`` / TERMINAL_* residue dropped, target secrets overlaid), never the multiplexer's raw
-    ``os.environ``; ``-p`` alone only pinned HERMES_HOME. ``profile_home`` is the target's home when the
+    ``os.environ``; ``-p`` alone only pinned A2ASSISTANT_HOME. ``profile_home`` is the target's home when the
     caller knows it (relay RPC, roster); otherwise the active override, and under multiplex the launch
     home."""
     from agent.secret_scope import current_secret_scope, is_multiplex_active

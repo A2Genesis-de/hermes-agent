@@ -12,7 +12,7 @@ def remote_home(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     (home / "config.yaml").write_text("plugins:\n  enabled: [alpha]\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv(config_backend.BACKEND_ENV, "remote")
     monkeypatch.setattr(config_backend, "_BOOTSTRAPPED", True)
     return home

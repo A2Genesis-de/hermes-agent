@@ -61,7 +61,7 @@ def homes(tmp_path, monkeypatch):
     for home in (default_home, other_home):
         (home / "cron").mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("model: test-model\n")
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "other": other_home}

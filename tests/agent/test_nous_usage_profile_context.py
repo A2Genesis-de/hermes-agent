@@ -22,7 +22,7 @@ def test_nous_account_fetch_preserves_profile_home_in_timeout_worker(
     profile_home = tmp_path / "profiles" / "secondary"
     launch_home.mkdir()
     profile_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
 
     observed_homes: list[Path] = []
 

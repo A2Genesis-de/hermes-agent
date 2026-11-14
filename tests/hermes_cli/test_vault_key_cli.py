@@ -1,4 +1,4 @@
-"""`hermes vault key migrate --to keychain|file` through the real argparse tree: the key moves, the
+"""`a2assistant vault key migrate --to keychain|file` through the real argparse tree: the key moves, the
 vault still opens, and ``vault.key_storage`` follows so a recreated vault lands in the same place."""
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ class _MemoryKeyring(KeyringBackend):
 
 @pytest.fixture
 def hermes(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     backend = _MemoryKeyring()
     keyring.set_keyring(backend)
     from hermes_cli.subcommands.vault import build_vault_parser

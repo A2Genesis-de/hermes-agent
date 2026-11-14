@@ -73,28 +73,28 @@
 
       # ── The desktop launcher ───────────────────────────────────────────
       # A GUI launcher reads no shell profile, so home.sessionVariables does
-      # not reach it, and the application would open ~/.hermes while the
+      # not reach it, and the application would open ~/.a2assistant while the
       # services use hermesHome. Thus the launcher carries the value itself.
       #
-      # HERMES_MANAGED rides along only when the services are enabled. That
+      # A2ASSISTANT_MANAGED rides along only when the services are enabled. That
       # variable makes the CLI refuse a configuration change and name the
       # rebuild command. A person who enables `programs.` alone has no
       # activation and no managed configuration, so the application must not
       # claim one and refuse an edit that nothing else owns.
       desktopEnvironment = {
-        HERMES_HOME = cfg.hermesHome;
+        A2ASSISTANT_HOME = cfg.hermesHome;
       }
       // lib.optionalAttrs cfg.enable {
-        inherit (processEnvironment) HERMES_MANAGED;
+        inherit (processEnvironment) A2ASSISTANT_MANAGED;
       }
       // lib.optionalAttrs desktopUsesService {
-        HERMES_DESKTOP_REMOTE_URL = "http://${cfg.backend.host}:${toString cfg.backend.port}";
+        A2ASSISTANT_DESKTOP_REMOTE_URL = "http://${cfg.backend.host}:${toString cfg.backend.port}";
       };
 
       # The application reaches the backend of the service only when there is
       # a backend to reach AND a shared token to present with. Without the
-      # token the desktop resolver throws ("HERMES_DESKTOP_REMOTE_URL is set
-      # but HERMES_DESKTOP_REMOTE_TOKEN is not"), so the two variables travel
+      # token the desktop resolver throws ("A2ASSISTANT_DESKTOP_REMOTE_URL is set
+      # but A2ASSISTANT_DESKTOP_REMOTE_TOKEN is not"), so the two variables travel
       # together or not at all.
       desktopUsesService = cfg.enable && cfg.backend.mode != "none" && cfg.backend.sessionTokenFile != null;
 
@@ -109,8 +109,8 @@
         _token_file=''${_token_file//\$\{XDG_RUNTIME_DIR\}/''${XDG_RUNTIME_DIR:-}}
 
         if [ -r "$_token_file" ]; then
-          HERMES_DESKTOP_REMOTE_TOKEN="$(tr -d '\r\n' < "$_token_file")"
-          export HERMES_DESKTOP_REMOTE_TOKEN
+          A2ASSISTANT_DESKTOP_REMOTE_TOKEN="$(tr -d '\r\n' < "$_token_file")"
+          export A2ASSISTANT_DESKTOP_REMOTE_TOKEN
         else
           echo "hermes-desktop: cannot read the session token at $_token_file." >&2
           echo "hermes-desktop: the application starts its own backend instead of the one of the service." >&2
@@ -209,7 +209,7 @@
         enable = lib.mkEnableOption ''
           the Hermes Agent command line application.
 
-          This adds `hermes` to home.packages, and exports HERMES_HOME with
+          This adds `a2assistant` to home.packages, and exports A2ASSISTANT_HOME with
           home.sessionVariables. An interactive shell then uses the same
           state as `services.hermes-agent`
         '';
@@ -235,13 +235,13 @@
 
             This adds `hermes-desktop` to home.packages, with an XDG
             launcher entry on Linux. The launcher starts the same Hermes
-            runtime that `package` gives, and reads the HERMES_HOME of
+            runtime that `package` gives, and reads the A2ASSISTANT_HOME of
             `services.hermes-agent`. Thus the application, the interactive
             shell and the services share one state directory.
 
             The Electron application carries its own Hermes runtime with
             the usual distribution. This module gives it the Nix package
-            instead, with HERMES_DESKTOP_HERMES. It installs no second copy
+            instead, with A2ASSISTANT_DESKTOP_HERMES. It installs no second copy
             of Hermes, and it downloads nothing on the first start
           '';
 
@@ -276,13 +276,13 @@
             default = "${config.home.homeDirectory}/.hermes";
             defaultText = lib.literalExpression ''"''${config.home.homeDirectory}/.hermes"'';
             description = ''
-              The value of HERMES_HOME. This state directory holds
+              The value of A2ASSISTANT_HOME. This state directory holds
               config.yaml, .env, auth.json, the sessions, the skills, the
               memory and the cron jobs.
 
               The NixOS module takes a `stateDir` and adds `/.hermes` to it.
-              This module sets HERMES_HOME directly. Thus an existing
-              ~/.hermes continues to work, and you can give the directory any
+              This module sets A2ASSISTANT_HOME directly. Thus an existing
+              ~/.a2assistant continues to work, and you can give the directory any
               name.
             '';
             example = "/home/alice/.hermes-work";
@@ -291,7 +291,7 @@
           # `installPackage` moved to `programs.hermes-agent.enable`. The
           # option is dead, but it must not be silent: it defaulted to true,
           # so a person who never named it still got the command line, and a
-          # quiet removal gives them a machine with no `hermes` and no
+          # quiet removal gives them a machine with no `a2assistant` and no
           # message. mkOption with an assertion, and not
           # mkRemovedOptionModule, because the message must name the exact
           # replacement for the value they set.
@@ -315,13 +315,13 @@
         # daemon at all.
         (lib.mkIf cfgPrograms.enable {
           home.packages = [ cfgPrograms.package ];
-          home.sessionVariables.HERMES_HOME = cfg.hermesHome;
+          home.sessionVariables.A2ASSISTANT_HOME = cfg.hermesHome;
         })
 
         # A launcher from the desktop menu reads no shell profile, so the
-        # HERMES_HOME that `programs.enable` exports does not reach it. Home
+        # A2ASSISTANT_HOME that `programs.enable` exports does not reach it. Home
         # Manager writes only systemd.user.sessionVariables into
-        # environment.d, and this module does not put HERMES_HOME there,
+        # environment.d, and this module does not put A2ASSISTANT_HOME there,
         # because that file applies to each user unit. Thus the launcher
         # carries the value itself. See desktopEnvironment above.
         (lib.mkIf cfgPrograms.desktop.enable {
@@ -333,7 +333,7 @@
             {
               # `installPackage` was removed in favour of the programs/services
               # split. It defaulted to true, so a quiet removal leaves a person
-              # with no `hermes` on the PATH and no message.
+              # with no `a2assistant` on the PATH and no message.
               assertion = cfg.installPackage == null;
               message = common.installPackageRemovedMessage cfg.installPackage;
             }

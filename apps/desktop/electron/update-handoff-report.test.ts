@@ -74,7 +74,7 @@ function failedReport(home: string, runId: string, stopClass: string | null): { 
     JSON.stringify({
       ok: false,
       exit_code: 1,
-      message: 'Update failed (exit 1). Run hermes debug share in a terminal to send a report.',
+      message: 'Update failed (exit 1). Run a2assistant debug share in a terminal to send a report.',
       branch: 'main',
       run_id: runId,
       started_at: finished_at - 60,

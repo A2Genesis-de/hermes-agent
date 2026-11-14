@@ -4,7 +4,7 @@ Spins up the REAL iron-proxy binary (auto-installed if not present), routes
 a curl request through it against a local fake upstream, and verifies that
 the Authorization header was swapped from a proxy token to a real secret.
 
-Gated on the network: skipped unless HERMES_RUN_E2E=1 (no CI lane sets it;
+Gated on the network: skipped unless A2ASSISTANT_RUN_E2E=1 (no CI lane sets it;
 it is a manual smoke, see website/docs/developer-guide/egress-internals.md).
 This is intentional — the test downloads ~16MB and requires both `openssl`
 and `curl` to be present.
@@ -27,8 +27,8 @@ from agent.proxy_sources import iron_proxy as ip
 
 
 pytestmark = pytest.mark.skipif(
-    os.environ.get("HERMES_RUN_E2E", "0") != "1",
-    reason="E2E proxy test — set HERMES_RUN_E2E=1 to run (requires network + curl + openssl)",
+    os.environ.get("A2ASSISTANT_RUN_E2E", "0") != "1",
+    reason="E2E proxy test — set A2ASSISTANT_RUN_E2E=1 to run (requires network + curl + openssl)",
 )
 
 
@@ -36,7 +36,7 @@ pytestmark = pytest.mark.skipif(
 def hermes_home(tmp_path, monkeypatch):
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 

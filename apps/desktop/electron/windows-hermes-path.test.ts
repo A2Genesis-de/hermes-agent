@@ -1,9 +1,9 @@
-// Unit tests for the pure Windows `hermes` resolution helpers extracted from
+// Unit tests for the pure Windows `a2assistant` resolution helpers extracted from
 // main.ts's findOnPath(), handOffWindowsBootstrapRecovery(), and
 // unwrapWindowsVenvHermesCommand(). These pin the two Windows resolution bugs
 // that caused desktop reinstall loops:
 //   1. buildPathExtCandidates() — PATHEXT extensions must be tried BEFORE the
-//      empty extension, or an extensionless Git-Bash `hermes` shim shadows
+//      empty extension, or an extensionless Git-Bash `a2assistant` shim shadows
 //      the real hermes.cmd/hermes.exe.
 //   2. chooseUpdaterArgs() — must distinguish a runnable updater from stale
 //      install provenance. The bootstrap marker can outlive the venv, and a

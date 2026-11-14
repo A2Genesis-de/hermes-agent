@@ -5,7 +5,7 @@
  *
  *  1. `mockBackend` — starts a mock inference server, writes a config.yaml
  *     that points at it, and launches the desktop app so the full chain
- *     (electron → hermes serve → provider → inference → renderer) is
+ *     (electron → a2assistant serve → provider → inference → renderer) is
  *     exercised with a real backend but a fake LLM.
  *
  *  2. `noProvider` — launches the app with an empty config (no provider
@@ -14,7 +14,7 @@
  *
  * Both modes launch the *dev* Electron app (`electron .` against the built
  * `dist/`), not the packaged binary. This avoids the multi-minute
- * `electron-builder --dir` step and matches `hermes desktop --source`. The
+ * `electron-builder --dir` step and matches `a2assistant desktop --source`. The
  * packaged-binary path is already covered by `launch.spec.ts`.
  *
  * Prerequisite: `pnpm run build` must have been run so that `dist/` exists.
@@ -75,13 +75,13 @@ function isCredentialEnvVar(name: string): boolean {
 }
 
 // Runtime state of whatever Hermes launched this run. A spec driven from inside
-// an agent's terminal inherits HERMES_YOLO_MODE, HERMES_INTERACTIVE,
-// HERMES_SESSION_ID…, and the sandboxed backend then skips approvals or binds
+// an agent's terminal inherits A2ASSISTANT_YOLO_MODE, A2ASSISTANT_INTERACTIVE,
+// A2ASSISTANT_SESSION_ID…, and the sandboxed backend then skips approvals or binds
 // the caller's session — the approval spec failed locally on the leaked yolo
 // flag while CI (which never has these) stayed green. The fixtures set every
-// HERMES_* the app needs themselves; only the harness's own knobs pass.
+// A2ASSISTANT_* the app needs themselves; only the harness's own knobs pass.
 function isInheritedHermesRuntimeVar(name: string): boolean {
-  return name.startsWith('HERMES_') && !name.startsWith('HERMES_DESKTOP_') && !name.startsWith('HERMES_E2E_')
+  return name.startsWith('A2ASSISTANT_') && !name.startsWith('A2ASSISTANT_DESKTOP_') && !name.startsWith('A2ASSISTANT_E2E_')
 }
 
 function stripCredentials(env: Record<string, string | undefined>): Record<string, string> {
@@ -112,8 +112,8 @@ export interface Sandbox {
 }
 
 export function createSandbox(prefix: string): Sandbox {
-  // Canonical path: the backend resolves HERMES_HOME, so a symlinked tmpdir (macOS /var, a
-  // symlinked scratch dir) would otherwise make every HERMES_HOME match against the sandbox miss.
+  // Canonical path: the backend resolves A2ASSISTANT_HOME, so a symlinked tmpdir (macOS /var, a
+  // symlinked scratch dir) would otherwise make every A2ASSISTANT_HOME match against the sandbox miss.
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), `hermes-e2e-${prefix}-${Math.random()}`)))
   const hermesHome = path.join(root, 'hermes-home')
   const userDataDir = path.join(root, 'electron-user-data')
@@ -182,12 +182,12 @@ function writeEmptyConfig(hermesHome: string): void {
  * Build the environment for the Electron app process.
  *
  * Key env vars:
- *  - HERMES_HOME → sandbox hermes-home (isolated config/sessions)
- *  - HERMES_DESKTOP_USER_DATA_DIR → sandbox electron-user-data
- *  - HERMES_DESKTOP_IGNORE_EXISTING=1 → skip the installed runtime
+ *  - A2ASSISTANT_HOME → sandbox hermes-home (isolated config/sessions)
+ *  - A2ASSISTANT_DESKTOP_USER_DATA_DIR → sandbox electron-user-data
+ *  - A2ASSISTANT_DESKTOP_IGNORE_EXISTING=1 → skip the installed runtime
  *    (we want the dev checkout at REPO_ROOT)
- *  - HERMES_DESKTOP_HERMES_ROOT → REPO_ROOT (dev checkout resolution)
- *  - HERMES_DESKTOP_APP_NAME → unique-ish per test (avoids single-instance lock)
+ *  - A2ASSISTANT_DESKTOP_HERMES_ROOT → REPO_ROOT (dev checkout resolution)
+ *  - A2ASSISTANT_DESKTOP_APP_NAME → unique-ish per test (avoids single-instance lock)
  *  - XDG_RUNTIME_DIR → ensure Electron has a writable runtime dir on Linux
  */
 export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}): Record<string, string> {
@@ -206,25 +206,25 @@ export function buildAppEnv(sandbox: Sandbox, extra: Record<string, string> = {}
 
   return {
     ...clean,
-    HERMES_HOME: sandbox.hermesHome,
-    HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
-    HERMES_DESKTOP_IGNORE_EXISTING: '1',
-    // One `hermes serve` per host, and profile roots are HOME-anchored
-    // (`~/.hermes/profiles`, the default profile's own home): without both of
+    A2ASSISTANT_HOME: sandbox.hermesHome,
+    A2ASSISTANT_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
+    A2ASSISTANT_DESKTOP_IGNORE_EXISTING: '1',
+    // One `a2assistant serve` per host, and profile roots are HOME-anchored
+    // (`~/.a2assistant/profiles`, the default profile's own home): without both of
     // these a local e2e run attaches to the developer's running backend or
     // lists and writes their real profiles, and chats through their real
     // model and state.db instead of the sandbox + mock provider. CI never has
     // either, so only local runs ever took that path.
-    HERMES_DESKTOP_ISOLATED_BACKEND: '1',
+    A2ASSISTANT_DESKTOP_ISOLATED_BACKEND: '1',
     HOME: sandbox.root,
-    HERMES_DESKTOP_HERMES_ROOT: REPO_ROOT,
-    HERMES_DESKTOP_APP_NAME: `HermesE2E-${Date.now()}`,
+    A2ASSISTANT_DESKTOP_HERMES_ROOT: REPO_ROOT,
+    A2ASSISTANT_DESKTOP_APP_NAME: `HermesE2E-${Date.now()}`,
     // `app.close()` in teardown must exit even when a spec leaves a turn
     // mid-flight — otherwise the quit confirmation waits on a click that no
     // one is there to make, and the worker dies on a teardown timeout.
-    HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1',
+    A2ASSISTANT_DESKTOP_SKIP_QUIT_CONFIRM: '1',
     // Never repoint the user's OS hermes:// handler (HKCU on Windows) at a test checkout.
-    HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
+    A2ASSISTANT_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
     // Clear dev-server override — we want the built dist/, not a vite server.
     // The dev-server check in main.ts looks for this env var; if it's set,
     // it loads from the vite URL instead of the local file.
@@ -277,8 +277,8 @@ export function findElectron(): string {
 /**
  * Launch the desktop app in dev mode.
  *
- * @param sandbox  - isolated HERMES_HOME + userData
- * @param env      - the process environment (already has HERMES_HOME etc.)
+ * @param sandbox  - isolated A2ASSISTANT_HOME + userData
+ * @param env      - the process environment (already has A2ASSISTANT_HOME etc.)
  * @returns the ElectronApplication + first Page
  */
 export async function launchDesktop(
@@ -417,7 +417,7 @@ export interface DeadBackendFixture {
 
 export interface DeadBackendOptions {
   /**
-   * When true, inject a fake boot error via HERMES_DESKTOP_BOOT_FAKE_ERROR
+   * When true, inject a fake boot error via A2ASSISTANT_DESKTOP_BOOT_FAKE_ERROR
    * so the backend resolution itself "fails" with a controlled error message.
    * This is the only reliable way to trigger BootFailureOverlay in dev mode
    * (the real backend always resolves via SOURCE_REPO_ROOT).
@@ -427,7 +427,7 @@ export interface DeadBackendOptions {
 
 /**
  * Launch the app with a provider pointing at a dead endpoint (port 1, which
- * nothing listens on). By default the backend still boots (`hermes serve`
+ * nothing listens on). By default the backend still boots (`a2assistant serve`
  * starts fine — the dead endpoint only matters at chat time). Pass
  * `{ fakeError: true }` to inject a fake boot failure, triggering the
  * BootFailureOverlay.
@@ -440,7 +440,7 @@ export async function setupDeadBackend(options: DeadBackendOptions = {}): Promis
   writeMockProviderConfig(sandbox.hermesHome, deadUrl)
   writeEnvFile(sandbox.hermesHome, 'e2e-mock-key', deadUrl)
 
-  const env = buildAppEnv(sandbox, options.fakeError ? { HERMES_DESKTOP_BOOT_FAKE_ERROR: 'Failed to connect to A2Assistant backend: connection refused' } : {})
+  const env = buildAppEnv(sandbox, options.fakeError ? { A2ASSISTANT_DESKTOP_BOOT_FAKE_ERROR: 'Failed to connect to A2Assistant backend: connection refused' } : {})
   const { app, page } = await launchDesktop(env)
 
   return {
@@ -493,7 +493,7 @@ export interface PackagedAppFixture {
  * progress without spawning a real Hermes backend.
  *
  * Uses the same sandbox isolation (credential stripping, isolated
- * HERMES_HOME + userData, unique app name) as the dev-mode fixtures.
+ * A2ASSISTANT_HOME + userData, unique app name) as the dev-mode fixtures.
  *
  * Skips if the packaged binary doesn't exist — run `pnpm run pack` first.
  */
@@ -510,15 +510,15 @@ export async function setupPackagedApp(): Promise<PackagedAppFixture> {
   // packaged-binary-specific overrides.
   const env = buildAppEnv(sandbox, {
     // Fake boot: simulates progress steps without spawning the real backend.
-    HERMES_DESKTOP_BOOT_FAKE: '1',
-    HERMES_DESKTOP_BOOT_FAKE_STEP_MS: '120',
+    A2ASSISTANT_DESKTOP_BOOT_FAKE: '1',
+    A2ASSISTANT_DESKTOP_BOOT_FAKE_STEP_MS: '120',
   })
 
   // Clear dev-server + hermes-root overrides — the packaged binary
   // should use its own bundled renderer, not the dev checkout.
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_DEV_SERVER
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_HERMES
-  delete (env as Record<string, string | undefined>).HERMES_DESKTOP_HERMES_ROOT
+  delete (env as Record<string, string | undefined>).A2ASSISTANT_DESKTOP_DEV_SERVER
+  delete (env as Record<string, string | undefined>).A2ASSISTANT_DESKTOP_HERMES
+  delete (env as Record<string, string | undefined>).A2ASSISTANT_DESKTOP_HERMES_ROOT
 
   const app = await _electron.launch({
     executablePath: PACKAGED_BINARY_PATH,

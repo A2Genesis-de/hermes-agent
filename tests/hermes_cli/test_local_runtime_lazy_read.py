@@ -123,7 +123,7 @@ def test_an_engine_that_loads_the_table_up_front_pays_for_it(tmp_path):
 def test_the_preset_reads_the_table_on_demand_wherever_it_prices_it_that_way(tmp_path, monkeypatch):
     """The price and the flag travel together, so the engine's own per-device default never decides
     whether the table is resident."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     gguf = tmp_path / "flash.gguf"
     _write_gguf(gguf, _arch("qwen4exp"), [("per_layer_token_embd.weight", OVER_4_GIB),
                                           ("blk.0.attn_q.weight", 16 << 20)])

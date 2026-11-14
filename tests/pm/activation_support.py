@@ -25,7 +25,7 @@ ACTIVATE_FISH = REPO_ROOT / "activate.fish"
 ACTIVATE_PS1 = REPO_ROOT / "activate.ps1"
 SETUP_HERMES_SH = REPO_ROOT / "setup-hermes.sh"
 SETUP_HERMES_PS1 = REPO_ROOT / "setup-hermes.ps1"
-CANARY = "HERMES_PM_ACTIVATE_CANARY"
+CANARY = "A2ASSISTANT_PM_ACTIVATE_CANARY"
 
 
 def posix(path: Path) -> str:
@@ -73,7 +73,7 @@ def spawnable_python() -> Path:
     base interpreter, then whichever python can run a trivial child; last
     resort is sys.executable."""
     candidates: list[Path] = []
-    for env_name in ("HERMES_TEST_PYTHON",):
+    for env_name in ("A2ASSISTANT_TEST_PYTHON",):
         val = os.environ.get(env_name)
         if val:
             candidates.append(Path(val))
@@ -182,10 +182,10 @@ def bash_env(store: Path) -> dict:
     env = child_env()
     home = store.parent / "home"
     home.mkdir(exist_ok=True)
-    env.update(HOME=posix(home), USERPROFILE=str(home), HERMES_HOME=posix(home / "hermes"))
+    env.update(HOME=posix(home), USERPROFILE=str(home), A2ASSISTANT_HOME=posix(home / "hermes"))
     for key in ("PYTHONHOME", "PYTHONPATH", "VIRTUAL_ENV", "BASH_ENV", "__HERMES_ACTIVATED"):
         env.pop(key, None)
-    env["HERMES_RUNTIME_DIR"] = posix(store)
+    env["A2ASSISTANT_RUNTIME_DIR"] = posix(store)
     # Keep the real env out of the composed pm output so the canary export
     # is the only thing activate adds beyond the ambient environment.
     env.pop(CANARY, None)

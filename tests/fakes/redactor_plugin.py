@@ -1,6 +1,6 @@
 """A redaction plugin for ``transform_llm_output`` stream-hold tests.
 
-``redactor_home(home, base_url, hold=...)`` writes a loopback-routed ``HERMES_HOME`` with a user
+``redactor_home(home, base_url, hold=...)`` writes a loopback-routed ``A2ASSISTANT_HOME`` with a user
 plugin that rewrites every ``SECRET-<digits>`` in the final reply to ``[REDACTED]``, registered
 with ``hold_stream=True`` when ``hold`` is set. ``redactor_turn()`` is the scripted model turn: a
 tool call carrying commentary (model text between tool calls) and then the streamed answer.

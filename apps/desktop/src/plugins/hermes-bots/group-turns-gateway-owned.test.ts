@@ -8,7 +8,7 @@ import type { GroupMember } from './types'
 // A Desktop-driven room seats members whose sessions live on the gateway that
 // owns local sessions (gateway/session_controls.py). That gateway answers a
 // missing session with a 4001 refusal whose reason is `not_found`, where a
-// `hermes serve` socket answers 4007. Both mean "nothing to resume, mint one";
+// `a2assistant serve` socket answers 4007. Both mean "nothing to resume, mint one";
 // every other refusal still fails closed.
 
 const { host } = vi.hoisted(() => ({ host: {} as Record<string, unknown> }))

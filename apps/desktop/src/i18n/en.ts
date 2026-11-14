@@ -2042,7 +2042,7 @@ export const en: Translations = {
     locked: 'Locked',
     lockHint: "The agent can't change this skill while it's locked. You can still edit it yourself.",
     unlockedHint: 'Lock to stop the agent from changing this skill. You can still edit it yourself.',
-    skillArchivedMessage: 'Restorable via hermes curator restore.',
+    skillArchivedMessage: 'Restorable via a2assistant curator restore.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Agent plugins',
@@ -2616,7 +2616,7 @@ export const en: Translations = {
     failedImport: 'Failed to import profile',
     failedExport: 'Failed to export profile',
     exportNeedsHost: name =>
-      `The browser can't save a profile archive. On the A2Assistant host, run: hermes profile export ${name}`,
+      `The browser can't save a profile archive. On the A2Assistant host, run: a2assistant profile export ${name}`,
     allProfiles: 'All profiles',
     showAllProfiles: 'Show all profiles',
     notServedHere: 'Not served here',
@@ -3607,7 +3607,7 @@ export const en: Translations = {
       notAvailable: 'Update not available for this backend.',
       failed: 'Backend update failed.',
       noReturn: 'Backend didn’t come back online. The update may not have completed — check the backend host.',
-      owed: steps => `Backend updated, but still owed: ${steps}. Re-run \`hermes update\` to finish them.`
+      owed: steps => `Backend updated, but still owed: ${steps}. Re-run \`a2assistant update\` to finish them.`
     },
     appName: 'A2Assistant', // Update-status overlay + version-details (mechanism-aware update UI).
     version: (value: string) => `Version ${value}`,
@@ -3647,9 +3647,9 @@ export const en: Translations = {
     versionDetailsDistributionDesktopMsix: 'Desktop app (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Desktop app (installer)',
     versionDetailsDistributionSourceInstaller: 'Source (install script)',
-    versionDetailsDistributionSourceInstallerDesktop: 'Source (install script) + hermes desktop',
+    versionDetailsDistributionSourceInstallerDesktop: 'Source (install script) + a2assistant desktop',
     versionDetailsDistributionSource: 'Source',
-    versionDetailsDistributionSourceDesktop: 'Source + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Source + a2assistant desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: 'Runtime',
     versionDetailsRuntimeEmbedded: 'Embedded runtime',
@@ -4372,7 +4372,7 @@ export const en: Translations = {
       reject: 'Reject',
       alwaysTitle: 'Always allow this command?',
       alwaysDescription: pattern =>
-        `This adds the “${pattern}” pattern to your permanent allowlist (~/.hermes/config.yaml). A2Assistant won’t ask again for commands like this — in this session or any future one.`,
+        `This adds the “${pattern}” pattern to your permanent allowlist (~/.a2assistant/config.yaml). A2Assistant won’t ask again for commands like this — in this session or any future one.`,
       alwaysAllow: 'Always allow'
     },
     clarify: enClarify,

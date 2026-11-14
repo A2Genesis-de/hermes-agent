@@ -57,7 +57,7 @@ def _home_with_plugins(tmp_path, monkeypatch, plugins: dict, isolation="host"):
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     return home
 
@@ -135,7 +135,7 @@ def test_managed_scope_pins_host_isolation_over_the_profiles_own_config(tmp_path
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / "config.yaml").write_text(yaml.safe_dump({"plugins": {"isolation": "host"}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     manager = PluginManager()
     manager.discover_and_load()

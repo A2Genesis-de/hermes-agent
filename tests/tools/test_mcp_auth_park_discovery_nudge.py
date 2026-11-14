@@ -10,7 +10,7 @@ import pytest
 
 @pytest.mark.no_isolate
 def test_auth_parked_oauth_server_ignores_discovery_until_credentials_change(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from tools import mcp_tool
     from tools.mcp_oauth import HermesTokenStorage, OAuthNonInteractiveError
     from tools.mcp_tool import MCPServerTask

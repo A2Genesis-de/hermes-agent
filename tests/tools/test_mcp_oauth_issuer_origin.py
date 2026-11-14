@@ -90,7 +90,7 @@ async def _run_flow(tmp_path, monkeypatch, issuer_doc, advertised=ADVERTISED, is
     from tools.mcp_tool import sdk_httpx
 
     httpx = sdk_httpx()
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     reset_manager_for_tests()
     seen = {}
 

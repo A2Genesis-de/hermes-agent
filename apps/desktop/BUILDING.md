@@ -94,12 +94,12 @@ Developer ID in your keychain.
 `-Store` allocates a local claim tag `rc.<N>-vX.Y.Z` (N starts at 900) for the
 next patch after the newest published stable tag, and deletes it when the
 build ends. The tag is never pushed. Each architecture builds on its own host.
-`-Store` prints the claim timestamp as `HERMES_RELEASE_EPOCH=<n>`. To combine the
+`-Store` prints the claim timestamp as `A2ASSISTANT_RELEASE_EPOCH=<n>`. To combine the
 x64 and arm64 Store packages, copy both `Store-*.msix` files into one
 `apps/desktop/release`, then run this on that host:
 
 ```powershell
-$env:HERMES_RELEASE_EPOCH = '<n from the build>'
+$env:A2ASSISTANT_RELEASE_EPOCH = '<n from the build>'
 node scripts/bundle-store-msixbundle.mjs --tag vX.Y.Z
 ```
 
@@ -203,9 +203,9 @@ defaults into the desktop app, for example:
 
 ```sh
 python scripts/release.py --build-commit REV --remote fork --publish \
-  --bundle-env HERMES_PREVIEW_FULL_CONNECTORS=1 \
-  --bundle-env HERMES_DATA_DIR_SUFFIX=magic-test \
-  --bundle-unset HERMES_HOME
+  --bundle-env A2ASSISTANT_PREVIEW_FULL_CONNECTORS=1 \
+  --bundle-env A2ASSISTANT_DATA_DIR_SUFFIX=magic-test \
+  --bundle-unset A2ASSISTANT_HOME
 ```
 
 These defaults run before Electron initializes its paths and are inherited by
@@ -215,18 +215,18 @@ and packaged JavaScript. This option affects desktop bundles, not Termux.
 The suffix is appended literally; include a leading hyphen if desired.
 `--bundle-unset NAME` explicitly clears an inherited value at app launch, even
 if the caller supplied it. Internally it sets the value to an empty string, not
-an absent key. Clearing `HERMES_HOME` also disables the Windows registry fallback:
+an absent key. Clearing `A2ASSISTANT_HOME` also disables the Windows registry fallback:
 older installers saved that variable permanently, which otherwise takes priority
 over the test suffix. It does not edit the registry or the existing install.
-For full data-path isolation, also clear `HERMES_DESKTOP_USER_DATA_DIR` if that
+For full data-path isolation, also clear `A2ASSISTANT_DESKTOP_USER_DATA_DIR` if that
 machine uses an explicit Electron directory. Ordinary defaults still preserve
-runtime overrides; `--bundle-env HERMES_HOME=` is a default, not a forced clear.
+runtime overrides; `--bundle-env A2ASSISTANT_HOME=` is a default, not a forced clear.
 
-For local commit builds, `HERMES_BUNDLE_ENV_JSON` accepts a JSON object whose
+For local commit builds, `A2ASSISTANT_BUNDLE_ENV_JSON` accepts a JSON object whose
 string values are defaults and whose `null` values are explicit clears. For example,
-`{"HERMES_HOME":null,"HERMES_DATA_DIR_SUFFIX":"magic-test"}`. Only
-`HERMES_HOME`, `HERMES_DATA_DIR_SUFFIX`, `HERMES_DESKTOP_USER_DATA_DIR`,
-`HERMES_SHARED_AUTH_DIR`, and `HERMES_PREVIEW_FULL_CONNECTORS` are accepted. Process-control variables such as `NODE_OPTIONS` and `PATH`
+`{"A2ASSISTANT_HOME":null,"A2ASSISTANT_DATA_DIR_SUFFIX":"magic-test"}`. Only
+`A2ASSISTANT_HOME`, `A2ASSISTANT_DATA_DIR_SUFFIX`, `A2ASSISTANT_DESKTOP_USER_DATA_DIR`,
+`A2ASSISTANT_SHARED_AUTH_DIR`, and `A2ASSISTANT_PREVIEW_FULL_CONNECTORS` are accepted. Process-control variables such as `NODE_OPTIONS` and `PATH`
 are rejected. These settings are not applied to the build runner itself.
 Commit archive keys still use the SHA, so use a fresh commit for different
 defaults: an existing artifact is never overwritten with different bytes.
@@ -388,7 +388,7 @@ replace the complete tagged build described above.
 
 Icons are generated from `assets/nous-girl-*.svg` and `assets/backgrounds/`.
 `node scripts/generate-icons.mjs` renders them with the Hermes runtime Python
-(`HERMES_PYTHON`, else `python` on PATH); Pillow and resvg-py are core
+(`A2ASSISTANT_PYTHON`, else `python` on PATH); Pillow and resvg-py are core
 dependencies. Generated PNG/ICO/ICNS files are not source assets.
 
 [Stable release admission](../../docs/stable-releases.md) requires the full

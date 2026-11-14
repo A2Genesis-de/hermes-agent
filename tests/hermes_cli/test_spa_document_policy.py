@@ -21,7 +21,7 @@ def _spa(monkeypatch, tmp_path, *, surface, gated) -> TestClient:
     app.state.auth_required = gated
     app.state.web_dist = tmp_path
     monkeypatch.setattr(server, "app", app)
-    monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SERVE_HEADLESS", raising=False)
     mount_spa(app)
     return TestClient(app)
 

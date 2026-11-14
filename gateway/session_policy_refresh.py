@@ -1,6 +1,6 @@
 """A resumed local session re-reads its config-derived settings (CFG-2); its MCP servers change the same way (CFG-3).
 
-Main's ``hermes -c`` was a new process: toolsets, MCP servers, ``terminal.backend``, ``max_turns``, checkpoints
+Main's ``a2assistant -c`` was a new process: toolsets, MCP servers, ``terminal.backend``, ``max_turns``, checkpoints
 and the reasoning default came from the config it started with, while the stored session kept its model/provider.
 The owner keeps that line on ``session.resume``: it re-derives exactly those fields from the session profile's
 current config and commits them as a new policy generation. ``reload.mcp`` commits the MCP part alone for the

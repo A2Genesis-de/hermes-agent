@@ -294,7 +294,7 @@ describe('/config', () => {
   })
 
   it('fails closed on a legacy raw config: only the canonical allowlist renders', async () => {
-    // A standalone `hermes serve` answers config.get key=full with the raw effective config.
+    // A standalone `a2assistant serve` answers config.get key=full with the raw effective config.
     const S = 'PROBE-SECRET'
 
     const requestGateway = gateway(method =>

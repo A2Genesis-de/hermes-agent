@@ -1,7 +1,7 @@
 """``plugins remove`` (CLI, dashboard, ``plugins.manage`` RPC) leaves no config residue and never
 follows a symlink (#54336, plugin-scan L2-F1/F2/F5).
 
-Real removal core against a temp HERMES_HOME; the RPC path goes through ``tui_gateway.server``.
+Real removal core against a temp A2ASSISTANT_HOME; the RPC path goes through ``tui_gateway.server``.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ def _write_plugin(root, rel, name, extra=""):
 def home(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes-home"
     (hermes_home / "plugins").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     return hermes_home
 
 
@@ -57,7 +57,7 @@ def test_remove_forgets_every_config_trace_and_resets_the_memory_provider(home):
 
 def test_remove_clears_the_toolset_of_a_plugin_without_provides_tools(home):
     """``remove`` drops the plugin's toolset from a saved ``platform_toolsets`` list even when
-    plugin.yaml never declared ``provides_tools``; otherwise ``hermes config check`` warns about an
+    plugin.yaml never declared ``provides_tools``; otherwise ``a2assistant config check`` warns about an
     unknown toolset forever."""
     from tools.registry import registry
 

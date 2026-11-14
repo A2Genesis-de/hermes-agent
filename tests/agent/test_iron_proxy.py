@@ -30,11 +30,11 @@ from agent.proxy_sources import iron_proxy as ip
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    """Point HERMES_HOME at a temp dir so install paths don't touch the real $HOME."""
+    """Point A2ASSISTANT_HOME at a temp dir so install paths don't touch the real $HOME."""
 
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     # Make sure no stale provider keys influence discovery.
     for key in list(os.environ):
         if key.endswith("_API_KEY"):

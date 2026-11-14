@@ -1,4 +1,4 @@
-"""Post-setup install hooks and installed-state predicates for `hermes tools` provider rows."""
+"""Post-setup install hooks and installed-state predicates for `a2assistant tools` provider rows."""
 
 from __future__ import annotations
 
@@ -35,7 +35,7 @@ def _ensure_browser_use_cli() -> None:
         _print_success("    browser_exec ready (browser-harness, bundled with A2Assistant)")
     else:
         _print_warning("    browser-harness is missing from A2Assistant's Python environment")
-        _print_info("    Re-sync it with: hermes update")
+        _print_info("    Re-sync it with: a2assistant update")
 
 
 def _post_setup_lightpanda() -> None:
@@ -66,7 +66,7 @@ def _post_setup_chromium() -> None:
             pm.ensure("chromium", explicit=True)
         except (RuntimeError, OSError) as exc:  # pm.InstallError, a download or worker failure
             _print_warning(f"    Chromium install failed: {exc}")
-            _info_lines("Retry with: hermes tools post-setup chromium")
+            _info_lines("Retry with: a2assistant tools post-setup chromium")
             return
     found = chromium_executable()
     if found is None:
@@ -121,7 +121,7 @@ def _post_setup_python(spec: dict) -> None:
         pm.sync_venv([spec["extra"]], explicit=True)
     except (pm.InstallError, OSError, ValueError) as exc:
         _print_warning(f"    {label} install failed: {exc}")
-        _info_lines("Retry with: hermes tools")
+        _info_lines("Retry with: a2assistant tools")
         return
     _print_success(f"    {label} dependencies ready. Restart A2Assistant to use them.")
     _info_lines(*spec["on_install"], *spec["always"])
@@ -151,26 +151,26 @@ def _post_setup_xai_grok() -> None:
         from hermes_cli.config import save_env_value
     except Exception as exc:
         _print_warning(f"    Could not load setup helpers: {exc}")
-        _info_lines("Run later: hermes auth add xai-oauth   (or set XAI_API_KEY)")
+        _info_lines("Run later: a2assistant auth add xai-oauth   (or set XAI_API_KEY)")
         return
 
     idx = prompt_choice(
         "    How do you want xAI to authenticate?", default=0,
         choices=["Sign in with xAI Grok OAuth (SuperGrok / Premium+) — browser login",
                  "Paste an xAI API key (console.x.ai)",
-                 "Skip — configure later via `hermes auth add xai-oauth`"])
+                 "Skip — configure later via `a2assistant auth add xai-oauth`"])
     if idx == 0:
         if _run_xai_oauth_login_from_setup():
             _print_success("    Logged in — xAI will use these OAuth credentials")
         else:
-            _print_warning("    xAI Grok OAuth login did not complete. Run later: hermes auth add xai-oauth")
+            _print_warning("    xAI Grok OAuth login did not complete. Run later: a2assistant auth add xai-oauth")
     elif idx == 1:
         api_key = _setup_prompt("    xAI API key", password=True)
         if api_key:
             save_env_value("XAI_API_KEY", api_key)
             _print_success("    XAI_API_KEY saved")
         else:
-            _print_warning("    No API key provided. Run later: hermes auth add xai-oauth")
+            _print_warning("    No API key provided. Run later: a2assistant auth add xai-oauth")
     else:
         _print_info("    xAI will remain inactive until credentials are configured.")
 
@@ -223,11 +223,11 @@ def valid_post_setup_keys() -> set[str]:
 
 
 def run_post_setup_command(args) -> int:
-    """``hermes tools post-setup <key>`` — non-interactive runner the dashboard spawns so the GUI can drive
+    """``a2assistant tools post-setup <key>`` — non-interactive runner the dashboard spawns so the GUI can drive
     backend setup without re-implementing install logic. Exit code: 0 ok, 2 unknown key."""
     key = getattr(args, "post_setup_key", None)
     if not key:
-        _print_error("Usage: hermes tools post-setup <key>")
+        _print_error("Usage: a2assistant tools post-setup <key>")
         return 2
     valid = valid_post_setup_keys()
     if key not in valid:

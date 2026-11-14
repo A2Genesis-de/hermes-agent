@@ -14,6 +14,7 @@ from datetime import datetime, timezone, UTC
 from pathlib import Path
 from typing import Iterable
 
+from hermes_cli.service_names import home_checkout_dir
 from hermes_cli._launchers import expose_cli
 from pm.paths import install_root
 
@@ -138,7 +139,7 @@ def step_state_db_guard() -> dict:
     """Verify the active home's state.db is intact.
 
     Boot bootstrap has no pre-update snapshot to restore from (that pairing
-    lives in ``hermes update``), so this is detection: a corrupt db is
+    lives in ``a2assistant update``), so this is detection: a corrupt db is
     surfaced loudly in the log instead of the user silently losing session
     search. Read-only, idempotent.
     """
@@ -154,7 +155,7 @@ def step_state_db_guard() -> dict:
     message = result.get("message", "unknown error")
     logger.error(
         "state.db failed integrity check after a code update: %s — "
-        "restore a backup with `hermes backup` tooling or contact support",
+        "restore a backup with `a2assistant backup` tooling or contact support",
         message,
     )
     return {"ok": False, "error": message}
@@ -166,7 +167,7 @@ def step_adopt_blessed_checkout(project_root: Path | None = None) -> dict:
     Main-era curl|sh / Setup installs created a ``.git`` checkout at a
     blessed managed root but never wrote a stamp — under the stamp-pure
     ladder they would all classify as "somebody's working tree" and
-    `hermes update` would refuse them. This step writes the missing fact
+    `a2assistant update` would refuse them. This step writes the missing fact
     exactly once: blessed root + ``.git`` + no stamp → a minimal stamp
     with ``updateMechanism: self``.
 
@@ -191,7 +192,7 @@ def step_adopt_blessed_checkout(project_root: Path | None = None) -> dict:
 
     # The blessed roots: the canonical locations installers create.
     blessed = (
-        get_hermes_home() / "hermes-agent",
+        home_checkout_dir(get_hermes_home()),
         Path("/usr/local/lib/hermes-agent"),
     )
 

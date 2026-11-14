@@ -36,7 +36,7 @@ async def pick(tmp_path, monkeypatch, before, after, provider, *, request=None, 
     from gateway.session_policy import build_policy, bind_launch_key, restore_policy
     from gateway.run_turn_prepare import _resolve_policy_agent_runtime
     from hermes_state import SessionDB
-    monkeypatch.setenv('HERMES_HOME', str(hermes_home or tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(hermes_home or tmp_path))
     (tmp_path / 'config.yaml').write_text(json.dumps(before))
     private = {}
     policy = build_policy({'cwd': str(tmp_path), 'model': 'original', **(request or {})},
@@ -182,8 +182,8 @@ def test_removed_provider_key_is_not_sent_to_retargeted_endpoint(tmp_path):
         (home / 'models_dev_cache.json').write_text(json.dumps({'custom': {'id':'custom','models':{
             name:{'id':name,'name':name,'limit':{'context':100000,'output':4000}} for name in ('original','switched')}}}))
         env = child_env()
-        env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
-                   XDG_CONFIG_HOME=str(user / '.config'), HERMES_GATEWAY_LOCK_DIR=str(home / 'locks'),
+        env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home),
+                   XDG_CONFIG_HOME=str(user / '.config'), A2ASSISTANT_GATEWAY_LOCK_DIR=str(home / 'locks'),
                    PYTHONPATH=str(root), PYTHONUNBUFFERED='1',
                    OPENAI_API_KEY='original-only-key', OPENAI_BASE_URL=origin_url)
         async def run(desc):

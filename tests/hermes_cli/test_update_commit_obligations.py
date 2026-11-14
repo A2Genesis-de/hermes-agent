@@ -20,7 +20,7 @@ from hermes_cli.update_host_obligation import host_obligation_path
 
 @pytest.fixture(autouse=True)
 def _fresh_commit_point(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     (tmp_path / "home").mkdir()
     commit.begin_update_attempt()
     yield

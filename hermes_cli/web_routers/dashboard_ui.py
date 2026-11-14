@@ -54,7 +54,7 @@ def _set_dashboard_key(key: str, value, profile: Optional[str] = None) -> None:
 async def get_dashboard_themes(profile: Optional[str] = None):
     """Available themes + the active one. Built-ins ship name/label/description only
     (the frontend owns their definitions in `web/src/themes/presets.ts`); user themes
-    from `~/.hermes/dashboard-themes/*.yaml` ship their normalised `definition`."""
+    from `~/.a2assistant/dashboard-themes/*.yaml` ship their normalised `definition`."""
     def _run():
         config = load_config()
         active = cfg_get(config, "dashboard", "theme", default="default")
@@ -227,7 +227,7 @@ async def delete_agent_plugin(request: Request, name: str):
 
 @router.post("/api/dashboard/agent-plugins/activate")
 async def post_agent_plugin_activate(request: Request):
-    """``hermes plugins install`` / ``enable`` in another process asks this backend to load the plugin
+    """``a2assistant plugins install`` / ``enable`` in another process asks this backend to load the plugin
     for ``home`` and hand its MCP servers and skills to that profile's open chats
     (``hermes_cli.plugins_activation.load_and_go_live``). ``home`` must be a profile this host serves."""
     _require_token(request)

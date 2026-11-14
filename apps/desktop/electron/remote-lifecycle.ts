@@ -11,14 +11,14 @@
  *   - reuse an existing desktop-dedicated dashboard via a lockfile + an
  *     AUTHENTICATED /api/status probe (pid liveness alone is insufficient),
  *   - spawn a fresh detached `--isolated --port 0` dashboard and scrape its
- *     `HERMES_DASHBOARD_READY port=<n>` readiness line,
+ *     `A2ASSISTANT_DASHBOARD_READY port=<n>` readiness line,
  *   - adopt the token the dashboard actually serves (served-token adoption),
  *   - clean up a stale dashboard only when it is provably ours.
  *
  * No `import 'electron'` so it's unit-testable with `node --test`. main.ts wires
  * the real SshConnection, fetch, adoptServedDashboardToken, and waitForHermes in.
  *
- * The minted HERMES_DASHBOARD_SESSION_TOKEN is the SPAWN credential. After
+ * The minted A2ASSISTANT_DASHBOARD_SESSION_TOKEN is the SPAWN credential. After
  * readiness the caller runs served-token adoption against the tunneled baseUrl
  * and the SERVED token's fingerprint is what lands in the lockfile — so the
  * reuse probe checks the credential that actually authenticates /api/ws, not
@@ -41,10 +41,10 @@ const LOCKFILE_SCHEMA_VERSION = 2
 // args, served-token reconciliation). A mismatch forces a clean respawn.
 const PROTOCOL_VERSION = 1
 const READY_RE = READY_IN_MERGED_OUTPUT_RE // the remote log is `>> log 2>&1`: merged, not line-accurate
-const REMOTE_LOCK_DIR = '~/.hermes/desktop-ssh'
+const REMOTE_LOCK_DIR = '~/.a2assistant/desktop-ssh'
 const SUPPORTED_REMOTE_OS = new Set(['Linux', 'Darwin'])
 // On a busy remote host a healthy cold boot can take 60-150s before the
-// freshly spawned `hermes serve --isolated` prints its READY line (event-loop
+// freshly spawned `a2assistant serve --isolated` prints its READY line (event-loop
 // stalls of 5-27s each during spawn storms are routine). The historical 45s
 // budget gave up milliseconds before a healthy backend announced ready and
 // surfaced a timeout toast (issue #94642). A roomier default absorbs the
@@ -71,12 +71,12 @@ function classifySshReuseProof(proof, spawnNonce) {
 
 /**
  * Resolve the remote ready-port deadline. Honors the
- * HERMES_DESKTOP_REMOTE_READY_TIMEOUT_MS env override (for users on busy
+ * A2ASSISTANT_DESKTOP_REMOTE_READY_TIMEOUT_MS env override (for users on busy
  * hosts whose cold boots routinely exceed the default), clamped to a sane
  * floor so a bad value can't make boot flakier than the default.
  */
 function resolveReadyTimeoutMs(env = process.env) {
-  const parsed = Number(env.HERMES_DESKTOP_REMOTE_READY_TIMEOUT_MS)
+  const parsed = Number(env.A2ASSISTANT_DESKTOP_REMOTE_READY_TIMEOUT_MS)
 
   if (Number.isFinite(parsed) && parsed > 0) {
     return Math.max(MIN_READY_TIMEOUT_MS, Math.round(parsed))
@@ -228,7 +228,7 @@ async function locateHermes(ssh, remoteHermesPath) {
 
     const err: any = new Error(
       `The A2Assistant path you set is not an executable on the remote host: "${remoteHermesPath}". ` +
-        'Check the path (it must be the full path to the `hermes` binary on the remote, e.g. ' +
+        'Check the path (it must be the full path to the `a2assistant` binary on the remote, e.g. ' +
         '~/hermes-agent/.venv/bin/hermes), or clear it to auto-detect.'
     )
 
@@ -252,7 +252,7 @@ async function locateHermes(ssh, remoteHermesPath) {
   // command locations (scripts/install.sh) — per-user, root/FHS, legacy venv.
   candidates.push('~/.local/bin/hermes')
   candidates.push('/usr/local/bin/hermes')
-  candidates.push('~/.hermes/hermes-agent/venv/bin/hermes')
+  candidates.push('~/.a2assistant/app/venv/bin/hermes')
 
   for (const candidate of candidates) {
     if (!candidate) {
@@ -265,7 +265,7 @@ async function locateHermes(ssh, remoteHermesPath) {
   }
 
   const err: any = new Error(
-    'A2Assistant is not installed on the remote host (could not find a `hermes` executable). ' +
+    'A2Assistant is not installed on the remote host (could not find a `a2assistant` executable). ' +
       `Clone it on the remote with:  git clone ${REPOSITORY_URL}.git  ` +
       '— or set the A2Assistant path explicitly in the SSH connection settings.'
   )
@@ -306,14 +306,14 @@ async function probeRemotePlatform(ssh) {
   return { os: osName, arch }
 }
 
-// The HERMES_HOME the remote dashboard will use (explicit env wins, else
-// ~/.hermes). Recorded in the lockfile so a future reuse can tell it's the same
+// The A2ASSISTANT_HOME the remote dashboard will use (explicit env wins, else
+// ~/.a2assistant). Recorded in the lockfile so a future reuse can tell it's the same
 // state store; best-effort.
 async function probeRemoteHermesHome(ssh) {
   try {
-    const out = (await ssh.exec('echo "${HERMES_HOME:-$HOME/.hermes}"')).trim().split('\n').pop()
+    const out = (await ssh.exec('echo "${A2ASSISTANT_HOME:-$HOME/.a2assistant}"')).trim().split('\n').pop()
 
-    return out || '~/.hermes'
+    return out || '~/.a2assistant'
   } catch (cause) {
     const error: any = new Error('Could not resolve the remote A2Assistant home.')
     error.kind = 'transient-transport-error'
@@ -682,7 +682,7 @@ async function pidIsOurDashboard(
     `expected=os.path.expanduser(${shq(hermesPath)})\n` +
     // The installer-facing launcher is intentionally preserved for invocation
     // (#74411), but it may `exec python <install-dir>/hermes`, leaving neither
-    // launcher nor HERMES_HOME-derived entrypoint in argv. The ownership-scoped
+    // launcher nor A2ASSISTANT_HOME-derived entrypoint in argv. The ownership-scoped
     // token path + random nonce + exact profile below are the alternative proof.
     `hermes_home=os.path.expanduser(${shq(hermesHome)}) if ${shq(hermesHome)} else ""\n` +
     'expected_entries={expected}\n' +
@@ -990,13 +990,13 @@ finally:
 
 // Run `command` under the updaters' marker lock: REMOTE_MARKER_GATE_PY holds
 // `<marker>.lock` (the sidecar Python update_lock and marker.sh flock), clears a
-// dead claim while `hermes`'s checkout lock is free, and refuses (exit 75) a
+// dead claim while `a2assistant`'s checkout lock is free, and refuses (exit 75) a
 // live, unreadable, or checkout-held one, then keeps the
 // lock across the spawn and the initial lockfile publication. The descriptor
 // is close-on-exec and passed only to the outer shell; each detached child
 // closes it before execing Hermes. markerPath is expandRemotePath() output — a
 // complete shell word ("$HOME"'/…' or '/abs/…') embedded raw so $HOME expands
-// remotely; a second shq() would hand python the quote characters. `hermes`
+// remotely; a second shq() would hand python the quote characters. `a2assistant`
 // is the same kind of word (expandRemotePath of the located executable).
 function withRemoteUpdateMutex(command, markerPath, hermes) {
   return `python3 -c ${shq(REMOTE_MARKER_GATE_PY)} ${markerPath} ${shq(command)} ${hermes}`
@@ -1142,7 +1142,7 @@ function buildSpawnCommand(hermesPath, profile, opts: any = {}) {
   const tokenArg = tokenFilePath ? ` --ssh-session-token-file ${expandRemotePath(tokenFilePath)}` : ''
   const ownerArg = opts.spawnNonce ? ` --ssh-owner-nonce ${validateSpawnNonce(opts.spawnNonce)}` : ''
   const subCmd = `serve --isolated --host 127.0.0.1 --port 0${tokenArg}${ownerArg}`
-  const marker = expandRemotePath(`${remoteInstallRoot(opts.hermesHome || '~/.hermes')}/.hermes-update-in-progress`)
+  const marker = expandRemotePath(`${remoteInstallRoot(opts.hermesHome || '~/.a2assistant')}/.hermes-update-in-progress`)
 
   // The marker judge, ownership reservation, process creation, and initial
   // lockfile publication are one remote command under the marker lock, so a
@@ -1153,14 +1153,14 @@ function buildSpawnCommand(hermesPath, profile, opts: any = {}) {
   // when its owning remote shell is dead.
   const markerAbsent = `[ ! -e ${marker} ]`
 
-  // A dev build's renderer is served from HERMES_DESKTOP_DEV_SERVER, an http origin the backend
+  // A dev build's renderer is served from A2ASSISTANT_DESKTOP_DEV_SERVER, an http origin the backend
   // trusts only when it inherits the variable, exactly as a locally spawned backend does. A value the
   // remote login shell exports is cleared first, so a packaged build never hands one on.
-  const devServerEnv = opts.devServer ? ` HERMES_DESKTOP_DEV_SERVER=${shq(opts.devServer)}` : ''
+  const devServerEnv = opts.devServer ? ` A2ASSISTANT_DESKTOP_DEV_SERVER=${shq(opts.devServer)}` : ''
 
   const dashCmd =
-    `ulimit -n ${REMOTE_NOFILE_SOFT_LIMIT} 2>/dev/null || true; unset HERMES_DESKTOP_DEV_SERVER; ` +
-    `exec env HERMES_DESKTOP=1${devServerEnv} ${hermes} ${profileArgs}${subCmd}`
+    `ulimit -n ${REMOTE_NOFILE_SOFT_LIMIT} 2>/dev/null || true; unset A2ASSISTANT_DESKTOP_DEV_SERVER; ` +
+    `exec env A2ASSISTANT_DESKTOP=1${devServerEnv} ${hermes} ${profileArgs}${subCmd}`
 
   const detachedShell: string = `eval "exec $1>&-"; ${dashCmd} </dev/null >> ${logPath} 2>&1 & echo $!`
   // The inner shell backgrounds Hermes and reports its PID; backgrounding the
@@ -1307,7 +1307,7 @@ async function spawnRemoteDashboard(
     profile,
     token,
     ownershipId,
-    hermesHome = '~/.hermes',
+    hermesHome = '~/.a2assistant',
     devServer = '',
     assertInstallClear = async () => {}
   }
@@ -1519,7 +1519,7 @@ async function waitForRemoteSpawnCompletion(ssh, ownershipId, timeoutMs) {
 }
 
 // Whether a published backend record serves this connect as-is. The backend trusts a dev
-// renderer's origin only from the HERMES_DESKTOP_DEV_SERVER it was spawned with; one spawned for
+// renderer's origin only from the A2ASSISTANT_DESKTOP_DEV_SERVER it was spawned with; one spawned for
 // another renderer (or none, as older records and packaged builds are) would refuse every renderer
 // socket, so it is replaced rather than reused.
 function lockServesConnect(lock, { profile, reuseToken, hermesPath, hermesHome, devServer }) {
@@ -1570,7 +1570,7 @@ async function connect(deps) {
   const hermesVersion = await probeHermesVersion(ssh, hermesPath)
 
   if (hermesVersion) {
-    log(`remote hermes version: ${hermesVersion}`)
+    log(`remote a2assistant version: ${hermesVersion}`)
   }
 
   const reuseToken = deps.reuseToken || ''

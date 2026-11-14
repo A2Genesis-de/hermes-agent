@@ -46,11 +46,11 @@ def fake_locale(tmp_path, monkeypatch):
     i18n.reset_language_cache()
 
     def activate(lang: str = "xx"):
-        monkeypatch.setenv("HERMES_LANGUAGE", lang)
+        monkeypatch.setenv("A2ASSISTANT_LANGUAGE", lang)
         i18n.reset_language_cache()
 
     yield activate
-    monkeypatch.delenv("HERMES_LANGUAGE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_LANGUAGE", raising=False)
     i18n.reset_language_cache()
 
 

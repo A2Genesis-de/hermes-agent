@@ -2,7 +2,7 @@
 
 Capture via sounddevice, WAV via stdlib wave, STT via tools.transcription_tools,
 playback via sounddevice or system players. Optional deps: the ``audio-io`` / ``stt-whisper``
-extras, installed through PM (``hermes tools`` configures speech-to-text).
+extras, installed through PM (``a2assistant tools`` configures speech-to-text).
 """
 
 import logging
@@ -1311,9 +1311,9 @@ DEFAULT_BARGE_MULTIPLIER = 3.0  # over the quiet floor: 300 * 3 = 900 vs 3000+ s
 
 
 def _vad_log(msg: str) -> None:
-    """VAD diagnostic: logger.debug, plus stderr when HERMES_VOICE_DEBUG=1 (live tuning)."""
+    """VAD diagnostic: logger.debug, plus stderr when A2ASSISTANT_VOICE_DEBUG=1 (live tuning)."""
     logger.debug(msg)
-    if os.environ.get("HERMES_VOICE_DEBUG", "").strip() == "1":
+    if os.environ.get("A2ASSISTANT_VOICE_DEBUG", "").strip() == "1":
         with suppress(Exception):
             print(f"[voice-vad] {msg}", file=sys.stderr, flush=True)
 
@@ -1518,7 +1518,7 @@ def check_voice_requirements() -> dict[str, Any]:
         else f"Audio capture: MISSING ({_audio_unavailable_reason()})",
         "STT provider: DISABLED in config (stt.enabled: false)" if not stt_enabled
         else f"STT provider: {stt_label}" if stt_label
-        else ("STT provider: MISSING (run `hermes tools` and configure "
+        else ("STT provider: MISSING (run `a2assistant tools` and configure "
               "Speech-to-Text: Local Whisper or a cloud provider)"),
     ]
     details += [f"Environment: {w}" for w in env_check["warnings"]]

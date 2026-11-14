@@ -13,8 +13,8 @@ SCRIPT = ROOT / "scripts" / "install.sh"
 
 def _env(tmp_path):
     return dict(os.environ, HOME=tmp_path.as_posix(),
-                HERMES_HOME=(tmp_path / "home").as_posix(),
-                HERMES_INSTALL_DIR=(tmp_path / "install").as_posix())
+                A2ASSISTANT_HOME=(tmp_path / "home").as_posix(),
+                A2ASSISTANT_INSTALL_DIR=(tmp_path / "install").as_posix())
 
 
 def _frame(result):
@@ -87,10 +87,10 @@ def test_manifest_accepts_the_desktop_home_argument(tmp_path, flag):
     assert any(row["name"] == "products" for row in manifest["stages"])
     assert not home.exists()
     env = dict(_env(tmp_path), PROBE_FLAG=flag, PROBE_HOME=home.as_posix())
-    env.pop("HERMES_INSTALL_DIR")
+    env.pop("A2ASSISTANT_INSTALL_DIR")
     script = '''source "$1" --manifest "$PROBE_FLAG" "$PROBE_HOME"
 printf '%s\\n' "$INSTALL_DIR"
-bash -c 'printf "%s\\n" "$HERMES_HOME"'
+bash -c 'printf "%s\\n" "$A2ASSISTANT_HOME"'
 '''
     resolved = subprocess.run(["bash", "-c", script, "home-test", SCRIPT.as_posix()],
                               cwd=tmp_path, env=env, capture_output=True,

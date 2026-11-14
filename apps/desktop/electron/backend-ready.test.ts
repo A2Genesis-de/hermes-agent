@@ -8,7 +8,7 @@
  * starts before the backend binds its port, so a tight 45s deadline killed a
  * healthy-but-still-compiling backend on cold Windows installs. The default is
  * now cold-start tolerant and overridable via
- * HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS, clamped to a 45s floor.
+ * A2ASSISTANT_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS, clamped to a 45s floor.
  */
 
 import assert from 'node:assert/strict'
@@ -55,24 +55,24 @@ test('default is cold-start tolerant (> the historical 45s floor)', () => {
   )
 })
 
-test('honors a valid HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS override', () => {
-  const env = { HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '120000' }
+test('honors a valid A2ASSISTANT_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS override', () => {
+  const env = { A2ASSISTANT_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '120000' }
   assert.equal(resolvePortAnnounceTimeoutMs(env), 120_000)
 })
 
 test('clamps an override below the floor up to the 45s minimum', () => {
-  const env = { HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '1000' }
+  const env = { A2ASSISTANT_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '1000' }
   assert.equal(resolvePortAnnounceTimeoutMs(env), MIN_PORT_ANNOUNCE_TIMEOUT_MS)
 })
 
 test('rounds a fractional override', () => {
-  const env = { HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '60000.7' }
+  const env = { A2ASSISTANT_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: '60000.7' }
   assert.equal(resolvePortAnnounceTimeoutMs(env), 60_001)
 })
 
 test('falls back to the default for malformed / non-positive overrides', () => {
   for (const bad of ['', 'abc', '0', '-5', 'NaN', undefined]) {
-    const env = bad === undefined ? {} : { HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: bad }
+    const env = bad === undefined ? {} : { A2ASSISTANT_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS: bad }
     assert.equal(
       resolvePortAnnounceTimeoutMs(env),
       DEFAULT_PORT_ANNOUNCE_TIMEOUT_MS,
@@ -92,17 +92,17 @@ test('resolves with the announced port', async () => {
   assert.equal(await p, 54321)
 })
 
-test('resolves with a HERMES_BACKEND_READY port (headless `serve`)', async () => {
+test('resolves with a A2ASSISTANT_BACKEND_READY port (headless `serve`)', async () => {
   const child = makeFakeChild()
   const p = waitForDashboardPort(child, 1000)
-  child.stdout.emit('data', 'HERMES_BACKEND_READY port=43210\n')
+  child.stdout.emit('data', 'A2ASSISTANT_BACKEND_READY port=43210\n')
   assert.equal(await p, 43210)
 })
 
 test('parses the port even when the line arrives split across chunks', async () => {
   const child = makeFakeChild()
   const p = waitForDashboardPort(child, 1000)
-  child.stdout.emit('data', 'HERMES_DASHBOARD_READY po')
+  child.stdout.emit('data', 'A2ASSISTANT_DASHBOARD_READY po')
   child.stdout.emit('data', 'rt=8080\n')
   assert.equal(await p, 8080)
 })
@@ -127,7 +127,7 @@ test('a late announcement after timeout does not throw (listeners torn down)', a
   // The orphaned backend may still print its READY line later; the watcher
   // must have detached so this emit is a no-op rather than a double-settle.
   assert.doesNotThrow(() => {
-    child.stdout.emit('data', 'HERMES_DASHBOARD_READY port=9999\n')
+    child.stdout.emit('data', 'A2ASSISTANT_DASHBOARD_READY port=9999\n')
   })
 })
 
@@ -261,11 +261,11 @@ test('resolves from bufferedOutput when the sentinel was consumed before the wai
   assert.equal(port, 43211)
 })
 
-test('bufferedOutput accepts the legacy HERMES_DASHBOARD_READY sentinel too', async () => {
+test('bufferedOutput accepts the legacy A2ASSISTANT_DASHBOARD_READY sentinel too', async () => {
   const child = makeFakeChild()
 
   const port = await waitForDashboardPortAnnouncement(child, {
-    bufferedOutput: () => 'HERMES_DASHBOARD_READY port=43212\n',
+    bufferedOutput: () => 'A2ASSISTANT_DASHBOARD_READY port=43212\n',
     timeoutMs: 500
   })
 
@@ -280,7 +280,7 @@ test('bufferedOutput without a sentinel still resolves from later live stdout', 
     timeoutMs: 1000
   })
 
-  child.stdout.emit('data', Buffer.from('HERMES_BACKEND_READY port=43213\n'))
+  child.stdout.emit('data', Buffer.from('A2ASSISTANT_BACKEND_READY port=43213\n'))
 
   assert.equal(await wait, 43213)
 })
@@ -303,7 +303,7 @@ test('the merged-tail seed recovers a sentinel spliced onto a partial stderr lin
 
   // uvicorn's stderr chunk has no trailing newline, so the tail is not line-accurate.
   const port = await waitForDashboardPortAnnouncement(child, {
-    bufferedOutput: () => 'INFO  Started server process [4711]HERMES_BACKEND_READY port=65238',
+    bufferedOutput: () => 'INFO  Started server process [4711]A2ASSISTANT_BACKEND_READY port=65238',
     timeoutMs: 500
   })
 
@@ -317,7 +317,7 @@ test('the merged-tail seed does not match prose that merely names the sentinel',
     child,
     50,
     () => '',
-    () => 'still waiting for HERMES_BACKEND_READY from the backend\n'
+    () => 'still waiting for A2ASSISTANT_BACKEND_READY from the backend\n'
   )
 
   await assert.rejects(wait, /Timed out waiting/)
@@ -337,7 +337,7 @@ test('a completion banner re-arms the deadline past the original timeout', async
   // Past the original 40ms deadline: without the banner grace this wait has
   // already rejected. Give the "repair" a moment, then announce.
   await new Promise(resolve => setTimeout(resolve, 80))
-  child.stdout.emit('data', 'HERMES_BACKEND_READY port=4455\n')
+  child.stdout.emit('data', 'A2ASSISTANT_BACKEND_READY port=4455\n')
   assert.equal(await p, 4455)
 })
 
@@ -378,6 +378,6 @@ test('a banner already in the spawn-time tail also re-arms', async () => {
   )
 
   await new Promise(resolve => setTimeout(resolve, 80))
-  child.stdout.emit('data', 'HERMES_BACKEND_READY port=4471\n')
+  child.stdout.emit('data', 'A2ASSISTANT_BACKEND_READY port=4471\n')
   assert.equal(await p, 4471)
 }, 10_000)

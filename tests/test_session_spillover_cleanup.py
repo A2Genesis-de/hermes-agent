@@ -27,7 +27,7 @@ THREE_DAYS_S = 3 * 86400
 def _home(tmp_path, monkeypatch):
     """One scratch home per test: state.db at the root, spillover under cache/ — the same
     layout ``referenced_spillover_names`` derives from the spill dir."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     import tools.tool_result_storage as trs
     monkeypatch.setattr(trs, "_spillover_pruned_homes", set())
     return tmp_path

@@ -309,7 +309,7 @@ def test_rollback_restore_reads_a_null_all_as_omitted(tmp_path):
 @pytest.mark.platforms("linux")
 def test_config_get_voice_reports_the_sessions_own_voice_mode(tmp_path):
     """T9: Ink's /voice runs the owner's per-session handler (slash.exec) and reads the mode back
-    with ``config.get key=voice``; the sidecar's process-global HERMES_VOICE is never consulted."""
+    with ``config.get key=voice``; the sidecar's process-global A2ASSISTANT_VOICE is never consulted."""
     with owner(tmp_path) as (home, _peer, desc):
         async def probe():
             async with websocket(home, desc) as ws:
@@ -329,7 +329,7 @@ def test_config_get_voice_reports_the_sessions_own_voice_mode(tmp_path):
 @pytest.mark.platforms("linux")
 def test_voice_record_follows_the_sessions_gateway_voice_mode(tmp_path):
     """T9: push-to-talk (``voice.record``) gates on the session's gateway voice mode, the state
-    Ink's ``/voice on`` sets through slash.exec, not the sidecar's process-global HERMES_VOICE."""
+    Ink's ``/voice on`` sets through slash.exec, not the sidecar's process-global A2ASSISTANT_VOICE."""
     with owner(tmp_path) as (home, _peer, desc):
         async def probe():
             async with websocket(home, desc) as ws:
@@ -355,10 +355,10 @@ def test_cli_only_commands_refuse_with_what_to_use_instead(tmp_path):
         async def probe():
             async with websocket(home, desc) as ws:
                 sid = (await rpc(ws, 'session.create', request_id='refuse', source='tui', toolsets=[]))['result']['session_id']
-                for command, hint in [('export', 'hermes profile export'), ('import x.tar.gz', 'hermes profile import'),
-                                      ('snapshot', 'hermes backup'), ('snap list', 'hermes backup'),
-                                      ('handoff telegram', 'hermes --cli'), ('hatch a cat', 'hermes --cli'),
-                                      ('worktree new', 'hermes -w'), ('palette', 'Type /')]:
+                for command, hint in [('export', 'a2assistant profile export'), ('import x.tar.gz', 'a2assistant profile import'),
+                                      ('snapshot', 'a2assistant backup'), ('snap list', 'a2assistant backup'),
+                                      ('handoff telegram', 'a2assistant --cli'), ('hatch a cat', 'a2assistant --cli'),
+                                      ('worktree new', 'a2assistant -w'), ('palette', 'Type /')]:
                     refused = (await rpc(ws, 'slash.exec', command=command, session_id=sid))['error']
                     assert refused['message'] == 'unsupported_command', (command, refused)
                     assert hint in refused['data'].get('detail', ''), (command, refused)

@@ -87,13 +87,13 @@ def _scan_context_content(content: str, filename: str, *, user_authored: bool = 
     "context" scope only (strict-scope SSH-backdoor/persistence/exfil patterns are too aggressive for a
     cloned repo's docs); blocking, not warning, because the file would otherwise enter the prompt verbatim.
 
-    *user_authored* (SOUL.md in the user's own HERMES_HOME): a hit is WARNED and the file still loads.
+    *user_authored* (SOUL.md in the user's own A2ASSISTANT_HOME): a hit is WARNED and the file still loads.
     SOUL.md sits in the same trust class as config.yaml — file-tool writes to it go through the
     protected-instruction approval gate (``tools/file_tools_write_guards.py``) and project checkouts never
     supply it — so a user who *documents* "ignore previous instructions" in their security guidance
     must not lose their whole identity file to a one-line log entry (#112570). Project-dir files
     (repo AGENTS.md / .cursorrules / .hermes.md) arrive with the checkout and keep blocking, and so does
-    a SOUL.md owned by a profile distribution (``hermes profile install <git-url>`` copies it in unscanned;
+    a SOUL.md owned by a profile distribution (``a2assistant profile install <git-url>`` copies it in unscanned;
     ``load_soul_md`` passes ``user_authored=False`` when ``distribution.yaml`` owns the file).
     """
     # A leading UTF-8 BOM is a Windows-editor artifact, not an injection.
@@ -103,7 +103,7 @@ def _scan_context_content(content: str, filename: str, *, user_authored: bool = 
         return content
     if user_authored:
         logger.warning("Context file %s matched injection pattern(s) %s; loaded anyway because it is the "
-                       "user's own file in HERMES_HOME — review it if you did not write that text",
+                       "user's own file in A2ASSISTANT_HOME — review it if you did not write that text",
                        filename, ", ".join(findings))
         return content
     logger.warning("Context file %s blocked: %s", filename, ", ".join(findings))
@@ -261,8 +261,8 @@ SKILLS_GUIDANCE = "When you work out a non-trivial workflow, record it with skil
 
 KANBAN_GUIDANCE = (
     "# Kanban task execution protocol\n"
-    "You have been assigned ONE task from the shared board at `~/.hermes/kanban.db`. Your task id is in "
-    "`$HERMES_KANBAN_TASK`; your workspace is `$HERMES_KANBAN_WORKSPACE`. The `kanban_*` tools in your schema are your "
+    "You have been assigned ONE task from the shared board at `~/.a2assistant/kanban.db`. Your task id is in "
+    "`$A2ASSISTANT_KANBAN_TASK`; your workspace is `$A2ASSISTANT_KANBAN_WORKSPACE`. The `kanban_*` tools in your schema are your "
     "primary coordination surface — they write directly to the shared SQLite DB and work regardless of terminal "
     "backend (local/docker/modal/ssh).\n"
     "\n"
@@ -270,7 +270,7 @@ KANBAN_GUIDANCE = (
     "1. **Orient.** Call `kanban_show()` first (no args — it defaults to your task). The response includes title, "
     "body, parent-task handoffs (summary + metadata), any prior attempts on this task if you're a retry, the full "
     "comment thread, and a pre-formatted `worker_context` you can treat as ground truth.\n"
-    "2. **Work inside the workspace.** `cd $HERMES_KANBAN_WORKSPACE` before any file operations. The workspace is "
+    "2. **Work inside the workspace.** `cd $A2ASSISTANT_KANBAN_WORKSPACE` before any file operations. The workspace is "
     "yours for this run. Don't modify files outside it unless the task explicitly asks.\n"
     "3. **Heartbeat on long operations.** Call `kanban_heartbeat(note=...)` every few minutes during long subprocesses "
     "(training, encoding, crawling). Skip heartbeats for short tasks. **If your task may run longer than 1 hour, you "
@@ -312,9 +312,9 @@ KANBAN_GUIDANCE = (
     "card body must carry the decisions it depends on, because workers cannot see sibling context.\n"
     "\n"
     "## Reference details that change outcomes\n\n"
-    "- **Workspace.** `cd $HERMES_KANBAN_WORKSPACE` first. For a `worktree` kind with no `.git`, `git worktree add "
-    "<path> ${HERMES_KANBAN_BRANCH:-wt/$HERMES_KANBAN_TASK}` from the main repo, then cd there. For a project-linked "
-    "task the workspace is a fresh `<repo>/.worktrees/<task-id>` and `$HERMES_KANBAN_BRANCH` a deterministic "
+    "- **Workspace.** `cd $A2ASSISTANT_KANBAN_WORKSPACE` first. For a `worktree` kind with no `.git`, `git worktree add "
+    "<path> ${A2ASSISTANT_KANBAN_BRANCH:-wt/$A2ASSISTANT_KANBAN_TASK}` from the main repo, then cd there. For a project-linked "
+    "task the workspace is a fresh `<repo>/.worktrees/<task-id>` and `$A2ASSISTANT_KANBAN_BRANCH` a deterministic "
     "`<project-slug>/<task-id>` — the main repo is two levels up, so run `git worktree add` from there.\n"
     "- **Deliverables.** Files a human wants go in `kanban_complete(artifacts=[<absolute paths>])` (top-level param; "
     "paths in `metadata` are NOT uploaded). Files must exist at completion.\n"
@@ -324,11 +324,11 @@ KANBAN_GUIDANCE = (
     "- **Created cards.** List ids in `kanban_complete(created_cards=[...])` ONLY when captured from a successful "
     "`kanban_create` return — never invent or paste ids; the kernel rejects the completion on any phantom id.\n"
     "- **Orchestrating: discover profiles first.** The dispatcher SILENTLY drops a card with an unknown assignee (it "
-    "sits in `ready` forever). Ground every assignee in a real profile (`hermes profile list`, or ask the user), and "
+    "sits in `ready` forever). Ground every assignee in a real profile (`a2assistant profile list`, or ask the user), and "
     "express dependencies via `parents=[...]` on `kanban_create`, not prose.\n"
     "\n"
     "## Do NOT\n\n"
-    "- Do not shell out to `hermes kanban <verb>` for board operations. Use the `kanban_*` tools — they work across "
+    "- Do not shell out to `a2assistant kanban <verb>` for board operations. Use the `kanban_*` tools — they work across "
     "all terminal backends.\n"
     "- Do not complete a task you didn't actually finish. Block it.\n"
     "- Do not call `clarify` to ask questions. You are running headless — there is no live user to answer. The call "
@@ -1000,9 +1000,9 @@ def _config_readonly(what: str) -> dict:
 
 
 def _embedder_environment_hint() -> str:
-    """Embedder-supplied environment description: HERMES_ENVIRONMENT_HINT (container ENV)
+    """Embedder-supplied environment description: A2ASSISTANT_ENVIRONMENT_HINT (container ENV)
     wins over config.yaml ``agent.environment_hint``. Read once at prompt-build time."""
-    return (os.getenv("HERMES_ENVIRONMENT_HINT") or "").strip() or str(
+    return (os.getenv("A2ASSISTANT_ENVIRONMENT_HINT") or "").strip() or str(
         (_config_readonly("agent.environment_hint").get("agent", {}) or {}).get("environment_hint", "")).strip()
 
 
@@ -1215,12 +1215,12 @@ def _plugin_skill_prompt_rows(
 
 def _current_session_platform_hint() -> str:
     """Active platform without importing the gateway package on CLI startup."""
-    platform = os.environ.get("HERMES_PLATFORM") or os.environ.get("HERMES_SESSION_PLATFORM")
+    platform = os.environ.get("A2ASSISTANT_PLATFORM") or os.environ.get("A2ASSISTANT_SESSION_PLATFORM")
     if platform:
         return platform
     get_session_env = getattr(sys.modules.get("gateway.session_context"), "get_session_env", None)
     try:
-        return (get_session_env("HERMES_SESSION_PLATFORM") if get_session_env else "") or ""
+        return (get_session_env("A2ASSISTANT_SESSION_PLATFORM") if get_session_env else "") or ""
     except Exception:
         return ""
 
@@ -1234,7 +1234,7 @@ def build_skills_system_prompt(
     Same-named skills resolve like skill_view: project > local > create_dir > external_dirs, and a
     same-tier duplicate is listed under its exact relative path (``agent.skill_utils.resolve_skill_catalog``).
     ``compact_categories`` (coding posture) demotes categories to a names-only line — nothing is ever hidden.
-    ``skills_dir_override`` makes home resolution EXPLICIT: a build thread that never bound the HERMES_HOME
+    ``skills_dir_override`` makes home resolution EXPLICIT: a build thread that never bound the A2ASSISTANT_HOME
     ContextVar would otherwise leak the default profile's skills into a bot's prompt.
     """
     from agent.safe_worker_policy import safe_worker_enabled
@@ -1505,13 +1505,13 @@ def _omitted_headings(content: str, start: int, end: int, limit: int = 15) -> li
 
 
 def load_soul_md(context_length: Optional[int] = None, home_override: Path | None = None) -> Optional[str]:
-    """SOUL.md from HERMES_HOME (identity slot #1), or None.
+    """SOUL.md from A2ASSISTANT_HOME (identity slot #1), or None.
 
     Callers must pass ``skip_soul=True`` to ``build_context_files_prompt`` so it isn't injected twice.
-    ``home_override`` pins the profile home (a thread that lost the HERMES_HOME ContextVar reads the wrong one).
+    ``home_override`` pins the profile home (a thread that lost the A2ASSISTANT_HOME ContextVar reads the wrong one).
 
     ``home_override`` scopes the read to an explicit profile home (the agent knows its own home from its
-    session_db path). Without it, resolution is ambient — which on a thread that lost the HERMES_HOME
+    session_db path). Without it, resolution is ambient — which on a thread that lost the A2ASSISTANT_HOME
     ContextVar falls back to the launch home and reads the wrong profile's SOUL.md (#50233, same class as
     the skills-index leak fixed in #86313).
     """
@@ -1523,7 +1523,7 @@ def load_soul_md(context_length: Optional[int] = None, home_override: Path | Non
         from hermes_cli.config import ensure_hermes_home
         ensure_hermes_home()
     except Exception as e:
-        logger.debug("Could not ensure HERMES_HOME before loading SOUL.md: %s", e)
+        logger.debug("Could not ensure A2ASSISTANT_HOME before loading SOUL.md: %s", e)
     soul_path = (Path(home_override) if home_override is not None else get_hermes_home()) / "SOUL.md"
     if not soul_path.exists():
         return None
@@ -1720,7 +1720,7 @@ def build_context_files_prompt(
 
     Only ONE project context type loads, first found wins: .hermes.md/HERMES.md (walk to git root) →
     AGENTS.md chain (git root → cwd) → CLAUDE.md (cwd) → .cursorrules + .cursor/rules/*.mdc (cwd). SOUL.md
-    from HERMES_HOME is independent and always included unless *skip_soul* (already the identity slot).
+    from A2ASSISTANT_HOME is independent and always included unless *skip_soul* (already the identity slot).
     """
     from agent.safe_worker_policy import safe_worker_enabled
 

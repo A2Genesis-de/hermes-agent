@@ -5,7 +5,7 @@ feature that worked keeps working. The user did not ask for them in this sync, a
 graph builds them for a different interpreter. One that no longer builds (a native sdist whose
 toolchain is missing) must not fail the update: it is left out, recorded beside the dependency
 facts so a later scan of the old venv does not carry it again, and reported with the command
-that adds it back. ``hermes pm install --extra NAME`` is an explicit request: it clears the
+that adds it back. ``a2assistant pm install --extra NAME`` is an explicit request: it clears the
 record, and if the extra still does not build it fails loudly. Only a carried extra is left
 out this way; core and requested extras that fail still fail the sync.
 """
@@ -24,7 +24,7 @@ def with_pre_pm_baseline(package, extras, *, carried, automatic, plugins):
 
     PM unions a request into the recorded selection. Before one is recorded, a tree that still runs
     its main-era venv has that venv's extras as its selection (``pm.extras.pre_pm_baseline``): a
-    narrow request (``hermes setup`` installing ``telegram``) extends them, or this sync's facts
+    narrow request (``a2assistant setup`` installing ``telegram``) extends them, or this sync's facts
     end the re-scan of the old venv and the rest is gone. The added entries are automatic, never a
     request, so they never opt a declined extra back in; with no plugin input they are carried,
     so one that no longer builds is left out instead of failing the request.
@@ -85,9 +85,9 @@ def refuse_transient(failing: dict[str, tuple[str, bool]], failure: BaseExceptio
     if transient:
         raise InstallError("venv", f"the extras {sorted(transient)} A2Assistant carried over from the old venv could "
                                    f"not be prepared: {'; '.join(transient.values())[:600]}",
-                           "fix the download or tooling problem, then rerun `hermes update`: it tries them "
+                           "fix the download or tooling problem, then rerun `a2assistant update`: it tries them "
                            "again; or leave them out for good with "
-                           + " ".join(f"`hermes pm install --without {extra}`" for extra in sorted(transient))) from failure
+                           + " ".join(f"`a2assistant pm install --without {extra}`" for extra in sorted(transient))) from failure
 
 
 _NO_BUILD = "it no longer builds on this machine"

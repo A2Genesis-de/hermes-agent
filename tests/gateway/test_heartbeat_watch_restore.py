@@ -23,7 +23,7 @@ async def test_restore_retries_persisted_routes_in_their_own_profiles(tmp_path, 
     named.mkdir(parents=True)
     (named / 'config.yaml').write_text('{}')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     dbs = {str(p): SessionDB(db_path=p / 'state.db') for p in (home, named)}
     monkeypatch.setattr(goals, '_DB_CACHE', dbs)
     config = GatewayConfig(multiplex_profiles=True)
@@ -91,7 +91,7 @@ async def test_restore_skips_session_sweep_when_no_heartbeats_exist(tmp_path, mo
     named.mkdir(parents=True)
     (named / 'config.yaml').write_text('{}')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     dbs = {str(p): SessionDB(db_path=p / 'state.db') for p in (home, named)}
     monkeypatch.setattr(goals, '_DB_CACHE', dbs)
     config = GatewayConfig(multiplex_profiles=True)
@@ -186,7 +186,7 @@ async def test_restore_enters_each_profile_scope_once_per_scan(tmp_path, monkeyp
     named.mkdir(parents=True)
     (named / 'config.yaml').write_text('{}')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     dbs = {str(p): SessionDB(db_path=p / 'state.db') for p in (home, named)}
     monkeypatch.setattr(goals, '_DB_CACHE', dbs)
     config = GatewayConfig(multiplex_profiles=True)

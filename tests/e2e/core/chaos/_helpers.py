@@ -99,7 +99,7 @@ def chaos_config(
 
 
 def write_chaos_home(root: Path, base_url: str, **cfg: Any) -> tuple[Path, Path]:
-    """Create ``root/home`` (fake $HOME) and ``root/home/.hermes`` (HERMES_HOME)."""
+    """Create ``root/home`` (fake $HOME) and ``root/home/.hermes`` (A2ASSISTANT_HOME)."""
     home = root / "home"
     hermes_home = home / ".hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
@@ -109,19 +109,19 @@ def write_chaos_home(root: Path, base_url: str, **cfg: Any) -> tuple[Path, Path]
 
 
 def hermetic_env(home: Path, hermes_home: Path, tag: str) -> dict[str, str]:
-    """Child env: fake HOME/HERMES_HOME, no real credentials, repo importable, and a
+    """Child env: fake HOME/A2ASSISTANT_HOME, no real credentials, repo importable, and a
     tag every descendant inherits so the orphan scan can find it after reparenting."""
     env = {
         k: v for k, v in os.environ.items()
         if not (
             k.endswith(("_API_KEY", "_TOKEN", "_SECRET"))
-            or k.startswith(("HERMES_", "OPENROUTER", "ANTHROPIC", "OPENAI", "NOUS_"))
+            or k.startswith(("A2ASSISTANT_", "OPENROUTER", "ANTHROPIC", "OPENAI", "NOUS_"))
             or k in {"PYTEST_CURRENT_TEST"}
         )
     }
     env.update({
         "HOME": str(home),
-        "HERMES_HOME": str(hermes_home),
+        "A2ASSISTANT_HOME": str(hermes_home),
         "OPENAI_API_KEY": "sk-fake-chaos",
         "PYTHONPATH": str(REPO_ROOT),
         "PYTHONUNBUFFERED": "1",
@@ -129,7 +129,7 @@ def hermetic_env(home: Path, hermes_home: Path, tag: str) -> dict[str, str]:
         "CHAOS_TAG": tag,
         # HOME *is* the tmp root, so the live-DB guard (pytest ancestry) would read the
         # tmp state.db as "production"; the documented child opt-out is safe here.
-        "HERMES_STATE_DB_GUARD_BYPASS": "1",
+        "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
         "TZ": "UTC",
         "NO_COLOR": "1",
     })

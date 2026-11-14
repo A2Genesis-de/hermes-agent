@@ -33,7 +33,7 @@ class TestConfigureWindowsStdio:
     - set PYTHONIOENCODING / PYTHONUTF8 without overriding explicit user settings
     - reconfigure sys.stdout/stderr/stdin to UTF-8 on Windows
     - flip the console code page to CP_UTF8 (65001) via ctypes
-    - respect HERMES_DISABLE_WINDOWS_UTF8 opt-out
+    - respect A2ASSISTANT_DISABLE_WINDOWS_UTF8 opt-out
     """
 
     @pytest.fixture(autouse=True)
@@ -307,7 +307,7 @@ class TestSubprocessCompatHelpers:
     def test_windows_detach_flags_includes_breakaway_from_job(self):
         """CREATE_BREAKAWAY_FROM_JOB is load-bearing for the GUI-driven update path.
 
-        Without it, the gateway-respawn watcher spawned by ``hermes update``
+        Without it, the gateway-respawn watcher spawned by ``a2assistant update``
         (which runs under hermes-setup.exe, itself a grandchild of the
         Electron Desktop app) gets reaped when Electron exits and its
         Win32 job object is torn down by the OS.  Result: gateway dies
@@ -647,7 +647,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
         # Deterministic sentinel in the environment the watcher inherits
         # (watcher_env = os.environ.copy()); the warning must never echo it.
         secret = "maxwell-do-not-log-this-secret-42993"
-        monkeypatch.setenv("HERMES_TEST_SECRET", secret)
+        monkeypatch.setenv("A2ASSISTANT_TEST_SECRET", secret)
 
         # Dual failure must NOT propagate — the user's CLI still exits cleanly.
         self._drive(gr)
@@ -669,7 +669,7 @@ class TestGatewayRunRestartWatcherOuterPopenFallback:
             assert not isinstance(arg, (OSError, list, dict))
 
         # The watcher's env carried the sentinel; the rendered warning must not.
-        assert secret in (kwargs_used.get("env") or {}).get("HERMES_TEST_SECRET", "")
+        assert secret in (kwargs_used.get("env") or {}).get("A2ASSISTANT_TEST_SECRET", "")
         rendered = fmt % tuple(log_args)
         assert secret not in rendered
         assert argv_used[2] not in rendered  # watcher script body

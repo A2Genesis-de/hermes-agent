@@ -51,7 +51,7 @@ _EXAMPLE_PLUGIN_FIXTURE = (
 
 @pytest.fixture
 def _install_example_plugin(_isolate_hermes_home):
-    """Drop the example-dashboard fixture into the per-test HERMES_HOME
+    """Drop the example-dashboard fixture into the per-test A2ASSISTANT_HOME
     user-plugins directory and force the web_server's dashboard plugin
     cache + API mount to rediscover it.
 
@@ -60,10 +60,10 @@ def _install_example_plugin(_isolate_hermes_home):
     user's sidebar. It is now a tests-only fixture: any test that needs
     ``/api/plugins/example/hello`` or ``/dashboard-plugins/example/...``
     requests this fixture so the plugin appears only for that test's
-    isolated ``HERMES_HOME``.
+    isolated ``A2ASSISTANT_HOME``.
 
     The user-plugin source is preferred over a transient
-    ``HERMES_BUNDLED_PLUGINS`` override because the bundled dir is
+    ``A2ASSISTANT_BUNDLED_PLUGINS`` override because the bundled dir is
     resolved per-call (other tests in the suite implicitly rely on the
     real bundled plugins — kanban, model providers
     — being available, and globally swapping that root would yank them
@@ -202,9 +202,9 @@ class TestRedactKey:
         original_app = ws.app
         original_header_name = ws._SESSION_HEADER_NAME
         original_token = ws._SESSION_TOKEN
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-seeded-token")
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "desktop-seeded-token")
         assert st.resolve_session_token() == "desktop-seeded-token"
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
         with patch.object(st.secrets, "token_urlsafe", return_value="generated-token"):
             assert st.resolve_session_token() == "generated-token"
 
@@ -245,7 +245,7 @@ class TestWebServerEndpoints:
 
     @pytest.fixture(autouse=True)
     def _setup_test_client(self, monkeypatch, _isolate_hermes_home):
-        """Create a TestClient and isolate the state DB under the test HERMES_HOME."""
+        """Create a TestClient and isolate the state DB under the test A2ASSISTANT_HOME."""
         try:
             from starlette.testclient import TestClient
         except ImportError:
@@ -533,7 +533,7 @@ class TestWebServerEndpoints:
         """?profile=<name> must resolve liveness from the profile's own home.
 
         The gateway status readers resolve process-level paths and ignore the
-        HERMES_HOME contextvar override (#56986), so /api/messaging/platforms
+        A2ASSISTANT_HOME contextvar override (#56986), so /api/messaging/platforms
         has to pass the profile directory explicitly — otherwise it reports a
         DIFFERENT profile's gateway as this profile's, which hides a real
         outage behind a false "connected" (issue #71211).
@@ -708,7 +708,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         data = resp.json()
         pip_rows = [row for row in data["results"] if row["kind"] == "pip"]
         assert pip_rows and pip_rows[0]["status"] == "installed"
-        assert pip_rows[0]["command"] == "hermes pm install"
+        assert pip_rows[0]["command"] == "a2assistant pm install"
         assert prepared == ["flatprov"]
 
 
@@ -987,7 +987,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         def fail_spawn(*_args, **_kwargs):
             nonlocal spawned
             spawned = True
-            raise AssertionError("docker update guard should not spawn hermes update")
+            raise AssertionError("docker update guard should not spawn a2assistant update")
 
         # Bypass the managed-externally gate so we reach the docker install check.
         monkeypatch.setattr(_web_server_files, "_dashboard_local_update_managed_externally", lambda: False)
@@ -1025,7 +1025,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         def fail_spawn(*_args, **_kwargs):
             nonlocal spawned
             spawned = True
-            raise AssertionError("APT-managed update guard should not spawn hermes update")
+            raise AssertionError("APT-managed update guard should not spawn a2assistant update")
 
         monkeypatch.setattr(_web_server_files, "_dashboard_local_update_managed_externally", lambda: False)
         # The shared admission gate (#91277 Phase 3) resolves the install
@@ -1085,7 +1085,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
             "action_id": "a" * 32,
         }
         assert calls == [
-            (["update"], "hermes-update", {"HERMES_ACTION_ID": "a" * 32})
+            (["update"], "hermes-update", {"A2ASSISTANT_ACTION_ID": "a" * 32})
         ]
 
     def test_update_hermes_reuses_running_action(self, monkeypatch):
@@ -1322,7 +1322,7 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """A custom endpoint that requires auth must persist model.api_key (where
         the runtime reads it) AND register a named custom_providers entry so the
         endpoint reappears as a ready row in the picker — matching the
-        ``hermes model`` custom flow. Regression for the desktop loop where a
+        ``a2assistant model`` custom flow. Regression for the desktop loop where a
         keyed custom endpoint could never be configured from the GUI."""
         from hermes_cli.config import load_config
 
@@ -1949,12 +1949,12 @@ CONFIG_SCHEMA = ProviderConfigSchema(
         """
         from hermes_cli.config import load_config, save_config, save_env_value
 
-        save_env_value("HERMES_CUSTOM_127_0_0_1_8001_API_KEY", "secret-value")
+        save_env_value("A2ASSISTANT_CUSTOM_127_0_0_1_8001_API_KEY", "secret-value")
         cfg = load_config()
         cfg["custom_providers"] = [{
             "name": "Qwen Local",
             "base_url": "http://127.0.0.1:8001/v1",
-            "key_env": "HERMES_CUSTOM_127_0_0_1_8001_API_KEY",
+            "key_env": "A2ASSISTANT_CUSTOM_127_0_0_1_8001_API_KEY",
             "model": "qwen",
             "api_mode": "chat_completions",
         }]
@@ -1974,11 +1974,11 @@ CONFIG_SCHEMA = ProviderConfigSchema(
 
         cfg = load_config()
         assert cfg.get("custom_providers") == []
-        assert cfg["providers"]["qwen-local"]["key_env"] == "HERMES_CUSTOM_127_0_0_1_8001_API_KEY"
+        assert cfg["providers"]["qwen-local"]["key_env"] == "A2ASSISTANT_CUSTOM_127_0_0_1_8001_API_KEY"
         rows = {e["id"]: e for e in self.client.get("/api/providers/custom-endpoints").json()["endpoints"]}
         assert rows["qwen-local"]["source"] == "providers"
         assert rows["qwen-local"]["has_api_key"] is True
-        assert rows["qwen-local"]["api_key_preview"] == "${HERMES_CUSTOM_127_0_0_1_8001_API_KEY}"
+        assert rows["qwen-local"]["api_key_preview"] == "${A2ASSISTANT_CUSTOM_127_0_0_1_8001_API_KEY}"
 
     def test_legacy_custom_providers_entries_get_a_row_and_can_be_deleted(self):
         """A post-migration ``custom_providers:`` list entry is still routed by the
@@ -2964,16 +2964,16 @@ class TestDesktopLoopbackAuthExemption:
     def test_exempt_with_desktop_env_and_session_token_on_loopback(self, monkeypatch):
         from hermes_cli import web_server
 
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-minted")
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "desktop-minted")
         assert web_server._desktop_loopback_auth_exempt("127.0.0.1") is True
         assert web_server._desktop_loopback_auth_exempt("::1") is True
 
     def test_exempt_via_ssh_spawn_credentials_without_env_token(self, monkeypatch):
         from hermes_cli import web_server
 
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
         assert web_server._desktop_loopback_auth_exempt(
             "127.0.0.1", ssh_session_token="tok"
         )
@@ -2984,8 +2984,8 @@ class TestDesktopLoopbackAuthExemption:
     def test_not_exempt_without_desktop_env(self, monkeypatch):
         from hermes_cli import web_server
 
-        monkeypatch.delenv("HERMES_DESKTOP", raising=False)
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "tok")
+        monkeypatch.delenv("A2ASSISTANT_DESKTOP", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "tok")
         assert web_server._desktop_loopback_auth_exempt("127.0.0.1") is False
 
     def test_not_exempt_without_any_credential(self, monkeypatch):
@@ -2993,15 +2993,15 @@ class TestDesktopLoopbackAuthExemption:
 
         # HERMES_DESKTOP=1 alone is not enough: a plain serve with the env var
         # exported must stay gated.
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
         assert web_server._desktop_loopback_auth_exempt("127.0.0.1") is False
 
     def test_not_exempt_on_non_loopback_bind(self, monkeypatch):
         from hermes_cli import web_server
 
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "tok")
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "tok")
         assert web_server._desktop_loopback_auth_exempt("0.0.0.0") is False
         assert web_server._desktop_loopback_auth_exempt("192.168.1.10") is False
 
@@ -3010,7 +3010,7 @@ class TestDesktopLoopbackAuthExemption:
 
         # Sanity: the base behaviour is untouched — a non-Desktop loopback
         # serve with a public_url configured stays ticket-gated.
-        monkeypatch.delenv("HERMES_DESKTOP", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_DESKTOP", raising=False)
         assert web_server.should_require_dashboard_auth(
             "127.0.0.1", frozenset({"dash.example.com"})
         ) is True
@@ -3021,7 +3021,7 @@ class TestDesktopHostRendezvousIsolation:
 
     def test_desktop_backend_does_not_claim_the_host_serve_record(self, monkeypatch, tmp_path):
         """A Desktop child must not block a separately supervised public dashboard, yet a
-        terminal `hermes plugins install` on a Desktop-only box must still find it (#119644):
+        terminal `a2assistant plugins install` on a Desktop-only box must still find it (#119644):
         it publishes under its OWN role, which the attach ladder never reads."""
         import io
         import urllib.request
@@ -3030,9 +3030,9 @@ class TestDesktopHostRendezvousIsolation:
         from hermes_cli.main_dashboard import _host_backend_attachment
         from hermes_cli.plugins_activation import notify_serve_backend
 
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
         monkeypatch.setattr(web_server, "_SESSION_TOKEN", "desktop-spawn-token")
         monkeypatch.setattr(hr, "cleanup_on_exit", lambda role: None)
         dialed = []
@@ -3065,12 +3065,12 @@ class TestDesktopHostRendezvousIsolation:
 
     def test_standalone_backend_still_claims_the_host_serve_record(self, monkeypatch):
         """The Desktop exclusion must not alter standalone dashboard discovery — including a
-        supervised service whose shell merely inherited HERMES_DESKTOP=1 without the token."""
+        supervised service whose shell merely inherited A2ASSISTANT_DESKTOP=1 without the token."""
         from gateway import host_rendezvous as hr
         from hermes_cli import web_server
 
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
         claimed = []
         published = []
         monkeypatch.setattr(
@@ -3126,7 +3126,7 @@ class TestOrphanedOwnerReclaim:
         from hermes_cli import web_server
         from hermes_cli import process_identity as pi
 
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         monkeypatch.setattr(web_server, "is_desktop_owned_backend", lambda: False)
         claims = iter([hr.HostLockOutcome.HELD_BY_OTHER, hr.HostLockOutcome.ACQUIRED])
         claimed, published = [], []
@@ -3533,7 +3533,7 @@ class TestStatusInstallId:
         assert ws.get_install_id() == first
 
     def test_all_profiles_of_one_install_share_the_id(self, monkeypatch, tmp_path):
-        """HERMES_HOME=<root> and HERMES_HOME=<root>/profiles/<name> resolve to
+        """A2ASSISTANT_HOME=<root> and A2ASSISTANT_HOME=<root>/profiles/<name> resolve to
         the same id file — profiles share one physical install identity."""
         import hermes_cli.web_server as ws
 
@@ -3541,12 +3541,12 @@ class TestStatusInstallId:
         profile_home = root / "profiles" / "research"
         profile_home.mkdir(parents=True)
 
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
         monkeypatch.setattr(ws, "_INSTALL_ID_CACHE", {"value": None})
         root_id = ws.get_install_id()
         assert root_id
 
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
         monkeypatch.setattr(ws, "_INSTALL_ID_CACHE", {"value": None})
         assert ws.get_install_id() == root_id
         # Exactly one id file exists — under the root, not the profile home.
@@ -3559,7 +3559,7 @@ class TestStatusInstallId:
         root = tmp_path / "hermes-root"
         root.mkdir()
         (root / "install_id").write_text("not-a-valid-id\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
         monkeypatch.setattr(ws, "_INSTALL_ID_CACHE", {"value": None})
 
         value = ws.get_install_id()
@@ -3774,14 +3774,14 @@ class TestNormaliseThemeDefinition:
 
 
 class TestDiscoverUserThemes:
-    """Tests for _discover_user_themes() — scans ~/.hermes/dashboard-themes/."""
+    """Tests for _discover_user_themes() — scans ~/.a2assistant/dashboard-themes/."""
 
     def test_returns_empty_when_dir_missing(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         assert _web_server_dashboard._discover_user_themes() == []
 
     def test_loads_and_normalises_yaml(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         themes_dir = tmp_path / "dashboard-themes"
         themes_dir.mkdir()
         (themes_dir / "ocean.yaml").write_text(
@@ -3805,7 +3805,7 @@ class TestDiscoverUserThemes:
 
 
     def test_ignores_transient_profile_override(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         themes_dir = tmp_path / "dashboard-themes"
         themes_dir.mkdir()
         (themes_dir / "mine.yaml").write_text("name: mine\n", encoding="utf-8")
@@ -3869,7 +3869,7 @@ class TestThemeBootstrapCSS:
         return TestClient(spa_app)
 
     def test_serve_index_injects_bootstrap_for_user_theme(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         self._write_theme(tmp_path)
         monkeypatch.setattr(
             _cfg_mod, "load_config", lambda: {"dashboard": {"theme": "ocean"}}
@@ -4278,7 +4278,7 @@ class TestPluginAPIAuth:
         Pulls in ``_install_example_plugin`` so ``test_plugin_route_allows_auth``
         has the ``/api/plugins/example/hello`` endpoint available — the
         example plugin is no longer a bundled plugin, so the fixture
-        installs it into the per-test ``HERMES_HOME``.
+        installs it into the per-test ``A2ASSISTANT_HOME``.
         """
         try:
             from starlette.testclient import TestClient
@@ -4300,7 +4300,7 @@ class TestPluginAPIAuth:
         """Plugin API routes should work with a valid session token.
 
         Uses ``/api/plugins/example/hello`` from the example-dashboard
-        test fixture (installed into HERMES_HOME by the class-level
+        test fixture (installed into A2ASSISTANT_HOME by the class-level
         ``_install_example_plugin`` fixture) — a stable, side-effect-free
         GET that's only loaded for tests. With a valid token the handler
         should run (200); without one the middleware should 401 before
@@ -4357,7 +4357,7 @@ class TestDashboardPluginManifestExtensions:
         return plug_dir
 
     def test_override_and_hidden_carried_through(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "skin-home", {
             "name": "skin-home",
             "label": "Skin Home",
@@ -4377,7 +4377,7 @@ class TestDashboardPluginManifestExtensions:
     def test_user_plugins_ignore_profile_home_override(self, tmp_path, monkeypatch):
         """Regression: user dashboard extensions are a dashboard-owned asset
         (like theme YAML), so they must stay visible after a context-local
-        HERMES_HOME override scopes a request to another profile."""
+        A2ASSISTANT_HOME override scopes a request to another profile."""
         from hermes_constants import (
             reset_hermes_home_override,
             set_hermes_home_override,
@@ -4393,7 +4393,7 @@ class TestDashboardPluginManifestExtensions:
         other = tmp_path / "other-profile"
         other.mkdir()
 
-        monkeypatch.setenv("HERMES_HOME", str(launch_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
         token = set_hermes_home_override(str(other))
         try:
             plugins = _web_server_dashboard._discover_dashboard_plugins()
@@ -4403,7 +4403,7 @@ class TestDashboardPluginManifestExtensions:
 
     def test_user_plugins_found_under_profile_scoped_process(self, tmp_path, monkeypatch):
         """Regression #87197: a profile-scoped process (``--profile <name>``
-        sets HERMES_HOME=<root>/profiles/<name>) must still discover user
+        sets A2ASSISTANT_HOME=<root>/profiles/<name>) must still discover user
         plugins installed in the hermes root's plugins/ directory."""
         root = tmp_path / "hermes-root"
         profile_home = root / "profiles" / "presale"
@@ -4415,7 +4415,7 @@ class TestDashboardPluginManifestExtensions:
             "entry": "dist/index.js",
         })
 
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
         plugins = _web_server_dashboard._discover_dashboard_plugins()
         assert any(p["name"] == "meeting-intelligence" for p in plugins)
 
@@ -4438,7 +4438,7 @@ class TestDashboardPluginManifestExtensions:
             "entry": "dist/index.js",
         })
 
-        monkeypatch.setenv("HERMES_HOME", str(profile_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
         plugins = _web_server_dashboard._discover_dashboard_plugins()
         entries = [p for p in plugins if p["name"] == "dupe"]
         assert len(entries) == 1
@@ -4448,7 +4448,7 @@ class TestDashboardPluginManifestExtensions:
         """A denied plugin directory or manifest must not prevent valid plugins loading."""
         from pathlib import Path
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         self._write_plugin(tmp_path, "valid", {
             "name": "valid",
             "label": "Valid Plugin",
@@ -4542,14 +4542,14 @@ class TestPtyWebSocket:
         # the venv (tmpfs /tmp vs disk home) where hard links raise EXDEV.
         shutil.copy2(sys.executable, executable)
         env = {
-            "HERMES_CWD": str(tmp_path), "HERMES_PYTHON_SRC_ROOT": str(tmp_path),
-            "HERMES_PYTHON": str(executable),
+            "A2ASSISTANT_CWD": str(tmp_path), "A2ASSISTANT_PYTHON_SRC_ROOT": str(tmp_path),
+            "A2ASSISTANT_PYTHON": str(executable),
             "PATH": str(bin_dir),
         }
 
         main_tui_launch._apply_tui_python_env(env)
 
-        assert (env["HERMES_PYTHON"], env["HERMES_PYTHON_SRC_ROOT"]) == (sys.executable, str(_main_mod.PROJECT_ROOT))
+        assert (env["A2ASSISTANT_PYTHON"], env["A2ASSISTANT_PYTHON_SRC_ROOT"]) == (sys.executable, str(_main_mod.PROJECT_ROOT))
 
 
     def test_unavailable_platform_closes_with_message(self, monkeypatch):
@@ -4646,7 +4646,7 @@ def test_resolve_chat_argv_injects_gateway_ws_url(monkeypatch):
     _argv, _cwd, env = _web_server_chat._resolve_chat_argv()
 
     assert env is not None
-    gateway_url = env.get("HERMES_TUI_GATEWAY_URL", "")
+    gateway_url = env.get("A2ASSISTANT_TUI_GATEWAY_URL", "")
     assert gateway_url.startswith("ws://127.0.0.1:9119/api/ws?")
     assert "token=" in gateway_url
 
@@ -4673,7 +4673,7 @@ class TestDashboardPluginStaticAssetAllowlist:
         is served while ``plugin_api.py`` and ``__pycache__/*.pyc``
         from the same directory are not. Since the example plugin is
         no longer bundled, ``_install_example_plugin`` lays it down in
-        the per-test ``HERMES_HOME`` user-plugins dir.
+        the per-test ``A2ASSISTANT_HOME`` user-plugins dir.
         """
         try:
             from starlette.testclient import TestClient
@@ -4938,8 +4938,8 @@ class TestDesktopCronTicker:
 
         called = threading.Event()
         monkeypatch.setattr(sched, "tick", lambda *a, **k: called.set())
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "desktop-spawn-token")
 
         with self._client():
             assert called.wait(3.0), "expected cron tick under a Desktop-owned backend"
@@ -4964,7 +4964,7 @@ class TestServeIndexMissingIndex:
                 "<html><head></head><body>SPA</body></html>", encoding="utf-8"
             )
         monkeypatch.setattr(ws, "WEB_DIST", dist)
-        monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_SERVE_HEADLESS", raising=False)
         spa_app = FastAPI()
         _web_server_dashboard.mount_spa(spa_app)
         return TestClient(spa_app), dist
@@ -5013,7 +5013,7 @@ class TestServeIndexMissingIndex:
 
 
 class TestHeadlessServeTokenPage:
-    """Headless `hermes serve` must serve the Desktop token handshake page
+    """Headless `a2assistant serve` must serve the Desktop token handshake page
     at `/` when the dashboard auth gate is off (#94227).
 
     The Electron renderer boots by fetching `/` and extracting
@@ -5030,7 +5030,7 @@ class TestHeadlessServeTokenPage:
         from starlette.testclient import TestClient
         import hermes_cli.web_server as ws
 
-        monkeypatch.setenv("HERMES_SERVE_HEADLESS", "1")
+        monkeypatch.setenv("A2ASSISTANT_SERVE_HEADLESS", "1")
         spa_app = FastAPI()
         spa_app.state.auth_required = gated
         _web_server_dashboard.mount_spa(spa_app)
@@ -5116,7 +5116,7 @@ class TestHashedAssetCacheHeaders:
             encoding="utf-8",
         )
         monkeypatch.setattr(ws, "WEB_DIST", dist)
-        monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_SERVE_HEADLESS", raising=False)
         spa_app = FastAPI()
         _web_server_dashboard.mount_spa(spa_app)
         return TestClient(spa_app)

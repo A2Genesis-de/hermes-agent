@@ -24,10 +24,10 @@ repo, tag = sys.argv[1:3]
 sys.path.insert(0, repo)
 # Remove all inherited Hermes/config and credential env before real imports.
 for key in list(os.environ):
-    if key.startswith('HERMES_') or key.endswith(('_API_KEY', '_TOKEN')):
+    if key.startswith('A2ASSISTANT_') or key.endswith(('_API_KEY', '_TOKEN')):
         os.environ.pop(key, None)
 home = tempfile.TemporaryDirectory(prefix='review-goaldup-')
-os.environ['HERMES_HOME'] = home.name
+os.environ['A2ASSISTANT_HOME'] = home.name
 os.environ['NO_PROXY'] = '*'
 os.environ['TZ'] = 'UTC'
 # Fail closed: these probes must never invoke a provider or external network.

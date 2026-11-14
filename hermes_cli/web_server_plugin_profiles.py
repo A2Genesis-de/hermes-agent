@@ -67,7 +67,7 @@ def secondary_profile_home() -> Optional[Path]:
 
 def _scan_profile_plugins(home: Path) -> list:
     """The profile at ``home``'s dashboard plugins, read from disk: its own ``plugins/``, then the
-    root's (as a standalone ``hermes --profile <name> serve`` scanned them; the profile's own copy
+    root's (as a standalone ``a2assistant --profile <name> serve`` scanned them; the profile's own copy
     wins a same-name conflict), then the bundled ones."""
     from hermes_cli.plugins import get_bundled_plugins_dir
     from hermes_cli.profiles import _get_default_hermes_home

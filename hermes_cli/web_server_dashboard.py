@@ -97,8 +97,8 @@ def _render_active_theme_bootstrap_css() -> str:
 _IMMUTABLE_ASSET_CACHE_CONTROL = "public, max-age=31536000, immutable"
 _NO_STORE = {"Cache-Control": "no-store, no-cache, must-revalidate"}
 _HEADLESS_MSG = (
-    "Headless backend (hermes serve): web UI disabled — use "
-    "`hermes dashboard` for the browser UI."
+    "Headless backend (a2assistant serve): web UI disabled — use "
+    "`a2assistant dashboard` for the browser UI."
 )
 
 
@@ -124,7 +124,7 @@ def mount_spa(application: FastAPI):
 
     # `hermes serve` is the headless backend: it must NEVER serve the browser SPA, even if a
     # dist is lying around, so only the JSON-RPC/WS/API surface is reachable.
-    if os.environ.get("HERMES_SERVE_HEADLESS") == "1":
+    if os.environ.get("A2ASSISTANT_SERVE_HEADLESS") == "1":
 
         @application.get("/{full_path:path}")
         async def no_frontend(full_path: str):
@@ -172,7 +172,7 @@ def mount_spa(application: FastAPI):
             # Partial build / wiped dist / permissions: same JSON 404 as a fully-missing dist. The
             # Webapp's bundle is built by `hermes webapp`, not by the dashboard's web project.
             webapp = getattr(application.state, "ui_surface", "dashboard") == "webapp"
-            missing = ("The Webapp is not built. Run: hermes webapp" if webapp
+            missing = ("The Webapp is not built. Run: a2assistant webapp" if webapp
                        else "Frontend not built. Run: pnpm --dir web run build")
             return JSONResponse({"error": missing}, status_code=404)
         if getattr(application.state, "ui_surface", "dashboard") == "webapp":
@@ -384,7 +384,7 @@ def _normalise_theme_definition(data: dict[str, Any]) -> Optional[dict[str, Any]
     unusable. Accepts the full schema and a loose form (top-level ``colors``, bare hex).
 
     customCSS is clipped but intentionally NOT sanitised — themes are user-authored YAML in
-    ~/.hermes/, the same trust level as config.yaml. Empty asset values are dropped so a
+    ~/.a2assistant/, the same trust level as config.yaml. Empty asset values are dropped so a
     theme can explicitly clear a slot.
     """
     if not isinstance(data, dict):
@@ -480,7 +480,7 @@ def _discover_user_themes() -> list:
     """Fully-normalised user themes from ``<launch home>/dashboard-themes/*.yaml``.
 
     Uses the process launch home, not ``get_hermes_home()``, so a transient profile override
-    from embedded chat does not hide themes under the server's own ``HERMES_HOME``.
+    from embedded chat does not hide themes under the server's own ``A2ASSISTANT_HOME``.
     """
     themes_dir = get_process_hermes_home() / "dashboard-themes"
     if not themes_dir.is_dir():
@@ -531,7 +531,7 @@ def _dashboard_plugin_search_dirs() -> list[tuple]:
 
     User dashboard plugins are a dashboard-owned asset (like theme YAML): resolved from the
     process launch home so they don't vanish when a request is scoped to another profile.
-    When the process itself is profile-scoped (``HERMES_HOME=<root>/profiles/<name>``) the
+    When the process itself is profile-scoped (``A2ASSISTANT_HOME=<root>/profiles/<name>``) the
     launch home has no ``plugins/`` — user plugins live in the hermes root — so the default
     root is scanned too; profile-local plugins stay authoritative over same-named root ones.
     The project source is gated on shared truthy semantics (``1``/``true``/``yes``/``on``):
@@ -564,7 +564,7 @@ def _dashboard_plugin_search_dirs() -> list[tuple]:
     # this turned the opt-in into a sticky always-on switch. Use the shared truthy semantics (``1`` /
     # ``true`` / ``yes`` / ``on``) so the gate matches ``hermes_cli/plugins.py`` and the documented user
     # contract.
-    if env_var_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
+    if env_var_enabled("A2ASSISTANT_ENABLE_PROJECT_PLUGINS"):
         search_dirs.append((Path.cwd() / ".hermes" / "plugins", "project"))
     return search_dirs
 
@@ -695,9 +695,9 @@ def _schedule_check_fn_probe(fn) -> Optional[threading.Thread]:
 
 
 def _plugin_login_command(name: str) -> str:
-    """A plugin that left core with its own login command (``hermes spotify login``), else ``hermes auth <name>``."""
+    """A plugin that left core with its own login command (``hermes spotify login``), else ``a2assistant auth <name>``."""
     from hermes_cli.left_core_migration import LEFT_CORE
-    return next((f"hermes {f.cli} login" for f in LEFT_CORE if f.plugin == name and f.cli), f"hermes auth {name}")
+    return next((f"hermes {f.cli} login" for f in LEFT_CORE if f.plugin == name and f.cli), f"a2assistant auth {name}")
 
 
 def _plugin_auth_hint(name: str, provides_tools: list) -> tuple:
@@ -1195,7 +1195,7 @@ def _mount_one_plugin_api(app, plugin: dict[str, Any], enabled_set: set, disable
         _log.warning(
             "Plugin %s: ignoring backend api=%s (project plugins may "
             "not auto-import Python code; move the plugin to "
-            "~/.hermes/plugins/ if you trust it)",
+            "~/.a2assistant/plugins/ if you trust it)",
             plugin["name"], api_file_name,
         )
         return False

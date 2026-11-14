@@ -32,7 +32,7 @@ def test_profile_extraction_ignores_a_hermes_cli_package_in_the_launch_directory
     (launch_dir / "hermes_cli").mkdir(parents=True)
     (launch_dir / "hermes_cli" / "__init__.py").write_text(SHADOW_INIT, encoding="utf-8")
     (launch_dir / "hermes_cli" / "plugin_host_child.py").write_text(SHADOW_CHILD, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.chdir(launch_dir)
 
     profiles, _in_process = load_hosted_profiles(plugin_dir, "_hermes_test_cwdprobe")

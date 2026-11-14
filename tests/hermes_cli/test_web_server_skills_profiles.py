@@ -5,7 +5,7 @@ file (future CLI/gateway runs) — it never retargets the running dashboard
 process. Before the ``profile`` parameter existed, toggling a skill after
 "activating" a profile silently wrote into the dashboard's own config.
 These tests pin the new behavior: reads and writes land in the REQUESTED
-profile's HERMES_HOME, and the dashboard's own profile stays untouched.
+profile's A2ASSISTANT_HOME, and the dashboard's own profile stays untouched.
 """
 import pytest
 import hermes_yaml as yaml
@@ -138,9 +138,9 @@ class TestProfileScopedSkills:
                           json={"name": "shown-name", "locked": True})
         assert resp.status_code == 200, resp.text
         assert resp.json() == {"ok": True, "name": "shown-name", "locked": True}
-        monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["worker_alpha"]))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(isolated_profiles["worker_alpha"]))
         assert skill_usage.is_locked("dir-name")
-        monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["default"]))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(isolated_profiles["default"]))
         assert not skill_usage.is_locked("dir-name")
 
         rows = client.get("/api/skills", params={"profile": "worker_alpha"}).json()
@@ -149,7 +149,7 @@ class TestProfileScopedSkills:
         resp = client.put("/api/skills/lock", params={"profile": "worker_alpha"},
                           json={"name": "shown-name", "locked": False})
         assert resp.status_code == 200
-        monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["worker_alpha"]))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(isolated_profiles["worker_alpha"]))
         assert not skill_usage.is_locked("dir-name")
 
     def test_lock_unknown_skill_404_and_corrupt_sidecar_lists_unlocked(
@@ -166,7 +166,7 @@ class TestProfileScopedHubActions:
     def test_hub_install_spawns_with_profile_flag(
         self, client, isolated_profiles, monkeypatch
     ):
-        """Hub installs must go through a fresh ``hermes -p <profile>``
+        """Hub installs must go through a fresh ``a2assistant -p <profile>``
         subprocess — the in-process scope can't reach skills_hub's
         import-time SKILLS_DIR binding."""
         from hermes_cli import web_server
@@ -205,7 +205,7 @@ class TestProfileScopedHubActions:
         self, client, isolated_profiles, monkeypatch
     ):
         """``default`` is a real named profile, not an alias for "the dashboard's own".
-        A pooled ``hermes -p worker_alpha serve`` dashboard answering a hub action with
+        A pooled ``a2assistant -p worker_alpha serve`` dashboard answering a hub action with
         ``profile=default`` must still emit ``-p default``: without it the child's env
         carries this process's home verbatim and the install lands on worker_alpha."""
         calls = []
@@ -218,7 +218,7 @@ class TestProfileScopedHubActions:
             return _FakeProc()
 
         # Ambient home of a dashboard serving under the named profile.
-        monkeypatch.setenv("HERMES_HOME", str(isolated_profiles["worker_alpha"]))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(isolated_profiles["worker_alpha"]))
         monkeypatch.setattr(_web_server_gateway, "_spawn_hermes_action", _fake_spawn)
         resp = client.post(
             "/api/skills/hub/install",
@@ -231,4 +231,4 @@ class TestProfileScopedHubActions:
         # The spawn-path env pin must land the child on the default home, not the
         # ambient one it would inherit from a selector-less argv.
         env = _web_server_gateway._profile_action_environment(calls[0])
-        assert env["HERMES_HOME"] == str(isolated_profiles["default"])
+        assert env["A2ASSISTANT_HOME"] == str(isolated_profiles["default"])

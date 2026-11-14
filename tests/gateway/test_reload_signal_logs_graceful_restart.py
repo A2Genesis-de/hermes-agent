@@ -1,4 +1,4 @@
-"""SIGUSR1 (systemd ``ExecReload`` / ``hermes gateway restart``) is a graceful restart, and the
+"""SIGUSR1 (systemd ``ExecReload`` / ``a2assistant gateway restart``) is a graceful restart, and the
 gateway says so in its log when the signal lands (#117267)."""
 
 from __future__ import annotations
@@ -53,7 +53,7 @@ class _AbortedStartupRunner:
 
 @pytest.mark.asyncio
 async def test_sigusr1_handler_installed_by_start_gateway_logs_graceful_restart(tmp_path, monkeypatch, caplog):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     for target, value in (
         ("gateway.status.get_running_pid", lambda: None),
         ("gateway.status.acquire_gateway_runtime_lock", lambda: True),

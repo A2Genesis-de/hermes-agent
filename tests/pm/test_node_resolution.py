@@ -53,9 +53,9 @@ def node_store(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     store = home / "tools"
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(store))
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(store))
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
     lock_path = tmp_path / "lock.json"
     monkeypatch.setattr(paths, "lockfile_path", lambda: lock_path)
     binary = _register_installed_tool("node", node)
@@ -96,9 +96,9 @@ def test_passive_discovery_never_installs_or_repairs_a_legacy_tree(tmp_path, mon
     legacy.parent.mkdir(parents=True)
     legacy.write_text("#!/bin/sh\nexit 1\n", encoding="utf-8")
     legacy.chmod(0o755)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(home / "tools"))
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(home / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
     monkeypatch.setenv("PATH", "")
     before = {p.relative_to(home): p.read_bytes() for p in home.rglob("*") if p.is_file()}
     attempts = []
@@ -170,7 +170,7 @@ def test_npm_and_npx_use_the_paired_pm_entry(node_store, monkeypatch):
 
 @pytest.mark.platforms("windows")
 def test_windows_path_prefers_launchable_cmd_but_never_for_pm_tools(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "absent-store"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "absent-store"))
     monkeypatch.setenv("PATH", str(tmp_path))
     for tool in ("npm", "pnpm"):
         for name in (tool, f"{tool}.ps1", f"{tool}.cmd"):

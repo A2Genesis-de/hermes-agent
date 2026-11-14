@@ -85,7 +85,7 @@ def test_self_heals_missing_singleton_access_token_from_codex_cli(tmp_path, monk
             "refresh_token": "fresh-refresh",
         },
     }))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
 
     resolved = resolve_codex_runtime_credentials()
@@ -114,7 +114,7 @@ def test_opt_out_never_adopts_codex_cli_login(tmp_path, monkeypatch):
     (hermes_home / "auth.json").write_text(json.dumps(hermes_auth))
     (codex_home / "auth.json").write_text(json.dumps({
         "tokens": {"access_token": "fresh-access", "refresh_token": "fresh-refresh"}}))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
 
     with pytest.raises(AuthError) as info:
@@ -149,7 +149,7 @@ def _seed_homes(tmp_path, monkeypatch, hermes_tokens, cli_tokens):
     (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {"openai-codex": {
         "tokens": hermes_tokens, "auth_mode": "chatgpt"}}}))
     (codex_home / "auth.json").write_text(json.dumps({"tokens": cli_tokens}))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv("CODEX_HOME", str(codex_home))
     return hermes_home / "auth.json"
 

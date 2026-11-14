@@ -33,8 +33,8 @@ _EXTRA_ENV_VARS = (
     # Base URLs / paths that influence detection but aren't api_key_env_vars.
     "LM_BASE_URL", "KIMI_BASE_URL", "STEPFUN_BASE_URL", "KILOCODE_BASE_URL",
     "GMI_BASE_URL", "OPENAI_BASE_URL",
-    "HERMES_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH",
-    "HERMES_COPILOT_ACP_ARGS", "COPILOT_ACP_BASE_URL",
+    "A2ASSISTANT_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH",
+    "A2ASSISTANT_COPILOT_ACP_ARGS", "COPILOT_ACP_BASE_URL",
 )
 
 PROVIDER_ENV_VARS = tuple(
@@ -63,7 +63,7 @@ class TestResolveProvider:
 
     def test_alias_chatgpt_every_alias_table(self):
         """Issue #95794: the runtime (providers.py), the /model parser (models_catalog_static via
-        parse_model_input) and ``hermes auth login`` all resolve the ChatGPT alias, not just auth."""
+        parse_model_input) and ``a2assistant auth login`` all resolve the ChatGPT alias, not just auth."""
         from hermes_cli.providers import normalize_provider
         from hermes_cli.models import parse_model_input
         from hermes_cli.auth_commands import _normalize_provider
@@ -121,7 +121,7 @@ class TestRuntimeProviderResolution:
 
         profile = ProviderProfile(name="acme-acp", auth_type="external_process", base_url="acp://acme",
                                   process_command="acme", process_args=("--acp", "--stdio"),
-                                  process_args_env_var="HERMES_ACME_ACP_ARGS")
+                                  process_args_env_var="A2ASSISTANT_ACME_ACP_ARGS")
         monkeypatch.setitem(providers._REGISTRY, profile.name, profile)
         monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)
         monkeypatch.setattr(auth, "PROVIDER_REGISTRY", dict(auth.PROVIDER_REGISTRY))
@@ -131,7 +131,7 @@ class TestRuntimeProviderResolution:
         cli.write_text("", encoding="utf-8")
         cli.chmod(0o755)
         monkeypatch.setenv("PATH", str(tmp_path))
-        monkeypatch.setenv("HERMES_ACME_ACP_ARGS", "--acp --stdio --debug")
+        monkeypatch.setenv("A2ASSISTANT_ACME_ACP_ARGS", "--acp --stdio --debug")
 
         from hermes_cli.runtime_provider import resolve_runtime_provider
 
@@ -193,7 +193,7 @@ class TestHasAnyProviderConfigured:
         }))
         monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
         monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         # Clear all provider env vars
         for var in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY",
                      "ANTHROPIC_TOKEN", "OPENAI_BASE_URL"):
@@ -218,7 +218,7 @@ class TestHasAnyProviderConfigured:
         hermes_home.mkdir()
         monkeypatch.setattr(config_module, "get_env_path", lambda: hermes_home / ".env")
         monkeypatch.setattr(config_module, "get_hermes_home", lambda: hermes_home)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         self._clear_provider_env(monkeypatch)
         return hermes_home
 

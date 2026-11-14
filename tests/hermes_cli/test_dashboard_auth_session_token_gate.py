@@ -1,7 +1,7 @@
 """End-to-end gate tests for the session-token auth provider.
 
 The bellona-shaped scenario: a non-loopback dashboard whose ONLY credential is the
-provisioned ``HERMES_DASHBOARD_SESSION_TOKEN`` (the nix/agenix deployment story).
+provisioned ``A2ASSISTANT_DASHBOARD_SESSION_TOKEN`` (the nix/agenix deployment story).
 Before the session-token provider, that deployment hit the fail-closed gate, got
 talked into basic auth by the interactive prompt, and its own token was rejected
 on every gated leg (REST 401, ``/api/ws`` 403) — the desktop's "HTTP passes but the

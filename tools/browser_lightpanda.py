@@ -73,7 +73,7 @@ def merge_sane_path(existing_path: str = "") -> str:
 
 def find_lightpanda_binary() -> Optional[str]:
     """Return the lightpanda executable, or None. Order: PATH (plus the standard system dirs), then the
-    installer's locations, then ``$HERMES_HOME/bin``. No Windows build."""
+    installer's locations, then ``$A2ASSISTANT_HOME/bin``. No Windows build."""
     if os.name == "nt":
         logger.debug("Lightpanda has no Windows build")
         return None
@@ -357,7 +357,7 @@ def lightpanda_engine_status() -> tuple[bool, str]:
 
     ``(False, "")`` when the engine isn't lightpanda; else the reason names the setting shadowing it, in
     session-creation precedence, with config-only gates (no network I/O) for ``/browser status`` and
-    ``hermes doctor``."""
+    ``a2assistant doctor``."""
     if not using_lightpanda_engine():
         return False, ""
     from tools.browser_session_cdp import get_cdp_override_raw

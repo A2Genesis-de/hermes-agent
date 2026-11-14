@@ -57,12 +57,12 @@ def _reset_logging_state():
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    """Provide an isolated HERMES_HOME for logging tests.
+    """Provide an isolated A2ASSISTANT_HOME for logging tests.
 
     Uses the same tmp_path as the autouse _isolate_hermes_home from conftest,
     reading it back from the env var to avoid double-mkdir conflicts.
     """
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     return home
 
 
@@ -155,7 +155,7 @@ class TestSetupLogging:
         if routed_opt_out == "config":
             (routed / "config.yaml").write_text("security:\n  redact_secrets: false\n", encoding="utf-8")
         elif routed_opt_out == "env":
-            (routed / ".env").write_text("HERMES_REDACT_SECRETS=false\n", encoding="utf-8")
+            (routed / ".env").write_text("A2ASSISTANT_REDACT_SECRETS=false\n", encoding="utf-8")
         hermes_logging.setup_logging(hermes_home=hermes_home)
         assert hermes_logging.enable_profile_log_routing([hermes_home, routed]) is True
         routed_secret = "sk-proj-ROUTEDPROFILE" + "b" * 24
@@ -298,7 +298,7 @@ class TestSetupLogging:
     ):
         """A profile deleted underneath a long-lived dashboard must not loop.
 
-        ``_profile_homes`` is a startup snapshot, so a ``hermes profile delete``
+        ``_profile_homes`` is a startup snapshot, so a ``a2assistant profile delete``
         leaves the routing set naming a home whose directory no longer exists.
         Records for that home must fall back to the default home instead of
         retrying (and stderr-spamming) the vanished logs/ path on every record

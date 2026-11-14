@@ -15,7 +15,7 @@ time is positive proof the turn never finished. Contract pinned here:
   disabled / crash-looping / already-running cases, and bounds attempts via
   the marker's attempt counter;
 * a marker whose writer is still alive is ownership evidence, not crash
-  evidence: a second backend resuming the same session over one HERMES_HOME
+  evidence: a second backend resuming the same session over one A2ASSISTANT_HOME
   schedules nothing and leaves the marker for its owner to clear (#94778).
 """
 
@@ -92,7 +92,7 @@ def emits(monkeypatch):
 
 @pytest.fixture()
 def marker_home(monkeypatch, tmp_path):
-    """Point the server's marker storage at a temp HERMES_HOME."""
+    """Point the server's marker storage at a temp A2ASSISTANT_HOME."""
     monkeypatch.setattr(server, "_hermes_home", tmp_path)
     return tmp_path
 
@@ -137,7 +137,7 @@ def test_marker_survives_corrupt_sidecar(tmp_path):
 
 
 def test_sibling_backend_record_does_not_resurrect_a_cleared_marker(tmp_path, monkeypatch):
-    """Two backends on one HERMES_HOME: B loads the marker file to start S2, A clears its concluded
+    """Two backends on one A2ASSISTANT_HOME: B loads the marker file to start S2, A clears its concluded
     S1, then B stores — B's stale snapshot must not bring S1 back (resume would re-run a finished turn)."""
     from hermes_cli import auth
     from tests.tui_gateway._turn_marker_backend import record_after_parent_moves
@@ -597,7 +597,7 @@ def test_marker_writer_state_rejects_a_recycled_pid():
 
 
 def test_second_backend_defers_to_a_live_marker_writer(emits, schedule_env, marker_home):
-    """Two backends, one HERMES_HOME, one session: A is mid-turn (alive writer)
+    """Two backends, one A2ASSISTANT_HOME, one session: A is mid-turn (alive writer)
 
     B resumes S and must read the marker as ownership evidence, not crash
     evidence — no continuation, no misleading "Resuming interrupted turn…"

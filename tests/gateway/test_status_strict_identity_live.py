@@ -1,6 +1,6 @@
 """Strict gateway identity against a REAL process holding ``gateway.lock``.
 
-``hermes update`` on Windows maps live gateways to profiles through
+``a2assistant update`` on Windows maps live gateways to profiles through
 ``get_running_pid_identity_strict``. A live gateway whose ``gateway.pid`` was
 unlinked still holds its runtime lock, and the lock carries the same identity
 record, so the updater must identify it from the lock instead of aborting the
@@ -83,7 +83,7 @@ def _spawn_lock_holder(
     argv = [sys.executable, str(script), *(["gateway", "run"] if as_gateway else [])]
     proc = subprocess.Popen(
         argv, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
-        env={**os.environ, "HERMES_HOME": str(home)},
+        env={**os.environ, "A2ASSISTANT_HOME": str(home)},
     )
     assert proc.stdout is not None
     line = _readline(proc.stdout).strip()
@@ -130,7 +130,7 @@ def gateway_holder(tmp_path_factory):
 def home(gateway_holder, monkeypatch):
     """The holder's home; the identity files each test mutates are restored afterwards."""
     home, _pid = gateway_holder
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     pid_bytes = (home / "gateway.pid").read_bytes()
     lock_bytes = (home / "gateway.lock").read_bytes()
     yield home
@@ -224,7 +224,7 @@ class TestStrictIdentityWithLiveLock:
 
 def test_lock_holder_that_is_not_a_gateway_still_aborts(tmp_path, monkeypatch):
     home = _make_home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     proc, holder = _spawn_lock_holder(tmp_path / "bin", home, as_gateway=False)
     try:
         (home / "gateway.pid").unlink()

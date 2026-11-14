@@ -357,7 +357,7 @@ def test_dispatch_runs_under_the_enqueuing_profile_context(tmp_path, monkeypatch
         home.mkdir()
         (home / "config.yaml").write_text(
             f"auxiliary:\n  background_review:\n    enabled: {str(gate).lower()}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(ambient))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(ambient))
     q, clock = _make_queue()
     seen = []
 

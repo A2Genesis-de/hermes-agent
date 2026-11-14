@@ -18,8 +18,8 @@ def test_minimal_bootstrap_closure_reaches_pm_paths_and_locks(tmp_path):
     for name in ("__init__.py", "runtime_state.py"):
         shutil.copy2(repo / "hermes_cli" / name, stage / "hermes_cli" / name)
     store = stage / "tools"
-    env = dict(os.environ, HERMES_HOME=str(tmp_path / "home"),
-               HERMES_RUNTIME_DIR=str(store), PYTHONPATH=str(stage))
+    env = dict(os.environ, A2ASSISTANT_HOME=str(tmp_path / "home"),
+               A2ASSISTANT_RUNTIME_DIR=str(store), PYTHONPATH=str(stage))
     script = """
 from pathlib import Path
 import pm.paths
@@ -52,7 +52,7 @@ def _constants_stage(tmp_path, *, with_acl: bool) -> Path:
 def _mkdir_in_stage(stage: Path, home: Path) -> subprocess.CompletedProcess:
     script = "import hermes_constants, sys; print(hermes_constants.mkdir_under_hermes_home(sys.argv[1]))"
     return subprocess.run([sys.executable, "-S", "-c", script, str(home / "logs")], cwd=stage,
-                          env=dict(os.environ, HERMES_HOME=str(home), PYTHONPATH=str(stage)),
+                          env=dict(os.environ, A2ASSISTANT_HOME=str(home), PYTHONPATH=str(stage)),
                           capture_output=True, text=True, timeout=15, check=False)
 
 
@@ -93,7 +93,7 @@ from hermes_cli.macos_signing import sign_managed_python
 assert callable(sign_managed_python)
 """
     result = subprocess.run([sys.executable, "-S", "-c", script], cwd=repo,
-                            env=dict(os.environ, HERMES_HOME=str(tmp_path / "home")),
+                            env=dict(os.environ, A2ASSISTANT_HOME=str(tmp_path / "home")),
                             capture_output=True, text=True, timeout=15, check=False)
     assert result.returncode == 0, result.stderr
 
@@ -122,6 +122,6 @@ result = _run_streaming([sys.executable, '-c', 'print(\"no solution found\")'],
 assert result.returncode == 0, result
 """
     result = subprocess.run([sys.executable, "-S", "-c", script], cwd=repo,
-                            env=dict(os.environ, HERMES_HOME=str(tmp_path / "home")),
+                            env=dict(os.environ, A2ASSISTANT_HOME=str(tmp_path / "home")),
                             capture_output=True, text=True, timeout=60, check=False)
     assert result.returncode == 0, result.stdout + result.stderr

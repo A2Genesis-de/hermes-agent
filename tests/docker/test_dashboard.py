@@ -1,12 +1,12 @@
-"""Harness: dashboard opt-in via HERMES_DASHBOARD.
+"""Harness: dashboard opt-in via A2ASSISTANT_DASHBOARD.
 
-Today (tini): dashboard starts once when HERMES_DASHBOARD=1; if it crashes
+Today (tini): dashboard starts once when A2ASSISTANT_DASHBOARD=1; if it crashes
 it stays dead. After Phase 2 (s6): dashboard starts once; if it crashes
 it is restarted under supervision. The restart-after-crash test lives in
 Phase 2 Task 2.5; this file only locks the opt-in surface (which must
 not change between tini and s6).
 
-Every ``docker exec`` here runs as the unprivileged ``hermes`` user
+Every ``docker exec`` here runs as the unprivileged ``a2assistant`` user
 (via :func:`docker_exec`/:func:`docker_exec_sh` in conftest), matching
 the realistic runtime context. See the conftest module docstring.
 """
@@ -21,12 +21,12 @@ from tests.docker.conftest import docker_exec, docker_exec_sh, start_container, 
 def test_dashboard_not_running_by_default(
     built_image: str, container_name: str,
 ) -> None:
-    """Without HERMES_DASHBOARD, no dashboard process should be running."""
+    """Without A2ASSISTANT_DASHBOARD, no dashboard process should be running."""
     start_container(built_image, container_name, cmd="sleep 60")
-    r = docker_exec(container_name, "pgrep", "-f", "hermes dashboard")
+    r = docker_exec(container_name, "pgrep", "-f", "a2assistant dashboard")
     # pgrep exits non-zero when no match found
     assert r.returncode != 0, (
-        "Dashboard should not be running without HERMES_DASHBOARD"
+        "Dashboard should not be running without A2ASSISTANT_DASHBOARD"
     )
 
 
@@ -122,7 +122,7 @@ except urllib.error.HTTPError as h:
 def test_dashboard_insecure_env_var_no_longer_bypasses_gate(
     built_image: str, container_name: str,
 ) -> None:
-    """``HERMES_DASHBOARD_INSECURE=1`` NO LONGER disables the auth gate
+    """``A2ASSISTANT_DASHBOARD_INSECURE=1`` NO LONGER disables the auth gate
     (June 2026 hardening). With insecure set on a 0.0.0.0 bind and NO auth
     provider registered, start_server fails closed — the dashboard never
     binds, so ``/api/status`` is unreachable. This proves the unauthenticated
@@ -131,9 +131,9 @@ def test_dashboard_insecure_env_var_no_longer_bypasses_gate(
     """
     start_container(
         built_image, container_name,
-        "HERMES_DASHBOARD=1",
-        "HERMES_DASHBOARD_HOST=0.0.0.0",
-        "HERMES_DASHBOARD_INSECURE=1",
+        "A2ASSISTANT_DASHBOARD=1",
+        "A2ASSISTANT_DASHBOARD_HOST=0.0.0.0",
+        "A2ASSISTANT_DASHBOARD_INSECURE=1",
         cmd="sleep 120",
     )
     # Fail-closed: the dashboard process must NOT successfully serve. Probe

@@ -33,7 +33,7 @@ def request_for(base):
     return {"schema": 1, "buildId": "a" * 32, "channel": "unknown-at-build-time", "sequence": 7,
             "repository": "fixture/repo", "commit": "b" * 40, "sourceVersion": "1.2.3",
             "version": "0.0.7", "windowsVersion": "0.0.7.0", "identity": preview_identity("unknown-at-build-time", "c" * 16),
-            "bundleEnv": {"HERMES_DATA_DIR_SUFFIX": "different from the prior request"}, "publicBase": base}
+            "bundleEnv": {"A2ASSISTANT_DATA_DIR_SUFFIX": "different from the prior request"}, "publicBase": base}
 
 
 @pytest.fixture
@@ -113,7 +113,7 @@ def test_channel_handoff_binds_full_request_and_feed_bytes(tmp_path, r2_server, 
         filename = file["url"].rsplit("/", 1)[-1]
         assert file["size"] == (build / filename).stat().st_size
     changed = copy.deepcopy(request)
-    changed["bundleEnv"]["HERMES_DATA_DIR_SUFFIX"] = "other packaging input"
+    changed["bundleEnv"]["A2ASSISTANT_DATA_DIR_SUFFIX"] = "other packaging input"
     with pytest.raises(ValueError, match="identity"):
         handoff.fetch_channel_build(changed, ["win32-x64"], tmp_path / "wrong", public_base=request["publicBase"])
     assert not (tmp_path / "wrong").exists()
@@ -349,7 +349,7 @@ def test_channel_windows_record_stage_and_assembly_handoff_shell(tmp_path, r2_se
     request_file.write_text(json.dumps(request), encoding="utf-8")
     env = {"GITHUB_WORKSPACE": str(tmp_path), "RUNNER_TEMP": str(tmp_path), "TARGET": "win32-x64",
            "RELEASE_COMMIT": request["commit"], "CHANNEL_BUILD": request["buildId"],
-           "HERMES_PAYLOAD_TAG": "", "HERMES_BUILD_COMMIT": ""}
+           "A2ASSISTANT_PAYLOAD_TAG": "", "A2ASSISTANT_BUILD_COMMIT": ""}
     # This test owns the first metadata publication for this leg; the setup's
     # transport metadata is deliberately not a native recorder output.
     prefix = handoff.channel_prefix(request)
@@ -363,10 +363,10 @@ def test_channel_windows_record_stage_and_assembly_handoff_shell(tmp_path, r2_se
     # provenance, not selection — the channel stage must accept it.
     for key in ("metadata-windows-x64.json", "handoff-win32-x64.json"):
         r2_server.store.pop(prefix + key)
-    result = run_shell(tmp_path, r2_server, script, dict(env, HERMES_BUILD_COMMIT=request["commit"]))
+    result = run_shell(tmp_path, r2_server, script, dict(env, A2ASSISTANT_BUILD_COMMIT=request["commit"]))
     assert result.returncode == 0, result.stdout + result.stderr
     # A different commit stays an override attempt (and stages nothing).
-    result = run_shell(tmp_path, r2_server, script, dict(env, HERMES_BUILD_COMMIT="d" * 40))
+    result = run_shell(tmp_path, r2_server, script, dict(env, A2ASSISTANT_BUILD_COMMIT="d" * 40))
     assert result.returncode != 0 and "another commit" in result.stderr
     receipt_key = handoff.channel_prefix(request) + "handoff-win32-x64.json"
     receipt = json.loads(r2_server.store[receipt_key][0])
@@ -493,7 +493,7 @@ def test_tag_and_commit_staging_never_runs_for_a_pinned_channel_build():
     ``channel_build.dispatch_command`` sends both ``channel`` and
     ``build_commit``, so the tag/commit staging steps — gated on
     ``inputs.build_commit != ''`` — would run inside a channel build, where a
-    pinned request makes both HERMES_PAYLOAD_TAG and HERMES_BUILD_COMMIT
+    pinned request makes both A2ASSISTANT_PAYLOAD_TAG and A2ASSISTANT_BUILD_COMMIT
     empty. The step then falls through to tag mode and handoff refuses the
     empty tag. Staging a channel build belongs to the pinned-request step
     alone, so every other handoff staging step must be gated off whenever a

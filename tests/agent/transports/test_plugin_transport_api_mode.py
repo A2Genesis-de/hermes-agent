@@ -6,7 +6,7 @@ dialect, and ``ProviderProfile.api_mode`` names it. Every gate between the profi
 the delegation resolver) validated the mode against a closed literal set, so the plugin's mode was
 rewritten to ``chat_completions`` and its transport never selected — no error, prose-only turns.
 
-Both tests drive a REAL plugin discovered from an isolated HERMES_HOME rather than the gates in
+Both tests drive a REAL plugin discovered from an isolated A2ASSISTANT_HOME rather than the gates in
 isolation, so they fail if any single gate regresses.
 """
 
@@ -37,7 +37,7 @@ register_provider(ProviderProfile(name="__NAME__", auth_type="api_key", env_vars
 
 @pytest.fixture
 def install_dialect_plugin(tmp_path, monkeypatch):
-    """Write a model-provider plugin (optionally registering its transport) under a temp HERMES_HOME."""
+    """Write a model-provider plugin (optionally registering its transport) under a temp A2ASSISTANT_HOME."""
     installed: list[tuple[str, str]] = []
 
     def _install(name: str, mode: str, *, register: bool) -> None:
@@ -49,7 +49,7 @@ def install_dialect_plugin(tmp_path, monkeypatch):
         source = (_PLUGIN_SOURCE.replace("__ENV__", env).replace("__NAME__", name).replace("__MODE__", mode)
                   .replace("__REGISTER__", "yes" if register else "no"))
         (plugin_dir / "__init__.py").write_text(source, encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
         monkeypatch.setenv(env, "sk-fixture")
         import providers as _pkg
         _pkg._discovered = False

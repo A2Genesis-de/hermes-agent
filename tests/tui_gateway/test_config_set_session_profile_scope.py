@@ -33,7 +33,7 @@ def homes(tmp_path, monkeypatch):
     launch, worker = tmp_path / "launch", tmp_path / "profiles" / "worker"
     _write_cfg(launch, "queue", "manual")
     _write_cfg(worker, "queue", "manual")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(server, "_hermes_home", launch)
     monkeypatch.setattr(server, "_cfg_cache", None)
     monkeypatch.setattr(server, "_cfg_sig", None)

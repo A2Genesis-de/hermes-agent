@@ -10,7 +10,7 @@ Regressions for #134889:
   only it enabled imported that copy here or handed it to its plugin host.
 
 Driven through the real app (native-ticket auth, the gates, the hot mount, the plugin's own router)
-against a temp HERMES_HOME. The daemon is a stand-in runner carrying a real ``TicketStore``; the
+against a temp A2ASSISTANT_HOME. The daemon is a stand-in runner carrying a real ``TicketStore``; the
 plugin host, another process, is a recorder of what this process would ask it to run.
 """
 from __future__ import annotations

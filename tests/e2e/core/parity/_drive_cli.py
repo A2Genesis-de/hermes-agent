@@ -15,10 +15,10 @@ Driver contract (every ``_drive_*.py`` module follows it)::
   SIGTERM, RPC) before returning; never SIGKILL except as a last resort after a
   bounded graceful wait (and then report it via ``graceful_exit=False``).
 
-``hermes -z`` and ``hermes chat -q`` are thin clients of the unified gateway
+``a2assistant -z`` and ``a2assistant chat -q`` are thin clients of the unified gateway
 runtime: the turn runs in the profile's ``gateway run`` daemon (spawned on first
 connect), which outlives the client by design. Their normal shutdown is therefore
-client exit + ``hermes gateway stop`` (``stop_profile_gateway``).
+client exit + ``a2assistant gateway stop`` (``stop_profile_gateway``).
 """
 
 from __future__ import annotations
@@ -57,8 +57,8 @@ def _client_turn(ph: ParityHome, label: str, *args: str) -> DriveResult:
 
 
 def drive_oneshot(ph: ParityHome, srv: FakeLLMServer, prompt: str) -> DriveResult:
-    return _client_turn(ph, "hermes -z", "-z", prompt)
+    return _client_turn(ph, "a2assistant -z", "-z", prompt)
 
 
 def drive_chat_q(ph: ParityHome, srv: FakeLLMServer, prompt: str) -> DriveResult:
-    return _client_turn(ph, "hermes chat -q", "chat", "-q", prompt, "-Q")
+    return _client_turn(ph, "a2assistant chat -q", "chat", "-q", prompt, "-Q")

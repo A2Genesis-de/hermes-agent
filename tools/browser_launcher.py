@@ -5,7 +5,7 @@ profile shared by every key). Chromium picks its own DevTools port (``--remote-d
 and writes it to ``<user-data-dir>/DevToolsActivePort``; the CDP URL comes from that file, so there
 is no port race. Every owned launch leaves a record in a private (0700) launcher state dir so a later
 Hermes process can reap the Chromium of an owner that crashed, after proving the pid is still that browser:
-a throwaway profile's in its home (``<HERMES_HOME>/cache/browser/chromium-records``), a persistent profile's
+a throwaway profile's in its home (``<A2ASSISTANT_HOME>/cache/browser/chromium-records``), a persistent profile's
 in that profile's own dir under :func:`_shared_profiles_root` (per OS user: every home pinning the dir shares
 it). A shared-profile Chromium other Hermes processes attached to is stopped only by its last holder
 (``tools/browser_launcher_holders.py``).
@@ -563,7 +563,7 @@ def launch_chromium(key: str, *, executable: Optional[str] = None, user_data_dir
 
     ``executable=None`` resolves the packaged Chromium (``chromium_ready``); an explicit executable (the
     Bot Desktop's, the user's real browser) is used as given. ``user_data_dir=None`` is a fresh
-    ephemeral profile under ``<HERMES_HOME>/cache/browser/chromium/``; a persistent dir that already has
+    ephemeral profile under ``<A2ASSISTANT_HOME>/cache/browser/chromium/``; a persistent dir that already has
     a live Chromium on it is ATTACHED (``owned=False``, never killed). ``sandbox_bypass=False`` (the
     user's real browser) never gets the host's sandbox-bypass flags. ``prepare`` (a persistent dir only) runs
     right before a fresh launch, inside the same cross-process step, never when attaching: a profile copy
@@ -855,7 +855,7 @@ def _private_dir(path: Path) -> Optional[Path]:
 
 
 def _shared_profiles_root() -> Path:
-    """Launcher state of persistent (shared) profiles, per OS user rather than per HERMES_HOME: two homes pinning
+    """Launcher state of persistent (shared) profiles, per OS user rather than per A2ASSISTANT_HOME: two homes pinning
     one ``browser.user_data_dir`` drive its one Chromium, so they must see one launch record, one lease set and
     one lock. The host rendezvous root the gateway's own cross-profile locks use."""
     from gateway.status import _get_lock_dir

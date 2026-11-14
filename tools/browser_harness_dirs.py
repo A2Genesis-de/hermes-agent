@@ -97,7 +97,7 @@ def _harness_home(env: dict) -> str:
 
 def fit_default_socket_dir(env: dict) -> None:
     """Outside a served profile the harness binds ``<home>/runtime/bu-<BU_NAME>.sock``. Under a deep
-    HOME (a container's profile home ``$HERMES_HOME/home``, a long account home) that path overflows
+    HOME (a container's profile home ``$A2ASSISTANT_HOME/home``, a long account home) that path overflows
     sun_path and every call dies with ``AF_UNIX path too long``; such a call's runtime dir moves to a
     private short dir. Judged on the call's own BU_NAME so a socket that already binds keeps its
     path (and its live daemon). A runtime/tmp dir already set (a served profile's, or exported by

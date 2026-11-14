@@ -118,7 +118,7 @@ async def _turn(monkeypatch, config: dict, *, platform=Platform.TELEGRAM, model=
     import gateway.run as gateway_run
     from tools import async_delegation
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     chat = _Chat(platform)
     source = SessionSource(platform=platform, chat_id="c1", chat_type="dm", user_id="u1")
     event = MessageEvent(text="How is billing doing?", source=source, message_type=MessageType.TEXT)
@@ -289,7 +289,7 @@ def test_each_profile_resolves_its_own_mode_under_the_multiplexer(monkeypatch, t
     beta.mkdir(parents=True)
     (root / "config.yaml").write_text(yaml.safe_dump(_interim(False)))
     (beta / "config.yaml").write_text(yaml.safe_dump(_interim(True)))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
     prev = secret_scope.is_multiplex_active()
     secret_scope.set_multiplex_active(True)
@@ -311,7 +311,7 @@ def test_each_profile_resolves_its_own_mode_under_the_multiplexer(monkeypatch, t
 
 async def _two_turns(monkeypatch, config: dict, *, first_heartbeat: bool, restart_between=False):
     """Two turns on one Telegram chat through a runner WITH an agent cache (the second turn reuses the first turn's
-    agent) and a real SessionDB in the temp HERMES_HOME (the tools[] pin is persisted). ``restart_between`` drops
+    agent) and a real SessionDB in the temp A2ASSISTANT_HOME (the tools[] pin is persisted). ``restart_between`` drops
     the cache between the turns, so the second turn builds a fresh agent that restores the session's pin.
     Returns (chat, the delegate_task definition of each parent request, the persisted pin)."""
     import json
@@ -320,7 +320,7 @@ async def _two_turns(monkeypatch, config: dict, *, first_heartbeat: bool, restar
     from hermes_state import SessionDB
     from tools import async_delegation
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     platform = Platform.TELEGRAM
     chat = _Chat(platform)
     source = SessionSource(platform=platform, chat_id="c1", chat_type="dm", user_id="u1")

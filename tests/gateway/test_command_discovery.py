@@ -34,8 +34,8 @@ async def _legacy_ws_snapshot(root, home, env, requests):
     shutil.copy2(home / 'config.yaml', legacy_home / 'config.yaml')
     for directory in ('skills', 'plugins'):
         shutil.copytree(home / directory, legacy_home / directory)
-    legacy_env = {**env, 'HERMES_HOME': str(legacy_home),
-                  'HERMES_DASHBOARD_SESSION_TOKEN': 'disposable-discovery-token'}
+    legacy_env = {**env, 'A2ASSISTANT_HOME': str(legacy_home),
+                  'A2ASSISTANT_DASHBOARD_SESSION_TOKEN': 'disposable-discovery-token'}
     with (home.parent / 'legacy-serve.log').open('w+') as log:
         process = subprocess.Popen([sys.executable, '-m', 'hermes_cli.main', 'serve',  # noqa: ASYNC220 -- Popen returns immediately; the test drives the child through its handle
                                     '--host', '127.0.0.1', '--port', '0', '--skip-build', '--isolated'],
@@ -48,7 +48,7 @@ async def _legacy_ws_snapshot(root, home, env, requests):
             while process.poll() is None and time.monotonic() < deadline:
                 log.seek(0)
                 output = log.read()
-                if match := re.search(r'HERMES_BACKEND_READY port=(\d+)', output):
+                if match := re.search(r'A2ASSISTANT_BACKEND_READY port=(\d+)', output):
                     port = int(match.group(1))
                     break
                 await asyncio.sleep(.1)
@@ -96,7 +96,7 @@ def test_ordinary_daemon_discovery_matches_legacy_extensions(tmp_path):
     (plugin / '__init__.py').write_text(
         "def register(ctx):\n    ctx.register_command('probe-plugin', lambda args: args, description='Disposable plugin discovery')\n")
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home),
                PYTHONPATH=str(root), PYTHONUNBUFFERED='1')
     requests = [('commands.catalog', {}), *[('complete.slash', {'text': text})
         for text in ('/', '/probe', '/probe-quick', '/help', '/details c', 'plain')]]

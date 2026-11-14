@@ -1,6 +1,6 @@
 """Regression tests for the config.yaml → env var bridge in gateway/run.py.
 
-Guards against the 60-vs-500 bug where a stale `.env HERMES_MAX_ITERATIONS=60`
+Guards against the 60-vs-500 bug where a stale `.env A2ASSISTANT_MAX_ITERATIONS=60`
 entry silently shadowed `agent.max_turns: 500` in config.yaml because the
 bridge used `if X not in os.environ` guards. After PR#18413 the bridge
 treats config.yaml as authoritative and unconditionally overwrites .env
@@ -46,15 +46,15 @@ def _run_gateway_import(
             sys.exit(2)
 
         for k in (
-            "HERMES_MAX_ITERATIONS",
-            "HERMES_AGENT_TIMEOUT",
-            "HERMES_AGENT_TIMEOUT_WARNING",
-            "HERMES_TURN_LEASE_TIMEOUT",
-            "HERMES_SESSION_STALL_TIMEOUT",
-            "HERMES_GATEWAY_BUSY_INPUT_MODE",
-            "HERMES_GATEWAY_BUSY_TEXT_MODE",
-            "HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT",
-            "HERMES_TIMEZONE",
+            "A2ASSISTANT_MAX_ITERATIONS",
+            "A2ASSISTANT_AGENT_TIMEOUT",
+            "A2ASSISTANT_AGENT_TIMEOUT_WARNING",
+            "A2ASSISTANT_TURN_LEASE_TIMEOUT",
+            "A2ASSISTANT_SESSION_STALL_TIMEOUT",
+            "A2ASSISTANT_GATEWAY_BUSY_INPUT_MODE",
+            "A2ASSISTANT_GATEWAY_BUSY_TEXT_MODE",
+            "A2ASSISTANT_GATEWAY_PLATFORM_CONNECT_TIMEOUT",
+            "A2ASSISTANT_TIMEZONE",
             "TERMINAL_CWD",
         ):
             v = os.environ.get(k)
@@ -63,7 +63,7 @@ def _run_gateway_import(
         """
     )
     env = dict(initial_env)
-    env["HERMES_HOME"] = str(hermes_home)
+    env["A2ASSISTANT_HOME"] = str(hermes_home)
     # Keep interpreter paths plus the Windows bootstrap variables required by
     # stdlib platform detection and native dependency loading.  The child is
     # otherwise intentionally clean so stale Hermes settings cannot leak in.
@@ -140,16 +140,16 @@ def test_config_gateway_timeout_wins_over_stale_env(hermes_home: Path) -> None:
         "session_stall_timeout": 300,
     })
     _write_env(hermes_home, {
-        "HERMES_AGENT_TIMEOUT": "60",
-        "HERMES_AGENT_TIMEOUT_WARNING": "30",
-        "HERMES_SESSION_STALL_TIMEOUT": "15",
+        "A2ASSISTANT_AGENT_TIMEOUT": "60",
+        "A2ASSISTANT_AGENT_TIMEOUT_WARNING": "30",
+        "A2ASSISTANT_SESSION_STALL_TIMEOUT": "15",
     })
 
     env = _run_gateway_import(hermes_home, initial_env={})
 
-    assert env.get("HERMES_AGENT_TIMEOUT") == "1800"
-    assert env.get("HERMES_AGENT_TIMEOUT_WARNING") == "900"
-    assert env.get("HERMES_SESSION_STALL_TIMEOUT") == "300"
+    assert env.get("A2ASSISTANT_AGENT_TIMEOUT") == "1800"
+    assert env.get("A2ASSISTANT_AGENT_TIMEOUT_WARNING") == "900"
+    assert env.get("A2ASSISTANT_SESSION_STALL_TIMEOUT") == "300"
 
 
 def test_config_turn_lease_timeout_wins_over_stale_env(hermes_home: Path) -> None:
@@ -160,12 +160,12 @@ def test_config_turn_lease_timeout_wins_over_stale_env(hermes_home: Path) -> Non
     )
     _write_env(
         hermes_home,
-        {"HERMES_TURN_LEASE_TIMEOUT": "60"},
+        {"A2ASSISTANT_TURN_LEASE_TIMEOUT": "60"},
     )
 
     env = _run_gateway_import(hermes_home, initial_env={})
 
-    assert env.get("HERMES_TURN_LEASE_TIMEOUT") == "600"
+    assert env.get("A2ASSISTANT_TURN_LEASE_TIMEOUT") == "600"
 
 
 def test_default_turn_lease_timeout_overrides_stale_env_when_key_is_omitted(
@@ -174,14 +174,14 @@ def test_default_turn_lease_timeout_overrides_stale_env_when_key_is_omitted(
     """The internal env mirror must never become a second config source."""
     _write_env(
         hermes_home,
-        {"HERMES_TURN_LEASE_TIMEOUT": "60"},
+        {"A2ASSISTANT_TURN_LEASE_TIMEOUT": "60"},
     )
 
     env = _run_gateway_import(hermes_home, initial_env={})
 
     from hermes_cli.config import DEFAULT_CONFIG
 
-    assert float(env.get("HERMES_TURN_LEASE_TIMEOUT")) == float(
+    assert float(env.get("A2ASSISTANT_TURN_LEASE_TIMEOUT")) == float(
         DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"]
     )
 
@@ -209,22 +209,22 @@ def test_config_platform_connect_timeout_supplies_env_when_unset(hermes_home: Pa
 
     env = _run_gateway_import(hermes_home, initial_env={})
 
-    assert env.get("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT") == "90"
+    assert env.get("A2ASSISTANT_GATEWAY_PLATFORM_CONNECT_TIMEOUT") == "90"
 
 
 def test_env_platform_connect_timeout_wins_over_config(hermes_home: Path) -> None:
     """Unlike the agent.*/display.*/timezone bridges (config-authoritative),
-    HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT is the manual-override escape hatch:
+    A2ASSISTANT_GATEWAY_PLATFORM_CONNECT_TIMEOUT is the manual-override escape hatch:
     an explicitly-set env var WINS over config.yaml. This divergence is
     intentional (#19776) — the env var is the operator's emergency knob."""
     _write_config(hermes_home, gateway_cfg={"platform_connect_timeout": 90})
 
     env = _run_gateway_import(
         hermes_home,
-        initial_env={"HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT": "120"},
+        initial_env={"A2ASSISTANT_GATEWAY_PLATFORM_CONNECT_TIMEOUT": "120"},
     )
 
-    assert env.get("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT") == "120"
+    assert env.get("A2ASSISTANT_GATEWAY_PLATFORM_CONNECT_TIMEOUT") == "120"
 
 
 def test_first_import_under_a_routed_override_bridges_the_process_home(tmp_path: Path) -> None:
@@ -242,5 +242,5 @@ def test_first_import_under_a_routed_override_bridges_the_process_home(tmp_path:
 
     env = _run_gateway_import(homes["launch"], {}, routed_home=homes["routed"])
 
-    assert env.get("HERMES_MAX_ITERATIONS") == "111"
+    assert env.get("A2ASSISTANT_MAX_ITERATIONS") == "111"
     assert env.get("TERMINAL_CWD") == str(homes["launch"] / "work")

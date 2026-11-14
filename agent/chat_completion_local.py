@@ -33,7 +33,7 @@ def _streams_llamacpp(agent) -> bool:
 
 def stale_giveup() -> int:
     """Consecutive stale attempts after which calls fail at once; 0 turns the breaker off."""
-    return env_int("HERMES_STREAM_STALE_GIVEUP", 5)
+    return env_int("A2ASSISTANT_STREAM_STALE_GIVEUP", 5)
 
 
 def _local_server_answers(agent) -> bool:

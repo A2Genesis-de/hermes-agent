@@ -94,7 +94,7 @@ def profile_text(packaged_executable: Path) -> str:
     exe = str(packaged_executable.resolve())
     return (
         "# A2Assistant Desktop: let Chromium's user-namespace sandbox start under\n"
-        "# kernel.apparmor_restrict_unprivileged_userns=1 (written by `hermes desktop --install-apparmor-profile`).\n"
+        "# kernel.apparmor_restrict_unprivileged_userns=1 (written by `a2assistant desktop --install-apparmor-profile`).\n"
         "abi <abi/4.0>,\n"
         "include <tunables/global>\n\n"
         f'profile {name} "{exe}" flags=(unconfined) {{\n'
@@ -226,5 +226,5 @@ def print_no_sandbox_fallback(packaged_executable: Path) -> None:
     print("  user-namespace sandbox for A2Assistant Desktop. To keep the sandbox on, run ONE of these:")
     print(f"    sudo chown root:root {helper} && sudo chmod 4755 {helper}")
     print("        Chromium's setuid sandbox helper (recommended; redo after each rebuild)")
-    print("    hermes desktop --install-apparmor-profile")
+    print("    a2assistant desktop --install-apparmor-profile")
     print("        AppArmor profile for this path (survives rebuilds; any program running as you can use it)")

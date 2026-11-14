@@ -81,7 +81,7 @@ def test_setup_reads_pins_independent_of_indentation(tmp_path, served, indent, b
         json.dumps({"origin": base_url, "prefix": "mirror/"}, indent=mirror_indent), encoding="utf-8",
     )
     env = {"PATH": os.environ["PATH"], "HOME": str(home),
-           "HERMES_HOME": str(home / ".hermes"), "HERMES_RUNTIME_DIR": str(runtime),
+           "A2ASSISTANT_HOME": str(home / ".hermes"), "A2ASSISTANT_RUNTIME_DIR": str(runtime),
            "PYTHONNOUSERSITE": "1"}
     result = subprocess.run(
         [bash, str(core / "setup-hermes.sh"), "--runtime-only"], cwd=tmp_path,

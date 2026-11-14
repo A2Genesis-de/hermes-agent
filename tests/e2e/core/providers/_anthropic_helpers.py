@@ -5,7 +5,7 @@ exact production route to ``https://api.anthropic.com`` (native thinking-signatu
 policy, native headers). The child reaches the scripted fake through an
 ``HTTPS_PROXY`` that terminates TLS for ``api.anthropic.com`` with a leaf signed
 by a throwaway CA trusted via ``SSL_CERT_FILE``; only the vendor HTTP boundary
-is faked. Every child runs with an allowlisted env, ``HOME``/``HERMES_HOME``
+is faked. Every child runs with an allowlisted env, ``HOME``/``A2ASSISTANT_HOME``
 under ``tmp_path`` and a unique tag so cleanup signals only its own tree.
 """
 
@@ -56,17 +56,17 @@ class Rig:
         real_root = Path(pwd.getpwuid(os.getuid()).pw_dir, ".hermes").resolve()
         fixture = self.hermes_home.resolve()
         assert fixture != real_root and fixture.parent != real_root / "profiles", (
-            f"fixture HERMES_HOME {fixture} is the real install's live home")
+            f"fixture A2ASSISTANT_HOME {fixture} is the real install's live home")
         env = {k: v for k, v in os.environ.items()
                if (k in _PASSTHROUGH_ENV or k.startswith("LC_")) and not k.endswith(_SECRET_ENV_SUFFIXES)}
         loopback = "127.0.0.1,localhost"
         env.update({
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
+            "HOME": str(self.home), "A2ASSISTANT_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1", "NO_COLOR": "1", "TERM": "dumb", TAG_VAR: self.tag,
             "HTTPS_PROXY": self.proxy.url, "https_proxy": self.proxy.url,
             "NO_PROXY": loopback, "no_proxy": loopback, "SSL_CERT_FILE": str(self.ca_pem),
             # The child's ~/.hermes/state.db IS the tmp home's db (see parity/_helpers.py).
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
         })
         env.update(extra or {})
         return env

@@ -200,7 +200,7 @@ test.skipIf(process.platform === 'win32').each(['gui', 'lite', 'full'] as const)
       fs.mkdirSync(sibling)
       fs.writeFileSync(
         recorder,
-        `require('node:fs').writeFileSync(${JSON.stringify(resultFile)}, JSON.stringify({argv:process.argv.slice(2), home:process.env.HERMES_HOME, pythonPath:process.env.PYTHONPATH, cwd:process.cwd()}))`
+        `require('node:fs').writeFileSync(${JSON.stringify(resultFile)}, JSON.stringify({argv:process.argv.slice(2), home:process.env.A2ASSISTANT_HOME, pythonPath:process.env.PYTHONPATH, cwd:process.cwd()}))`
       )
       fs.writeFileSync(
         script,
@@ -215,7 +215,7 @@ test.skipIf(process.platform === 'win32').each(['gui', 'lite', 'full'] as const)
         })
       )
       child = spawn('bash', [script], {
-        env: { ...process.env, PYTHONPATH: 'inherited', HERMES_HOME: root },
+        env: { ...process.env, PYTHONPATH: 'inherited', A2ASSISTANT_HOME: root },
         stdio: 'ignore'
       })
       await once(child, 'close')
@@ -256,7 +256,7 @@ test('buildPosixCleanupScript waits for the PID, runs the uninstall module, remo
   assert.match(script, /kill -0 "\$pid"/)
   assert.match(script, /'-m' 'hermes_cli\.uninstall' '--mode' 'gui'/)
   assert.match(script, /rm -rf '\/opt\/hermes\/linux-unpacked'/)
-  assert.match(script, /export HERMES_HOME='\/home\/x\/\.hermes'/)
+  assert.match(script, /export A2ASSISTANT_HOME='\/home\/x\/\.hermes'/)
 })
 
 // --- buildWindowsCleanupScript ---

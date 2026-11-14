@@ -37,10 +37,10 @@ import tui_gateway.server as srv
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    """Temp HERMES_HOME with the default profile plus one named profile."""
+    """Temp A2ASSISTANT_HOME with the default profile plus one named profile."""
     h = tmp_path / ".hermes"
     (h / "profiles" / "ops").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(h))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(h))
     return h
 
 

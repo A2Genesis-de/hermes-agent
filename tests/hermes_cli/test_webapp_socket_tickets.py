@@ -36,7 +36,7 @@ def serve_webapp(tmp_path, monkeypatch):
     (home / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "localhost", raising=False)
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)
@@ -231,7 +231,7 @@ def test_voice_tickets_minted_before_the_session_token_changed_open_nothing(weba
 
 def test_socket_tickets_are_minted_only_for_the_webapps_sockets_on_the_webapp(webapp, monkeypatch):
     """One route mints every socket ticket; it knows only the Webapp's four sockets, and the
-    standalone dashboard and ``hermes serve`` mint none."""
+    standalone dashboard and ``a2assistant serve`` mint none."""
     server, client = webapp.server, webapp.client
     for socket in ("display", "events", "speak", ""):
         response = client.post("/api/webapp/socket-ticket", params={"socket": socket}, headers=_SESSION)

@@ -136,7 +136,7 @@ class TestWsTicketEndpoint:
             encoding="utf-8",
         )
         monkeypatch.setattr(web_server, "WEB_DIST", dist)
-        monkeypatch.delenv("HERMES_SERVE_HEADLESS", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_SERVE_HEADLESS", raising=False)
         monkeypatch.setattr(web_server.app.state, "auth_required", True, raising=False)
         application = FastAPI()
         application.state.auth_required = True
@@ -257,7 +257,7 @@ class TestWsAuthOkLoopback:
     @pytest.mark.parametrize("surface", ["dashboard", "serve"])
     def test_off_the_webapp_the_loopback_gate_takes_only_the_token_as_on_main(
             self, loopback_app, monkeypatch, surface):
-        """The standalone dashboard and ``hermes serve`` mint no socket tickets, so their loopback
+        """The standalone dashboard and ``a2assistant serve`` mint no socket tickets, so their loopback
         gate judges ``?token=`` alone, as on main: a ticket opens nothing there and is not spent, and
         one riding beside the session token does not refuse it."""
         from hermes_cli.dashboard_auth.ws_tickets import consume_ticket
@@ -361,7 +361,7 @@ class TestWsAuthOkGated:
     @pytest.mark.parametrize("surface", ["dashboard", "serve"])
     def test_off_the_webapp_internal_credential_opens_every_socket_as_on_main(
             self, gated_app, monkeypatch, surface):
-        """The standalone dashboard and ``hermes serve`` accept the server's own credential on every
+        """The standalone dashboard and ``a2assistant serve`` accept the server's own credential on every
         socket their gate judges, plugin sockets included, as on main."""
         monkeypatch.setattr(web_server.app.state, "ui_surface", surface, raising=False)
         credential = internal_ws_credential()
@@ -419,7 +419,7 @@ class TestWsAuthOkGated:
 
     def test_session_token_audit_logs(self, gated_app, tmp_path, monkeypatch):
         """Accept and reject of a session token both audit."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         from hermes_cli.dashboard_auth import audit as audit_mod
 
         if hasattr(audit_mod, "_LOGGER"):
@@ -446,7 +446,7 @@ class TestWsAuthOkGated:
 
     def test_rejection_audit_logs(self, gated_app, tmp_path, monkeypatch):
         # Point the audit log at a tmp dir so we can read what got written.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         from hermes_cli.dashboard_auth import audit as audit_mod
 
         # The log path is resolved lazily on the first audit_log() call;

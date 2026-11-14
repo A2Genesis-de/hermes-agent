@@ -21,7 +21,7 @@ export const zhDesktopCommands = {
   processesHeader: (count: string) => `后台进程（${count}）：`,
   configHeader: '配置（显示、审批、粘贴和语音设置；其他内容不显示）：',
   configDefaults: '（默认值）',
-  configFooter: '在“设置”中更改，或在网关主机上用 `hermes config edit` 编辑 config.yaml。',
+  configFooter: '在“设置”中更改，或在网关主机上用 `a2assistant config edit` 编辑 config.yaml。',
   historyHeader: (count: string) => `对话历史（${count} 条消息）：`,
   historyEmpty: '还没有消息。',
   historyYou: '你',
@@ -35,9 +35,9 @@ export const zhDesktopCommands = {
   saveDialogTitle: '保存对话',
   savedTo: (path: string) => `对话已保存到 ${path}`,
   saveCancelled: '未保存（已取消）。',
-  exportRemote: '/export 从网关主机打包配置文件，而网关主机不是这台电脑。请在该主机上运行 `hermes profile export`。',
+  exportRemote: '/export 从网关主机打包配置文件，而网关主机不是这台电脑。请在该主机上运行 `a2assistant profile export`。',
   importRemote:
-    '/import 在网关主机上安装配置文件，而网关主机不是这台电脑。请在该主机上运行 `hermes profile import <archive>`。',
+    '/import 在网关主机上安装配置文件，而网关主机不是这台电脑。请在该主机上运行 `a2assistant profile import <archive>`。',
   timestampsUsage: '用法：/timestamps [on|off|status]',
   timestampsOn: '时间戳：开（仅此窗口；在 config.yaml 中设置 display.timestamps 以保留）',
   timestampsOff: '时间戳：关（仅此窗口；在 config.yaml 中设置 display.timestamps 以保留）'

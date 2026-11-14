@@ -24,7 +24,7 @@ export const deDesktopCommands = {
   configHeader: 'Konfiguration (Anzeige, Freigaben, Einfügen und Sprache; alles andere wird nicht angezeigt):',
   configDefaults: '(Standardwerte)',
   configFooter:
-    'Ändere Einstellungen unter Einstellungen oder bearbeite config.yaml mit `hermes config edit` auf dem Gateway-Host.',
+    'Ändere Einstellungen unter Einstellungen oder bearbeite config.yaml mit `a2assistant config edit` auf dem Gateway-Host.',
   historyHeader: (count: string) => `Gesprächsverlauf (${count} Nachrichten):`,
   historyEmpty: 'Noch keine Nachrichten.',
   historyYou: 'Du',
@@ -39,9 +39,9 @@ export const deDesktopCommands = {
   savedTo: (path: string) => `Unterhaltung gespeichert unter ${path}`,
   saveCancelled: 'Nicht gespeichert (abgebrochen).',
   exportRemote:
-    '/export packt ein Profil auf dem Gateway-Host, und das ist nicht dieser Rechner. Führe `hermes profile export` auf diesem Host aus.',
+    '/export packt ein Profil auf dem Gateway-Host, und das ist nicht dieser Rechner. Führe `a2assistant profile export` auf diesem Host aus.',
   importRemote:
-    '/import installiert ein Profil auf dem Gateway-Host, und das ist nicht dieser Rechner. Führe `hermes profile import <archive>` auf diesem Host aus.',
+    '/import installiert ein Profil auf dem Gateway-Host, und das ist nicht dieser Rechner. Führe `a2assistant profile import <archive>` auf diesem Host aus.',
   timestampsUsage: 'Verwendung: /timestamps [on|off|status]',
   timestampsOn: 'Zeitstempel: an (dieses Fenster; display.timestamps in config.yaml setzen, um es zu behalten)',
   timestampsOff: 'Zeitstempel: aus (dieses Fenster; display.timestamps in config.yaml setzen, um es zu behalten)'

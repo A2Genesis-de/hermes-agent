@@ -1,7 +1,7 @@
 """Durable interrupted-turn markers for the desktop/TUI auto-continue path. A running turn's progress
 lives only in process memory (the agent flushes to SQLite at turn end), so a marker is written at turn
 start and cleared on any conclusion — only a process death leaves one behind, and ``session.resume``
-reads it (``_maybe_schedule_auto_continue``). Stored per ``HERMES_HOME`` (profile-aware); writes prune
+reads it (``_maybe_schedule_auto_continue``). Stored per ``A2ASSISTANT_HOME`` (profile-aware); writes prune
 entries older than ``_MAX_AGE_SECS`` and cap the count so a crash streak can't grow the file. Every
 function is best-effort — marker bookkeeping must never break a turn — so I/O errors degrade to "no
 marker" instead of raising. A marker also carries its writer's pid + start time (``marker_writer_state``): "a
@@ -34,7 +34,7 @@ def _marker_path(home: Path | str) -> Path:
 
 
 def _cross_process_lock(path: Path):
-    """Sibling backends on one HERMES_HOME (#94778) don't share ``_lock``; without this flock one's stale
+    """Sibling backends on one A2ASSISTANT_HOME (#94778) don't share ``_lock``; without this flock one's stale
     load → store resurrects a marker the other just cleared (a finished turn auto-continues again)."""
     from hermes_cli.auth import _file_lock
     return _file_lock(path.with_name(f"{path.name}.lock"), _file_lock_holder, 5.0,
@@ -64,7 +64,7 @@ def _writer_identity() -> dict:
 def marker_writer_state(entry: dict) -> str:
     """``"alive"`` / ``"dead"`` / ``"unknown"``: is the process that wrote this marker still running?
 
-    A marker is durable proof a turn started — never proof its writer died. Two backends sharing one HERMES_HOME
+    A marker is durable proof a turn started — never proof its writer died. Two backends sharing one A2ASSISTANT_HOME
     break that assumption: A is mid-turn on session S while B resumes S, and B used to read A's marker as crash
     evidence and start a second turn over it (#94778). Liveness comes from ``active_sessions._pid_liveness``
     (pid + start time, so a reused pid reads dead), and "unknown" is the safe answer: it leaves the marker alone

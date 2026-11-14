@@ -54,7 +54,7 @@ def _clean_state():
 def _orphan(home: Path) -> str:
     """Run a real owner process under ``home`` and return the id of the completion it left pending."""
     home.mkdir(parents=True, exist_ok=True)
-    env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": REPO}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home), "PYTHONPATH": REPO}
     out = subprocess.run([sys.executable, "-c", _OWNER], cwd=REPO, env=env, text=True,
                          capture_output=True, timeout=60, check=True)
     return out.stdout.strip().splitlines()[-1]

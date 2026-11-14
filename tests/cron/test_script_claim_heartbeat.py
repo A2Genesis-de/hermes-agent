@@ -132,7 +132,7 @@ def test_long_running_script_refreshes_owned_claim_in_profile_store(
     default_cron = tmp_path / "default" / "cron"
     default_cron.mkdir(parents=True)
     profile_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(profile_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
 
     monkeypatch.setattr(jobs, "CRON_DIR", default_cron)
     monkeypatch.setattr(jobs, "JOBS_FILE", default_cron / "jobs.json")

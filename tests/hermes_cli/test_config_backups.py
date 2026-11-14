@@ -1,4 +1,4 @@
-"""config.yaml backups: one dir, deduped, bounded — never a pile of siblings in HERMES_HOME."""
+"""config.yaml backups: one dir, deduped, bounded — never a pile of siblings in A2ASSISTANT_HOME."""
 import os
 from pathlib import Path
 

@@ -3,10 +3,10 @@
 Build the real image and verify at runtime:
 
   1. /opt/hermes is not writable by the hermes user (immutable install tree)
-  2. A stale "docker" stamp in $HERMES_HOME is healed (removed) on boot
+  2. A stale "docker" stamp in $A2ASSISTANT_HOME is healed (removed) on boot
 
 The hosted write-policy env (PYTHONDONTWRITEBYTECODE,
-HERMES_WRITE_SAFE_ROOT, ...) is covered by
+A2ASSISTANT_WRITE_SAFE_ROOT, ...) is covered by
 test_immutable_install_permissions.py.
 """
 from __future__ import annotations
@@ -31,7 +31,7 @@ def test_install_tree_not_writable_by_hermes(
     root-owned and non-writable so an agent session cannot self-modify
     the installation and brick the gateway.
     """
-    start_container(built_image, container_name, f"HERMES_UID={uid}", f"HERMES_GID={uid}")
+    start_container(built_image, container_name, f"A2ASSISTANT_UID={uid}", f"A2ASSISTANT_GID={uid}")
     identity = docker_exec(container_name, "id", "-u")
     assert identity.returncode == 0 and identity.stdout.strip() == str(uid)
 
@@ -96,7 +96,7 @@ for relative in ('.venv/.lock', 'pm-runtime/.lock'):
 def test_stale_docker_stamp_in_home_is_healed_on_boot(
     built_image: str, container_name: str,
 ) -> None:
-    """A stale 'docker' stamp left in $HERMES_HOME by an older image
+    """A stale 'docker' stamp left in $A2ASSISTANT_HOME by an older image
     must be removed on boot so shared homes self-heal."""
     # Start container, write a stale stamp
     start_container(built_image, container_name)
@@ -122,6 +122,6 @@ def test_stale_docker_stamp_in_home_is_healed_on_boot(
         timeout=10,
     )
     assert "HEALED" in r.stdout or r.stdout.strip() != "docker", (
-        f"stale 'docker' stamp in $HERMES_HOME was not healed on boot: "
+        f"stale 'docker' stamp in $A2ASSISTANT_HOME was not healed on boot: "
         f"{r.stdout}"
     )

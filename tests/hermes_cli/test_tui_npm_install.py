@@ -37,11 +37,11 @@ def test_unreceipted_bundle_is_stale_even_when_newer(tmp_path: Path) -> None:
 
 @pytest.fixture
 def tui_source(source_products, monkeypatch):
-    monkeypatch.delenv("HERMES_TUI_DIR", raising=False)
-    monkeypatch.delenv("HERMES_TUI_FORCE_BUILD", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_DIR", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_FORCE_BUILD", raising=False)
     monkeypatch.delenv("TERMUX_VERSION", raising=False)
     monkeypatch.setenv("PREFIX", "/usr")
-    monkeypatch.setenv("HERMES_NODE", shutil.which("node"))
+    monkeypatch.setenv("A2ASSISTANT_NODE", shutil.which("node"))
     monkeypatch.setattr(main_tui_launch, "_find_bundled_tui", lambda: None)
     return source_products
 
@@ -87,7 +87,7 @@ def test_source_launch_ignores_an_npm_retry_count_pnpm_ignores(tui_source, monke
     import os
 
     root, _ = tui_source
-    npmrc = Path(os.environ["HERMES_HOME"]) / "npmrc"
+    npmrc = Path(os.environ["A2ASSISTANT_HOME"]) / "npmrc"
     npmrc.write_text(npmrc.read_text(encoding="utf-8") + "fetch-retries=5\n", encoding="utf-8")
     monkeypatch.setenv("npm_config_fetch_retries", "5")
     main_tui_launch._make_tui_argv(root / "ui-tui", tui_dev=False)
@@ -110,7 +110,7 @@ def test_failed_dependency_preparation_launches_the_previous_build(tui_source, m
     installs are disabled; offline, the registry is unreachable) still starts the previous bundle,
     and hands the caller the warning to show again after the TUI's screen clear."""
     root, _ = tui_source
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
     with pytest.raises(subprocess.CalledProcessError):
         main_tui_launch._make_tui_argv(root / "ui-tui", tui_dev=False)
     _touch_tui_entry(root / "ui-tui")
@@ -119,12 +119,12 @@ def test_failed_dependency_preparation_launches_the_previous_build(tui_source, m
     assert argv[-1] == str(root / "ui-tui/dist/entry.js")
     assert subprocess.run(argv, cwd=cwd, check=True, capture_output=True, text=True).stdout.strip() == "tui"
     assert "previous TUI build was started" in capsys.readouterr().err
-    assert len(notices) == 1 and "hermes update" in notices[0]
+    assert len(notices) == 1 and "a2assistant update" in notices[0]
     assert _events(root) == []
     # --dev runs the sources, and a forced build asks for them: both need the dependencies.
     with pytest.raises(subprocess.CalledProcessError):
         main_tui_launch._make_tui_argv(root / "ui-tui", tui_dev=True)
-    monkeypatch.setenv("HERMES_TUI_FORCE_BUILD", "1")
+    monkeypatch.setenv("A2ASSISTANT_TUI_FORCE_BUILD", "1")
     with pytest.raises(subprocess.CalledProcessError):
         main_tui_launch._make_tui_argv(root / "ui-tui", tui_dev=False)
 
@@ -216,7 +216,7 @@ def test_fallback_notice_survives_the_tui_screen_clear(monkeypatch):
     again once the TUI exits, below whatever it drew."""
     import sys
 
-    monkeypatch.setenv("HERMES_PYTHON", sys.executable)
+    monkeypatch.setenv("A2ASSISTANT_PYTHON", sys.executable)
     terminal = _Terminal(60)
     try:
         terminal.read_until(b"Press Enter")
@@ -239,7 +239,7 @@ def test_fallback_notice_never_holds_an_unwatched_launch(monkeypatch, tmp_path, 
     prompt goes) is redirected starts it at once. The warning still follows the TUI's output."""
     import sys
 
-    monkeypatch.setenv("HERMES_PYTHON", sys.executable)
+    monkeypatch.setenv("A2ASSISTANT_PYTHON", sys.executable)
     log = tmp_path / "stderr.log"
     with log.open("wb") as stderr:
         terminal = _Terminal(2 if case == "nobody answers" else 60, background=case == "background job",
@@ -285,8 +285,8 @@ def test_prebuilt_bundle_launch_does_not_touch_missing_source(tmp_path, monkeypa
     bundled = tmp_path / "bundle/entry.js"
     bundled.parent.mkdir()
     bundled.write_text("console.log('prebuilt')")
-    monkeypatch.delenv("HERMES_TUI_DIR", raising=False)
-    monkeypatch.setenv("HERMES_NODE", shutil.which("node"))
+    monkeypatch.delenv("A2ASSISTANT_TUI_DIR", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_NODE", shutil.which("node"))
     monkeypatch.setattr(main_tui_launch, "_find_bundled_tui", lambda: bundled)
     argv, cwd = main_tui_launch._make_tui_argv(tmp_path / "missing-source", tui_dev=False)
     result = subprocess.run(argv, cwd=cwd, check=True, capture_output=True, text=True)
@@ -332,7 +332,7 @@ def test_runtime_node_comes_from_pm_without_legacy_repair(tmp_path, monkeypatch)
     managed = tmp_path / "bin/node"
     managed.parent.mkdir()
     managed.symlink_to(node)
-    monkeypatch.delenv("HERMES_NODE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_NODE", raising=False)
     acquired = []
 
     def acquire(name):

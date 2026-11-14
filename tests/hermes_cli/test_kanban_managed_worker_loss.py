@@ -42,11 +42,11 @@ def _absent_pid(base: int = 3_800_000) -> int:
 
 @pytest.fixture
 def board(tmp_path, monkeypatch):
-    """An isolated HERMES_HOME board plus the owner ledger a receipt points at."""
+    """An isolated A2ASSISTANT_HOME board plus the owner ledger a receipt points at."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_CRASH_GRACE_SECONDS", "0")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     conn = kbc.connect()

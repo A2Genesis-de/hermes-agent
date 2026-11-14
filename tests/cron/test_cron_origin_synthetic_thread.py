@@ -16,10 +16,10 @@ def _session_env(env: dict):
 
 
 _TOPIC = {
-    "HERMES_SESSION_PLATFORM": "telegram",
-    "HERMES_SESSION_CHAT_ID": "-1003941067111",
-    "HERMES_SESSION_THREAD_ID": "2203",
-    "HERMES_SESSION_MESSAGE_ID": "2203",
+    "A2ASSISTANT_SESSION_PLATFORM": "telegram",
+    "A2ASSISTANT_SESSION_CHAT_ID": "-1003941067111",
+    "A2ASSISTANT_SESSION_THREAD_ID": "2203",
+    "A2ASSISTANT_SESSION_MESSAGE_ID": "2203",
 }
 
 
@@ -33,7 +33,7 @@ def test_topic_thread_is_captured():
 
 
 def test_no_thread_captures_none():
-    env = {k: v for k, v in _TOPIC.items() if k != "HERMES_SESSION_THREAD_ID"}
+    env = {k: v for k, v in _TOPIC.items() if k != "A2ASSISTANT_SESSION_THREAD_ID"}
     with _session_env(env):
         origin = _origin_from_env()
     assert origin is not None

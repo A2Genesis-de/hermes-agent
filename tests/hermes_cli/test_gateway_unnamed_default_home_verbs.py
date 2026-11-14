@@ -21,9 +21,9 @@ def default_home_process(tmp_path, monkeypatch):
     (root / "config.yaml").write_text("model: {default: x}\n")
     (root / "active_profile").write_text("coder")  # sticky: points at a named profile
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    for var in ("HERMES_SUPERVISED_CHILD", "HERMES_S6_SUPERVISED_CHILD", "INVOCATION_ID",
-                "HERMES_GATEWAY_EXTERNAL_SUPERVISOR", "HERMES_UPDATE_POST_SWAP"):
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
+    for var in ("A2ASSISTANT_SUPERVISED_CHILD", "A2ASSISTANT_S6_SUPERVISED_CHILD", "INVOCATION_ID",
+                "A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR", "A2ASSISTANT_UPDATE_POST_SWAP"):
         monkeypatch.delenv(var, raising=False)
     import hermes_constants
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
@@ -44,4 +44,4 @@ def test_unnamed_lifecycle_verbs_from_default_home_always_name_default(default_h
         assert argv == ["-p", "default", "gateway", verb]
         assert _named_profile_from_action(argv) == "default"
     env = _profile_action_environment(_gateway_subcommand(None, "restart"))
-    assert env["HERMES_HOME"] == str(default_home_process)
+    assert env["A2ASSISTANT_HOME"] == str(default_home_process)

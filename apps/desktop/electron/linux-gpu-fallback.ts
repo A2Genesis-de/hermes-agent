@@ -17,8 +17,8 @@
  * mid-boot aborts, or a sticky marker from a prior recovery.
  *
  * Skipped when software rendering is already on (remote-display path,
- * NVIDIA SwiftShader path, `HERMES_DESKTOP_DISABLE_GPU=1`, `--disable-gpu`),
- * and never when `HERMES_DESKTOP_DISABLE_GPU=0` keeps the GPU on.
+ * NVIDIA SwiftShader path, `A2ASSISTANT_DESKTOP_DISABLE_GPU=1`, `--disable-gpu`),
+ * and never when `A2ASSISTANT_DESKTOP_DISABLE_GPU=0` keeps the GPU on.
  *
  * Pure + dependency-free so it can be unit-tested and called before app ready.
  * `--disable-gpu` argv helpers are reused from windows-stack-cookie-fallback
@@ -427,7 +427,7 @@ export function linuxGpuChildDeathPath(options: {
 }
 
 /**
- * #97616: `HERMES_DESKTOP_DISABLE_GPU=1` must fully prevent the GPU process,
+ * #97616: `A2ASSISTANT_DESKTOP_DISABLE_GPU=1` must fully prevent the GPU process,
  * not just compositing. `disableHardwareAcceleration()` alone provably still
  * spawns a GPU child (which then fails error_code=1002 on AMD/Mesa). The
  * remote-display detection reasons keep their long-standing compositing-only

@@ -124,9 +124,9 @@ def test_a_kanban_custom_provider_override_stays_on_the_profiles_endpoint(tmp_pa
     from gateway.session_kanban import build_kanban_policy
     from hermes_cli import kanban_db as kb
     from hermes_cli.kanban_db_connect import connect
-    monkeypatch.setenv('HERMES_KANBAN_HOME', str(tmp_path))
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
-    monkeypatch.delenv('HERMES_KANBAN_DB', raising=False)
+    monkeypatch.setenv('A2ASSISTANT_KANBAN_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
+    monkeypatch.delenv('A2ASSISTANT_KANBAN_DB', raising=False)
     monkeypatch.setattr('hermes_cli.profiles.resolve_profile_env', lambda name: str(tmp_path))
     kb.create_board('owned')
     with closing(connect(board='owned')) as conn:

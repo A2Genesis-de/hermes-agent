@@ -1,6 +1,6 @@
 /**
  * Session lineage and sidebar integrity for branches. One real Electron app +
- * one real `hermes serve`; only the LLM is faked.
+ * one real `a2assistant serve`; only the LLM is faked.
  *
  *  - a branch child is born with a title (#121062) and is a sidebar row of
  *    its own;

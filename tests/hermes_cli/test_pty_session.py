@@ -327,7 +327,7 @@ async def test_a_reattach_that_replays_part_of_the_history_says_output_was_trimm
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(pty_session, "_VIEWER_SEND_TIMEOUT_SECONDS", 0.01)
     monkeypatch.setattr(pty_session, "_REPLAY_MIN_BYTES_PER_SECOND", 1024 ** 3)
     history = bytes(range(256)) * 256
@@ -884,7 +884,7 @@ async def test_close_orphaned_sessions_finds_the_lease_holder_without_a_resume_k
 
 @pytest.mark.asyncio
 async def test_close_orphaned_sessions_leaves_a_holder_outside_every_pty(process_tree):
-    """A lease held by a plain terminal (`hermes` in a shell, pid 9000, no PTY ancestor) is a
+    """A lease held by a plain terminal (`a2assistant` in a shell, pid 9000, no PTY ancestor) is a
     real other window: nothing is closed and the single-writer refusal stands."""
     from hermes_cli.pty_session import PtySession
 

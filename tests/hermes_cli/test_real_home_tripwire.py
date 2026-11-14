@@ -187,7 +187,7 @@ def test_relative_path_metadata_exemption_tracks_working_directory(protected_hom
 
 
 def test_resolving_a_path_entry_under_the_home_is_command_lookup(protected_home, monkeypatch):
-    """Command resolution realpath()s a PATH entry under the home (``~/.hermes/tools/<tool>``)
+    """Command resolution realpath()s a PATH entry under the home (``~/.a2assistant/tools/<tool>``)
     to tell Hermes-managed bin dirs apart; that lstats the entry and each of its ancestors."""
     from tests.home_io_guard import HomeIOGuard
 
@@ -204,7 +204,7 @@ def test_resolving_a_path_entry_under_the_home_is_command_lookup(protected_home,
 
 def test_checkout_inside_a_guarded_root_is_not_hermes_state():
     """The default install checks the repo out INSIDE the home (install.sh:
-    INSTALL_DIR=$HERMES_HOME/hermes-agent): the checkout, its .venv and test
+    INSTALL_DIR=$A2ASSISTANT_HOME/hermes-agent): the checkout, its .venv and test
     data are exempt even when the guarded root contains them; siblings under
     that root are still refused."""
     from tests.home_io_guard import HomeIOGuard
@@ -219,7 +219,7 @@ def test_checkout_inside_a_guarded_root_is_not_hermes_state():
 @pytest.mark.parametrize("kind", ["environments", "test-environment"])
 def test_pm_generation_dir_around_the_running_venv_is_the_interpreter(tmp_path, kind):
     """scripts/run_tests.sh runs ``<home>/installs/<key>/<kind>/<gen>/venv`` with HOME pointed at the
-    run's fake home, so that venv sits under the guarded root. `hermes update` probes
+    run's fake home, so that venv sits under the guarded root. `a2assistant update` probes
     ``<venv>/../hermes_cli/main.py`` (update_owning_install) and must not trip the guard."""
     from tests.home_io_guard import _pm_generation_dirs
 
@@ -233,7 +233,7 @@ def test_pm_generation_dir_around_the_running_venv_is_the_interpreter(tmp_path, 
 
 def test_hermes_exported_scratch_tmp_is_not_the_test_temp_root(tmp_path):
     """A Hermes-launched shell hands pytest TMPDIR=<home>/cache/scratch (tagged by
-    HERMES_SCRATCH_DIR). With that home guarded, honoring it would put the session
+    A2ASSISTANT_SCRATCH_DIR). With that home guarded, honoring it would put the session
     sandbox, basetemp and every tempfile default inside the guarded root; the
     conftest must drop Hermes' own export before anything allocates temp space."""
     home = tmp_path / "home"
@@ -251,8 +251,8 @@ def test_hermes_exported_scratch_tmp_is_not_the_test_temp_root(tmp_path):
                 assert not Path(made).resolve().is_relative_to(home)
         """), encoding="utf-8")
     env = {k: v for k, v in os.environ.items()
-           if k not in ("TMPDIR", "TMP", "TEMP", "HERMES_SCRATCH_DIR", "HERMES_TEST_SANDBOX_HOME")}
-    env.update(HERMES_HOME=str(home), TMPDIR=str(scratch), HERMES_SCRATCH_DIR=str(scratch))
+           if k not in ("TMPDIR", "TMP", "TEMP", "A2ASSISTANT_SCRATCH_DIR", "A2ASSISTANT_TEST_SANDBOX_HOME")}
+    env.update(A2ASSISTANT_HOME=str(home), TMPDIR=str(scratch), A2ASSISTANT_SCRATCH_DIR=str(scratch))
     result = subprocess.run(
         [sys.executable, "-m", "pytest", "-p", "tests.conftest", "-p", "no:cacheprovider", "-q", str(probe)],
         cwd=PROJECT_ROOT, env=env, capture_output=True, text=True, timeout=120,

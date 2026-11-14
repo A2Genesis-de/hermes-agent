@@ -12,7 +12,7 @@ auto-compaction) the ledger asserts:
     the model ever saw is still in the display history exactly once (compaction archives, it
     never drops or duplicates — the kept window survives);
 (f) sessions + session_model_usage totals equal what the provider billed;
-and at the end of every scenario a FRESH ``hermes chat --resume`` process replays the persisted
+and at the end of every scenario a FRESH ``a2assistant chat --resume`` process replays the persisted
 history as a byte-identical request prefix (d), and the whole request stream only breaks its
 prefix at the declared compaction boundaries (C17).
 """
@@ -176,7 +176,7 @@ def world(tmp_path, monkeypatch):
     home.mkdir()
     # The hermetic conftest's per-test HERMES_HOME (a tmp dir): the in-process live-system guard
     # refuses a <HOME>/.hermes layout, and the children must share this very state.db.
-    hermes_home = Path(os.environ["HERMES_HOME"])
+    hermes_home = Path(os.environ["A2ASSISTANT_HOME"])
     workdir = tmp_path / "work"
     workdir.mkdir()
     monkeypatch.setenv("HOME", str(home))

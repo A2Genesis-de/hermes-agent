@@ -106,7 +106,7 @@ async def _refused(tmp_path, sid, reason='not_found', **cold_args):
 
 @pytest.fixture(autouse=True)
 def _home(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
 
 
 @pytest.mark.asyncio

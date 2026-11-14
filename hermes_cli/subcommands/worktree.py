@@ -1,4 +1,4 @@
-"""``hermes worktree`` subcommand parser."""
+"""``a2assistant worktree`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -43,7 +43,7 @@ def build_worktree_parser(subparsers) -> None:
 
     worktree_restore = worktree_subparsers.add_parser(
         "restore", help="Recreate an archived worktree (tracked, staged and untracked files)")
-    worktree_restore.add_argument("name", help="Archive name or tree name (see `hermes worktree list`)")
+    worktree_restore.add_argument("name", help="Archive name or tree name (see `a2assistant worktree list`)")
     worktree_restore.add_argument("--path", help="Restore here instead of the original path")
     worktree_restore.add_argument("--repo", help="Repo root (default: current repo)")
 

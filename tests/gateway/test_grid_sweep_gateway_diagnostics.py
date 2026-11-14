@@ -18,7 +18,7 @@ from tests.gateway.restart_test_helpers import make_restart_runner, make_restart
 def _configure(tmp_path, monkeypatch, setting):
     home = tmp_path / f"home-{setting}"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     display = {} if setting is None else {"suppress_warning_notifications": setting}
     (home / "config.yaml").write_text(json.dumps({"display": display}))
     return home

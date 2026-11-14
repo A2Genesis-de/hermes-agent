@@ -777,7 +777,7 @@ def test_build_scripts_the_update_runs_start_the_upgrade_suite():
 
 
 def test_desktop_build_scripts_start_the_desktop_update_suite():
-    """`hermes desktop --build-only` (the update's Desktop rebuild) runs
+    """`a2assistant desktop --build-only` (the update's Desktop rebuild) runs
     apps/desktop's `build` script, which steps through scripts/build/desktop.mjs."""
     package = json.loads((_REPO / "apps/desktop/package.json").read_text(encoding="utf-8-sig"))
     build = re.search(r"node\s+(\S+\.mjs)", package["scripts"]["build"])
@@ -806,7 +806,7 @@ def _strict_env(run: dict, path: tuple[str, ...], rel: str, job: str, step_name:
     assert node is not None, f"{'/'.join(path)} did not run"
     step = next(s for s in _yaml(rel)["jobs"][job]["steps"] if str(s.get("name", "")).startswith(step_name))
     assert _selected_test_files(node, step_name)
-    return gha.to_string(gha.render(step["env"]["HERMES_E2E_STRICT_ACCEPTANCE"], node["ctx"]))
+    return gha.to_string(gha.render(step["env"]["A2ASSISTANT_E2E_STRICT_ACCEPTANCE"], node["ctx"]))
 
 
 @pytest.mark.parametrize("value", ["upd-txn", "1"])
@@ -843,4 +843,4 @@ def test_run_tests_forwards_the_strict_switch():
     """run_tests.sh starts pytest under `env -i`: an unlisted variable never arrives."""
     text = (_REPO / "scripts/run_tests.sh").read_text(encoding="utf-8-sig")
     allow = re.search(r"for _test_var in (.*?); do", text, re.DOTALL)
-    assert allow and "HERMES_E2E_STRICT_ACCEPTANCE" in allow.group(1).split()
+    assert allow and "A2ASSISTANT_E2E_STRICT_ACCEPTANCE" in allow.group(1).split()

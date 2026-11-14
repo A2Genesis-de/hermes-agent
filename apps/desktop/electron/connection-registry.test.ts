@@ -813,7 +813,7 @@ test('registry local route: a concrete remote-only profile is refused on the for
   assert.match(String(named.refuse ?? ''), /Profile "inbox" no longer exists/)
   assert.equal(named.delegate, false)
 
-  // default is $HERMES_HOME, not profiles/default: a profiles/default probe
+  // default is $A2ASSISTANT_HOME, not profiles/default: a profiles/default probe
   // reports absent, but This device -> default must still open locally.
   assert.deepEqual(resolveRegistryLocalRoute('default', { globalRemote: true, localProfileExists: false }), {
     delegate: false,

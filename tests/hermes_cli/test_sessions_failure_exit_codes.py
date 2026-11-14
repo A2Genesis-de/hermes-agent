@@ -1,5 +1,5 @@
-"""`hermes sessions` exit status tracks the outcome: a subcommand that fails, refuses, or could not ask for
-its confirmation exits non-zero, so cron/CI wrappers and `hermes sessions repair && ...` chains can tell."""
+"""`a2assistant sessions` exit status tracks the outcome: a subcommand that fails, refuses, or could not ask for
+its confirmation exits non-zero, so cron/CI wrappers and `a2assistant sessions repair && ...` chains can tell."""
 
 import sqlite3
 import sys
@@ -138,7 +138,7 @@ def test_redirected_null_stdin_is_unattended_on_every_os(tmp_path):
     home.mkdir()
     _old_ended_session(home / "state.db")
     root = str(Path(__file__).resolve().parents[2])
-    env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": root}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home), "PYTHONPATH": root}
     proc = subprocess.run([sys.executable, "-m", "hermes_cli.main", "sessions", "delete", "s-old"], cwd=root,
                           env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8",
                           errors="replace", timeout=120, check=False)

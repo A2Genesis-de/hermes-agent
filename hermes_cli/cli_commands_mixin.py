@@ -937,7 +937,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
                 with suppress(Exception):
                     parent_prompt = (self._session_db.get_session(parent_session_id) or {}).get("system_prompt")
             self._session_db.create_session(
-                session_id=new_session_id, source=os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+                session_id=new_session_id, source=os.environ.get("A2ASSISTANT_SESSION_SOURCE", "cli"),
                 model=self.model, parent_session_id=parent_session_id, system_prompt=parent_prompt or None,
                 model_config=with_session_yolo({"max_iterations": self.max_turns, "reasoning_config":
                                                 self.reasoning_config, "_branched_from": parent_session_id}, parent_session_id))
@@ -970,7 +970,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
     # ---- /worktree ------------------------------------------------------------------------
     def _handle_worktree_command(self, cmd_original: str) -> None:
         """Handle /worktree [new [name]|list|prune [--dry-run]] — isolated git worktrees.
-        ``new`` moves this session into the tree (as ``hermes -w``: kept on exit only with
+        ``new`` moves this session into the tree (as ``a2assistant -w``: kept on exit only with
         unpushed commits); ``prune`` never deletes tracked changes, unique commits, or in-use trees."""
         import cli as _cli
         parts = cmd_original.split(None, 2)
@@ -1220,7 +1220,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
             self._pending_agent_seed = seed
 
     def _handle_curator_command(self, cmd: str):
-        """Handle /curator — delegates to hermes_cli.curator so the CLI and the `hermes curator`
+        """Handle /curator — delegates to hermes_cli.curator so the CLI and the `a2assistant curator`
         subcommand share the same handler set."""
         tokens = shlex.split(cmd)[1:] if cmd else []
         try:
@@ -1545,7 +1545,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
 
     # ---- /bundles, /browser ---------------------------------------------------------------
     def _handle_bundles_command(self, cmd: str) -> None:
-        """In-session ``/bundles`` — show installed skill bundles (``hermes bundles list`` rendered
+        """In-session ``/bundles`` — show installed skill bundles (``a2assistant bundles list`` rendered
         inside the running CLI). Bundles are loaded via ``/<bundle-name>``."""
         from cli import ChatConsole, _BOLD, _RST, _accent_hex
         from hermes_cli.slash_exec import CommandContext, execute_command
@@ -1598,7 +1598,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
     def _handle_heartbeat_command(self, cmd: str) -> None:
         """Dispatch /heartbeat: set / status / pause / resume / clear. ``/heartbeat every 10m <prompt>``
         sets the session's one recurring instruction, injected as a normal user turn when due.
-        Session-scoped and in-process — use `hermes cron` for durable schedules."""
+        Session-scoped and in-process — use `a2assistant cron` for durable schedules."""
         from hermes_cli.heartbeat import format_interval
         arg = _command_arg(cmd)
         lower = arg.lower()
@@ -2092,7 +2092,7 @@ class CLICommandsMixin(CLICommandsSessionToolsMixin):
         run_debug_share(SimpleNamespace(lines=200))
 
     def _handle_update_command(self) -> bool:
-        """Handle /update — exit the session and relaunch as ``hermes update``. Returns True when
+        """Handle /update — exit the session and relaunch as ``a2assistant update``. Returns True when
         confirmed (the caller exits the app; the relaunch runs on the main thread after
         prompt_toolkit restores terminal modes), False when cancelled."""
         from hermes_cli.config import is_managed, format_managed_message

@@ -1341,8 +1341,8 @@ def _configured_plugin_inputs() -> Path | None:
     if config_path is None and (legacy_vars := configured_legacy_relay_env_vars(os.environ)):
         logger.warning(
             "Legacy NeMo Relay exporter variables are set but no %s was provided. %s no longer configure "
-            "Relay exporters; any standard user or system plugins.toml still applies. Run `hermes migrate "
-            "relay` (or `hermes update`, which runs it for every profile) to generate %s and select it in .env.",
+            "Relay exporters; any standard user or system plugins.toml still applies. Run `a2assistant migrate "
+            "relay` (or `a2assistant update`, which runs it for every profile) to generate %s and select it in .env.",
             RELAY_PLUGINS_CONFIG_ENV,
             ", ".join(legacy_vars),
             get_hermes_home() / "relay-plugins.toml",
@@ -1351,7 +1351,7 @@ def _configured_plugin_inputs() -> Path | None:
 
 
 def _explicit_plugins_toml() -> Path | None:
-    """Return the file selected by ``HERMES_NEMO_RELAY_PLUGINS_TOML`` after checking that it parses."""
+    """Return the file selected by ``A2ASSISTANT_NEMO_RELAY_PLUGINS_TOML`` after checking that it parses."""
     configured = os.environ.get(RELAY_PLUGINS_CONFIG_ENV, "").strip()
     if not configured:
         return None

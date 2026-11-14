@@ -18,8 +18,8 @@ from agent import shell_hooks
 def home(tmp_path, monkeypatch):
     h = tmp_path / "home"
     h.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(h))
-    for name in ("HERMES_ACCEPT_HOOKS", "HERMES_TUI_GATEWAY_URL", "HERMES_SAFE_MODE", "HERMES_IGNORE_USER_CONFIG"):
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(h))
+    for name in ("A2ASSISTANT_ACCEPT_HOOKS", "A2ASSISTANT_TUI_GATEWAY_URL", "A2ASSISTANT_SAFE_MODE", "A2ASSISTANT_IGNORE_USER_CONFIG"):
         monkeypatch.delenv(name, raising=False)
     from hermes_cli import plugins
     monkeypatch.setattr(plugins.get_plugin_manager(), "_hooks", {})
@@ -238,14 +238,14 @@ def test_classic_cli_asks_on_its_terminal_before_opening_the_session(home, tmp_p
     other = _script(tmp_path, "other.sh")
     monkeypatch.setattr(config_mod, "load_config", lambda: _cfg(other))
     monkeypatch.setattr("builtins.input", lambda *_: pytest.fail("prompted"))
-    monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", "ws://remote.example/api/ws")
+    monkeypatch.setenv("A2ASSISTANT_TUI_GATEWAY_URL", "ws://remote.example/api/ws")
     cli_init_mixin._record_shell_hook_consent()
     assert shell_hooks.allowlist_entry_for("pre_tool_call", other) is None
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL")
-    monkeypatch.setenv("HERMES_IGNORE_USER_CONFIG", "1")
+    monkeypatch.delenv("A2ASSISTANT_TUI_GATEWAY_URL")
+    monkeypatch.setenv("A2ASSISTANT_IGNORE_USER_CONFIG", "1")
     cli_init_mixin._record_shell_hook_consent()
     assert shell_hooks.allowlist_entry_for("pre_tool_call", other) is None
-    monkeypatch.delenv("HERMES_IGNORE_USER_CONFIG")
-    monkeypatch.setenv("HERMES_ACCEPT_HOOKS", "1")
+    monkeypatch.delenv("A2ASSISTANT_IGNORE_USER_CONFIG")
+    monkeypatch.setenv("A2ASSISTANT_ACCEPT_HOOKS", "1")
     cli_init_mixin._record_shell_hook_consent()
     assert json.loads((home / shell_hooks.ALLOWLIST_FILENAME).read_text())["approvals"][-1]["command"] == other

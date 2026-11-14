@@ -1,9 +1,9 @@
 """Multiplex-only reporting: one host gateway serving N profiles must be reported as such.
 
 Invariants (all fail on origin/main):
-* ``hermes -p <served> cron status`` names the HOST gateway as the ticker and never tells the
+* ``a2assistant -p <served> cron status`` names the HOST gateway as the ticker and never tells the
   user to start a second process.
-* ``hermes -p <served> doctor`` reports the single host gateway + its roster, not
+* ``a2assistant -p <served> doctor`` reports the single host gateway + its roster, not
   "Per-profile gateways: up/total", and still checks the HOST systemd unit's linger.
 * the state.db holder line names the shared host process and the profiles it serves.
 """
@@ -25,9 +25,9 @@ def served_host(tmp_path, monkeypatch):
     home.mkdir(parents=True)
     locks = tmp_path / "locks"
     locks.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "served")
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(locks))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_PROFILE", "served")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(locks))
     monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
     monkeypatch.setattr("hermes_cli.gateway.find_gateway_pids", list)
     monkeypatch.setattr("gateway.status.is_gateway_runtime_lock_active", lambda lock_path=None: False)
@@ -50,8 +50,8 @@ def test_cron_status_names_the_host_gateway_for_a_served_profile(served_host, ca
     assert f"PID {os.getpid()}" in out and "served" in out
     assert "not running" not in out.lower()
     # Never route the user to a SECOND host process: per-profile install is legacy-only remediation.
-    assert "hermes gateway install" not in out
-    assert "sudo hermes gateway install --system" not in out
+    assert "a2assistant gateway install" not in out
+    assert "sudo a2assistant gateway install --system" not in out
 
 
 def test_doctor_reports_the_single_host_gateway_not_per_profile_slots(served_host, capsys, monkeypatch):
@@ -107,7 +107,7 @@ def test_doctor_checks_host_unit_linger_under_a_served_profile(served_host, tmp_
     config_home = (tmp_path / "xdgconfig") if xdg else (fake_home / ".config")
     unit_dir = config_home / "systemd" / "user"
     unit_dir.mkdir(parents=True)
-    (unit_dir / "hermes-gateway.service").write_text("[Unit]\n")  # the HOST unit; no per-profile unit
+    (unit_dir / "a2assistant-gateway.service").write_text("[Unit]\n")  # the HOST unit; no per-profile unit
     monkeypatch.setenv("HOME", str(fake_home))
     # A host that moves XDG_CONFIG_HOME keeps its units there; probing ~/.config false-negatives.
     if xdg:

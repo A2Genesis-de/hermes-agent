@@ -243,15 +243,15 @@ def _spawn(monkeypatch, tmp_path) -> dict[str, str]:
 
 @pytest.mark.platforms("posix")
 def test_the_launcher_runs_its_idle_check_through_the_installs_stable_command(tmp_path, monkeypatch):
-    """The screen outlives ``hermes update``: a check pinned to the starter's interpreter and its inherited
+    """The screen outlives ``a2assistant update``: a check pinned to the starter's interpreter and its inherited
     dependency generation fails with ModuleNotFoundError once that generation is collected, forever. On a store
-    install the launcher gets the ``hermes --run-module`` launcher, which loads the current one at every run."""
+    install the launcher gets the ``a2assistant --run-module`` launcher, which loads the current one at every run."""
     from hermes_cli import _launchers
 
     root = runtime._LAUNCHER.resolve().parents[2]
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda repo_root, **_: tmp_path / "store/bin/python3")
 
-    command = shlex.split(_spawn(monkeypatch, tmp_path)["HERMES_BD_IDLE_CMD"])
+    command = shlex.split(_spawn(monkeypatch, tmp_path)["A2ASSISTANT_BD_IDLE_CMD"])
     assert command == _launchers.installation_command(root, module="tools.bot_desktop.idle_watch")
     assert command == [str(root / ".hermes/bin/hermes"), "--run-module", "tools.bot_desktop.idle_watch"]
 

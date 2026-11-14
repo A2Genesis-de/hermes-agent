@@ -1,4 +1,4 @@
-"""``hermes memory`` subcommand parser."""
+"""``a2assistant memory`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ def build_memory_parser(subparsers, *, cmd_memory: Callable) -> None:
         "memory", help="Configure external memory provider",
         description="Set up and manage external memory provider plugins.\n\n"
             "Catalog providers (e.g. honcho, hindsight, supermemory,\n"
-            "mem0, openviking, holographic): hermes plugins install <name>.\n\n"
+            "mem0, openviking, holographic): a2assistant plugins install <name>.\n\n"
             "Only one external provider can be active at a time.\n"
             "Built-in memory (MEMORY.md/USER.md) is always active.")
     memory_sub = memory_parser.add_subparsers(dest="memory_command")

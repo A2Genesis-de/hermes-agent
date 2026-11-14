@@ -2,20 +2,19 @@
  * E2E boot-failure tests — verify the app shows an error overlay when the
  * backend can't start.
  *
- * Injects a fake boot error (HERMES_DESKTOP_BOOT_FAKE_ERROR) so the backend
+ * Injects a fake boot error (A2ASSISTANT_DESKTOP_BOOT_FAKE_ERROR) so the backend
  * resolution fails with a controlled error message. The app should show the
  * BootFailureOverlay with retry/repair actions.
  *
  * Prerequisite: `pnpm run build` must have been run so dist/ exists.
  */
 
-import { allowErrorBanners, test } from './test'
-
 import {
   type DeadBackendFixture,
   setupDeadBackend,
   waitForBootFailure,
 } from './fixtures'
+import { allowErrorBanners, test } from './test'
 import { expectVisualSnapshot } from './visual-snapshot'
 
 let fixture: DeadBackendFixture | null = null

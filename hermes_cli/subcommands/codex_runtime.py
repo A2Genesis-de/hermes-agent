@@ -1,8 +1,8 @@
-"""``hermes codex-runtime`` — noninteractive counterpart of the ``/codex-runtime`` slash command.
+"""``a2assistant codex-runtime`` — noninteractive counterpart of the ``/codex-runtime`` slash command.
 
-``hermes codex-runtime migrate [--dry-run] [--json]`` runs the same ``~/.codex/config.toml``
+``a2assistant codex-runtime migrate [--dry-run] [--json]`` runs the same ``~/.codex/config.toml``
 migration the slash command triggers when the codex app-server runtime is enabled, on the
-selected profile home (``hermes -p NAME codex-runtime migrate``), so automation no longer has to
+selected profile home (``a2assistant -p NAME codex-runtime migrate``), so automation no longer has to
 import ``hermes_cli.codex_runtime_plugin_migration`` directly (issue #79023).
 """
 

@@ -41,7 +41,7 @@ def test_stdio_server_dying_on_a_node_abi_mismatch_names_the_rebuild_under_herme
                                                                                          managed_node):
     from hermes_cli.mcp_config import _probe_failure_reason, _probe_single_server
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     node, npm = managed_node
     entry = tmp_path / ".npm" / "_npx" / "0e2eab1c"
     addon = entry / "node_modules" / "better-sqlite3" / "build" / "Release" / "better_sqlite3.node"

@@ -21,7 +21,7 @@ apt_options=(
 )
 mkdir -p "$work/state"
 printf 'user data survives package replacement\n' > "$work/state/sentinel"
-export HERMES_HOME="$work/state"
+export A2ASSISTANT_HOME="$work/state"
 if [ -f /previous.deb ]; then
     dpkg --force-not-root --force-script-chrootless --install /previous.deb
     previous="$(dpkg-query -W -f='${Version}' hermes-agent)"

@@ -1,4 +1,4 @@
-"""Output contract shared by the top-level ``hermes -z`` one-shot run.
+"""Output contract shared by the top-level ``a2assistant -z`` one-shot run.
 
 The run itself goes through the gateway (``hermes_cli.gateway_chat_startup.launch_gateway_chat``);
 this module keeps the pieces that path and the gateway's CLI turns reuse: the exit-code mapping, the

@@ -39,18 +39,18 @@ test('the update window carries Hermes connection state without cloning Chromium
   }
 
   const captured = {
-    HERMES_HOME: path.join(root, 'hermes-home'),
-    HERMES_DESKTOP_USER_DATA_DIR: userData,
+    A2ASSISTANT_HOME: path.join(root, 'hermes-home'),
+    A2ASSISTANT_DESKTOP_USER_DATA_DIR: userData,
     PATH: process.env.PATH || '',
   }
 
   try {
     const isolated = isolateUpdateWindowEnvironment(captured)
-    const isolatedUserData = isolated.HERMES_DESKTOP_USER_DATA_DIR
+    const isolatedUserData = isolated.A2ASSISTANT_DESKTOP_USER_DATA_DIR
 
     expect(isolatedUserData).not.toBe(userData)
-    expect(captured.HERMES_DESKTOP_USER_DATA_DIR).toBe(userData)
-    expect(isolated.HERMES_HOME).toBe(captured.HERMES_HOME)
+    expect(captured.A2ASSISTANT_DESKTOP_USER_DATA_DIR).toBe(userData)
+    expect(isolated.A2ASSISTANT_HOME).toBe(captured.A2ASSISTANT_HOME)
     expect(fs.readFileSync(path.join(isolatedUserData, 'connections.json'), 'utf8')).toBe('{"primary":"local"}\n')
     expect(fs.existsSync(path.join(isolatedUserData, 'Local State'))).toBe(false)
 

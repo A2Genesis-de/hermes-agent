@@ -1,7 +1,7 @@
 """pytest's basetemp must never sit inside the operator's platform-native Hermes home.
 
 Every per-test sandbox is ``<basetemp>/.../hermes_test`` and ``get_default_hermes_root()``
-prefers the platform-native home whenever ``HERMES_HOME`` sits *under* it — so a basetemp
+prefers the platform-native home whenever ``A2ASSISTANT_HOME`` sits *under* it — so a basetemp
 inside the home silently turns the sandbox back into the live install (#111101).
 """
 from __future__ import annotations
@@ -49,7 +49,7 @@ def test_basetemp_inside_the_native_home_is_relocated_outside_it(tmp_path, monke
     suite_conftest.pytest_unconfigure(config)
     assert not relocated.exists()
     # The sandbox derived from it no longer resolves to the native root.
-    monkeypatch.setenv("HERMES_HOME", str(relocated / "t0" / "hermes_test"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(relocated / "t0" / "hermes_test"))
     assert hermes_constants.get_default_hermes_root() == relocated / "t0" / "hermes_test"
 
 

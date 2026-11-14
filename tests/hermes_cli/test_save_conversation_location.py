@@ -2,9 +2,9 @@
 
 Regression: the old implementation wrote ``hermes_conversation_<ts>.json``
 to the current working directory (CWD). Users who ran /save expected the
-file to be discoverable via ``hermes sessions browse``, but CWD-resident
+file to be discoverable via ``a2assistant sessions browse``, but CWD-resident
 snapshots are not indexed in the state DB and are generally invisible.
-The fix writes snapshots under ``~/.hermes/sessions/saved/`` and prints
+The fix writes snapshots under ``~/.a2assistant/sessions/saved/`` and prints
 the absolute path plus the resume hint for the live session.
 """
 
@@ -24,7 +24,7 @@ def hermes_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     # Clear any cached hermes_home computation
     import hermes_constants
     if hasattr(hermes_constants, "_hermes_home_cache"):
@@ -43,7 +43,7 @@ def _make_stub_cli(history):
 
 
 def test_save_conversation_writes_under_hermes_home(hermes_home, tmp_path, monkeypatch, capsys):
-    """Snapshot must land under ~/.hermes/sessions/saved/, not CWD."""
+    """Snapshot must land under ~/.a2assistant/sessions/saved/, not CWD."""
     # Change CWD to a different directory to prove the file does NOT go there.
     work = tmp_path / "somewhere-else"
     work.mkdir()
@@ -86,7 +86,7 @@ def test_save_conversation_writes_under_hermes_home(hermes_home, tmp_path, monke
     # User-facing message must include the absolute path AND the resume hint.
     out = capsys.readouterr().out
     assert str(files[0]) in out, out
-    assert "hermes --resume 20260101_120000_abc123" in out, out
+    assert "a2assistant --resume 20260101_120000_abc123" in out, out
 
 
 def test_save_conversation_empty_history_does_nothing(hermes_home, capsys):

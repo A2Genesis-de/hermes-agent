@@ -115,7 +115,7 @@ class GatewayAuthorizationMixin:
     def _adapters_for_profile(self, profile: Optional[str]) -> dict:
         """The live adapter map *profile* may deliver through: ``_profile_adapters[p]`` for a
         secondary, ``self.adapters`` only for the primary/default. ``_profile_adapters`` is consulted
-        BEFORE the active profile name: multiplex turns override ``HERMES_HOME`` so
+        BEFORE the active profile name: multiplex turns override ``A2ASSISTANT_HOME`` so
         ``_active_profile_name()`` reports the secondary profile mid-turn, and treating it as primary
         would hand it the default bot. A named profile with no map gets ``{}`` — fail closed: a
         secondary whose adapter failed to connect must NOT fall back to the default profile's adapter
@@ -316,7 +316,7 @@ class GatewayAuthorizationMixin:
         return (adapter, profile) if registered else None
 
     def _authorization_home_for_source(self, source: SessionSource):
-        """HERMES_HOME whose allowlist admits *source*: the identity's transport home (or the
+        """A2ASSISTANT_HOME whose allowlist admits *source*: the identity's transport home (or the
         ingress-stamped one), else the home of the profile owning the adapter that delivers it.
         ``None`` = authorize in the ambient scope (multiplex off, or no live adapter — the check then
         fails closed on its own).

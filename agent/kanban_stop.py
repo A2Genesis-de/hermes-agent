@@ -31,10 +31,10 @@ _DEFAULT_MAX_ATTEMPTS = 2
 
 
 def kanban_stop_nudge_enabled() -> bool:
-    """On when ``HERMES_KANBAN_TASK`` is set for the dispatcher-owned worker, unless
-    ``HERMES_KANBAN_STOP_NUDGE`` disables it. In-process delegate_task children and cron runs
+    """On when ``A2ASSISTANT_KANBAN_TASK`` is set for the dispatcher-owned worker, unless
+    ``A2ASSISTANT_KANBAN_STOP_NUDGE`` disables it. In-process delegate_task children and cron runs
     inherit the env var but own no board task and carry no kanban toolset."""
-    if (os.environ.get("HERMES_KANBAN_STOP_NUDGE") or "").strip().lower() in {"0", "false", "no", "off"}:
+    if (os.environ.get("A2ASSISTANT_KANBAN_STOP_NUDGE") or "").strip().lower() in {"0", "false", "no", "off"}:
         return False
     return bool(owned_kanban_task())
 
@@ -77,7 +77,7 @@ def build_kanban_stop_nudge(
     ):
         return None
 
-    tid = (task_id or os.environ.get("HERMES_KANBAN_TASK") or "").strip() or "this task"
+    tid = (task_id or os.environ.get("A2ASSISTANT_KANBAN_TASK") or "").strip() or "this task"
     # The transcript is the status source: this text is only reached when the session made no
     # handoff call, so it never tells a worker to close a card it already sent to review.
     return (

@@ -101,7 +101,7 @@ export const ko: Translations = {
   status: {
     actionFailed: "작업 실패",
     actionFinished: "완료됨",
-    actionFinishedOwed: "업데이트되었지만 아직 남은 작업이 있습니다 (완료하려면 `hermes update`를 다시 실행하세요)",
+    actionFinishedOwed: "업데이트되었지만 아직 남은 작업이 있습니다 (완료하려면 `a2assistant update`를 다시 실행하세요)",
     actions: "작업",
     agent: "에이전트",
     activeSessions: "활성 세션",
@@ -336,7 +336,7 @@ export const ko: Translations = {
       "저장됨 — 변경 사항을 적용하려면 게이트웨이를 다시 시작하세요.",
     forceReinstall: "강제 재설치 (기존 폴더를 먼저 삭제)",
     headline:
-      "A2Assistant 플러그인을 검색, 설치, 활성화 및 업데이트합니다 (`hermes plugins` 동등).",
+      "A2Assistant 플러그인을 검색, 설치, 활성화 및 업데이트합니다 (`a2assistant plugins` 동등).",
     identifierLabel: "Git URL 또는 owner/repo",
     inactive: "비활성",
     installBtn: "설치",
@@ -353,8 +353,8 @@ export const ko: Translations = {
     providersHint:
       "memory.provider (비어 있으면 = 내장)와 context.engine을 config.yaml에 기록합니다. 다음 세션부터 적용됩니다.",
     refreshDashboard: "대시보드 확장 재스캔",
-    removeConfirm: "~/.hermes/plugins/에서 이 플러그인을 제거하시겠습니까?",
-    removeHint: "~/.hermes/plugins 아래에 사용자가 설치한 플러그인만 제거할 수 있습니다.",
+    removeConfirm: "~/.a2assistant/plugins/에서 이 플러그인을 제거하시겠습니까?",
+    removeHint: "~/.a2assistant/plugins 아래에 사용자가 설치한 플러그인만 제거할 수 있습니다.",
     rescanHeading: "SPA 플러그인 레지스트리",
     rescanHint: "디스크에 파일을 추가한 후 재스캔하여 대시보드 사이드바가 새 매니페스트를 인식하도록 합니다.",
     runtimeHeading: "게이트웨이 런타임 (YAML 플러그인)",
@@ -375,7 +375,7 @@ export const ko: Translations = {
     all: "전체",
     categories: "카테고리",
     filters: "필터",
-    noSkills: "스킬을 찾을 수 없습니다. 스킬은 ~/.hermes/skills/ 에서 로드됩니다",
+    noSkills: "스킬을 찾을 수 없습니다. 스킬은 ~/.a2assistant/skills/ 에서 로드됩니다",
     noSkillsMatch: "검색이나 필터와 일치하는 스킬이 없습니다.",
     skillCount: "{count}개 스킬",
     resultCount: "{count}개 결과",
@@ -389,7 +389,7 @@ export const ko: Translations = {
   },
 
   config: {
-    configPath: "~/.hermes/config.yaml",
+    configPath: "~/.a2assistant/config.yaml",
     filters: "필터",
     sections: "섹션",
     exportConfig: "설정을 JSON으로 내보내기",

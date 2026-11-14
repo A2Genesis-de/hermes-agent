@@ -5,8 +5,8 @@ from __future__ import annotations
 from .method_ctx import bind_module
 
 def _env_model_seed() -> str:
-    """The launch-scoped model seed (``hermes --tui -m``, hosted provisioning); "" when unset."""
-    return (os.environ.get("HERMES_MODEL", "") or os.environ.get("HERMES_INFERENCE_MODEL", "")).strip()
+    """The launch-scoped model seed (``a2assistant --tui -m``, hosted provisioning); "" when unset."""
+    return (os.environ.get("A2ASSISTANT_MODEL", "") or os.environ.get("A2ASSISTANT_INFERENCE_MODEL", "")).strip()
 
 
 def _resolve_model() -> str:
@@ -27,10 +27,10 @@ def _resolve_model() -> str:
 
 
 def _resolve_session_platform() -> str:
-    """``HERMES_DESKTOP=1`` without ``HERMES_DESKTOP_TERMINAL`` → "desktop" (chat panel; the agent then
-    suggests TUI-only slash commands), else "tui" (embedded terminal pane or standalone ``hermes --tui``)."""
-    desktop = is_truthy_value(os.environ.get("HERMES_DESKTOP"))
-    return "desktop" if desktop and not is_truthy_value(os.environ.get("HERMES_DESKTOP_TERMINAL")) else "tui"
+    """``A2ASSISTANT_DESKTOP=1`` without ``A2ASSISTANT_DESKTOP_TERMINAL`` → "desktop" (chat panel; the agent then
+    suggests TUI-only slash commands), else "tui" (embedded terminal pane or standalone ``a2assistant --tui``)."""
+    desktop = is_truthy_value(os.environ.get("A2ASSISTANT_DESKTOP"))
+    return "desktop" if desktop and not is_truthy_value(os.environ.get("A2ASSISTANT_DESKTOP_TERMINAL")) else "tui"
 
 
 def _resolve_session_source(explicit: str | None) -> str:
@@ -44,7 +44,7 @@ def _resolve_agent_platform(source: str | None) -> str:
 
 
 def _config_model_target() -> tuple[str, str]:
-    """(model, provider) selected by config.yaml — and ONLY config: the HERMES_MODEL launch seed fed into
+    """(model, provider) selected by config.yaml — and ONLY config: the A2ASSISTANT_MODEL launch seed fed into
     the per-turn sync would be replayed as a /model switch and persisted globally, or pin the session so
     dashboard/CLI model changes never reach an open chat. Empty model = "no preference" → no-op sync."""
     cfg_model = _load_cfg().get("model")
@@ -56,7 +56,7 @@ def _config_model_target() -> tuple[str, str]:
 
 def _resolve_startup_runtime() -> tuple[str, str | None]:
     model = _resolve_model()
-    if explicit_provider := os.environ.get("HERMES_TUI_PROVIDER", "").strip():
+    if explicit_provider := os.environ.get("A2ASSISTANT_TUI_PROVIDER", "").strip():
         return model, explicit_provider
     if not (explicit_model := _env_model_seed()):
         return model, None
@@ -66,7 +66,7 @@ def _resolve_startup_runtime() -> tuple[str, str | None]:
         full_cfg = _load_cfg()
         cfg = full_cfg.get("model") or {}
         current_provider = ((str(cfg.get("provider") or "").strip().lower() if isinstance(cfg, dict) else "")
-                            or os.environ.get("HERMES_INFERENCE_PROVIDER", "").strip().lower() or "auto")
+                            or os.environ.get("A2ASSISTANT_INFERENCE_PROVIDER", "").strip().lower() or "auto")
         # Same owner as HermesCLI/oneshot: ``custom:<name>:<model>`` selects that provider (#73943).
         if route := resolve_startup_model_route(
                 explicit_model, current_provider=current_provider,
@@ -311,7 +311,7 @@ _TOOL_PROGRESS_MODES = frozenset({"off", "new", "all", "verbose"})
 
 
 def _load_tool_progress_mode() -> str:
-    env = os.environ.get("HERMES_TUI_TOOL_PROGRESS", "").strip().lower()
+    env = os.environ.get("A2ASSISTANT_TUI_TOOL_PROGRESS", "").strip().lower()
     if env in _TOOL_PROGRESS_MODES:
         return env
     raw = _display_cfg().get("tool_progress", "all")
@@ -324,7 +324,7 @@ def _load_tool_progress_mode() -> str:
 def _gui_surface_toolsets(platform: str) -> set[str]:
     """Toolsets that exist because of the CLIENT (off ``_HERMES_CORE_TOOLS``; this is the one gate).
     ``platform`` is the SESSION's source, never a process env var: the desktop may drive a URL/cloud
-    backend where ``HERMES_DESKTOP`` is unset (AGENTS.md surface rule)."""
+    backend where ``A2ASSISTANT_DESKTOP`` is unset (AGENTS.md surface rule)."""
     from toolsets import CLIENT_SURFACE_TOOLSETS
     return set(CLIENT_SURFACE_TOOLSETS) if platform == "desktop" else {"project"}
 
@@ -349,7 +349,7 @@ def _tui_notice(text: str) -> None:
 
 
 def _resolve_explicit_toolsets(explicit: list[str], validate_toolset) -> list[str] | None | bool:
-    """Resolve a HERMES_TUI_TOOLSETS pin: list, None for "all", False when nothing was valid."""
+    """Resolve a A2ASSISTANT_TUI_TOOLSETS pin: list, None for "all", False when nothing was valid."""
     built_in = [name for name in explicit if validate_toolset(name)]
     unresolved = [name for name in explicit if name not in built_in]
     if unresolved:
@@ -363,7 +363,7 @@ def _resolve_explicit_toolsets(explicit: list[str], validate_toolset) -> list[st
         unresolved = [name for name in unresolved if name not in plugin_valid]
     if any(name in {"all", "*"} for name in built_in):
         if ignored := [name for name in explicit if name not in {"all", "*"}]:
-            _tui_notice(f"[tui] HERMES_TUI_TOOLSETS=all enables every toolset; ignoring additional entries: {', '.join(ignored)}")
+            _tui_notice(f"[tui] A2ASSISTANT_TUI_TOOLSETS=all enables every toolset; ignoring additional entries: {', '.join(ignored)}")
         return None
     if not unresolved:
         return built_in
@@ -383,21 +383,21 @@ def _resolve_explicit_toolsets(explicit: list[str], validate_toolset) -> list[st
     disabled = [name for name in unresolved if name in mcp_disabled]
     unknown = [name for name in unresolved if name not in mcp_names and name not in mcp_disabled]
     if unknown:
-        _tui_notice(f"[tui] ignoring unknown HERMES_TUI_TOOLSETS entries: {', '.join(unknown)}")
+        _tui_notice(f"[tui] ignoring unknown A2ASSISTANT_TUI_TOOLSETS entries: {', '.join(unknown)}")
     if disabled:
-        _tui_notice("[tui] ignoring disabled MCP servers in HERMES_TUI_TOOLSETS "
+        _tui_notice("[tui] ignoring disabled MCP servers in A2ASSISTANT_TUI_TOOLSETS "
                     f"(set enabled: true in config.yaml to use): {', '.join(disabled)}")
     return (built_in + mcp_valid) or False
 
 
 def _load_enabled_toolsets(platform: str | None = None) -> list[str] | None:
-    """The agent's toolsets for this session (None = all): an explicit HERMES_TUI_TOOLSETS pin; else the
+    """The agent's toolsets for this session (None = all): an explicit A2ASSISTANT_TUI_TOOLSETS pin; else the
     coding posture (coding_context collapses to coding toolset + enabled MCP servers in a code workspace);
     else the configured CLI toolsets. Client-surface toolsets fold in here — only this surface can answer them.
     An explicitly saved EMPTY list (``platform_toolsets.cli: []`` that resolves to nothing) is a
     zero-tool state and returns [] — never None, which would mean unrestricted (#82010)."""
     session_platform = platform or _resolve_session_platform()
-    explicit = [item.strip() for item in os.environ.get("HERMES_TUI_TOOLSETS", "").split(",") if item.strip()]
+    explicit = [item.strip() for item in os.environ.get("A2ASSISTANT_TUI_TOOLSETS", "").split(",") if item.strip()]
     fallback_notice = None
     if not explicit:
         with contextlib.suppress(Exception):
@@ -414,7 +414,7 @@ def _load_enabled_toolsets(platform: str | None = None) -> list[str] | None:
         if resolved is not False:
             # An operator pin replaces the surface fold-in.
             return resolved
-        fallback_notice = "[tui] no valid HERMES_TUI_TOOLSETS entries; using configured CLI toolsets"
+        fallback_notice = "[tui] no valid A2ASSISTANT_TUI_TOOLSETS entries; using configured CLI toolsets"
     try:
         from hermes_cli.config import load_config
         from hermes_cli.tools_config import _get_platform_tools, _platform_toolsets_explicitly_saved
@@ -439,7 +439,7 @@ def _load_enabled_toolsets(platform: str | None = None) -> list[str] | None:
         return None
     except Exception:
         if fallback_notice is not None:
-            _tui_notice("[tui] no valid HERMES_TUI_TOOLSETS entries and configured CLI toolsets could not be loaded; enabling all toolsets")
+            _tui_notice("[tui] no valid A2ASSISTANT_TUI_TOOLSETS entries and configured CLI toolsets could not be loaded; enabling all toolsets")
         return None
 
 
@@ -614,7 +614,7 @@ def _rederive_per_model_route(model: str, runtime: dict) -> None:
 
 
 def _startup_system_prompt(cfg: dict, task_id: str) -> str:
-    """Config ephemeral system prompt + HERMES_TUI_SKILLS preload block. Hard-fails only when EVERY requested
+    """Config ephemeral system prompt + A2ASSISTANT_TUI_SKILLS preload block. Hard-fails only when EVERY requested
     skill is missing (cli.py parity): a typo'd name must not auto-block the Kanban task."""
     from hermes_cli.config import resolve_ephemeral_system_prompt_from_config
     system_prompt = resolve_ephemeral_system_prompt_from_config(cfg)
@@ -626,7 +626,7 @@ def _startup_system_prompt(cfg: dict, task_id: str) -> str:
     if missing_skills:
         if not loaded_skills:
             raise ValueError(format_missing_skills(missing_skills))
-        logger.warning("Skipping %s. Continuing with: %s. List available skills with `hermes skills list`.",
+        logger.warning("Skipping %s. Continuing with: %s. List available skills with `a2assistant skills list`.",
                        format_missing_skills(missing_skills), ", ".join(loaded_skills))
     if skills_prompt:
         system_prompt = "\n\n".join(part for part in (system_prompt, skills_prompt) if part).strip()
@@ -660,7 +660,7 @@ def _make_agent(
     fallback_notice = runtime.pop("_fallback_notice", None)
     _pr = _load_provider_routing()
     platform = _resolve_agent_platform(platform_override)
-    ignore_rules = is_truthy_value(os.environ.get("HERMES_IGNORE_RULES"))
+    ignore_rules = is_truthy_value(os.environ.get("A2ASSISTANT_IGNORE_RULES"))
     with _sessions_lock:
         session = _sessions.get(sid)
     agent = AIAgent(
@@ -686,7 +686,7 @@ def _make_agent(
         user_id=auth_user_id if auth_user_id is not None else _session_auth_user_id(session),
         session_db=session_db if session_db is not None else _get_db(), ephemeral_system_prompt=system_prompt or None,
         checkpoints_enabled=_resolve_checkpoints_enabled(cfg),
-        pass_session_id=is_truthy_value(os.environ.get("HERMES_TUI_PASS_SESSION_ID")),
+        pass_session_id=is_truthy_value(os.environ.get("A2ASSISTANT_TUI_PASS_SESSION_ID")),
         skip_context_files=ignore_rules, skip_memory=ignore_rules, fallback_model=_load_fallback_model(),
         # The resolved provider's request body (a custom entry's extra_body), as the CLI/cron/gateway pass it.
         request_overrides=runtime.get("request_overrides"),

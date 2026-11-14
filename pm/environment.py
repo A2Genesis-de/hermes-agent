@@ -520,7 +520,7 @@ class PythonEnvironment:
         still = failed_cached_packages(text)
         if still:
             remedy = ("the package source is serving a broken wheel; retry later or pin another version"
-                      if still <= purged else "run `hermes pm doctor --repair`, then retry")
+                      if still <= purged else "run `a2assistant pm doctor --repair`, then retry")
             raise InstallError(
                 "venv",
                 f"uv {stage} exited {result.returncode}: the cached copy of {', '.join(sorted(still))} is "

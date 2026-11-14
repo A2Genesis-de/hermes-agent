@@ -62,7 +62,7 @@ const lostCard = (page: Page) => page.locator('[data-slot="queue-lost-note"]')
 const lostDiscard = (page: Page) => page.locator('[data-slot="queue-lost-discard"]')
 const queueHeader = (page: Page) => page.locator('.status-section-trigger').filter({ hasText: /Queued/ })
 
-const OUT = process.env.HERMES_E2E_NF2_OUT
+const OUT = process.env.A2ASSISTANT_E2E_NF2_OUT
 
 async function dump(page: Page, name: string, extra: Record<string, unknown> = {}) {
   if (!OUT) {

@@ -26,7 +26,7 @@ class CLI(CLIStreamMixin):
 @pytest.mark.parametrize("setting", [None, False, True])
 def test_cli_notice_and_wait_callbacks_keep_default_output(tmp_path, monkeypatch, setting):
     import cli
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(yaml.safe_dump(
         {} if setting is None else {"display": {"suppress_warning_notifications": setting}}))
     printed = []

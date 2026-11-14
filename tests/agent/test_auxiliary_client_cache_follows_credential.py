@@ -28,7 +28,7 @@ def _seed(provider: str, token: str, *, model_cooldown: str | None = None) -> No
 
 @pytest.fixture
 def isolated_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     monkeypatch.setattr(aux, "_client_cache", {})
     # HERMES_HOME only redirects Hermes-owned state; the borrowed Claude Code
     # reader still consults ~/.claude/.credentials.json and the macOS Keychain,

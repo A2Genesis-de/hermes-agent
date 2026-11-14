@@ -31,7 +31,7 @@ function Field({ stacked, title, description, children }: FieldProps): ReactElem
 interface RemoteSetupFieldsProps {
   setup: RemoteSetup
   disabled?: boolean
-  /** Pins only the URL input: an env-owned remote (HERMES_DESKTOP_REMOTE_URL) still signs in here. */
+  /** Pins only the URL input: an env-owned remote (A2ASSISTANT_DESKTOP_REMOTE_URL) still signs in here. */
   urlDisabled?: boolean
   urlOnly?: boolean
   onUrlChange?: () => void

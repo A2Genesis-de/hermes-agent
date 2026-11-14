@@ -4,7 +4,7 @@ The install is the newest by-path release (``_install_helpers.upgrade_base("by-p
 there by that release's own installer and subscribed to ``stable``, so the updater that runs is
 the one users have today. Upstream, HEAD is published as the latest GitHub release and an
 unreleased commit sits on main above it. The update must land exactly on HEAD, not follow main,
-and the next ``hermes`` must start.
+and the next ``a2assistant`` must start.
 
 The edge fakes api.github.com and github.com as in ``test_release_channel_records`` and tunnels
 every other host to the real one: from a release, the update downloads the dependencies HEAD adds.
@@ -65,4 +65,4 @@ def test_stable_update_from_the_previous_release_lands_on_the_next_release(inst)
     reads = [h.path for h in edge.proxy.requests(S.GITHUB_API)]
     assert LATEST in reads, f"the latest release was not read through the proxy: {reads}\n" + r.report(inst)
     v = inst.version_works()
-    assert v.rc == 0 and I.TRACEBACK not in v.out, "`hermes --version` broken after the update\n" + I.describe(v.cp)
+    assert v.rc == 0 and I.TRACEBACK not in v.out, "`a2assistant --version` broken after the update\n" + I.describe(v.cp)

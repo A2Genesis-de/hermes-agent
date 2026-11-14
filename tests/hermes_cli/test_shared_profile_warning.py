@@ -18,15 +18,15 @@ from hermes_constants import hermes_home_key
 def homes(tmp_path, monkeypatch):
     root = tmp_path / "home"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     return root
 
 
 @contextmanager
 def running_install(home: Path, install: Path):
-    env = dict(os.environ, HERMES_HOME=str(home))
-    for key in ("HERMES_SPAWN", "HERMES_PARENT_PID", "HERMES_PARENT_START_MARKER"):
+    env = dict(os.environ, A2ASSISTANT_HOME=str(home))
+    for key in ("A2ASSISTANT_SPAWN", "A2ASSISTANT_PARENT_PID", "A2ASSISTANT_PARENT_START_MARKER"):
         env.pop(key, None)
     script = """
 import sys
@@ -75,8 +75,8 @@ def test_warning_tracks_live_other_install_in_same_home(homes, tmp_path):
 @contextmanager
 def running_cli(home: Path, install: Path):
     """Run the real CLI constructor and entrypoint; stop at terminal interaction."""
-    env = dict(os.environ, HERMES_HOME=str(home), HOME=str(home.parent), USERPROFILE=str(home.parent))
-    for key in ("HERMES_SPAWN", "HERMES_PARENT_PID", "HERMES_PARENT_START_MARKER"):
+    env = dict(os.environ, A2ASSISTANT_HOME=str(home), HOME=str(home.parent), USERPROFILE=str(home.parent))
+    for key in ("A2ASSISTANT_SPAWN", "A2ASSISTANT_PARENT_PID", "A2ASSISTANT_PARENT_START_MARKER"):
         env.pop(key, None)
     script = """
 import sys

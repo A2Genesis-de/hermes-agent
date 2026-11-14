@@ -1,4 +1,4 @@
-"""Desktop (Electron) app: build/stamp, stage-and-swap pack, exe integrity gate, macOS signing, Linux sandbox, launch (hermes gui/desktop).
+"""Desktop (Electron) app: build/stamp, stage-and-swap pack, exe integrity gate, macOS signing, Linux sandbox, launch (a2assistant gui/desktop).
 
 Split out of ``hermes_cli/main.py``. Names that still live in main (``PROJECT_ROOT``, ...)
 are imported lazily inside the functions that use them (avoids an import cycle).
@@ -21,6 +21,7 @@ import time as _time_mod
 
 from pathlib import Path
 from typing import Callable, Optional
+from hermes_cli.service_names import home_checkout_dir
 from hermes_cli.desktop_bundle import MACOS_APP_BUNDLE, MACOS_APP_EXECUTABLE
 from hermes_cli.desktop_console import desktop_console_output, desktop_launch_notice
 from hermes_platform.host import facts
@@ -494,7 +495,7 @@ def _desktop_ancestor_in(desktop_dir: Path) -> Optional[int]:
     """PID of a Desktop from this build's ``release`` tree that is one of OUR ancestors, else None.
 
     That Desktop is running this process (its backend's launch-time update tail, or a
-    `hermes update` it spawned). On Windows it holds the exe lock the promotion rename
+    `a2assistant update` it spawned). On Windows it holds the exe lock the promotion rename
     needs, and it cannot be stopped without killing this process first. Never raises."""
     try:
         import psutil
@@ -892,7 +893,7 @@ def _desktop_macos_relaunchable_fixup(
                     f"  ✗ macOS signing identity {configured!r} did not produce a verified "
                     f"signature, and the installed app is publisher-signed (Team ID "
                     f"{target_sig['team']}); keeping it (no ad-hoc fallback). Fix the identity "
-                    "(e.g. `hermes desktop --setup-tcc-identity` or edit "
+                    "(e.g. `a2assistant desktop --setup-tcc-identity` or edit "
                     "desktop.macos_signing_identity in config.yaml) and update again."
                 )
                 return False
@@ -989,7 +990,7 @@ def _install_rebuilt_desktop_app(desktop_dir: Path, candidates: list[Path]) -> t
     """Copy the rebuilt macOS bundle into every stale or missing installed ``Hermes.app`` in
     *candidates* (``_installed_desktop_apps()``) (#52339).
 
-    ``hermes desktop --build-only`` (what ``hermes update`` runs) packages into
+    ``a2assistant desktop --build-only`` (what ``a2assistant update`` runs) packages into
     ``apps/desktop/release/`` only. Finder, the Dock and Spotlight launch the copy in
     ``/Applications`` (or ``~/Applications``), so without this step every update leaves the
     installed shell one build behind the backend it boots. The detached Desktop updater swaps
@@ -1040,7 +1041,7 @@ def _refresh_installed_desktop_apps(desktop_dir: Path) -> None:
 
 
 def _update_owned_macos_bundles(candidates: list[Path]) -> list[Path]:
-    """The existing bundles in *candidates* that only ``hermes update`` keeps current (#52339).
+    """The existing bundles in *candidates* that only ``a2assistant update`` keeps current (#52339).
 
     Ownership comes from the bundle's own ``install-stamp.json``. ``updateMechanism: self`` is a
     bootstrap build (a local pack or the bootstrap download), and stamps older than the field
@@ -1066,7 +1067,7 @@ def _owns_installed_desktop_apps() -> bool:
         return False
     from hermes_cli.main import PROJECT_ROOT
     from hermes_constants import get_default_hermes_root
-    return Path(PROJECT_ROOT).resolve() == (get_default_hermes_root() / "hermes-agent").resolve()
+    return Path(PROJECT_ROOT).resolve() == home_checkout_dir(get_default_hermes_root()).resolve()
 
 
 def _installed_desktop_apps() -> list[Path]:
@@ -1091,7 +1092,7 @@ def _installed_desktop_apps() -> list[Path]:
 
 
 def _installed_desktop_launch_target(desktop_dir: Path, packaged_executable: Path) -> Path:
-    """The executable ``hermes desktop`` launches: the installed app once it IS the checkout build.
+    """The executable ``a2assistant desktop`` launches: the installed app once it IS the checkout build.
 
     Finder, the Dock and Spotlight open the installed ``Hermes.app``; launching the ``release/``
     bundle beside it ran the same app from a second path while the installed copy went stale
@@ -1134,7 +1135,7 @@ def _install_rebuilt_macos_bundles(
         if app.resolve() in running:
             problems.append(
                 f"{app} is running and was not refreshed; quit A2Assistant Desktop and run "
-                "`hermes update` again (or update from inside the app)")
+                "`a2assistant update` again (or update from inside the app)")
             continue
         if codesign:
             installed_sig = _macos_signature_summary(codesign, app)
@@ -1382,7 +1383,7 @@ def _register_linux_desktop_entry(defer: bool = False):
     """Install the XDG desktop entry for Hermes Desktop (Linux only, best-effort).
 
     ``Exec`` and ``Icon`` are absolute so the entry works outside a login shell.
-    ``hermes uninstall --gui`` removes it.
+    ``a2assistant uninstall --gui`` removes it.
 
     ``defer=True`` (app-grid launch) returns a ``DeferredDesktopEntryInstall`` that writes the
     entry only once the Electron window is on screen (#111906); ``None`` when nothing is
@@ -1480,7 +1481,7 @@ def build_prepared_desktop(desktop_dir: Path, *, source_mode: bool, pnpm: str, e
         # stamp stays stale, so `hermes desktop` run outside the app rebuilds it
         # (_desktop_build_needed), and the in-app update completes with desktop=True.
         print(f"  ⚠ Skipped rebuilding the desktop app: this update is running inside it (pid {ancestor}),")
-        print("    and Windows locks a running app's files. Quit A2Assistant Desktop and run `hermes desktop`")
+        print("    and Windows locks a running app's files. Quit A2Assistant Desktop and run `a2assistant desktop`")
         print("    from a terminal, or use Update now in Settings → About, to rebuild and reopen it.")
         return None
     build_label = "source build" if source_mode else "packaged app"
@@ -1550,7 +1551,7 @@ def _prefer_wsl_d3d12(env: dict) -> None:
 # Chromium's ProcessSingleton binds $TMPDIR/scoped_dirXXXXXX/SingletonSocket (33 bytes after
 # TMPDIR, measured on Electron 40); sun_path holds 107 bytes plus the NUL.
 _ELECTRON_TMPDIR_MAX_BYTES = 107 - len("/scoped_dirXXXXXX/SingletonSocket")
-_DESKTOP_TMPDIR_ENV = "HERMES_DESKTOP_TMPDIR"
+_DESKTOP_TMPDIR_ENV = "A2ASSISTANT_DESKTOP_TMPDIR"
 
 
 def _desktop_launch_env(args: argparse.Namespace) -> tuple[dict, list[str]]:
@@ -1567,35 +1568,35 @@ def _desktop_launch_env(args: argparse.Namespace) -> tuple[dict, list[str]]:
         env["TMPDIR"] = socket_safe_tmpdir()
     _prefer_wsl_d3d12(env)
     for attr, key in (
-        ("fake_boot", "HERMES_DESKTOP_BOOT_FAKE"), ("ignore_existing", "HERMES_DESKTOP_IGNORE_EXISTING")):
+        ("fake_boot", "A2ASSISTANT_DESKTOP_BOOT_FAKE"), ("ignore_existing", "A2ASSISTANT_DESKTOP_IGNORE_EXISTING")):
         if getattr(args, attr, False):
             env[key] = "1"
     if getattr(args, "hermes_root", None):
-        env["HERMES_DESKTOP_HERMES_ROOT"] = str(Path(args.hermes_root).expanduser().resolve())
+        env["A2ASSISTANT_DESKTOP_HERMES_ROOT"] = str(Path(args.hermes_root).expanduser().resolve())
     cwd = getattr(args, "cwd", None)
-    env["HERMES_DESKTOP_CWD"] = str(Path(cwd).expanduser().resolve()) if cwd else os.getcwd()
+    env["A2ASSISTANT_DESKTOP_CWD"] = str(Path(cwd).expanduser().resolve()) if cwd else os.getcwd()
 
     config_electron_flags, config_disable_gpu, config_password_store, config_ozone_hint, config_renderer_a11y = (
         _desktop_launch_options())
-    if config_disable_gpu != "auto" and "HERMES_DESKTOP_DISABLE_GPU" not in os.environ:
-        env["HERMES_DESKTOP_DISABLE_GPU"] = config_disable_gpu
+    if config_disable_gpu != "auto" and "A2ASSISTANT_DESKTOP_DISABLE_GPU" not in os.environ:
+        env["A2ASSISTANT_DESKTOP_DISABLE_GPU"] = config_disable_gpu
     if config_ozone_hint != "auto" and "ELECTRON_OZONE_PLATFORM_HINT" not in os.environ:
         env["ELECTRON_OZONE_PLATFORM_HINT"] = config_ozone_hint
 
     # Renderer accessibility tree (composer exposure to OS dictation/IME
     # tools, #118271/#92607) defaults to ON inside the app; bridge only the
     # explicit opt-out so the default never depends on the launcher path.
-    if not config_renderer_a11y and "HERMES_DESKTOP_RENDERER_ACCESSIBILITY" not in os.environ:
-        env["HERMES_DESKTOP_RENDERER_ACCESSIBILITY"] = "0"
+    if not config_renderer_a11y and "A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY" not in os.environ:
+        env["A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY"] = "0"
 
     # Without --password-store safeStorage.isEncryptionAvailable() is often
     # false and the desktop app refuses to persist remote gateway tokens.
-    if sys.platform == "linux" and "HERMES_DESKTOP_PASSWORD_STORE" not in os.environ:
+    if sys.platform == "linux" and "A2ASSISTANT_DESKTOP_PASSWORD_STORE" not in os.environ:
         password_store = (
             config_password_store if config_password_store != "auto" else _detect_linux_password_store()
         )
         if password_store:
-            env["HERMES_DESKTOP_PASSWORD_STORE"] = password_store
+            env["A2ASSISTANT_DESKTOP_PASSWORD_STORE"] = password_store
     return env, config_electron_flags
 
 
@@ -1691,7 +1692,7 @@ def _run_desktop_one_shot(args: argparse.Namespace, desktop_dir: Path, *, bundle
             with contextlib.suppress(NotBundledApp):
                 exe = resolve_bundle_layout(PROJECT_ROOT).launcher
         if exe is None:
-            print(f"✗ No packaged A2Assistant Desktop found under {desktop_dir / 'release'}; run `hermes desktop` first.")
+            print(f"✗ No packaged A2Assistant Desktop found under {desktop_dir / 'release'}; run `a2assistant desktop` first.")
         sys.exit(0 if exe is not None and install_profile(exe) else 1)
 
 
@@ -1720,7 +1721,7 @@ def cmd_gui(args: argparse.Namespace):
             print(
                 "  This A2Assistant came from Homebrew, which does not ship the desktop app's\n"
                 "  source tree, so it cannot be built from this install.\n"
-                "  Run `hermes desktop` from a source checkout instead."
+                "  Run `a2assistant desktop` from a source checkout instead."
             )
         sys.exit(1)
 
@@ -1924,7 +1925,7 @@ def cmd_gui(args: argparse.Namespace):
 def _explicit_profile_args() -> list[str]:
     """``--profile <name>`` for Electron when ``-p``/``--profile`` was on argv.
 
-    Explicit flag only. A bare `hermes desktop` must not forward the sticky CLI
+    Explicit flag only. A bare `a2assistant desktop` must not forward the sticky CLI
     profile — Electron would persist it over the stored desktop one.
     """
     from hermes_cli.main import explicit_cli_profile

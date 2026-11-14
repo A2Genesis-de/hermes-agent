@@ -2,7 +2,7 @@
 
 One read-only pass answering, BEFORE any mutation: which Hermes runtimes run on this machine, how
 each is deployed, which ones this update touches, and how each restarts. Every collector is a
-side-effect-free probe, so ``hermes update --plan`` is safe on a live fleet.
+side-effect-free probe, so ``a2assistant update --plan`` is safe on a live fleet.
 """
 
 from __future__ import annotations
@@ -38,7 +38,7 @@ class UpdatePlan:
 
     install_method: str = "unknown"       # git | docker | nix | apt | ...
     updatable_in_place: bool = True
-    update_mechanism: str = "hermes update"
+    update_mechanism: str = "a2assistant update"
     expected_sha: Optional[str] = None    # current checkout HEAD (pre-pull)
     expected_version: Optional[str] = None
     profiles: list = field(default_factory=list)
@@ -118,7 +118,7 @@ def _restart_mechanism(supervisor: str, profile: str) -> str:
 def describe_restart_mechanism(mechanism: str, profile: str) -> str:
     """Human-readable description of a restart mechanism id."""
     return _MECHANISM_DESCRIPTIONS.get(mechanism) or (
-        f"hermes -p {profile} gateway restart" if profile != "default" else "hermes gateway restart"
+        f"a2assistant -p {profile} gateway restart" if profile != "default" else "a2assistant gateway restart"
     )
 
 
@@ -262,9 +262,9 @@ def _launchd_owner_for_ledger_entry(entry: dict, pid: int, jobs: list) -> tuple[
 def _systemd_owner_for_ledger_pid(pid: int) -> tuple[str, str | None] | None:
     """``(unit, scope)`` of the systemd unit whose live ``MainPID`` is *pid*, if any.
 
-    A unit-launched backend sets neither ``HERMES_SPAWN`` nor ``HERMES_PARENT_PID``, so the spawner
+    A unit-launched backend sets neither ``A2ASSISTANT_SPAWN`` nor ``A2ASSISTANT_PARENT_PID``, so the spawner
     probe reads ``manual-serve`` and the update tells the user to "ask the owner to relaunch
-    `hermes dashboard`" for a process systemd owns (#141021). Ownership is the unit's MainPID, not
+    `a2assistant dashboard`" for a process systemd owns (#141021). Ownership is the unit's MainPID, not
     cgroup membership (a hand-started dashboard inside some unrelated unit's cgroup is still manual);
     ``None`` off Linux, when unreadable, or when no unit owns it."""
     with suppress(Exception):
@@ -288,7 +288,7 @@ def _is_desktop_ssh_ledger_entry(entry: dict) -> bool:
 
 def _collect_ledger_runtimes(plan: UpdatePlan, seen: set[int]) -> None:
     """Serve/dashboard backends from the spawn ledger — runtimes the gateway collectors can never see
-    (a manual `hermes serve --host <ip>` for a remote Desktop, a long-lived `hermes dashboard`).
+    (a manual `a2assistant serve --host <ip>` for a remote Desktop, a long-lived `a2assistant dashboard`).
     ledger_entries() live-verifies (pid, create_time) so PID reuse never fabricates a row. Desktop-
     supervised backends (spawner still alive) restart via the Desktop's own respawn, not ours.
     A backend owned by a loaded launchd job is classified ``launchd`` (kickstart restart, never a
@@ -375,7 +375,7 @@ def print_update_plan(plan: UpdatePlan) -> None:
 
 def _serve_unit_matches_profile(profile: str, unit: object) -> bool:
     """Does *unit* name a ``hermes-serve*``/``hermes-dashboard*`` unit for *profile*? (OWN vocabulary;
-    the gateway's ``hermes-gateway*`` names never cover serve/dashboard runtimes.)
+    the gateway's ``a2assistant-gateway*`` names never cover serve/dashboard runtimes.)
 
     Exact names only — ``work`` must not claim ``hermes-serve-workbench`` — and a scope prefix
     (``user/hermes-serve``) is tolerated because the restart phase records scope-qualified identities in
@@ -389,16 +389,19 @@ def _serve_unit_matches_profile(profile: str, unit: object) -> bool:
 def _gateway_service_matches_profile(profile: str, service: object) -> bool:
     """Match an exact gateway service/label (systemd/launchd/s6 shapes) to a profile.
 
-    Never substring-match: ``foo`` must not claim ``hermes-gateway-foobar.service``.
-    Launchd labels are ``ai.hermes.gateway`` / ``ai.hermes.gateway-<profile>`` — they do
-    not contain the substring ``hermes-gateway``, so a successful macOS kickstart must
-    still credit the planned default gateway. A scope prefix (``user/hermes-gateway``,
-    ``gui/501/ai.hermes.gateway``) is stripped the same way serve units are.
+    Never substring-match: ``foo`` must not claim ``a2assistant-gateway-foobar.service``.
+    Launchd labels are ``de.a2genesis.a2assistant.gateway`` / ``de.a2genesis.a2assistant.gateway-<profile>`` — they do
+    not contain the substring ``a2assistant-gateway``, so a successful macOS kickstart must
+    still credit the planned default gateway. A scope prefix (``user/a2assistant-gateway``,
+    ``gui/501/de.a2genesis.a2assistant.gateway``) is stripped the same way serve units are.
     """
+    from hermes_cli.service_names import LAUNCHD_GATEWAY_LABELS, SYSTEMD_GATEWAY_UNITS
+
     name = str(service).removesuffix(".service").rsplit("/", 1)[-1]
+    bases = (*SYSTEMD_GATEWAY_UNITS, *LAUNCHD_GATEWAY_LABELS)
     if profile == "default":
-        return name in {"hermes-gateway", "ai.hermes.gateway", "gateway", "gateway-default"}
-    return name in {f"hermes-gateway-{profile}", f"ai.hermes.gateway-{profile}", f"gateway-{profile}"}
+        return name in {*bases, "gateway", "gateway-default"}
+    return name in {*(f"{base}-{profile}" for base in bases), f"gateway-{profile}"}
 
 
 def _gateway_named_in(r: RuntimeRecord, names: set) -> bool:
@@ -438,7 +441,7 @@ def match_runtime_outcomes(
     profile it SERVES, while the restart bookkeeping names the SERVICE it runs under, and those two
     disagree whenever a service serves a profile its name does not encode — a root-home launchd
     label running the sticky active profile, a hash-suffixed systemd unit for a custom
-    ``HERMES_HOME``. No name rule can bridge that, so a planned PID that is gone while a gateway
+    ``A2ASSISTANT_HOME``. No name rule can bridge that, so a planned PID that is gone while a gateway
     answers for the same profile counts as ``restarted``. A missing successor, or the planned PID
     still answering, stays ``unaccounted`` — the tripwire keeps its teeth.
 
@@ -456,7 +459,7 @@ def match_runtime_outcomes(
     record at all while the fleet row still proves its successor runs the new code.
 
     See #91277.
-    They never borrow the gateway's outcome: ``relaunched_profiles`` and ``hermes-gateway*`` name a
+    They never borrow the gateway's outcome: ``relaunched_profiles`` and ``a2assistant-gateway*`` name a
     different process that shares the profile, nothing more. See #100479.
 
     ``external_gateway_pids``: gateway pids the post-restart fleet probe verified as serving a
@@ -574,7 +577,7 @@ def report_unaccounted_runtimes(outcomes: list[dict[str, Any]]) -> bool:
         print()
         print("  ⚠ Manual serve restarts deferred to their owner (reminders retained until the old processes exit):")
         for o in manual:
-            print(f"    • {o['kind']} [{o['profile']}] pid {o['pid']}: relaunch `hermes serve` / `hermes dashboard`, or reconnect Desktop for an SSH backend")
+            print(f"    • {o['kind']} [{o['profile']}] pid {o['pid']}: relaunch `a2assistant serve` / `a2assistant dashboard`, or reconnect Desktop for an SSH backend")
     deferred = [o for o in outcomes if o.get("outcome") == "deferred" and o.get("mechanism") != "respawn-argv"]
     if deferred:
         # Surfaced but not escalated: the updater has no authority over these, so holding
@@ -601,8 +604,8 @@ def report_unaccounted_runtimes(outcomes: list[dict[str, Any]]) -> bool:
         print(f"    ✗ {o['kind']} [{o['profile']}] pid {o['pid']} — planned mechanism: {o['mechanism']}")
     print("    Restart them manually, then verify:")
     if any(o.get("kind") not in _SERVE_KINDS for o in missed):
-        print("      hermes gateway restart                # active profile")
-        print("      hermes -p <profile> gateway restart   # named profile")
+        print("      a2assistant gateway restart                # active profile")
+        print("      a2assistant -p <profile> gateway restart   # named profile")
     if any(o.get("kind") in _SERVE_KINDS for o in missed):
         # A serve/dashboard is not reachable by any `gateway restart` command: name the process, not the wrong verb.
         # See #100479.
@@ -616,7 +619,7 @@ def report_unaccounted_runtimes(outcomes: list[dict[str, Any]]) -> bool:
         if any(o.get("kind") in _SERVE_KINDS and not o.get("systemd_unit") for o in missed):
             if sys.platform == "linux":
                 print("      systemctl --user restart hermes-serve.service   # unit-managed serve")
-            print("      relaunch `hermes serve` / `hermes dashboard`")
+            print("      relaunch `a2assistant serve` / `a2assistant dashboard`")
     return True
 
 

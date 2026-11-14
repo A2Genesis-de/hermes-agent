@@ -42,7 +42,7 @@ beforeEach((): void => {
   root = fs.mkdtempSync(path.join(os.tmpdir(), 'relaunch-isolation-'))
   hermesHome = path.join(root, 'hermes-home')
   fs.mkdirSync(hermesHome)
-  vi.stubEnv('HERMES_HOME', hermesHome)
+  vi.stubEnv('A2ASSISTANT_HOME', hermesHome)
   stable = installation('stable')
   canary = installation('canary')
   commit = installation('commit')

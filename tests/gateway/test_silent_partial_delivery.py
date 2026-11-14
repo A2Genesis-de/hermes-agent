@@ -408,7 +408,7 @@ class TestLedgerReplaysDegradedSend:
         reconnect sweep; a generic 'Not connected' row (pre-fix error
         string) is stranded. This is the exact silent-loss mechanism from
         the #95382 field logs."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         import gateway.delivery_ledger as dl
 
         importlib.reload(dl)

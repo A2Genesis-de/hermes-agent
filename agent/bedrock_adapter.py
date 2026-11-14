@@ -46,7 +46,7 @@ _AWS_SCOPED_CREDENTIAL_VARS: tuple[tuple[str, str], ...] = (
 def scoped_aws_session_kwargs() -> dict[str, str]:
     """``boto3.session.Session`` kwargs from the routed profile's secret scope, ``{}`` when unscoped.
 
-    Under a HERMES_HOME override the process env holds the LAUNCH profile's ``AWS_*`` (or nothing), so
+    Under a A2ASSISTANT_HOME override the process env holds the LAUNCH profile's ``AWS_*`` (or nothing), so
     every Bedrock client for a served profile must be built from that profile's own ``.env`` values.
     Under multiplexing a profile that sets none of its own must NOT get ``{}`` — ``boto3.Session()``
     would then resolve the ambient default chain (process env, ~/.aws, instance metadata), i.e. the
@@ -123,7 +123,7 @@ def _require_boto3():
     if version < _MIN_BOTO3_VERSION:
         raise RuntimeError(
             f"boto3 {boto3.__version__} does not support converse_stream "
-            f"(minimum 1.34.59 required). Run: hermes pm repair"
+            f"(minimum 1.34.59 required). Run: a2assistant pm repair"
         )
     return boto3
 
@@ -262,7 +262,7 @@ def is_bedrock_openai_base_url(base_url: str) -> bool:
 def resolve_bedrock_bearer_token(env: Optional[dict[str, str]] = None) -> str:
     """Return AWS_BEARER_TOKEN_BEDROCK when Bedrock API-key auth is configured.
 
-    Under a HERMES_HOME override the read goes through the profile secret scope so a
+    Under a A2ASSISTANT_HOME override the read goes through the profile secret scope so a
     served profile never inherits the launch profile's bearer from the process env."""
     if env is not None:
         return (env.get("AWS_BEARER_TOKEN_BEDROCK", "") or "").strip()

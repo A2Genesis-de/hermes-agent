@@ -154,7 +154,7 @@ def test_launch_home_dotenv_still_loads_under_multiplex(tmp_path, monkeypatch):
     routed.mkdir(parents=True)
     (launch / ".env").write_text("LAUNCH_ONLY_FALLBACK_KEY=launch-key\n", encoding="utf-8")
     (routed / ".env").write_text("LAUNCH_ONLY_FALLBACK_KEY=routed-secret\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.delenv("LAUNCH_ONLY_FALLBACK_KEY", raising=False)
     ss.set_multiplex_active(True)
 
@@ -191,7 +191,7 @@ def test_launch_home_load_inside_foreign_turn_keeps_routed_cwd_out_of_process_en
     (launch / ".env").write_text("LAUNCH_ONLY_FALLBACK_KEY=launch-key\n", encoding="utf-8")
     (launch / "config.yaml").write_text(f"terminal:\n  backend: local\n  cwd: {launch_work}\n", encoding="utf-8")
     (routed / "config.yaml").write_text(f"terminal:\n  backend: local\n  cwd: {routed_work}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("TERMINAL_CWD", str(launch_work))
     ss.set_multiplex_active(True)
 

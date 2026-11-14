@@ -32,7 +32,7 @@ describe('update child proxy env from the system proxy (#123387)', () => {
       ...proxied('http://10.0.0.7:7890'),
       NO_PROXY: noProxy,
       no_proxy: noProxy,
-      HERMES_UPDATE_SYSTEM_PROXY: 'HTTPS_PROXY,https_proxy,HTTP_PROXY,http_proxy,NO_PROXY,no_proxy'
+      A2ASSISTANT_UPDATE_SYSTEM_PROXY: 'HTTPS_PROXY,https_proxy,HTTP_PROXY,http_proxy,NO_PROXY,no_proxy'
     })
   })
 
@@ -110,7 +110,7 @@ describe('update child proxy env from the system proxy (#123387)', () => {
     const restored = restoreUserProxyEnv({ ...user, ...env })
 
     expect(env.NO_PROXY?.split(',')).toContain('corp.internal')
-    expect(env.HERMES_UPDATE_SYSTEM_PROXY?.split(',')).not.toContain('NO_PROXY')
+    expect(env.A2ASSISTANT_UPDATE_SYSTEM_PROXY?.split(',')).not.toContain('NO_PROXY')
     expect(new Set(Object.entries(restored).filter(([key]) => key.toLowerCase() === 'no_proxy').map(([, v]) => v)))
       .toEqual(new Set(['corp.internal']))
   })
@@ -137,7 +137,7 @@ describe('update child proxy env from the system proxy (#123387)', () => {
     }
   })
 
-  it("keeps the npm mirror of the profile's $HERMES_HOME/npmrc direct, as the update's pnpm reads it", async () => {
+  it("keeps the npm mirror of the profile's $A2ASSISTANT_HOME/npmrc direct, as the update's pnpm reads it", async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-update-hosts-'))
 
     try {

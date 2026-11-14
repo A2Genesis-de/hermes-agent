@@ -34,7 +34,7 @@ function publishLauncher(dir: string, reported: string): string {
 }
 
 // The reported machine: setup-hermes.sh published ~/.local/bin/hermes for a
-// clone outside ~/.hermes/hermes-agent, and a Finder/Dock launch inherited
+// clone outside ~/.a2assistant/app, and a Finder/Dock launch inherited
 // launchd's PATH, which has no ~/.local/bin. Desktop must still find it.
 test.skipIf(process.platform === 'win32')(
   'a ~/.local/bin launcher resolves its non-canonical install on a GUI PATH without ~/.local/bin',

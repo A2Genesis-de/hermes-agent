@@ -9,7 +9,7 @@ from cron import executions, jobs, scheduler_authority
 
 
 def test_live_firer_journal_survives_until_its_execution_can_settle(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     with jobs.use_cron_store(tmp_path / 'cron'):
         job = jobs.create_job(prompt='report', schedule='every 1h', deliver='local')
         code = ('import sys; from cron.executions import create_execution, mark_execution_running; '

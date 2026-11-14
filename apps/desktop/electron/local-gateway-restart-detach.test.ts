@@ -6,7 +6,7 @@ import { expect, test } from 'vitest'
 
 import { runGatewayEnsure, runGatewayOwnerRestart } from './local-gateway'
 
-// A real bounded client against a fake `hermes`: `new` knows `--detach`; `old` predates it and
+// A real bounded client against a fake `a2assistant`: `new` knows `--detach`; `old` predates it and
 // rejects it the way argparse does. Each run appends its argv, so the test reads what was executed.
 async function fakeHermes(kind: 'new' | 'old') {
   const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'gw-detach-'))
@@ -18,7 +18,7 @@ async function fakeHermes(kind: 'new' | 'old') {
 
   const bin = path.join(dir, 'hermes')
   await fs.writeFile(bin, `#!/bin/sh\necho "$*" >> "${calls}"\n${reject}echo "✓ restarted"\n`, { mode: 0o755 })
-  const run = (args: string[]) => runGatewayEnsure({ command: bin, args, env: {}, shell: false }, dir, dir, {}, { timeoutMs: 5000, label: 'hermes gateway restart' })
+  const run = (args: string[]) => runGatewayEnsure({ command: bin, args, env: {}, shell: false }, dir, dir, {}, { timeoutMs: 5000, label: 'a2assistant gateway restart' })
 
   return { run, calls: async () => (await fs.readFile(calls, 'utf8')).trim().split('\n') }
 }

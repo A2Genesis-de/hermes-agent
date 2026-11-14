@@ -10,12 +10,12 @@ def test_cli_readers_observe_committed_state_during_writer_transaction(tmp_path)
     home = tmp_path / 'profile'
     home.mkdir()
     env = {k: os.environ[k] for k in ('PATH', 'SYSTEMROOT', 'LANG', 'TZ') if k in os.environ}
-    env.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path), HERMES_HOME=str(home), PYTHONPATH=str(repo))
+    env.update(HOME=str(tmp_path), USERPROFILE=str(tmp_path), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(repo))
     code = '''
 import os, subprocess, sys
 from pathlib import Path
 from hermes_state import SessionDB
-path = Path(os.environ['HERMES_HOME']) / 'state.db'
+path = Path(os.environ['A2ASSISTANT_HOME']) / 'state.db'
 with SessionDB(db_path=path) as owner:
     owner.create_session('committed-fixture', source='cli')
     owner.append_message('committed-fixture', role='user', content='committed text')

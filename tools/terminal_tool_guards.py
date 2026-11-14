@@ -263,14 +263,14 @@ def gateway_lifecycle_block(
 ) -> Optional[str]:
     """Refuse gateway lifecycle commands issued from inside the supervised gateway.
 
-    ``systemctl``/``launchctl``/``hermes gateway restart|stop|uninstall``
-    targeting hermes-gateway would SIGTERM the gateway — and this very
+    ``systemctl``/``launchctl``/``a2assistant gateway restart|stop|uninstall``
+    targeting a2assistant-gateway would SIGTERM the gateway — and this very
     subprocess — before completing, so the service may never come back.
     Applies unconditionally (``force=True`` cannot bypass it). Gated on the
     SUPERVISED-gateway probe, not the raw ``_HERMES_GATEWAY`` marker: that
     marker leaks into every process that merely imports gateway.run (hermes
     serve, CLI, web server), which must still be able to restart the gateway;
-    an unsupervised foreground ``hermes gateway run`` has no KeepAlive to turn
+    an unsupervised foreground ``a2assistant gateway run`` has no KeepAlive to turn
     a self-restart into a respawn loop, so it passes too.
     Returns the JSON error string when blocked, else None.
     """
@@ -333,7 +333,7 @@ def gateway_lifecycle_block(
             "Blocked: command or referenced script cannot restart, stop, or "
             "uninstall the gateway from inside the gateway process. The gateway would "
             "kill this command before it could complete (SIGTERM propagates "
-            "to child processes). Run `hermes gateway restart` from a "
+            "to child processes). Run `a2assistant gateway restart` from a "
             "separate shell outside the running gateway.",
             "error",
         )
@@ -370,7 +370,7 @@ def self_repo_block(
 
 def locked_skill_block(*, command: str, cwd: str, workdir: Optional[str], session_key: str) -> Optional[str]:
     """Refuse commands that write into a skill the user locked, change the lock record, or run
-    ``hermes curator unlock`` (see tools/skill_lock). Local backend only: a remote or container
+    ``a2assistant curator unlock`` (see tools/skill_lock). Local backend only: a remote or container
     backend cannot reach this profile's skills dir. Returns the JSON error string when blocked."""
     from tools.skill_lock import command_refusal
     from tools.terminal_tool import _resolve_command_cwd

@@ -40,7 +40,7 @@ class TestEnvIngestionWarning:
     def _fresh_home(self, tmp_path, monkeypatch, token="sk-or-FAKEINGEST123"):
         home = tmp_path / "hermes"
         home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         monkeypatch.setenv("OPENROUTER_API_KEY", token)
         return home
 

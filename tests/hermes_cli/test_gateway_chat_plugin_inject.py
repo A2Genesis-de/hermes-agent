@@ -1,5 +1,5 @@
 """`ctx.inject_message(text)` with no session_key/origin (plugins.md "Active CLI conversation") reaches
-the attached classic `hermes chat` session as a queued prompt, from a plugin's own thread (B2-11).
+the attached classic `a2assistant chat` session as a queued prompt, from a plugin's own thread (B2-11).
 
 The classic CLI loads no plugin code on a gateway session (PLG-7): the plugin runs in the gateway, which
 picks the one attached classic CLI session of the plugin's profile."""

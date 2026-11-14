@@ -1,9 +1,9 @@
 # nix/desktop.nix — Hermes Desktop (Electron) app build + wrapper
 #
 # `hermesAgent` is the fully-built `.#default` package — it ships the
-# `hermes` binary with the venv, runtime PATH, bundled skills/plugins, etc.
+# `a2assistant` binary with the venv, runtime PATH, bundled skills/plugins, etc.
 # already wired up.  We point the desktop at it via the existing
-# `HERMES_DESKTOP_HERMES` override env var, so the desktop's resolver
+# `A2ASSISTANT_DESKTOP_HERMES` override env var, so the desktop's resolver
 # uses our fully wrapped binary before the mutable managed install.
 # No reimplementation of the agent resolution in this wrapper.
 {
@@ -20,7 +20,7 @@
   # Environment to bake into the launcher. A GUI launcher reads none of the
   # shell profile, so a variable that an interactive shell exports does not
   # reach an app that the desktop menu starts. The Home Manager module passes
-  # HERMES_HOME and HERMES_MANAGED here, which gives the app the same state
+  # A2ASSISTANT_HOME and A2ASSISTANT_MANAGED here, which gives the app the same state
   # directory as the services.
   extraEnv ? { },
   # Shell lines to run before the app starts. A secret belongs here and never
@@ -32,9 +32,9 @@
 }:
 let
   wrapperEnv = {
-    # set HERMES_DESKTOP_HERMES to the absolute path of the nix-built `hermes`
+    # set A2ASSISTANT_DESKTOP_HERMES to the absolute path of the nix-built `a2assistant`
     # binary so the deployment override selects our fully wrapped hermes install.
-    HERMES_DESKTOP_HERMES = lib.getExe hermesAgent;
+    A2ASSISTANT_DESKTOP_HERMES = lib.getExe hermesAgent;
     ELECTRON_IS_DEV = "0";
   }
   # extraEnv overrides the defaults

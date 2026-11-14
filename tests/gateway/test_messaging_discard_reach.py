@@ -35,7 +35,7 @@ async def test_discard_after_resume_into_a_cold_conversation_resolves_its_lost_t
     from hermes_state_runtime import claim_session_input, get_session_admission
     from tests.gateway.test_command_bypass_active_session import _StubAdapter
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setenv('TELEGRAM_ALLOWED_USERS', '42')
     monkeypatch.setattr('gateway.run._hermes_home', tmp_path)
     monkeypatch.setattr('hermes_state.DEFAULT_DB_PATH', tmp_path / 'state.db')  # conftest repoints it per test

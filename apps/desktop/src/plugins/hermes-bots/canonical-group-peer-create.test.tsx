@@ -83,6 +83,7 @@ async function createWithMini({ rows, onCreated }: Awaited<ReturnType<typeof ope
 it('seats a named profile from another computer on that gateway, pinned to that profile', async () => {
   const coder = { ...MINI, room_link: { ...MINI.room_link, profile: 'coder', catalog: { ...MINI.room_link.catalog,
     execution_policy: { ...MINI.room_link.catalog.execution_policy, target_profile: 'coder' } } } }
+
   gateways(undefined, (method, params) => method === 'groups.capabilities' && params.profile === 'coder' ? coder
     : method === 'groups.peer.invite' ? { ...peerInvitation('grant-for-coder'), target_profile: 'coder', catalog: coder.room_link.catalog }
       : mini()(method, params))
@@ -158,7 +159,7 @@ it.each([
 it.each([
   ['uses classic groups', { driver: false, persistent_process: false }, 'A2Assistant on This device is too old to run group chats. Update A2Assistant there, then retry.'],
   ['ends with Desktop', { ...HOME, persistent_process: false },
-    'A2Assistant on This device can’t seat bots from other computers yet. Update A2Assistant there and run its gateway (hermes gateway run), then retry.']
+    'A2Assistant on This device can’t seat bots from other computers yet. Update A2Assistant there and run its gateway (a2assistant gateway run), then retry.']
 ])('never makes a Desktop-driven group chat when the owner %s: it says what to change and offers Retry', async (_case, capabilities, words) => {
   gateways(home(method => method === 'groups.capabilities' ? capabilities : undefined))
   const { baseElement } = render(<CreateGroupChatDialog onClose={vi.fn()} open roster={roster} />)

@@ -40,12 +40,12 @@ const env = {
   HOME: home,
   CFFIXED_USER_HOME: home,
   TMPDIR: root,
-  HERMES_HOME: path.join(home, '.hermes'),
-  HERMES_RUNTIME_DIR: path.join(root, 'runtime')
+  A2ASSISTANT_HOME: path.join(home, '.hermes'),
+  A2ASSISTANT_RUNTIME_DIR: path.join(root, 'runtime')
 }
 for (const key of Object.keys(env)) {
   if (
-    /^(HERMES_(BUILD_COMMIT|PAYLOAD_TAG|PAYLOAD_VERSION|DESKTOP_)|ELECTRON_RUN_AS_NODE|NODE_OPTIONS|BUILD_NUMBER)/.test(
+    /^(A2ASSISTANT_(BUILD_COMMIT|PAYLOAD_TAG|PAYLOAD_VERSION|DESKTOP_)|ELECTRON_RUN_AS_NODE|NODE_OPTIONS|BUILD_NUMBER)/.test(
       key
     )
   )
@@ -114,7 +114,7 @@ try {
       console.log(JSON.stringify({identity,config}));
     `
         ],
-        { env: { ...env, HERMES_DESKTOP_VARIANT: 'bundled', ...flavor } }
+        { env: { ...env, A2ASSISTANT_DESKTOP_VARIANT: 'bundled', ...flavor } }
       )
     )
     const { identity, config } = facts

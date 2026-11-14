@@ -142,7 +142,7 @@ def test_named_profile_cannot_delete_data_served_by_the_default_multiplexer(layo
     profile.mkdir()
     config = profile / "config.yaml"
     config.write_text("{}", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
     monkeypatch.setattr(uninstall, "get_hermes_home", lambda: profile)
 
     def identify(target, **kwargs):

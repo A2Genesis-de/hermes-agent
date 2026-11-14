@@ -10,7 +10,7 @@ import { listWindowsRemoteProfiles, readWindowsRemoteInstallId } from './windows
 import { atomicWindowsSpawn, atomicWindowsSpawnCommand, compressedPowerShellCommand, decodePowerShellCommand, encodedPowerShell, probeWindowsFiles, probeWindowsRemote } from './windows-remote-lifecycle'
 import { WINDOWS_NO_REPARSE_PS } from './windows-runtime-command'
 
-const python = process.env.HERMES_TEST_PYTHON || process.env.HERMES_PYTHON || 'python'
+const python = process.env.A2ASSISTANT_TEST_PYTHON || process.env.A2ASSISTANT_PYTHON || 'python'
 const runtime = { os: 'Windows', arch: 'AMD64', hermesHome: 'C:\\hermes', hermesPath: 'C:\\hermes\\bin\\hermes.exe', python: 'C:\\runtime\\python.exe' }
 const bootstrap = "import os, sys, runpy; runpy.run_module('hermes_cli.main', run_name='__main__', alter_sys=True)"
 
@@ -144,8 +144,8 @@ test('inventory reads profiles and install identity through the runtime helper a
   assert.deepEqual(calls.map(script => script.includes('.hermes-update-in-progress')), [true, false, true, false])
 })
 
-test.runIf(Boolean(process.env.HERMES_TEST_PWSH))('real local PowerShell runs a long compressed script, preserving Unicode and piped JSON', () => {
-  const pwsh = String(process.env.HERMES_TEST_PWSH)
+test.runIf(Boolean(process.env.A2ASSISTANT_TEST_PWSH))('real local PowerShell runs a long compressed script, preserving Unicode and piped JSON', () => {
+  const pwsh = String(process.env.A2ASSISTANT_TEST_PWSH)
   const payload = JSON.stringify({ marker: '用户/한글', length: 12000 })
   const script = `$OutputEncoding=[Text.UTF8Encoding]::new($false);${"# padding\r\n".repeat(1500)}'${payload}' | & '${python}' -c 'import json,sys; print(json.dumps(json.load(sys.stdin),ensure_ascii=False))'`
   const command = compressedPowerShellCommand(script)
@@ -159,10 +159,10 @@ test.runIf(Boolean(process.env.HERMES_TEST_PWSH))('real local PowerShell runs a 
   assert.deepEqual(JSON.parse(result.stdout.trim()), JSON.parse(payload))
 })
 
-test.runIf(Boolean(process.env.HERMES_TEST_PWSH))('real outer PowerShell rejects the old Invoke wrapper and accepts the compressed command', () => {
-  const pwsh = String(process.env.HERMES_TEST_PWSH)
+test.runIf(Boolean(process.env.A2ASSISTANT_TEST_PWSH))('real outer PowerShell rejects the old Invoke wrapper and accepts the compressed command', () => {
+  const pwsh = String(process.env.A2ASSISTANT_TEST_PWSH)
   const tools = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-outer-powershell-'))
-  const marker = 'HERMES_LOCAL_OUTER_SHELL_OK_用户'
+  const marker = 'A2ASSISTANT_LOCAL_OUTER_SHELL_OK_用户'
   const payload = encodedPowerShell(`Write-Output '${marker}'`)
   const old = 'powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command [ScriptBlock]::Create([Text.Encoding]::Unicode.GetString([Convert]::FromBase64String([Console]::In.ReadToEnd()))).Invoke()'
   fs.symlinkSync(pwsh, path.join(tools, 'powershell.exe'))
@@ -184,8 +184,8 @@ test.runIf(Boolean(process.env.HERMES_TEST_PWSH))('real outer PowerShell rejects
   }
 })
 
-test.runIf(Boolean(process.env.HERMES_TEST_PWSH))('real PowerShell parser accepts emitted probe and spawn programs', async () => {
-  const pwsh = String(process.env.HERMES_TEST_PWSH)
+test.runIf(Boolean(process.env.A2ASSISTANT_TEST_PWSH))('real PowerShell parser accepts emitted probe and spawn programs', async () => {
+  const pwsh = String(process.env.A2ASSISTANT_TEST_PWSH)
   const scripts = [streamed(atomicWindowsSpawnCommand(runtime))]
   await probeWindowsFiles({ exec: async (command: string) => {
     scripts.push(streamed(command))
@@ -193,7 +193,7 @@ test.runIf(Boolean(process.env.HERMES_TEST_PWSH))('real PowerShell parser accept
     return JSON.stringify(runtime)
   } })
   const list = scripts.map(script => `'${encodedPowerShell(script)}'`).join(',')
-  const program = `$errorsFound=@();foreach($b in @(${list})){$text=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($b));$tokens=$null;$parseErrors=$null;[Management.Automation.Language.Parser]::ParseInput($text,[ref]$tokens,[ref]$parseErrors)|Out-Null;$errorsFound+=@($parseErrors)};if($errorsFound.Count){$errorsFound|ForEach-Object {$_.Message};exit 1};'HERMES_PS_PROGRAMS_PARSE_OK'`
+  const program = `$errorsFound=@();foreach($b in @(${list})){$text=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String($b));$tokens=$null;$parseErrors=$null;[Management.Automation.Language.Parser]::ParseInput($text,[ref]$tokens,[ref]$parseErrors)|Out-Null;$errorsFound+=@($parseErrors)};if($errorsFound.Count){$errorsFound|ForEach-Object {$_.Message};exit 1};'A2ASSISTANT_PS_PROGRAMS_PARSE_OK'`
 
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-ps-parse-'))
   const file = path.join(dir, 'parse.ps1')
@@ -203,14 +203,14 @@ test.runIf(Boolean(process.env.HERMES_TEST_PWSH))('real PowerShell parser accept
     const result = spawnSync(pwsh, ['-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', file], { encoding: 'utf8', timeout: 20000 })
 
     assert.equal(result.status, 0, result.stderr + result.stdout)
-    assert.equal(result.stdout.trim(), 'HERMES_PS_PROGRAMS_PARSE_OK')
+    assert.equal(result.stdout.trim(), 'A2ASSISTANT_PS_PROGRAMS_PARSE_OK')
   } finally {
     fs.rmSync(dir, { recursive: true, force: true })
   }
 })
 
-test.runIf(Boolean(process.env.HERMES_TEST_PWSH))('no-reparse guard checks a leaf file and every ancestor, not FileInfo.Parent', () => {
-  const pwsh = String(process.env.HERMES_TEST_PWSH)
+test.runIf(Boolean(process.env.A2ASSISTANT_TEST_PWSH))('no-reparse guard checks a leaf file and every ancestor, not FileInfo.Parent', () => {
+  const pwsh = String(process.env.A2ASSISTANT_TEST_PWSH)
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-no-reparse-'))
   fs.mkdirSync(path.join(root, 'real'))
   fs.writeFileSync(path.join(root, 'real', 'leaf'), 'fixture')

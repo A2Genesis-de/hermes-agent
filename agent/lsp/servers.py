@@ -222,8 +222,8 @@ def _spawn_bash_ls(root: str, ctx: ServerContext) -> Optional[SpawnSpec]:
 
 
 _VUE_REINSTALL = (
-    "delete <HERMES_HOME>/lsp/node_modules/@vue and <HERMES_HOME>/lsp/bin/vue-language-server*, "
-    "then run: hermes lsp install vue-language-server"
+    "delete <A2ASSISTANT_HOME>/lsp/node_modules/@vue and <A2ASSISTANT_HOME>/lsp/bin/vue-language-server*, "
+    "then run: a2assistant lsp install vue-language-server"
 )
 _VUE_TUNNEL_MSG = (
     "vue-language-server: the installed @vue/language-server is 3.x, which only works behind a client-hosted "
@@ -285,7 +285,7 @@ def _spawn_vue(root: str, ctx: ServerContext) -> Optional[SpawnSpec]:
 
 _TS_UNTRUSTED_MSG = (
     "typescript-language-server: no TypeScript SDK next to the server, and this workspace is untrusted so its "
-    "own node_modules/typescript is not loaded — diagnostics are skipped. Reinstall: hermes lsp install "
+    "own node_modules/typescript is not loaded — diagnostics are skipped. Reinstall: a2assistant lsp install "
     "typescript-language-server, or list the workspace under lsp.trusted_workspaces."
 )
 
@@ -309,7 +309,7 @@ def _spawn_typescript(root: str, ctx: ServerContext) -> Optional[SpawnSpec]:
 def _find_pses_bundle(ctx: ServerContext) -> Optional[str]:
     """Locate the PowerShellEditorServices bundle dir (release zip, manual install).  Resolution order:
     ``lsp.servers.powershell.command[0]`` when a directory, ``init_overrides["powershell"]["bundlePath"]``,
-    ``PSES_BUNDLE_PATH`` env, then ``<HERMES_HOME>/lsp/PowerShellEditorServices``."""
+    ``PSES_BUNDLE_PATH`` env, then ``<A2ASSISTANT_HOME>/lsp/PowerShellEditorServices``."""
     from hermes_constants import get_hermes_home
     override = ctx.binary_overrides.get("powershell")
     init = ctx.init_overrides.get("powershell", {})
@@ -331,7 +331,7 @@ def _find_pses_bundle(ctx: ServerContext) -> Optional[str]:
 _PSES_MISSING_MSG = (
     "powershell: pwsh found but the PowerShellEditorServices bundle is missing. Download the release zip from "
     "https://github.com/PowerShell/PowerShellEditorServices/releases, extract it, and either set "
-    "lsp.servers.powershell.command to the bundle path or unzip it to <HERMES_HOME>/lsp/PowerShellEditorServices."
+    "lsp.servers.powershell.command to the bundle path or unzip it to <A2ASSISTANT_HOME>/lsp/PowerShellEditorServices."
 )
 
 

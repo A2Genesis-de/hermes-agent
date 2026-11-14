@@ -1,4 +1,4 @@
-"""`hermes sessions archive --include-open`: archive (reversible) may reach never-ended sessions (#139597)."""
+"""`a2assistant sessions archive --include-open`: archive (reversible) may reach never-ended sessions (#139597)."""
 import pytest
 
 from hermes_state import SessionDB

@@ -94,7 +94,7 @@ def main() -> None:
     if args.runtime_command:
         probe_pm(root, args.desktop, json.loads(args.runtime_command))
     elif (root / "pm/lock.json").is_file():
-        env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", HERMES_DISABLE_LAZY_INSTALLS="1")
+        env = dict(os.environ, PYTHONDONTWRITEBYTECODE="1", A2ASSISTANT_DISABLE_LAZY_INSTALLS="1")
         result = subprocess.run([str(args.launcher), "--print-runtime-command"],
                                 capture_output=True, text=True, check=True, env=env, timeout=30)
         command = json.loads(result.stdout)

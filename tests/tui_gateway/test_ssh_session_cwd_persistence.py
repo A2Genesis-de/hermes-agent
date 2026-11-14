@@ -150,7 +150,7 @@ def test_resume_leaves_a_set_aside_row_unchanged(backend, db):
 
 @pytest.mark.parametrize("stored", ["~", "~/proj"])
 def test_resume_keeps_a_remote_tilde_cwd_when_home_is_inside_hermes_home(backend, db, monkeypatch, tmp_path, stored):
-    """The Docker image's HOME (``/opt/data/home``) sits inside HERMES_HOME; ``~`` still names the REMOTE home."""
+    """The Docker image's HOME (``/opt/data/home``) sits inside A2ASSISTANT_HOME; ``~`` still names the REMOTE home."""
     monkeypatch.setenv("HOME", _hermes_home_subdir("home"))
     db.create_session("tilde", source="tui", model="m", cwd=stored)
     session = _hydrate(db, "tilde", {"session_key": "tilde", "source": "tui", "cwd": str(tmp_path)})
@@ -189,7 +189,7 @@ def test_resume_without_a_stored_cwd_does_not_persist_the_launch_dir(backend, db
 
 @pytest.mark.parametrize("name", ["local", "docker"])
 def test_host_backends_resume_unchanged(backend, db, tmp_path, name):
-    """Docker installs on the local or docker backend keep adopting a stored cwd under HERMES_HOME."""
+    """Docker installs on the local or docker backend keep adopting a stored cwd under A2ASSISTANT_HOME."""
     backend(name)
     stored = _hermes_home_subdir("home")
     db.create_session("host", source="tui", model="m", cwd=stored)

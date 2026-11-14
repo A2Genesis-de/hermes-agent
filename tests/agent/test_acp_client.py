@@ -175,7 +175,7 @@ def test_deprecated_alias_keeps_a_frozen_out_of_tree_subclass_working(tmp_path):
     (plugin / "plugin.yaml").write_text("name: frozen-acp\nkind: model-provider\nversion: 1.0.0\n", encoding="utf-8")
     script = tmp_path / "fake_acp_agent.py"
     script.write_text(_CATALOG_SERVER, encoding="utf-8")
-    env = {**os.environ, "HOME": str(tmp_path), "HERMES_HOME": str(home), "FROZEN_AGENT": sys.executable, "FROZEN_SCRIPT": str(script),
+    env = {**os.environ, "HOME": str(tmp_path), "A2ASSISTANT_HOME": str(home), "FROZEN_AGENT": sys.executable, "FROZEN_SCRIPT": str(script),
            "PYTHONPATH": str(_REPO)}
     proc = subprocess.run([sys.executable, "-c", _FROZEN_DRIVER], cwd=tmp_path, env=env, capture_output=True,
                           text=True, timeout=120, check=False)

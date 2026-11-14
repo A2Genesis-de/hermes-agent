@@ -108,8 +108,8 @@ it('fails closed with actionable launch instructions in a fresh tab and ignores 
   const fetchMock = vi.fn()
   vi.stubGlobal('fetch', fetchMock)
   expect(installBrowserDesktopBridge()).toBe(true)
-  await expect(window.hermesDesktop!.getConnection()).rejects.toThrow('Run hermes webapp')
-  await expect(window.hermesDesktop!.api({ path: '/api/fs/read-text' })).rejects.toThrow('Run hermes webapp')
+  await expect(window.hermesDesktop!.getConnection()).rejects.toThrow('Run a2assistant webapp')
+  await expect(window.hermesDesktop!.api({ path: '/api/fs/read-text' })).rejects.toThrow('Run a2assistant webapp')
   expect(fetchMock).not.toHaveBeenCalled()
   window.dispatchEvent(new Event('beforeunload'))
   Reflect.deleteProperty(window, 'hermesDesktop')
@@ -214,7 +214,7 @@ it('asks a tab without a working credential to sign in, so reconnecting stops', 
     expect((error as Error).message).toBe(WEBAPP_LAUNCH_REQUIRED)
   }
 
-  // hermes webapp --sign-out replaced the credential this tab holds.
+  // a2assistant webapp --sign-out replaced the credential this tab holds.
   window.dispatchEvent(new Event('beforeunload'))
   Reflect.deleteProperty(window, 'hermesDesktop')
   sessionStorage.setItem(webappSessionKey(''), 'd'.repeat(43))

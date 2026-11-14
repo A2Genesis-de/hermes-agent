@@ -13,6 +13,10 @@ import shlex
 import stat
 from typing import NoReturn
 
+from hermes_cli.service_names import CLI_COMMANDS
+from hermes_cli.branding import ENV_PREFIX, LEGACY_ENV_PREFIX
+from hermes_constants import HOME_DIR_NAMES, default_home_in, env_value
+
 
 SYSTEMD_IDENTITY_PROPERTIES = (
     "User", "DynamicUser", "ExecStart", "Environment", "EnvironmentFiles",
@@ -41,7 +45,7 @@ class ForeignRoot(ValueError):
 def _install_root(home: Path) -> Path:
     # <root>/.hermes or <root>/.hermes/profiles/<name>: the root is the HOME that anchors it.
     parts = home.parts
-    if len(parts) >= 3 and parts[-3] == ".hermes" and parts[-2] == "profiles":
+    if len(parts) >= 3 and parts[-3] in HOME_DIR_NAMES and parts[-2] == "profiles":
         return home.parents[2]
     return home.parent
 
@@ -63,8 +67,9 @@ def _own_store_launcher(executable: str) -> bool:
     """Whether ``executable`` is the store launcher ``installation_command`` writes for THIS install
     root (``<root>/.hermes/bin/hermes``, root = gateway.PROJECT_ROOT), never another checkout's."""
     from hermes_cli import gateway
-    launcher = Path(gateway.PROJECT_ROOT).resolve() / ".hermes" / "bin" / "hermes"
-    return os.path.normcase(str(Path(executable).resolve())) == os.path.normcase(str(launcher))
+    local = Path(gateway.PROJECT_ROOT).resolve() / ".hermes" / "bin"
+    resolved = os.path.normcase(str(Path(executable).resolve()))
+    return any(resolved == os.path.normcase(str((local / name).resolve())) for name in CLI_COMMANDS)
 
 
 def _launch_module(argv: list[str], *, legacy: bool = True) -> tuple[str, list[str]] | None:
@@ -91,9 +96,9 @@ def _launch_module(argv: list[str], *, legacy: bool = True) -> tuple[str, list[s
 
 def verify_gateway_argv(argv: list[str], home: Path, *, wrapped: bool = False) -> None:
     """``wrapped``: a launcher wrapper (the osascript Local Network wrapper) was already stripped, so
-    only this root's installer forms count: no legacy ``python -m``, and a ``hermes`` launcher must be
+    only this root's installer forms count: no legacy ``python -m``, and a ``a2assistant`` launcher must be
     ``<root>/.hermes/bin/hermes`` (``_own_store_launcher``). The stderr-timestamp wrapper holds its inner
-    ``hermes`` to the same rule. A bare unwrapped ``hermes`` keeps verifying by name, as older
+    ``a2assistant`` to the same rule. A bare unwrapped ``a2assistant`` keeps verifying by name, as older
     systemd/schtasks/launchd definitions persisted it (binding those is a separate change)."""
     from gateway.status import looks_like_gateway_command_line
 
@@ -113,7 +118,7 @@ def verify_gateway_argv(argv: list[str], home: Path, *, wrapped: bool = False) -
         if entry is None or entry[0] != "hermes_cli.main":
             _unverified()
         args = entry[1]
-    elif executable in {"hermes", "hermes.exe"} and (not own_launcher_only or _own_store_launcher(argv[0])):
+    elif executable.removesuffix(".exe") in CLI_COMMANDS and (not own_launcher_only or _own_store_launcher(argv[0])):
         args = argv[1:]
     else:
         _unverified()
@@ -199,9 +204,9 @@ def verify_systemd(props: dict[str, str], manager_env: str, home: Path, *, syste
         key, sep, value = item.partition("=")
         if not sep or env.get(key) == value:
             env.pop(key, None)
-    configured = env.get("HERMES_HOME", "").strip()
+    configured = env_value(env, "HOME").strip()
     if not configured:
-        configured = str(_absolute(env.get("HOME") or pwd.getpwuid(uid).pw_dir) / ".hermes")
+        configured = str(default_home_in(_absolute(env.get("HOME") or pwd.getpwuid(uid).pw_dir)))
     verify_home(home, configured)
     match = re.fullmatch(r"\{ path=(.*?) ; argv\[\]=(.*?) ; ignore_errors=(?:yes|no) ;(?:.*?)\}", props["ExecStart"])
     if not match or any(char in match[2] for char in ("$", "\\", "{", "}")):
@@ -261,8 +266,8 @@ def verify_launchd_loaded(output: str, home: Path, *, uid: int, username: str) -
         if not sep or key in env:
             _unverified()
         env[key] = value
-    verify_home(home, env.get("HERMES_HOME", ""))
-    if home.parent.name != "profiles" and not env.get("HERMES_SUPERVISED_CHILD"):
+    verify_home(home, env_value(env, "HOME"))
+    if home.parent.name != "profiles" and not env_value(env, "SUPERVISED_CHILD"):
         _unverified()
     argv = [line.strip() for line in block("arguments")]
     programs = re.findall(r"^\tprogram = (.+)$", output, re.MULTILINE)
@@ -281,14 +286,14 @@ def verify_launchd_plist(definition: dict, label: str, home: Path) -> None:
     env = definition.get("EnvironmentVariables", {})
     if not isinstance(env, dict):
         _unverified()
-    verify_home(home, env.get("HERMES_HOME", ""))
+    verify_home(home, env_value(env, "HOME"))
     argv = definition.get("ProgramArguments")
     if not isinstance(argv, list) or not all(isinstance(arg, str) for arg in argv):
         _unverified()
     if definition.get("Program", argv[0] if argv else None) != (argv[0] if argv else None):
         _unverified()
     _verify_launchd_argv(argv, home)
-    if home.parent.name != "profiles" and not env.get("HERMES_SUPERVISED_CHILD"):
+    if home.parent.name != "profiles" and not env_value(env, "SUPERVISED_CHILD"):
         _unverified()
 
 
@@ -321,6 +326,10 @@ def launcher_text(raw: bytes) -> str:
         _unverified()
 
 
+def adopted_env_name(name: str) -> str:
+    return ENV_PREFIX + name[len(LEGACY_ENV_PREFIX):] if name.startswith(LEGACY_ENV_PREFIX) else name
+
+
 def _vbs_identity(script: str) -> tuple[str, list[str]]:
     # Recognize the vendor's complete template, not a HERMES_HOME substring
     # inside an arbitrary executable script. Doubled quotes are VB literals.
@@ -335,12 +344,13 @@ def _vbs_identity(script: str) -> tuple[str, list[str]]:
     env = {}
     index = 5
     while index < len(lines):
-        match = re.fullmatch(r'env.Item\("([A-Z_]+)"\) = (' + literal + ')', lines[index])
+        match = re.fullmatch(r'env.Item\("([A-Z0-9_]+)"\) = (' + literal + ')', lines[index])
         if not match:
             break
-        if match[1] not in {"HERMES_HOME", "HERMES_SUPERVISED_CHILD", "HERMES_GATEWAY_DETACHED", "PYTHONIOENCODING", "VIRTUAL_ENV"} or match[1] in env:
+        key = adopted_env_name(match[1])
+        if key not in {"A2ASSISTANT_HOME", "A2ASSISTANT_SUPERVISED_CHILD", "A2ASSISTANT_GATEWAY_DETACHED", "PYTHONIOENCODING", "VIRTUAL_ENV"} or key in env:
             _unverified()
-        env[match[1]] = match[2][1:-1].replace('""', '"')
+        env[key] = match[2][1:-1].replace('""', '"')
         index += 1
     tail = lines[index:]
     if len(tail) != 8 or tail[:2] != ['existing_pp = env.Item("PYTHONPATH")', 'If Len(existing_pp) > 0 Then'] or tail[3] != 'Else' or tail[5] != 'End If':
@@ -350,14 +360,14 @@ def _vbs_identity(script: str) -> tuple[str, list[str]]:
     if not re.fullmatch(r'sh.CurrentDirectory = ' + literal, tail[6]):
         _unverified()
     run = re.fullmatch(r'sh.Run (' + literal + r'), 0, False', tail[7])
-    if not run or not env.get("HERMES_SUPERVISED_CHILD"):
+    if not run or not env.get("A2ASSISTANT_SUPERVISED_CHILD"):
         _unverified()
     command = run[1][1:-1].replace('""', '"')
-    if "%" in command or "%" in env.get("HERMES_HOME", ""):
+    if "%" in command or "%" in env.get("A2ASSISTANT_HOME", ""):
         _unverified()
     # The template uses list2cmdline, with no embedded executable quote escapes.
     argv = [part.strip('"') for part in shlex.split(command, posix=False)]
-    return env.get("HERMES_HOME", ""), argv
+    return env.get("A2ASSISTANT_HOME", ""), argv
 
 
 def verify_windows_task(xml: str | bytes, home: Path, account: str, sid: str) -> None:

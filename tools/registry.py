@@ -559,7 +559,7 @@ def _memo_check(fn: Callable, memo: dict[Callable, bool]) -> bool:
 
 
 def invalidate_check_fn_cache() -> None:
-    """Drop all cached ``check_fn`` results (after config changes like ``hermes tools enable``)."""
+    """Drop all cached ``check_fn`` results (after config changes like ``a2assistant tools enable``)."""
     global _check_fn_epoch
     with _check_fn_cache_lock:
         _check_fn_epoch += 1
@@ -1018,7 +1018,7 @@ class ToolRegistry:
 
     def get_definitions(self, tool_names: set[str], quiet: bool = False) -> list[dict]:
         """OpenAI-format schemas for the requested tools whose ``check_fn`` passes (or is
-        absent). Probes use the ~30 s TTL cache so ``hermes tools enable`` lands quickly."""
+        absent). Probes use the ~30 s TTL cache so ``a2assistant tools enable`` lands quickly."""
         result = []
         check_results: dict[Callable, bool] = {}
         entries_by_name = {entry.name: entry for entry in self._snapshot_entries()}

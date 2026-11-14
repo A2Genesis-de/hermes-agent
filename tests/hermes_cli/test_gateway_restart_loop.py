@@ -48,8 +48,8 @@ class TestGatewayLifecyclePattern:
         "hermes.exe gateway restart",
         "hermes.cmd gateway stop",
         r'"C:\Program Files\hermes.exe" gateway restart',
-        "taskkill /F /IM hermes-gateway.exe",
-        "Stop-Process -Name hermes-gateway -Force",
+        "taskkill /F /IM a2assistant-gateway.exe",
+        "Stop-Process -Name a2assistant-gateway -Force",
     ])
     def test_interpreter_and_windows_kill_forms_are_blocked(self, text):
         assert _contains_gateway_lifecycle_command(text), f"Should match: {text!r}"
@@ -84,19 +84,19 @@ class TestGatewayLifecyclePattern:
         # #62891: a blocked direct restart/kill laundered through a NEW
         # launchd keepalive job wrapping a helper script, instead of a
         # direct kickstart/unload/stop/restart on the existing service.
-        "launchctl submit -l ai.hermes.gateway-hard-restart-no-photon-notice -- /bin/sh ~/.hermes/scripts/hard_restart_gateway_no_photon_notice.sh",
-        "launchctl submit -l hermes-gateway-restart-helper -- /bin/sh helper.sh",
+        "launchctl submit -l de.a2genesis.a2assistant.gateway-hard-restart-no-photon-notice -- /bin/sh ~/.a2assistant/scripts/hard_restart_gateway_no_photon_notice.sh",
+        "launchctl submit -l a2assistant-gateway-restart-helper -- /bin/sh helper.sh",
         # bootstrap loads an arbitrary plist — same laundering shape.
-        "launchctl bootstrap gui/501 ~/Library/LaunchAgents/ai.hermes.gateway.restart-once.plist",
-        "launchctl bootout gui/501/ai.hermes.gateway",
+        "launchctl bootstrap gui/501 ~/Library/LaunchAgents/de.a2genesis.a2assistant.gateway.restart-once.plist",
+        "launchctl bootout gui/501/de.a2genesis.a2assistant.gateway",
         # The exact reported shape: split across shell line-continuations
         # (`\` immediately followed by a newline). `[^\n]*` alone can't span
         # that, so the verb and the gateway-label token land on different
         # physical lines unless continuations are normalized first.
         (
             "launchctl submit \\\n"
-            "  -l ai.hermes.gateway-hard-restart-no-photon-notice \\\n"
-            "  -- /bin/sh ~/.hermes/scripts/hard_restart_gateway_no_photon_notice.sh"
+            "  -l de.a2genesis.a2assistant.gateway-hard-restart-no-photon-notice \\\n"
+            "  -- /bin/sh ~/.a2assistant/scripts/hard_restart_gateway_no_photon_notice.sh"
         ),
     ])
     def test_launchctl_submit_bootstrap_commands(self, text):
@@ -111,9 +111,9 @@ class TestGatewayLifecyclePattern:
         label text to appear AFTER the verb IN THE SAME SEGMENT and never
         sees it — restarted 4 gateways with zero approval."""
         cmd = (
-            "uid=$(id -u); for item in 'ai.hermes.gateway-apollo:/a.plist' "
-            "'ai.hermes.gateway-cronus:/c.plist' 'ai.hermes.gateway-plutus:/p.plist' "
-            "'ai.hermes.gateway:/Users/botuser/Library/LaunchAgents/ai.hermes.gateway.plist'; "
+            "uid=$(id -u); for item in 'de.a2genesis.a2assistant.gateway-apollo:/a.plist' "
+            "'de.a2genesis.a2assistant.gateway-cronus:/c.plist' 'de.a2genesis.a2assistant.gateway-plutus:/p.plist' "
+            "'de.a2genesis.a2assistant.gateway:/Users/botuser/Library/LaunchAgents/de.a2genesis.a2assistant.gateway.plist'; "
             "do label=${item%%:*}; plist=${item#*:}; "
             'launchctl bootout "gui/$uid/$label"; '
             'launchctl bootstrap "gui/$uid" "$plist"; done'
@@ -137,18 +137,18 @@ class TestGatewayLifecyclePattern:
         # the blocked `kickstart` form. Raw-text matching sees the quote (or
         # backslash) wedged between the verb's halves and misses it, leaving
         # the bypassable approval layer as the only cover.
-        'launchctl kick"start" -k gui/501/ai.hermes.gateway',
-        "launchctl kick'start' -k gui/501/ai.hermes.gateway",
-        "launchctl kick\\start -k gui/501/ai.hermes.gateway",
-        'launchctl "kickstart" -k gui/501/ai.hermes.gateway',
+        'launchctl kick"start" -k gui/501/de.a2genesis.a2assistant.gateway',
+        "launchctl kick'start' -k gui/501/de.a2genesis.a2assistant.gateway",
+        "launchctl kick\\start -k gui/501/de.a2genesis.a2assistant.gateway",
+        'launchctl "kickstart" -k gui/501/de.a2genesis.a2assistant.gateway',
         # Splices on the newer/legacy unload spellings this PR added.
-        'launchctl boot"out" gui/501/ai.hermes.gateway',
-        "launchctl dis\\able gui/501/ai.hermes.gateway",
+        'launchctl boot"out" gui/501/de.a2genesis.a2assistant.gateway',
+        "launchctl dis\\able gui/501/de.a2genesis.a2assistant.gateway",
         # The gateway identifier itself can be spliced just as easily.
         'launchctl bootout gui/501/ai.hermes."gateway"',
         # Same class on the systemctl and hermes-CLI branches.
-        'systemctl re"start" hermes-gateway',
-        'hermes gateway re"start"',
+        'systemctl re"start" a2assistant-gateway',
+        'a2assistant gateway re"start"',
     ])
     def test_shell_token_spliced_lifecycle_verbs(self, text):
         assert _contains_gateway_lifecycle_command(text), f"Should match: {text!r}"
@@ -165,7 +165,7 @@ class TestGatewayLifecyclePattern:
             contains_gateway_lifecycle_command_or_referenced_script,
         )
 
-        command = 'sh -c \'launchctl kick"start" -k gui/501/ai.hermes.gateway\''
+        command = 'sh -c \'launchctl kick"start" -k gui/501/de.a2genesis.a2assistant.gateway\''
         assert contains_gateway_lifecycle_command_or_referenced_script(command)
 
     @pytest.mark.parametrize("text", [
@@ -183,9 +183,9 @@ class TestGatewayLifecyclePattern:
 
     @pytest.mark.parametrize("text", [
         "restart the server application",
-        "hermes cron list",
-        "hermes update",
-        "hermes config set model claude",
+        "a2assistant cron list",
+        "a2assistant update",
+        "a2assistant config set model claude",
         "echo 'just a normal cron job'",
         "run the backup script",
         "gateway is running fine",
@@ -193,8 +193,8 @@ class TestGatewayLifecyclePattern:
         # gateway is a no-op / "already running", and a legit cron job may
         # start a sibling profile's gateway. Only restart/stop/kill are the
         # foot-gun (#30719 lists only those).
-        "hermes gateway start",
-        "hermes gateway start --all",
+        "a2assistant gateway start",
+        "a2assistant gateway start --all",
         # Tightened launchctl/systemctl branches: ops on NON-gateway hermes
         # services must not be falsely blocked (the old `.*hermes` matched any
         # hermes token).
@@ -219,11 +219,11 @@ class TestGatewayLifecyclePattern:
         # #92372 Branch A: no trailing boundary meant ordinary prose matched —
         # "restarted" carries the "restart" prefix and the old pattern ended
         # exactly there. \b after the verb group fixes it.
-        "echo after the hermes gateway restarted cleanly",
-        "the hermes gateway stopped responding, please investigate",
+        "echo after the a2assistant gateway restarted cleanly",
+        "the a2assistant gateway stopped responding, please investigate",
         # #92372 Branch D: `p?kill` without a leading \b matched the "kill"
         # tail of "skill".
-        "hermes skill view gateway-notes && echo hermes gateway docs",
+        "hermes skill view gateway-notes && echo a2assistant gateway docs",
         # #77173/#77536: a file path with embedded spaces containing the
         # lifecycle words must not match — `hermes` is a path component
         # there, not a command.
@@ -235,15 +235,15 @@ class TestGatewayLifecyclePattern:
 
     @pytest.mark.parametrize("text", [
         # Trailing-boundary fix must not weaken real commands.
-        "hermes gateway restart",
-        "hermes gateway restart; echo done",
-        "hermes gateway stop && echo stopped",
+        "a2assistant gateway restart",
+        "a2assistant gateway restart; echo done",
+        "a2assistant gateway stop && echo stopped",
         # #77173 command-position anchor must not weaken separator/subshell
         # forms either.
-        "true;hermes gateway restart",
-        "true && hermes gateway stop",
-        "echo $(hermes gateway restart)",
-        "echo `hermes gateway restart`",
+        "true;a2assistant gateway restart",
+        "true && a2assistant gateway stop",
+        "echo $(a2assistant gateway restart)",
+        "echo `a2assistant gateway restart`",
     ])
     def test_boundary_fix_still_blocks_real_commands(self, text):
         assert _contains_gateway_lifecycle_command(text), f"Should match: {text!r}"
@@ -271,9 +271,9 @@ class TestGatewayLifecyclePattern:
     @pytest.mark.parametrize("text", [
         # #68289: execute_code payloads carry the argv as a Python list —
         # brackets/commas separate the words the OS will exec.
-        'import subprocess\nsubprocess.run(["launchctl", "bootout", "gui/501/ai.hermes.gateway"])',
+        'import subprocess\nsubprocess.run(["launchctl", "bootout", "gui/501/de.a2genesis.a2assistant.gateway"])',
         'subprocess.run(["hermes", "gateway", "restart"])',
-        'os.system("launchctl kickstart -k gui/501/ai.hermes.gateway")',
+        'os.system("launchctl kickstart -k gui/501/de.a2genesis.a2assistant.gateway")',
     ])
     def test_python_argv_list_forms_blocked(self, text):
         assert _contains_gateway_lifecycle_command(text), f"Should match: {text!r}"
@@ -291,7 +291,7 @@ class TestGatewayLifecyclePattern:
         # data — runbook prose inside it must not block.
         text = (
             "cat > /tmp/runbook.md <<'EOF'\n"
-            "If the box is wedged, a human can run: hermes gateway restart\n"
+            "If the box is wedged, a human can run: a2assistant gateway restart\n"
             "EOF"
         )
         assert not _contains_gateway_lifecycle_command(text), f"Should NOT match: {text!r}"
@@ -307,7 +307,7 @@ class TestGatewayLifecyclePattern:
 
 
 class TestProfileFlagGatewayLifecycle:
-    """#78028: `hermes -p <profile> gateway restart|stop` bypasses Branch A's
+    """#78028: `a2assistant -p <profile> gateway restart|stop` bypasses Branch A's
     literal adjacency, so it needs its own pattern. It is only the same
     self-termination foot-gun when the named profile IS the profile running
     the guard; sibling-profile restarts are legitimate fleet operations and
@@ -317,39 +317,39 @@ class TestProfileFlagGatewayLifecycle:
     def _pin_profile_identity(self, monkeypatch):
         # The ambient test env may carry HERMES_HOME/HERMES_PROFILE; pin the
         # profile identity explicitly so every assertion is deterministic.
-        monkeypatch.setenv("HERMES_PROFILE", "zeus")
-        monkeypatch.delenv("HERMES_PROFILE_NAME", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_PROFILE", "zeus")
+        monkeypatch.delenv("A2ASSISTANT_PROFILE_NAME", raising=False)
 
     @pytest.mark.parametrize("text", [
-        "hermes -p zeus gateway stop",
-        "hermes -p zeus gateway restart",
-        "hermes --profile zeus gateway restart",
-        "hermes --profile zeus gateway stop",
-        "hermes --profile=zeus gateway restart",
+        "a2assistant -p zeus gateway stop",
+        "a2assistant -p zeus gateway restart",
+        "a2assistant --profile zeus gateway restart",
+        "a2assistant --profile zeus gateway stop",
+        "a2assistant --profile=zeus gateway restart",
         # Global flags before/after the selector must not hide the shape.
-        "hermes -v -p zeus gateway restart",
-        "hermes -p zeus -v gateway restart",
-        "hermes --debug --profile zeus gateway stop",
+        "a2assistant -v -p zeus gateway restart",
+        "a2assistant -p zeus -v gateway restart",
+        "a2assistant --debug --profile zeus gateway stop",
         # Shell quoting of the profile id is equivalent to the bare name.
-        "hermes -p 'zeus' gateway restart",
-        "hermes --profile \"zeus\" gateway stop",
+        "a2assistant -p 'zeus' gateway restart",
+        "a2assistant --profile \"zeus\" gateway stop",
     ])
     def test_self_target_blocked(self, text):
         assert _contains_gateway_lifecycle_command(text), f"Should block: {text!r}"
 
     @pytest.mark.parametrize("text", [
-        "hermes -p venus gateway stop",
-        "hermes -p venus gateway restart",
-        "hermes --profile venus gateway restart",
-        "hermes --profile=venus gateway stop",
-        "hermes -p venus -v gateway restart",
+        "a2assistant -p venus gateway stop",
+        "a2assistant -p venus gateway restart",
+        "a2assistant --profile venus gateway restart",
+        "a2assistant --profile=venus gateway stop",
+        "a2assistant -p venus -v gateway restart",
     ])
     def test_sibling_allowed(self, text):
         assert not _contains_gateway_lifecycle_command(text), f"Should allow: {text!r}"
 
     @pytest.mark.parametrize("text", [
-        "hermes -p zeus gateway start",
-        "hermes -p zeus gateway start --all",
+        "a2assistant -p zeus gateway start",
+        "a2assistant -p zeus gateway start --all",
     ])
     def test_start_still_allowed(self, text):
         # `start` is intentionally excluded from the guard, with or without
@@ -361,13 +361,13 @@ class TestProfileFlagGatewayLifecycle:
         # Without HERMES_PROFILE the guard falls back to the HERMES_HOME-
         # derived profile identity (get_active_profile_name) — the signal the
         # gateway process itself carries.
-        monkeypatch.delenv("HERMES_PROFILE", raising=False)
-        monkeypatch.delenv("HERMES_PROFILE_NAME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_PROFILE", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_PROFILE_NAME", raising=False)
         import hermes_cli.profiles as profiles_mod
 
         monkeypatch.setattr(profiles_mod, "get_active_profile_name", lambda: "zeus")
-        assert _contains_gateway_lifecycle_command("hermes -p zeus gateway restart")
-        assert not _contains_gateway_lifecycle_command("hermes -p venus gateway restart")
+        assert _contains_gateway_lifecycle_command("a2assistant -p zeus gateway restart")
+        assert not _contains_gateway_lifecycle_command("a2assistant -p venus gateway restart")
 
     def test_no_profile_context_conservative_allow(self, monkeypatch):
         # With no profile identity the guard cannot prove self-targeting, so
@@ -376,8 +376,8 @@ class TestProfileFlagGatewayLifecycle:
         from cron import lifecycle_guard
 
         monkeypatch.setattr(lifecycle_guard, "_current_profile_name", lambda: None)
-        assert not _contains_gateway_lifecycle_command("hermes -p zeus gateway restart")
-        assert _contains_gateway_lifecycle_command("hermes gateway restart")
+        assert not _contains_gateway_lifecycle_command("a2assistant -p zeus gateway restart")
+        assert _contains_gateway_lifecycle_command("a2assistant gateway restart")
 
 
 class TestCronCreateLifecycleBlock:
@@ -393,7 +393,7 @@ class TestCronCreateLifecycleBlock:
         args = Namespace(
             cron_command="create",
             schedule="30m",
-            prompt="Upgrade hermes then run hermes gateway restart",
+            prompt="Upgrade hermes then run a2assistant gateway restart",
             name=None,
             deliver=None,
             repeat=None,
@@ -414,7 +414,7 @@ class TestCronCreateLifecycleBlock:
         # A no_agent job whose script IS the job (the issue's real abuse path:
         # restart_hermes_gateway_once.sh). The script must live under
         # HERMES_HOME/scripts so the scheduler — and the guard — resolve it.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         scripts_dir = tmp_path / ".hermes" / "scripts"
         scripts_dir.mkdir(parents=True)
         (scripts_dir / "restart.sh").write_text("#!/usr/bin/env bash\nhermes gateway restart\n", encoding="utf-8")
@@ -499,7 +499,7 @@ class TestGatewaySelfTargetingGuard:
 class TestTerminalToolGatewayLifecycleGuard:
     """terminal_tool must refuse gateway lifecycle commands when _HERMES_GATEWAY=1.
 
-    Issue #37453: systemctl --user restart hermes-gateway runs as a child of the
+    Issue #37453: systemctl --user restart a2assistant-gateway runs as a child of the
     gateway process.  When systemd delivers SIGTERM the gateway kills its own
     restart command mid-execution — the service may never restart.  The guard
     must fire before execution, unconditionally (force=True cannot bypass it).
@@ -529,17 +529,17 @@ class TestTerminalToolGatewayLifecycleGuard:
         )
 
     @pytest.mark.parametrize("cmd", [
-        "systemctl restart hermes-gateway",
-        "systemctl --user restart hermes-gateway",
-        "systemctl stop hermes-gateway.service",
-        "hermes gateway restart",
-        "hermes gateway uninstall",
-        "launchctl kickstart gui/501/ai.hermes.gateway",
-        "launchctl bootout gui/501/ai.hermes.gateway",
+        "systemctl restart a2assistant-gateway",
+        "systemctl --user restart a2assistant-gateway",
+        "systemctl stop a2assistant-gateway.service",
+        "a2assistant gateway restart",
+        "a2assistant gateway uninstall",
+        "launchctl kickstart gui/501/de.a2genesis.a2assistant.gateway",
+        "launchctl bootout gui/501/de.a2genesis.a2assistant.gateway",
         # #62891 exact reported shape and its bootstrap sibling.
-        "launchctl submit -l ai.hermes.gateway-hard-restart-no-photon-notice -- /bin/sh ~/.hermes/scripts/hard_restart_gateway_no_photon_notice.sh",
+        "launchctl submit -l de.a2genesis.a2assistant.gateway-hard-restart-no-photon-notice -- /bin/sh ~/.a2assistant/scripts/hard_restart_gateway_no_photon_notice.sh",
         "launchctl submit -l com.foo -- /path/gateway",
-        "launchctl bootstrap gui/501 ~/Library/LaunchAgents/ai.hermes.gateway.restart-once.plist",
+        "launchctl bootstrap gui/501 ~/Library/LaunchAgents/de.a2genesis.a2assistant.gateway.restart-once.plist",
         "pkill -f hermes.*gateway",
     ])
     def test_blocks_lifecycle_commands_inside_gateway(self, monkeypatch, cmd):
@@ -556,7 +556,7 @@ class TestTerminalToolGatewayLifecycleGuard:
         self._patch_env(monkeypatch, self._make_fake_env(), inside_gateway=True)
 
         result = json.loads(tt.terminal_tool(
-            command="systemctl restart hermes-gateway", force=True
+            command="systemctl restart a2assistant-gateway", force=True
         ))
 
         assert result["exit_code"] == 1
@@ -677,10 +677,10 @@ class TestTerminalToolGatewayLifecycleGuard:
             tt, "_check_all_guards", lambda cmd, env, **kwargs: {"approved": True}
         )
 
-        result = json.loads(tt.terminal_tool(command="hermes gateway restart"))
+        result = json.loads(tt.terminal_tool(command="a2assistant gateway restart"))
 
         assert result["exit_code"] == 0
-        assert calls == ["hermes gateway restart"]
+        assert calls == ["a2assistant gateway restart"]
 
     def test_blocks_launchctl_submit_hidden_in_referenced_script(
         self, monkeypatch, tmp_path
@@ -954,7 +954,7 @@ class TestLifecycleGuardModule:
     def test_prompt_with_command_raises(self):
         from cron.lifecycle_guard import GatewayLifecycleBlocked, check_gateway_lifecycle
         with pytest.raises(GatewayLifecycleBlocked):
-            check_gateway_lifecycle("please run hermes gateway restart", None)
+            check_gateway_lifecycle("please run a2assistant gateway restart", None)
 
 
     def test_script_with_command_raises(self, tmp_path, monkeypatch):
@@ -992,15 +992,15 @@ class TestLifecycleGuardModule:
 
 
     def test_relative_script_resolved_under_scripts_dir(self, tmp_path, monkeypatch):
-        """A bare/relative script name resolves under HERMES_HOME/scripts (the
+        """A bare/relative script name resolves under A2ASSISTANT_HOME/scripts (the
         same place the scheduler runs it from) — otherwise the guard would read
         a nonexistent relative path and scan prompt-only content."""
         from cron.lifecycle_guard import GatewayLifecycleBlocked, check_gateway_lifecycle
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         scripts_dir = tmp_path / ".hermes" / "scripts"
         scripts_dir.mkdir(parents=True)
         (scripts_dir / "restart.sh").write_text(
-            "launchctl kickstart -k gui/501/ai.hermes.gateway\n"
+            "launchctl kickstart -k gui/501/de.a2genesis.a2assistant.gateway\n"
         )
         with pytest.raises(GatewayLifecycleBlocked):
             check_gateway_lifecycle("daily", "restart.sh")
@@ -1034,7 +1034,7 @@ class TestLifecycleGuardModule:
         by the direct regex scan."""
         from cron.lifecycle_guard import GatewayLifecycleBlocked, check_gateway_lifecycle
         script = tmp_path / "evil.py"
-        script.write_text('import os\nos.system("hermes gateway restart")\n', encoding="utf-8")
+        script.write_text('import os\nos.system("a2assistant gateway restart")\n', encoding="utf-8")
         with pytest.raises(GatewayLifecycleBlocked):
             check_gateway_lifecycle("clean prompt", str(script))
 
@@ -1217,7 +1217,7 @@ class TestLifecycleGuardModule:
         )
 
         def _remote_read(_path: str):
-            return "MZ\x00\x00\x90\x00 hermes gateway restart \x00\x00junk"
+            return "MZ\x00\x00\x90\x00 a2assistant gateway restart \x00\x00junk"
 
         result = contains_gateway_lifecycle_command_or_referenced_script(
             "bash /nonexistent/dir/helper.sh",
@@ -1281,7 +1281,7 @@ class TestLifecycleGuardModule:
         monkeypatch.setattr(lg, "_contains_unsafe_gateway_action", _boom)
         # Direct scan still blocks a literal lifecycle command...
         assert lg.contains_gateway_lifecycle_command_or_referenced_script(
-            "hermes gateway restart"
+            "a2assistant gateway restart"
         ) is True
         # ...and a benign command fails open instead of crashing.
         assert lg.contains_gateway_lifecycle_command_or_referenced_script(
@@ -1290,7 +1290,7 @@ class TestLifecycleGuardModule:
 
     def test_cron_guard_total_when_home_unresolvable(self, monkeypatch):
         """`get_hermes_home()` falls back to Path.home(), which raises
-        RuntimeError when neither HERMES_HOME nor HOME resolves
+        RuntimeError when neither A2ASSISTANT_HOME nor HOME resolves
         (arbitrary-UID containers, launchd). The cron entry point must
         treat a relative script value as unresolvable — nothing to scan —
         not crash."""
@@ -1298,7 +1298,7 @@ class TestLifecycleGuardModule:
 
         from cron.lifecycle_guard import check_gateway_lifecycle
 
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         monkeypatch.delenv("HOME", raising=False)
         monkeypatch.setattr(
             Path,
@@ -1514,10 +1514,10 @@ class TestRelativePathDoesNotDisableDataExemption:
         return contains_gateway_lifecycle_command_or_referenced_script(command)
 
     @pytest.mark.parametrize("command", [
-        "grep -r 'systemctl restart hermes-gateway' .",
-        "grep -rn 'hermes gateway restart' ./logs",
-        "rg 'hermes gateway restart' ../archive",
-        "grep -c 'systemctl stop hermes-gateway' ./var/log/syslog",
+        "grep -r 'systemctl restart a2assistant-gateway' .",
+        "grep -rn 'a2assistant gateway restart' ./logs",
+        "rg 'a2assistant gateway restart' ../archive",
+        "grep -c 'systemctl stop a2assistant-gateway' ./var/log/syslog",
         "sqlite3 ./stats.db \"SELECT restart_reason FROM hermes_gateway_restarts\"",
     ])
     def test_relative_path_operands_keep_the_exemption(self, command):
@@ -1526,16 +1526,16 @@ class TestRelativePathDoesNotDisableDataExemption:
     @pytest.mark.parametrize("command", [
         # Narrowing the dot test must not open an execution route: every
         # escape hatch still fires with a relative-path operand present.
-        'sqlite3 ./db ".shell hermes gateway restart"',
-        'sqlite3 ./db ".system systemctl restart hermes-gateway"',
-        'psql ./x -c "\\! systemctl restart hermes-gateway"',
-        "grep -r 'hermes gateway restart' . | sh",
-        "grep -r 'hermes gateway restart' ./logs | bash",
-        "grep -r 'hermes gateway restart' . | sudo sh",
-        "grep -r 'x' . ; hermes gateway restart",
-        "grep -r 'x' . && systemctl restart hermes-gateway",
-        'grep -r "$(hermes gateway restart)" .',
-        "rg 'x' ./logs | xargs systemctl restart hermes-gateway",
+        'sqlite3 ./db ".shell a2assistant gateway restart"',
+        'sqlite3 ./db ".system systemctl restart a2assistant-gateway"',
+        'psql ./x -c "\\! systemctl restart a2assistant-gateway"',
+        "grep -r 'a2assistant gateway restart' . | sh",
+        "grep -r 'a2assistant gateway restart' ./logs | bash",
+        "grep -r 'a2assistant gateway restart' . | sudo sh",
+        "grep -r 'x' . ; a2assistant gateway restart",
+        "grep -r 'x' . && systemctl restart a2assistant-gateway",
+        'grep -r "$(a2assistant gateway restart)" .',
+        "rg 'x' ./logs | xargs systemctl restart a2assistant-gateway",
     ])
     def test_relative_path_does_not_open_an_execution_route(self, command):
         assert self._scan(command) is True
@@ -1557,7 +1557,7 @@ class TestCreateJobBlocksLifecycleCommands:
         from cron.jobs import create_job
         from cron.lifecycle_guard import GatewayLifecycleBlocked
         with pytest.raises(GatewayLifecycleBlocked):
-            create_job(prompt="then run hermes gateway restart", schedule="30m")
+            create_job(prompt="then run a2assistant gateway restart", schedule="30m")
 
     def test_create_job_allows_benign_prompt(self):
         from cron.jobs import create_job
@@ -1568,12 +1568,12 @@ class TestCreateJobBlocksLifecycleCommands:
     def test_cronjob_tool_surfaces_block_as_error(self, tmp_path, monkeypatch):
         """End-to-end through the model tool: the block comes back as
         result['error'] with the #30719 hint, not an unhandled exception."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         (tmp_path / ".hermes").mkdir(parents=True)
         from tools.cronjob_tools import cronjob
         result = json.loads(cronjob(
             action="create", schedule="0 9 * * *",
-            prompt="please run hermes gateway restart nightly",
+            prompt="please run a2assistant gateway restart nightly",
         ))
         assert result.get("success") is False
         assert "#30719" in result.get("error", "")
@@ -1590,7 +1590,7 @@ class TestRestartLoopGuard:
 
     @pytest.fixture(autouse=True)
     def _isolate_state(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         (tmp_path / ".hermes").mkdir(parents=True)
         import gateway.restart_loop_guard as rlg
         rlg.clear()
@@ -1746,13 +1746,13 @@ class TestLifecycleGuardDataArgumentExemption:
         # Exact live false-positive shapes: SQL string literals carrying the
         # full lifecycle command as text.
         'sqlite3 db "SELECT msg FROM log WHERE msg LIKE '
-        "'%systemctl restart hermes-gateway%'\"",
+        "'%systemctl restart a2assistant-gateway%'\"",
         'psql -c "SELECT * FROM events WHERE cmd = '
-        "'systemctl stop hermes-gateway'\"",
+        "'systemctl stop a2assistant-gateway'\"",
         # grep/rg pattern arguments hunting for the lifecycle string.
-        "grep -c 'systemctl restart hermes-gateway' /var/log/syslog",
-        "rg 'hermes gateway restart' /home/user/.hermes/logs/",
-        "journalctl -u hermes-gateway --grep 'systemctl restart hermes-gateway'",
+        "grep -c 'systemctl restart a2assistant-gateway' /var/log/syslog",
+        "rg 'a2assistant gateway restart' /home/user/.hermes/logs/",
+        "journalctl -u a2assistant-gateway --grep 'systemctl restart a2assistant-gateway'",
         # SQL with stop/restart column/value words but no command shape.
         'sqlite3 stats.db "SELECT stop_time, restart_reason FROM '
         'hermes_gateway_restarts"',
@@ -1764,16 +1764,16 @@ class TestLifecycleGuardDataArgumentExemption:
 
     @pytest.mark.parametrize("command", [
         # Execution smuggled through or around a data sink must still block.
-        'sqlite3 db ".shell hermes gateway restart"',
-        'psql -c "\\! systemctl restart hermes-gateway"',
-        "grep 'systemctl restart hermes-gateway' cmds.txt | sh",
-        "grep gateway f | xargs systemctl restart hermes-gateway",
-        'grep "$(systemctl restart hermes-gateway)" f',
-        "grep 'restart' log; systemctl restart hermes-gateway",
-        'sqlite3 db "SELECT 1"; hermes gateway stop',
+        'sqlite3 db ".shell a2assistant gateway restart"',
+        'psql -c "\\! systemctl restart a2assistant-gateway"',
+        "grep 'systemctl restart a2assistant-gateway' cmds.txt | sh",
+        "grep gateway f | xargs systemctl restart a2assistant-gateway",
+        'grep "$(systemctl restart a2assistant-gateway)" f',
+        "grep 'restart' log; systemctl restart a2assistant-gateway",
+        'sqlite3 db "SELECT 1"; a2assistant gateway stop',
         # Plain lifecycle commands are unaffected by the exemption.
-        "hermes gateway restart",
-        "sudo systemctl stop hermes-gateway",
+        "a2assistant gateway restart",
+        "sudo systemctl stop a2assistant-gateway",
     ])
     def test_command_position_lifecycle_still_blocked(self, command):
         assert self._scan(command) is True
@@ -1791,7 +1791,7 @@ class TestLifecycleGuardDataArgumentExemption:
         script.write_text("print('nightly report')\n", encoding="utf-8")
         prompt = (
             'sqlite3 db "SELECT msg FROM log '
-            "WHERE msg LIKE '%systemctl restart hermes-gateway%'\""
+            "WHERE msg LIKE '%systemctl restart a2assistant-gateway%'\""
         )
         check_gateway_lifecycle(prompt, str(script))
 

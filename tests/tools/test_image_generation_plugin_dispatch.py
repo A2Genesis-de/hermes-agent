@@ -41,7 +41,7 @@ class TestPluginDispatch:
             def list_models(self):
                 return []
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         image_gen_registry.register_provider(_Recorder())
         monkeypatch.setattr(image_generation_tool, "_read_configured_image_provider", lambda: "recorder")
         monkeypatch.setattr(plugins_module, "_ensure_plugins_discovered", lambda **kwargs: None)

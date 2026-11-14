@@ -10,17 +10,17 @@ logger = logging.getLogger("hermes_cli.setup")
 _OPENAI_AUDIO_ROW = ("OpenAI", ("VOICE_TOOLS_OPENAI_KEY", "OPENAI_API_KEY"))
 _TTS_SUMMARY_ROWS = {
     "openai": _OPENAI_AUDIO_ROW,
-    "kittentts": ("KittenTTS", "kittentts", "run 'hermes setup tts'"),
-    "piper": ("Piper", "piper", "run 'hermes tools' → Text-to-Speech")}
+    "kittentts": ("KittenTTS", "kittentts", "run 'a2assistant setup tts'"),
+    "piper": ("Piper", "piper", "run 'a2assistant tools' → Text-to-Speech")}
 _TTS_SUMMARY_DEFAULT = _OPENAI_AUDIO_ROW
 _STT_SUMMARY_ROWS = {"openai": _OPENAI_AUDIO_ROW}
-_STT_SUMMARY_DEFAULT = ("Local Whisper", "faster_whisper", "run 'hermes tools' → Speech-to-Text")
+_STT_SUMMARY_DEFAULT = ("Local Whisper", "faster_whisper", "run 'a2assistant tools' → Speech-to-Text")
 
 # Browser "missing" hint keyed by the configured provider; anything else gets the generic hint.
 _BROWSER_MISSING_HINTS = {
-    "Local browser": "Chromium: run 'hermes pm install chromium'"}
-_BROWSER_MISSING_DEFAULT = "Chromium (run 'hermes pm install chromium')"
-_WEB_MISSING = "the ddgs package (run 'hermes tools' → Web Search), SEARXNG_URL or a web provider plugin"
+    "Local browser": "Chromium: run 'a2assistant pm install chromium'"}
+_BROWSER_MISSING_DEFAULT = "Chromium (run 'a2assistant pm install chromium')"
+_WEB_MISSING = "the ddgs package (run 'a2assistant tools' → Web Search), SEARXNG_URL or a web provider plugin"
 
 _DONE_BANNER = (
     "┌─────────────────────────────────────────────────────────┐",
@@ -28,15 +28,15 @@ _DONE_BANNER = (
     "└─────────────────────────────────────────────────────────┘")
 # (command, description) rows; the description carries its own alignment padding.
 _EDIT_WIZARD_ROWS = (
-    ("hermes setup", "          Re-run the full wizard"), ("hermes setup model", "    Change model/provider"),
-    ("hermes setup terminal", " Change terminal backend"), ("hermes setup gateway", "  Configure messaging"),
-    ("hermes setup tools", "    Configure tool providers"))
+    ("a2assistant setup", "          Re-run the full wizard"), ("a2assistant setup model", "    Change model/provider"),
+    ("a2assistant setup terminal", " Change terminal backend"), ("a2assistant setup gateway", "  Configure messaging"),
+    ("a2assistant setup tools", "    Configure tool providers"))
 _EDIT_CONFIG_ROWS = (
-    ("hermes config", "         View current settings"), ("hermes config edit", "    Open config in your editor"),
-    ("hermes config set <key> <value>", ""))
+    ("a2assistant config", "         View current settings"), ("a2assistant config edit", "    Open config in your editor"),
+    ("a2assistant config set <key> <value>", ""))
 _READY_ROWS = (
-    ("hermes", "              Start chatting"), ("hermes gateway", "      Start messaging gateway"),
-    ("hermes doctor", "       Check for issues"))
+    ("a2assistant", "         Start chatting"), ("a2assistant gateway", "      Start messaging gateway"),
+    ("a2assistant doctor", "       Check for issues"))
 
 
 def _voice_provider_status(kind: str, provider: str, rows: dict, default: tuple) -> tuple:
@@ -83,7 +83,7 @@ def _vision_row(config, feats):
         ok = bool(get_available_vision_backends())
     except Exception:
         ok = False
-    return ("Vision (image analysis)", ok, None if ok else "run 'hermes setup' to configure")
+    return ("Vision (image analysis)", ok, None if ok else "run 'a2assistant setup' to configure")
 
 
 def _managed_or_provider_row(feature, name: str, managed_label: str, missing_hint: str):
@@ -169,8 +169,8 @@ def _print_setup_summary(config: dict, hermes_home):
         print()
         _setup.print_warning("No inference provider is configured — A2Assistant cannot chat yet.")
         _setup._info("  Finish this one step with either of:",
-              "    hermes model            (pick any provider/model)",
-              "    hermes setup --portal   (Nous Portal OAuth, no API key)")
+              "    a2assistant model            (pick any provider/model)",
+              "    a2assistant setup --portal   (Nous Portal OAuth, no API key)")
 
     print()
     _setup.print_header("Tool Availability Summary")
@@ -190,7 +190,7 @@ def _print_setup_summary(config: dict, hermes_home):
     print()
 
     if available_count < len(tool_status):
-        _setup.print_warning("Some tools are disabled. Run 'hermes setup tools' to configure them,")
+        _setup.print_warning("Some tools are disabled. Run 'a2assistant setup tools' to configure them,")
         _setup.print_warning(f"or edit {_dhh()}/.env directly to add the missing API keys.")
         print()
 

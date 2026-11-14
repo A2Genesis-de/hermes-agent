@@ -119,7 +119,7 @@ _cfg_path = None
 _idempotency_keys: dict[str, tuple[str, float]] = {}
 _IDEMPOTENCY_KEY_TTL = 300.0  # 5 min: longer than any realistic retry window
 _session_resume_lock = threading.Lock()
-_SLASH_WORKER_TIMEOUT_S = max(5.0, env_float("HERMES_TUI_SLASH_TIMEOUT_S", 45.0))
+_SLASH_WORKER_TIMEOUT_S = max(5.0, env_float("A2ASSISTANT_TUI_SLASH_TIMEOUT_S", 45.0))
 
 def _ws_orphan_setting(env_var: str, cfg_key: str, default: float) -> float:
     """``dashboard.<cfg_key>`` seconds; the env var is an internal override that wins when set."""
@@ -146,7 +146,7 @@ def _resolve_ws_orphan_reap_grace() -> float:
     """Grace before an orphaned WS session is interrupted/reaped (0 = park forever): ws.py parks a
     disconnected session for a quick reattach, but a browser refresh mints a NEW sid and never
     reattaches the old one (leaking its slash worker)."""
-    return _ws_orphan_setting("HERMES_TUI_WS_ORPHAN_REAP_GRACE_S", "ws_orphan_reap_grace_s", 20.0)
+    return _ws_orphan_setting("A2ASSISTANT_TUI_WS_ORPHAN_REAP_GRACE_S", "ws_orphan_reap_grace_s", 20.0)
 
 
 _WS_ORPHAN_REAP_GRACE_S = _resolve_ws_orphan_reap_grace()
@@ -157,7 +157,7 @@ _WS_ORPHAN_REAP_GRACE_S = _resolve_ws_orphan_reap_grace()
 _WS_ORPHAN_REAP_SLEEP_SLACK_S = 0.5
 # A detached RUNNING turn is interrupted only once its activity clock (API waits, stream tokens, tool
 # heartbeats) idled this long; 600s = the turn-liveness watchdog so "wedged" means the same. 0 disables.
-_WS_ORPHAN_ACTIVITY_STALE_S = _ws_orphan_setting("HERMES_TUI_WS_ORPHAN_ACTIVITY_STALE_S", "ws_orphan_activity_stale_s", 600.0)
+_WS_ORPHAN_ACTIVITY_STALE_S = _ws_orphan_setting("A2ASSISTANT_TUI_WS_ORPHAN_ACTIVITY_STALE_S", "ws_orphan_activity_stale_s", 600.0)
 _WS_ORPHAN_INTERRUPT_REAP_POLL_S = 1.0
 # Interrupt-then-reap poll budget: a turn that never settles (thread hung in a syscall) would
 # reschedule the 1s poll forever; after this many polls, log loudly and force-reap.
@@ -202,7 +202,7 @@ _LONG_HANDLERS = frozenset({
     "command.dispatch",  # /goal draft invokes the auxiliary model; never block the RPC reader
 })
 
-_rpc_pool_workers = max(2, env_int("HERMES_TUI_RPC_POOL_WORKERS", 8))
+_rpc_pool_workers = max(2, env_int("A2ASSISTANT_TUI_RPC_POOL_WORKERS", 8))
 _pool = concurrent.futures.ThreadPoolExecutor(max_workers=_rpc_pool_workers, thread_name_prefix="tui-rpc")
 atexit.register(lambda: _pool.shutdown(wait=False, cancel_futures=True))
 
@@ -270,12 +270,12 @@ def _shutdown_sessions() -> None:
 # Session reaping / flushing knobs (session_reaper.py). TTL is the last-resort net for disconnect paths that
 # slip past the WS finally; hours-scale because last_active freezes during a long turn and on passive
 # viewing — running/pending/starting/live-transport are hard exemptions.
-_SESSION_TTL_S = max(0.0, env_float("HERMES_TUI_SESSION_TTL_S", float(6 * 3600)))
+_SESSION_TTL_S = max(0.0, env_float("A2ASSISTANT_TUI_SESSION_TTL_S", float(6 * 3600)))
 _REAPER_SCAN_S = 300.0
 # Flush-on-kill budget + periodic incremental flush (piggybacks the reaper scan): a SIGTERM/SIGKILL
 # mid-update loses at most one flush interval of session state.
-_EXIT_FLUSH_BUDGET_S = max(0.0, env_float("HERMES_TUI_EXIT_FLUSH_BUDGET_S", 5.0))
-_INCREMENTAL_FLUSH_INTERVAL_S = max(0.0, env_float("HERMES_TUI_SESSION_FLUSH_INTERVAL_S", _REAPER_SCAN_S))
+_EXIT_FLUSH_BUDGET_S = max(0.0, env_float("A2ASSISTANT_TUI_EXIT_FLUSH_BUDGET_S", 5.0))
+_INCREMENTAL_FLUSH_INTERVAL_S = max(0.0, env_float("A2ASSISTANT_TUI_SESSION_FLUSH_INTERVAL_S", _REAPER_SCAN_S))
 
 
 def _start_idle_reaper() -> None:
@@ -297,11 +297,11 @@ _start_idle_reaper()
 def _launch_home() -> Path:
     """The launch profile's home at call time: the patched ``_hermes_home`` when a test changed
     it, else the live process home — resolved through :func:`get_process_hermes_home`, which honours
-    ``HERMES_HOME`` but ignores the context-local override. The desktop multiplex cron ticker sets
+    ``A2ASSISTANT_HOME`` but ignores the context-local override. The desktop multiplex cron ticker sets
     that override per profile at startup, and a first touch inside a foreign window would bind
     process-wide launch state (the shared ``state.db`` handle, the launch ``.env`` secrets) to
     another profile (#102526). Resolving here rather than at import time lets a harness that
-    redirects ``HERMES_HOME`` after import be honoured (#112692)."""
+    redirects ``A2ASSISTANT_HOME`` after import be honoured (#112692)."""
     home = _hermes_home if _hermes_home != _HERMES_HOME_AT_IMPORT else get_process_hermes_home()
     return Path(home)
 
@@ -411,7 +411,7 @@ def _canonical_profile_request(name: str) -> str:
     """Canonicalize profile basenames emitted by older session-info payloads.
 
     ``Path(default_home).name`` was historically sent as a profile id. Those basenames are
-    installation details — unless a real named profile of that name exists (``hermes`` is a legal
+    installation details — unless a real named profile of that name exists (``a2assistant`` is a legal
     id), in which case it wins; other unknown names keep failing closed in ``_profile_home``.
     """
     if name.casefold() in {".hermes", "hermes"}:
@@ -482,7 +482,7 @@ _served_profile_homes: set[Path] = set()
 
 
 def _profile_scoped(handler):
-    """Bind ``params['profile']``'s full runtime scope (HERMES_HOME + secrets + terminal policy) around a
+    """Bind ``params['profile']``'s full runtime scope (A2ASSISTANT_HOME + secrets + terminal policy) around a
     handler, so config.yaml ``${VAR}`` refs, provider credential checks and ``.env`` writes resolve to
     THAT profile (app-global remote mode hits the focused profile). Home alone left ``get_secret`` on the
     launch process's ``os.environ``: ``config.get full`` for a secondary shipped the default profile's
@@ -959,7 +959,7 @@ def _clear_session_context(tokens: list) -> None:
 
 def _enable_gateway_prompts() -> None:
     """Route approvals through gateway callbacks instead of CLI input()."""
-    os.environ.update(HERMES_GATEWAY_SESSION="1", HERMES_EXEC_ASK="1", HERMES_INTERACTIVE="1")
+    os.environ.update(A2ASSISTANT_GATEWAY_SESSION="1", A2ASSISTANT_EXEC_ASK="1", A2ASSISTANT_INTERACTIVE="1")
 
 
 # ── Blocking prompt factory ──────────────────────────────────────────
@@ -1325,7 +1325,7 @@ def _get_usage(agent) -> dict:
         from tools.async_delegation import active_count as _async_active_count
         usage["active_subagents"] = _async_active_count()
     # Dev-only live credits-spent readout, gated on HERMES_DEV_CREDITS so the payload stays clean otherwise.
-    if is_truthy_value(os.environ.get("HERMES_DEV_CREDITS")):
+    if is_truthy_value(os.environ.get("A2ASSISTANT_DEV_CREDITS")):
         with contextlib.suppress(Exception):
             spent = agent.get_credits_spent_micros()
             if spent is not None:
@@ -1768,7 +1768,7 @@ _pet_cancel_lock = threading.Lock()
 _pet_cancelled: set[str] = set()
 _PET_REFERENCE_MIME_EXT = {"png": "png", "jpeg": "jpg", "jpg": "jpg", "webp": "webp", "gif": "gif"}
 try:
-    _PET_REFERENCE_MAX_BYTES = max(1, int(os.environ.get("HERMES_PET_REFERENCE_MAX_BYTES") or str(16 * 1024 * 1024)))
+    _PET_REFERENCE_MAX_BYTES = max(1, int(os.environ.get("A2ASSISTANT_PET_REFERENCE_MAX_BYTES") or str(16 * 1024 * 1024)))
 except (TypeError, ValueError):
     _PET_REFERENCE_MAX_BYTES = 16 * 1024 * 1024
 
@@ -1961,17 +1961,17 @@ _WORKER_BLOCKED_COMMANDS: frozenset[str] = frozenset({"snapshot", "snap"})
 
 # argv shapes that must not run headless in the gateway process → user hint.
 _CLI_EXEC_BLOCKED = {
-    ("setup",): "`hermes setup` needs a full terminal — run it outside the TUI",
-    ("gateway",): "`hermes gateway` is long-running — run it in another terminal",
-    ("sessions", "browse"): "`hermes sessions browse` is interactive — use /resume here, or run browse in another terminal",
-    ("config", "edit"): "`hermes config edit` needs $EDITOR in a real terminal",
+    ("setup",): "`a2assistant setup` needs a full terminal — run it outside the TUI",
+    ("gateway",): "`a2assistant gateway` is long-running — run it in another terminal",
+    ("sessions", "browse"): "`a2assistant sessions browse` is interactive — use /resume here, or run browse in another terminal",
+    ("config", "edit"): "`a2assistant config edit` needs $EDITOR in a real terminal",
 }
 
 
 def _cli_exec_blocked(argv: list[str]) -> str | None:
     """Return user hint if this argv must not run headless in the gateway process."""
     if not argv:
-        return "bare `hermes` is interactive — use `/hermes chat -q …` or run `hermes` in another terminal"
+        return "bare `a2assistant` is interactive — use `/hermes chat -q …` or run `a2assistant` in another terminal"
     head = tuple(a.lower() for a in argv[:2])
     return _CLI_EXEC_BLOCKED.get(head[:1]) or _CLI_EXEC_BLOCKED.get(head)
 

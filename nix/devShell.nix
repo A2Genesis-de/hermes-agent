@@ -43,7 +43,7 @@
         ++ self'.packages.default.passthru.devDeps;
         shellHook = ''
           # The editable venv's .pth resolves the checkout through this.
-          export HERMES_PYTHON_SRC_ROOT=$(git rev-parse --show-toplevel)
+          export A2ASSISTANT_PYTHON_SRC_ROOT=$(git rev-parse --show-toplevel)
 
           ${hermesAgentDevShellHook}
           ${hermesNpmLib.mkPnpmDevShellHook npmPackageJsonPaths}
@@ -57,7 +57,7 @@
           export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
           export NIX_SSL_CERT_FILE="$SSL_CERT_FILE"
 
-          echo "Hermes Agent dev shell in $HERMES_PYTHON_SRC_ROOT"
+          echo "Hermes Agent dev shell in $A2ASSISTANT_PYTHON_SRC_ROOT"
           echo "Ready. 'hermes-checkout' runs this checkout; 'hermes' stays your installed Hermes."
         '';
       };

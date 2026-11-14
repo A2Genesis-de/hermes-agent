@@ -18,7 +18,7 @@ The gateway runs in a CHILD process (``python -m tests.e2e.core.delivery._fake_p
 <spool>``), controlled over a JSON-lines TCP socket. That keeps it isolated from the per-test
 autouse fixtures of this suite's conftest (which close every SessionDB and reset plugin singletons
 after each test), lets one ~15 s gateway boot serve a whole scenario matrix, and makes a real
-``kill -9`` + restart on the same HERMES_HOME possible.
+``kill -9`` + restart on the same A2ASSISTANT_HOME possible.
 """
 
 from __future__ import annotations
@@ -517,14 +517,14 @@ class GatewayProcess:
     def env(self) -> dict[str, str]:
         env = {k: os.environ[k] for k in _KEEP_ENV if k in os.environ}
         env.update({
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home),
+            "HOME": str(self.home), "A2ASSISTANT_HOME": str(self.hermes_home),
             # The child's HOME is itself a throwaway tmp dir, so ~/.hermes IS the temp home here; the
             # live-system guard (armed by the inherited isolation marker) would refuse it.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
-            "HERMES_GATEWAY_LOCK_DIR": str(self.root / "gateway-locks"),
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_GATEWAY_LOCK_DIR": str(self.root / "gateway-locks"),
             "TZ": "UTC", "PYTHONHASHSEED": "0", "PYTHONUNBUFFERED": "1", "C12_PARENT_PID": str(os.getpid()),
-            "HERMES_DISABLE_LAZY_INSTALLS": "1",
-            "AWS_EC2_METADATA_DISABLED": "true", "HERMES_HONCHO_HOST": "hermes",
+            "A2ASSISTANT_DISABLE_LAZY_INSTALLS": "1",
+            "AWS_EC2_METADATA_DISABLED": "true", "A2ASSISTANT_HONCHO_HOST": "hermes",
             "PYTHONPATH": f"{REPO_ROOT}{os.pathsep}{os.environ.get('PYTHONPATH', '')}".rstrip(os.pathsep),
         })
         return env

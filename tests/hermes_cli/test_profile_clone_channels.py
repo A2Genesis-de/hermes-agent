@@ -1,4 +1,4 @@
-"""``hermes profile create --clone`` leaves messaging channels behind (``hermes_cli.profile_channels``).
+"""``a2assistant profile create --clone`` leaves messaging channels behind (``hermes_cli.profile_channels``).
 
 Invariant, not snapshot: the clone's credential fingerprint set — computed by the gateway's own
 ``_adapter_credential_fingerprint`` through the migrate preflight — is DISJOINT from the source's,
@@ -44,7 +44,7 @@ def home(tmp_path, monkeypatch):
     root = tmp_path / ".hermes"
     root.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     for name in ("TELEGRAM_BOT_TOKEN", "API_SERVER_KEY",
                  "GATEWAY_MULTIPLEX_PROFILES", "TELEGRAM_ALLOWED_USERS"):

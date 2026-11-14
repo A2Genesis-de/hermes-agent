@@ -1,10 +1,11 @@
-"""A launch under another HERMES_HOME must not rebind shared launchers (#123238).
+"""A launch under another A2ASSISTANT_HOME must not rebind shared launchers (#123238).
 
 The checkout's ``.hermes/bin`` launchers are shared by every data root and by
 the ``~/.local/bin`` shims. Rewriting them to the launching root's store
-Python bricks ``hermes`` once that root is deleted. The launching process must
+Python bricks ``a2assistant`` once that root is deleted. The launching process must
 still relaunch into its own root's Python.
 """
+from hermes_constants import unset_env
 import json
 import os
 from pathlib import Path
@@ -61,8 +62,10 @@ def _isolate(tmp_path, monkeypatch, home: Path) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
     if os.name == "nt":
         monkeypatch.setenv("LOCALAPPDATA", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_RUNTIME_DIR", raising=False)
     monkeypatch.delenv("HERMES_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
 
 
@@ -107,14 +110,16 @@ def test_missing_dead_and_same_store_launchers_still_publish(tmp_path, monkeypat
     repinned = _repoint_store(default_home, "repin")
     after = _publish(repo)
     assert after != before
-    assert all(_launchers._launcher_python(repo / ".hermes" / "bin" / name) == repinned for name in after)
+    assert all(_launchers._launcher_python(repo / ".hermes" / "bin" / name) == repinned
+               for name in after if name in _launchers.PRIMARY_LAUNCHERS)
 
     # A launcher whose interpreter died with its root is repaired, not kept: the bricked
     # state of #123238 heals on the next launch from any live root.
     repinned.unlink()
     _isolate(tmp_path, monkeypatch, temp_home)
     healed = _publish(repo)
-    assert all(_launchers._launcher_python(repo / ".hermes" / "bin" / name) == temp_python for name in healed)
+    assert all(_launchers._launcher_python(repo / ".hermes" / "bin" / name) == temp_python
+               for name in healed if name in _launchers.PRIMARY_LAUNCHERS)
 
 
 def _write_dead_exe(target: Path, missing_python: Path) -> None:

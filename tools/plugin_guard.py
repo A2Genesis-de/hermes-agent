@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Plugin Guard — ``skills_guard`` engine applied to ``hermes plugins install``/``update``.
+"""Plugin Guard — ``skills_guard`` engine applied to ``a2assistant plugins install``/``update``.
 
 Plugins run in-process but are *expected* to read their own env keys, call provider APIs
 and spawn subprocesses, so: full pattern set on docs/config files (where prompt-injection
@@ -316,7 +316,7 @@ def _dangerous_findings_summary(findings: list[Finding]) -> str:
 
 
 def _tracked_bytecode(plugin_dir: Path) -> set[str]:
-    """``.pyc``/``.pyo`` the checkout tracks. ``hermes plugins validate`` imports the plugin before
+    """``.pyc``/``.pyo`` the checkout tracks. ``a2assistant plugins validate`` imports the plugin before
     it scans, so an untracked ``__pycache__`` that run wrote is not shipped content; only the index
     says what the pinned commit carries. Not a checkout (or no git) → empty."""
     try:

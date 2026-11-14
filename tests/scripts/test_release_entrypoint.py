@@ -505,7 +505,7 @@ def test_release_draft_lists_the_commits_since_the_stable_base(source, published
     assert "hipped in the published release" not in body
     assert "compare/v0.21.4...rc.1-v0.21.5" in body
     # The stable workflow renders the download tables into this marker.
-    assert "<!-- HERMES_BUILDS_TABLE -->" in body
+    assert "<!-- A2ASSISTANT_BUILDS_TABLE -->" in body
     assert "python scripts/release.py publish --version 0.21.5" in body
     assert "python scripts/release.py abandon --version 0.21.5" in body
 
@@ -570,7 +570,7 @@ def test_no_changelog_releases_what_the_full_changelog_could_not(source, tmp_pat
 
     assert result["tag"] == "rc.1-v0.21.5"
     assert len(seen["body"]) <= GITHUB_BODY_LIMIT
-    assert "<!-- HERMES_BUILDS_TABLE -->" in seen["body"]
+    assert "<!-- A2ASSISTANT_BUILDS_TABLE -->" in seen["body"]
 
 
 def test_changelog_prints_the_notes_a_draft_would_carry_and_claims_nothing(source, monkeypatch, capsys):

@@ -32,7 +32,7 @@ def homes(tmp_path, monkeypatch):
     launch, served = tmp_path / "launch", tmp_path / "served"
     for home in (launch, served):
         home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     return launch, served
 
 def _install_session(monkeypatch, session):

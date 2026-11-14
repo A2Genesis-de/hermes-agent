@@ -8,7 +8,7 @@ like every other entry point dies on its first third-party import. Live, every l
 came back ``Live admission outcome unknown: No module named 'ruamel'. Do not resend.``
 
 Each test launches the real script under ``-I -S`` (no site-packages, no ``PYTHON*`` env), with a
-PM-committed dependency record in a temp ``HERMES_HOME`` as the only way to reach the packages.
+PM-committed dependency record in a temp ``A2ASSISTANT_HOME`` as the only way to reach the packages.
 """
 
 import json
@@ -33,14 +33,14 @@ BARE = [sys.executable, "-I", "-S"]
 
 @pytest.fixture
 def committed_home(tmp_path, monkeypatch):
-    """A temp ``HERMES_HOME`` whose install state commits a dependency generation for REPO.
+    """A temp ``A2ASSISTANT_HOME`` whose install state commits a dependency generation for REPO.
 
     The generation's site-packages carries a ``.pth`` naming this interpreter's own package
     directories, so activating it (and only activating it) makes the real dependencies importable.
     """
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     venv = install_state_dir(REPO) / "environments" / "gen" / "venv"
     venv.mkdir(parents=True)
     (venv / "pyvenv.cfg").write_text(
@@ -54,10 +54,10 @@ def committed_home(tmp_path, monkeypatch):
 
 @pytest.fixture
 def uncommittable_home(tmp_path, monkeypatch):
-    """A temp ``HERMES_HOME`` whose committed generation is gone, so activation cannot succeed."""
+    """A temp ``A2ASSISTANT_HOME`` whose committed generation is gone, so activation cannot succeed."""
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     install_state_dir(REPO).mkdir(parents=True)
     return home, _commit(home, install_state_dir(REPO) / "environments" / "missing" / "venv")
 
@@ -66,7 +66,7 @@ def _commit(home, venv):
     runtime_facts_path(REPO).write_text(
         json.dumps({"packages": {"venv": {"environment": str(venv)}}}), encoding="utf-8")
     env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV")}
-    env["HERMES_HOME"] = str(home)
+    env["A2ASSISTANT_HOME"] = str(home)
     return env
 
 
@@ -103,7 +103,7 @@ def test_delivery_runner_admits_through_dependencies_it_activates(tmp_path, comm
 
 def test_delivery_runner_that_cannot_activate_names_the_repair_remedy(tmp_path, uncommittable_home):
     """When the committed environment cannot be activated, the runner exits with PM's
-    ``hermes pm repair`` remedy before touching the DM, instead of an ambiguous
+    ``a2assistant pm repair`` remedy before touching the DM, instead of an ambiguous
     ``No module named …`` outcome the sender is told not to resend."""
     _home, env = uncommittable_home
     dm_file = tmp_path / "dm.txt"
@@ -113,7 +113,7 @@ def test_delivery_runner_that_cannot_activate_names_the_repair_remedy(tmp_path, 
                    sys.executable, "-c", "pass"], env)
 
     assert result.returncode == 1, result
-    assert "hermes pm repair" in result.stderr
+    assert "a2assistant pm repair" in result.stderr
     assert "No module named" not in result.stdout + result.stderr
     assert result.stdout == ""  # nothing was handed over, so no "do not resend" outcome
     assert dm_file.read_text(encoding="utf-8") == "hello teammate"
@@ -133,7 +133,7 @@ def test_delivery_runner_that_cannot_activate_after_live_admission_stays_ambiguo
                    "--profile-home", str(tmp_path), sys.executable, "-c", "pass"], env)
 
     assert result.returncode == 1, result
-    assert "hermes pm repair" in result.stderr
+    assert "a2assistant pm repair" in result.stderr
     payload = json.loads(result.stdout)
     assert payload["status"] == "ambiguous"
     assert payload["delivery_id"] == _dm_delivery_id(str(dm_file))

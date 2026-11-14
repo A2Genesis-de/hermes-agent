@@ -51,7 +51,7 @@ def _adapter(runner, db):
 
 
 async def _restarted_api_runs(tmp_path, monkeypatch, *, idempotent=True):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     store = SessionStore(tmp_path / "sessions", GatewayConfig())
     db = SessionDB(tmp_path / "state.db")
     executed = []

@@ -45,7 +45,7 @@ function seedSession(sandbox: Sandbox, home: string, sessionId: string, marker: 
   const result = spawnSync(python, ['-c', script, home, sessionId, marker], {
     cwd: REPO_ROOT,
     encoding: 'utf8',
-    env: { ...process.env, HERMES_HOME: sandbox.hermesHome, HOME: sandbox.root, PYTHONPATH: REPO_ROOT }
+    env: { ...process.env, A2ASSISTANT_HOME: sandbox.hermesHome, HOME: sandbox.root, PYTHONPATH: REPO_ROOT }
   })
 
   if (result.status !== 0) {

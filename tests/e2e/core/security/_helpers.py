@@ -1,7 +1,7 @@
 """Shared harness for the security-boundary E2E suite.
 
-Every scenario runs real Hermes processes (``hermes`` CLI, ``hermes serve``, the gateway,
-``tui_gateway``) with HOME=<tmp>/home and HERMES_HOME=<tmp>/home/.hermes, every credential env var
+Every scenario runs real Hermes processes (``a2assistant`` CLI, ``a2assistant serve``, the gateway,
+``tui_gateway``) with HOME=<tmp>/home and A2ASSISTANT_HOME=<tmp>/home/.hermes, every credential env var
 stripped, and the model served by ``tests/fakes/fake_llm_provider.FakeLLMServer``. Assertions read
 the boundary's observable outcome: files on disk, state.db rows, logs, and the next wire request.
 
@@ -40,7 +40,7 @@ def canary(label: str) -> str:
 
 
 _STRIP_SUFFIXES = ("_API_KEY", "_TOKEN", "_BASE_URL", "_SECRET", "_ACCESS_KEY", "_KEY_ID", "_KEY", "_PASSWORD")
-_STRIP_PREFIXES = ("HERMES_", "OPENAI", "ANTHROPIC", "OPENROUTER", "AWS_", "AZURE_", "GOOGLE_", "GEMINI",
+_STRIP_PREFIXES = ("A2ASSISTANT_", "OPENAI", "ANTHROPIC", "OPENROUTER", "AWS_", "AZURE_", "GOOGLE_", "GEMINI",
                    "PYTEST_", "NOUS_", "XAI_", "LLM_", "CUSTOM_", "TERMINAL_", "API_SERVER_")
 _DROP = ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy", "https_proxy", "all_proxy",
          "XDG_STATE_HOME", "XDG_CONFIG_HOME", "XDG_DATA_HOME", "XDG_CACHE_HOME",
@@ -53,7 +53,7 @@ def real_user_home() -> Path:
 
 
 def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, str]:
-    """Child env: fake HOME (profile-root anchor) + HERMES_HOME under it, nothing credential-shaped,
+    """Child env: fake HOME (profile-root anchor) + A2ASSISTANT_HOME under it, nothing credential-shaped,
     no yolo/approval env inherited from the invoking agent."""
     home = home.resolve()
     assert home != real_user_home(), f"refusing to run a probe against the real HOME: {home}"
@@ -61,7 +61,7 @@ def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, s
            if not (k.endswith(_STRIP_SUFFIXES) or k.startswith(_STRIP_PREFIXES)) and k not in _DROP}
     env.update(
         HOME=str(home),
-        HERMES_HOME=str(home / ".hermes"),
+        A2ASSISTANT_HOME=str(home / ".hermes"),
         XDG_STATE_HOME=str(home / ".local" / "state"),
         PYTHONPATH=str(REPO_ROOT),
         NO_COLOR="1",
@@ -70,8 +70,8 @@ def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, s
         no_proxy="127.0.0.1,localhost",
         # the live-DB guard treats $HOME/.hermes/state.db of a pytest descendant as production;
         # this HOME is the test's own tmp dir (asserted above).
-        HERMES_STATE_DB_GUARD_BYPASS="1",
-        HERMES_ACCEPT_HOOKS="1",
+        A2ASSISTANT_STATE_DB_GUARD_BYPASS="1",
+        A2ASSISTANT_ACCEPT_HOOKS="1",
     )
     env.update(extra or {})
     return env

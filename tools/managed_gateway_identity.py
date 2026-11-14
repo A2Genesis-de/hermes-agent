@@ -59,7 +59,7 @@ def _platform_name() -> str:
         return turn.lease.platform
     if platform := session_platform():
         return platform
-    return "cron" if is_truthy_value(get_session_env("HERMES_CRON_SESSION", "")) else "cli"
+    return "cron" if is_truthy_value(get_session_env("A2ASSISTANT_CRON_SESSION", "")) else "cli"
 
 
 def request_surface() -> str:
@@ -85,7 +85,7 @@ def _conversation_id() -> Optional[str]:
     from agent.portal_tags import get_conversation_context
     from gateway.session_context import get_session_env
 
-    return get_conversation_context() or get_session_env("HERMES_SESSION_ID", "") or None
+    return get_conversation_context() or get_session_env("A2ASSISTANT_SESSION_ID", "") or None
 
 
 def correlation_headers(call: Optional[CallRef] = None) -> dict[str, str]:

@@ -538,7 +538,7 @@ def test_rotated_compress_keeps_atomically_published_foreign_tail(tmp_path, monk
     root = tmp_path / "hermes"
     (root / "profiles" / "fitness").mkdir(parents=True)
     (root / "profiles" / "fitness" / "config.yaml").write_text("{}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH)
     store = SessionStore(sessions_dir=root / "sessions", config=GatewayConfig(multiplex_profiles=True))
     parent, child = "parent", "child"

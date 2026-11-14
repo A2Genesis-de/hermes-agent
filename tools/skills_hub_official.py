@@ -10,7 +10,7 @@ from tools.skills_hub_models import SkillBundle, SkillMeta, SkillSource, _hermes
 
 class OptionalSkillSource(SkillSource):
     """Skills from the repo's ``optional-skills/`` directory: official but not activated by
-    default — absent from the system prompt and not copied to ~/.hermes/skills/ at setup.
+    default — absent from the system prompt and not copied to ~/.a2assistant/skills/ at setup.
     Discoverable via the Skills Hub as source "official" with "builtin" trust."""
 
     SOURCE_ID = "official"

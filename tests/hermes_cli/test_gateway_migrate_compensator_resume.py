@@ -38,9 +38,9 @@ def stranded(tmp_path, monkeypatch):
     (root / "config.yaml").write_text("gateway:\n  multiplex_profiles: true\n", encoding="utf-8")
     (root / ".env").write_text("TELEGRAM_BOT_TOKEN=111111:shared\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "GATEWAY_MULTIPLEX_PROFILES"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
@@ -67,7 +67,7 @@ def stranded(tmp_path, monkeypatch):
             _write_live_gateway(root, ["default", "coder", "ops"])
 
     from gateway import status
-    monkeypatch.setattr(status, "_read_process_cmdline", lambda pid: "hermes gateway run")
+    monkeypatch.setattr(status, "_read_process_cmdline", lambda pid: "a2assistant gateway run")
     monkeypatch.setattr(gm, "_installed_services", lambda home: [])
     monkeypatch.setattr(gm, "_service_op", _service_op)
     monkeypatch.setattr(gm, "_host_supports_migration", lambda: None)

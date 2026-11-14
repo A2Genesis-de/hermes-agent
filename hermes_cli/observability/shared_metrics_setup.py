@@ -333,7 +333,7 @@ def _model_route() -> tuple[Any, ...]:
 
 @contextlib.contextmanager
 def provider_setup_surface(surface: str) -> Iterator[None]:
-    """Name the surface whose provider picker runs inside (``hermes model``, the setup wizard, the
+    """Name the surface whose provider picker runs inside (``a2assistant model``, the setup wizard, the
     first-run chat prompt). The picker is shared, so only these entry points know which one it is."""
     previous = getattr(_cli, "surface", None)
     _cli.surface = surface

@@ -22,7 +22,7 @@ _SESSIONS_INDEX_AT_IMPORT = _SESSIONS_INDEX
 
 def _resolve_sessions_index() -> Path:
     """Active profile's ``sessions.json`` at call time: the patched ``_SESSIONS_INDEX`` when a test
-    changed it, else live profile-scoped HERMES_HOME — under the multiplexed gateway one process
+    changed it, else live profile-scoped A2ASSISTANT_HOME — under the multiplexed gateway one process
     serves every profile, so the import-time constant would resolve every profile's pre-migration
     session lookup against the launch profile's index."""
     return (_SESSIONS_INDEX if _SESSIONS_INDEX != _SESSIONS_INDEX_AT_IMPORT

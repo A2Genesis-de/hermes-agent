@@ -127,7 +127,7 @@ let
     inherit hermesNpmLib generatedIcons;
   };
 
-  # The store is read-only, so the Webapp is built here and never by `hermes webapp`.
+  # The store is read-only, so the Webapp is built here and never by `a2assistant webapp`.
   hermesWebapp = callPackage ./webapp.nix {
     inherit hermesNpmLib;
   };
@@ -138,7 +138,7 @@ let
   };
 
   # Optional skills are NOT in the wheel (pythonSrc excludes them, see
-  # lib.nix) — the wrapper exposes them via HERMES_OPTIONAL_SKILLS, the
+  # lib.nix) — the wrapper exposes them via A2ASSISTANT_OPTIONAL_SKILLS, the
   # same mechanism Homebrew packaging uses.
   bundledOptionalSkills = lib.cleanSourceWith {
     src = ../optional-skills;
@@ -147,26 +147,26 @@ let
 
   # Import bundled plugins (memory, context_engine, platforms/*).  Keeping
   # them out of the Python site-packages keeps import semantics identical
-  # to a dev checkout — the loader reads them from HERMES_BUNDLED_PLUGINS.
+  # to a dev checkout — the loader reads them from A2ASSISTANT_BUNDLED_PLUGINS.
   bundledPlugins = lib.cleanSourceWith {
     src = ../plugins;
     filter = path: _type: !(lib.hasInfix "/__pycache__/" path);
   };
 
   # i18n locale catalogs (locales/*.yaml). Shipped into the store and pointed
-  # at by HERMES_BUNDLED_LOCALES so the wrapped binary always resolves human
+  # at by A2ASSISTANT_BUNDLED_LOCALES so the wrapped binary always resolves human
   # strings instead of raw i18n keys (#23943 / #27632 / #35374).
   bundledLocales = lib.cleanSource ../locales;
 
   # Shipped MCP catalog (optional-mcps/<name>/manifest.yaml). Same bare-data-dir
   # case as locales: not a Python package, so it's symlinked into the store and
-  # exposed via HERMES_OPTIONAL_MCPS.
+  # exposed via A2ASSISTANT_OPTIONAL_MCPS.
   bundledOptionalMcps = lib.cleanSourceWith {
     src = ../optional-mcps;
     filter = path: _type: !(lib.hasInfix "/__pycache__/" path);
   };
 
-  # Tools come from pm/lock.json, the same builds `hermes pm install`
+  # Tools come from pm/lock.json, the same builds `a2assistant pm install`
   # provisions elsewhere. git and openssh are nixpkgs': the lock pins them for
   # win32 only. hermesNpmLib.nodejs is the pinned node with the pinned npm.
   runtimeDeps = [
@@ -234,10 +234,10 @@ let
       ref = if dirty then null else rev;
       stamp = toString installStampFile;
       env = {
-        HERMES_NODE = lib.getExe hermesNpmLib.nodejs;
+        A2ASSISTANT_NODE = lib.getExe hermesNpmLib.nodejs;
       }
       // lib.optionalAttrs (rev != null && !dirty) {
-        HERMES_REVISION = rev;
+        A2ASSISTANT_REVISION = rev;
       };
     }
   );
@@ -312,7 +312,7 @@ stdenv.mkDerivation (finalAttrs: {
       shift 2
       makeWrapper "$source" "$out/$destination" "$@" \
         --suffix PATH : "${runtimePath}" \
-        --set-default HERMES_BIN "$out/bin/hermes"${
+        --set-default A2ASSISTANT_BIN "$out/bin/hermes"${
           lib.optionalString (
             extraPythonPackages != [ ]
           ) " \\\n        --suffix PYTHONPATH : \"${pythonPath}\""
@@ -351,7 +351,7 @@ stdenv.mkDerivation (finalAttrs: {
       # site-packages are devPython's, so `.pth` files (the editable checkout)
       # load and nothing depends on the caller's PYTHONPATH. Console scripts
       # are re-shebanged onto it so `pytest` and `python -m pytest` agree.
-      # The project's own commands (`hermes`, ...) go to libexec, off PATH, so
+      # The project's own commands (`a2assistant`, ...) go to libexec, off PATH, so
       # the dev shell never hides the installed Hermes; `hermes-checkout` runs them.
       projectCommands = builtins.attrNames (lib.importTOML ../pyproject.toml).project.scripts;
       devVenv = runCommand "hermes-agent-dev-venv" { } ''
@@ -385,7 +385,7 @@ stdenv.mkDerivation (finalAttrs: {
             ln -s "$script" "$dir/$name"
           fi
         done
-        # The libexec name stays `hermes`: process identity and relaunch read argv[0].
+        # The libexec name stays `a2assistant`: process identity and relaunch read argv[0].
         printf '#!/bin/sh\nexec %s "$@"\n' "$out/libexec/hermes-checkout/hermes" > $out/bin/hermes-checkout
         chmod +x $out/bin/hermes-checkout
       '';
@@ -417,9 +417,9 @@ stdenv.mkDerivation (finalAttrs: {
 
       # `hermesDesktop` references `finalAttrs.finalPackage` (this whole
       # derivation, after all overrides are applied) so the desktop wrapper
-      # can pin its `hermes` command via HERMES_DESKTOP_HERMES. The
+      # can pin its `a2assistant` command via A2ASSISTANT_DESKTOP_HERMES. The
       # deployment override then picks up the fully wrapped
-      # `hermes` binary — venv with all deps, bundled skills/plugins,
+      # `a2assistant` binary — venv with all deps, bundled skills/plugins,
       # runtime PATH (ripgrep/git/ffmpeg/etc).  No re-implementation
       # of the agent resolution in the desktop wrapper.
       hermesDesktop = callPackage ./desktop.nix {
@@ -434,7 +434,7 @@ stdenv.mkDerivation (finalAttrs: {
       };
 
       devShellHook = ''
-        export HERMES_PYTHON=${devVenv}/bin/python3
+        export A2ASSISTANT_PYTHON=${devVenv}/bin/python3
         # `uv run --active --no-sync` reuses this venv instead of creating .venv.
         export VIRTUAL_ENV=${devVenv}
       '';

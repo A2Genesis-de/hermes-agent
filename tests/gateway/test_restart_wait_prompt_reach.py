@@ -42,7 +42,7 @@ def test_ensure_hands_out_the_restart_wait_owner_as_draining_with_its_endpoint(t
 
 @pytest.mark.platforms("linux")
 def test_update_fence_hands_out_only_the_draining_owners_restart_wait(tmp_path):
-    """`hermes update`'s drain (pause-for-update) is a restart wait: while the update marker is live,
+    """`a2assistant update`'s drain (pause-for-update) is a restart wait: while the update marker is live,
     ensure still hands that owner out so a parked prompt can be answered; anything else (a ready owner,
     a stopping one, none at all) stays ``update_paused`` and nothing is ever started."""
     import os
@@ -85,7 +85,7 @@ async def test_restart_wait_commits_new_input_queued_and_never_claims_it(tmp_pat
     from gateway.session_authority import LiveSession, SessionAuthority
     from gateway.session_contract import SessionActor, SessionRef, Submission
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")
     db.create_session("s", source="telegram")
     ran = []
@@ -210,7 +210,7 @@ async def test_restart_wait_queues_only_interactive_input(tmp_path, monkeypatch)
     from gateway.session_authority import LiveSession, SessionAuthority
     from gateway.session_contract import SessionActor, SessionRef, Submission
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")
     db.create_session("s", source="telegram")
     runner = SimpleNamespace(_draining=True, _running=True, config=SimpleNamespace(multiplex_profiles=False),
@@ -230,16 +230,16 @@ async def test_restart_wait_queues_only_interactive_input(tmp_path, monkeypatch)
 
 def test_update_drain_hint_names_the_draining_profile(tmp_path, monkeypatch):
     """The updater's hint opens the profile whose gateway holds the parked turn: a bare
-    ``hermes --tui`` opens the default profile, where that session isn't listed (#139041)."""
+    ``a2assistant --tui`` opens the default profile, where that session isn't listed (#139041)."""
     from hermes_cli.update_cmd_drain_report import format_drain_report
 
     root = tmp_path / ".hermes"
     (root / "profiles" / "work").mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     work = [{"kind": "chat", "session": "s1"}]
-    assert "`hermes -p work --tui`" in format_drain_report(work, remaining_s=60, home=root / "profiles" / "work")
-    assert "`hermes --tui`" in format_drain_report(work, remaining_s=60, home=root)
+    assert "`a2assistant -p work --tui`" in format_drain_report(work, remaining_s=60, home=root / "profiles" / "work")
+    assert "`a2assistant --tui`" in format_drain_report(work, remaining_s=60, home=root)
 
 
 @pytest.mark.asyncio

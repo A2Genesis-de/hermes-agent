@@ -1,6 +1,6 @@
 """C6: every shipped module and every entrypoint works in a FRESH process after an update.
 
-The ``hermes update`` failure class this guards (issue_classes.md C6): after the pull every
+The ``a2assistant update`` failure class this guards (issue_classes.md C6): after the pull every
 command dies with ``ImportError: cannot import name 'file_signature'`` (#111942, #111943,
 #112522, #114616), a module-level ``NameError``/circular import only shows up in a clean
 interpreter, or the restart phase of a pre-hand-off updater imports new code into a stale
@@ -119,7 +119,7 @@ _POST_PURGE_IMPORTS = (
 # What the pre-hand-off ``hermes update`` process had imported before the pull.
 _OLD_UPDATER_GRAPH = ("hermes_cli.main", "hermes_cli.update_cmd", "hermes_cli.config", "hermes_cli.gateway")
 
-_READY_RE = re.compile(r"^HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)", re.MULTILINE)  # electron/backend-ready.ts
+_READY_RE = re.compile(r"^A2ASSISTANT_(?:BACKEND|DASHBOARD)_READY port=(\d+)", re.MULTILINE)  # electron/backend-ready.ts
 
 
 # --------------------------------------------------------------------------- packaging model
@@ -722,7 +722,7 @@ def test_entrypoint_in_a_fresh_process(case, tmp_path):
     reply = f"FAKE-REPLY-{uuid.uuid4().hex[:12]}"
     env = isolated_env(tmp_path, pythonpath=WORKTREE,
                        extra={"TERM": "xterm-256color", "COLUMNS": "120", "LINES": "40"} if entry.tty else None)
-    hermes_home = Path(env["HERMES_HOME"])
+    hermes_home = Path(env["A2ASSISTANT_HOME"])
     with FakeLLMServer([Text(reply)]) as srv:
         write_hermes_home(hermes_home, srv.base_url)
         config_before = (hermes_home / "config.yaml").read_bytes()
@@ -771,12 +771,12 @@ def test_serve_announces_ready_and_stops_cleanly_on_sigterm(tmp_path):
     _sandbox_or_skip()
     psutil = pytest.importorskip("psutil")
     lock_dir = tmp_path / "host-locks"
-    env = isolated_env(tmp_path, pythonpath=WORKTREE, extra={"HERMES_GATEWAY_LOCK_DIR": str(lock_dir)})
+    env = isolated_env(tmp_path, pythonpath=WORKTREE, extra={"A2ASSISTANT_GATEWAY_LOCK_DIR": str(lock_dir)})
     reaper = _write_script(tmp_path / "runner", "subreaper.py", _SUBREAPER)
     report_path = tmp_path / "reaper.json"
     stdout_path, stderr_path = tmp_path / "serve.out", tmp_path / "serve.err"
     with FakeLLMServer() as srv, open(stdout_path, "w", encoding="utf-8") as out, open(stderr_path, "w", encoding="utf-8") as err:
-        write_hermes_home(Path(env["HERMES_HOME"]), srv.base_url)
+        write_hermes_home(Path(env["A2ASSISTANT_HOME"]), srv.base_url)
         argv = [PY, str(reaper), str(report_path),
                 PY, "-m", "hermes_cli.main", "serve", "--host", "127.0.0.1", "--port", "0"]
         proc = subprocess.Popen(sandbox_argv(argv, writable=[tmp_path]), env=env, cwd=str(WORKTREE),
@@ -793,7 +793,7 @@ def test_serve_announces_ready_and_stops_cleanly_on_sigterm(tmp_path):
                 assert proc.poll() is None, f"serve exited rc={proc.returncode} before READY\n{_logs()}"
                 return None
 
-            port = wait_for(_ready, timeout=180, what="HERMES_BACKEND_READY on stdout")
+            port = wait_for(_ready, timeout=180, what="A2ASSISTANT_BACKEND_READY on stdout")
             socket.create_connection(("127.0.0.1", port), timeout=10).close()
             record_file = lock_dir / "host-serve.json"
             record = json.loads(record_file.read_text(encoding="utf-8"))

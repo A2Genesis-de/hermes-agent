@@ -13,7 +13,7 @@ from hermes_state_runtime import admit_session_input, begin_runtime_epoch, claim
 
 def _settled_native_document(tmp_path, monkeypatch, note):
     from gateway.platforms.base import get_document_cache_dir
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     staged = get_document_cache_dir() / 'doc_1_report.pdf'
     staged.write_bytes(b'%PDF-1.4 retained')
     media = capture_native_media([staged])

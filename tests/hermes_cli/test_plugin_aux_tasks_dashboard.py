@@ -1,13 +1,13 @@
 """Plugin-registered auxiliary tasks reach the dashboard/Desktop Models settings.
 
-``PluginContext.register_auxiliary_task`` already puts a plugin task in the ``hermes model``
+``PluginContext.register_auxiliary_task`` already puts a plugin task in the ``a2assistant model``
 picker (``main_provider_setup._all_aux_tasks``), but the REST surface behind the Desktop
 Settings → Models page enumerated only the built-in ``_AUX_TASK_SLOTS``: ``GET
 /api/model/auxiliary`` never listed the task, ``POST /api/model/set`` rejected it with
 ``unknown auxiliary task``, ``__reset__`` skipped it and the stale-pin nudge ignored it.
 
 These tests load real plugins from temp homes through ``PluginManager`` discovery (no fake
-registry) and cover the profile seam: one ``hermes serve`` process, two profiles with their own
+registry) and cover the profile seam: one ``a2assistant serve`` process, two profiles with their own
 plugins and their own config. Regression for #40880 / #129189.
 """
 
@@ -63,7 +63,7 @@ def two_profile_homes(tmp_path, monkeypatch):
     _write_home(home_a, {"side": _SIDE, "alpha_plugin": _ALPHA}, "vendor/model-a")
     _write_home(home_b, {"side": _SIDE}, "vendor/model-b")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home_a))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: tmp_path / "empty-bundled")
     monkeypatch.setattr(PluginManager, "_scan_entry_points", lambda self: [])
     plugins_mod._reset_plugin_managers_for_tests()

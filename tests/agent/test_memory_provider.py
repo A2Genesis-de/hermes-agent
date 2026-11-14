@@ -175,7 +175,7 @@ class TestMemoryManager:
     def _set_spill_config(monkeypatch, tmp_path, *, max_chars):
         from hermes_cli.config import atomic_config_write
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         atomic_config_write(tmp_path / "config.yaml", {
             "memory": {"prefetch_spill_enabled": True},
             "hooks": {"output_spill": {
@@ -221,7 +221,7 @@ class TestMemoryManager:
         from hermes_cli.config import atomic_config_write
         from tools.hook_output_spill import DEFAULT_MAX_CHARS
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         atomic_config_write(tmp_path / "config.yaml", {
             "memory": memory,
             "hooks": {"output_spill": {} if hooks_enabled else {"enabled": False}},
@@ -260,7 +260,7 @@ class TestMemoryManager:
         """Opt-out keeps normal recall whole but still caps a runaway provider at the ceiling."""
         from hermes_cli.config import atomic_config_write
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         atomic_config_write(tmp_path / "config.yaml", {"memory": {}})
         provider = FakeMemoryProvider("external")
         provider._prefetch_result = "x" * 100_001
@@ -283,7 +283,7 @@ class TestMemoryManager:
         a, b = tmp_path / "a", tmp_path / "b"
         a.mkdir()
         b.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(a))  # Ambient launch home never follows B.
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(a))  # Ambient launch home never follows B.
         monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
         shared = {"max_chars": 40, "preview_head": 12, "preview_tail": 7,
                   "directory": str(a / "recall")}
@@ -642,7 +642,7 @@ class TestPluginMemoryDiscovery:
 
 
 class TestUserInstalledProviderDiscovery:
-    """Memory providers installed to $HERMES_HOME/plugins/ should be found.
+    """Memory providers installed to $A2ASSISTANT_HOME/plugins/ should be found.
 
     Regression test for issues #4956 and #9099: load_memory_provider() and
     discover_memory_providers() only scanned the bundled plugins/memory/
@@ -671,7 +671,7 @@ class TestUserInstalledProviderDiscovery:
 
 
     def test_load_user_plugin(self, tmp_path, monkeypatch):
-        """load_memory_provider() can load from $HERMES_HOME/plugins/."""
+        """load_memory_provider() can load from $A2ASSISTANT_HOME/plugins/."""
         from plugins.memory import load_memory_provider
         self._make_user_memory_plugin(tmp_path, "myexternal")
         monkeypatch.setattr(

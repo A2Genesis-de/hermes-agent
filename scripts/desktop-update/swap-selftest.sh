@@ -28,7 +28,7 @@
 # state. Each rename is one rename(2) on one volume, so there is no mid-rename
 # state to kill into.
 
-SWAP_ST_FILES="${HERMES_SELFTEST_SWAP_FILES:-1500}"
+SWAP_ST_FILES="${A2ASSISTANT_SELFTEST_SWAP_FILES:-1500}"
 SWAP_ST_FAILED="" SWAP_ST_CELL=""
 
 swap_st_fail() { echo "FAIL [$SWAP_ST_CELL] $*"; SWAP_ST_FAILED="$SWAP_ST_FAILED $SWAP_ST_CELL"; }

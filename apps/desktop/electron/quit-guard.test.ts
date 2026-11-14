@@ -62,7 +62,7 @@ test('quitPromptFor summarizes past the list cap and counts untitled work', () =
 })
 
 // #79579: only a backend the app owns (started over SSH) dies with it. The
-// local profile gateway is attached (`hermes gateway ensure`), and a remote URL
+// local profile gateway is attached (`a2assistant gateway ensure`), and a remote URL
 // or Hermes Cloud backend is supervised elsewhere: all keep the turn running
 // after the app quits, so the prompt must not claim the work is lost.
 test('backendOwnedByApp: the local gateway is attached, not owned', () => {

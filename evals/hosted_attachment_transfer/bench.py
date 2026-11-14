@@ -26,11 +26,11 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 for key in list(os.environ):
-    if key.startswith('HERMES_') or key.endswith(('_API_KEY', '_TOKEN')):
+    if key.startswith('A2ASSISTANT_') or key.endswith(('_API_KEY', '_TOKEN')):
         os.environ.pop(key, None)
 TMP = Path(tempfile.mkdtemp(prefix='hosted-attachment-bench-'))
 os.environ['HOME'] = str(TMP)
-os.environ['HERMES_HOME'] = str(TMP / '.hermes')
+os.environ['A2ASSISTANT_HOME'] = str(TMP / '.hermes')
 
 from pytest import MonkeyPatch
 

@@ -105,7 +105,7 @@ def test_the_webapp_lifespan_ending_closes_every_ssh_tunnel_it_opened(tmp_path, 
     from hermes_cli import gateway_connections_ssh as ssh
     from hermes_cli.web_server_app import http_lifespan
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     torn: list[str] = []
 
     class Master:

@@ -1,5 +1,5 @@
 /**
- * A room holding the default bot and a real (pre-reservation) `hermes`
+ * A room holding the default bot and a real (pre-reservation) `a2assistant`
  * profile: the stored member descriptors must keep the roster's claim, or
  * every reader that re-derives handles from them (the turn prompt, mention
  * parsing, the next re-persist) tells both bots they are @hermes.

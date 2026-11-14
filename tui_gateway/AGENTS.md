@@ -1,23 +1,23 @@
 # tui_gateway/ + ui-tui/ — the TUI and its JSON-RPC backend
 
 Applies on top of the root `AGENTS.md`. The TUI fully replaces the classic prompt_toolkit CLI;
-activate with `hermes --tui` or `HERMES_TUI=1`. `tui_gateway` is ALSO the backend the Desktop app
+activate with `a2assistant --tui` or `A2ASSISTANT_TUI=1`. `tui_gateway` is ALSO the backend the Desktop app
 and the dashboard `/chat` talk to — changes here have three consumers.
 
 ## Process model
 
 ```
-hermes --tui
+a2assistant --tui
   └─ Node (Ink)  ──WebSocket /api/ws, hermes-gateway-v1──  the profile's gateway owner
        │  (URL + single-use ticket:                              ├─ session authority: sessions, AIAgent, tools
        │   ui-tui/scripts/gateway_bootstrap.py)                  └─ tui_gateway handlers (non-session methods)
        └─ renders transcript, composer, prompts, activity
 ```
 
-Ink attaches to the profile's shared gateway owner (`hermes gateway run`, started on demand with
+Ink attaches to the profile's shared gateway owner (`a2assistant gateway run`, started on demand with
 its idle exit), never to a private child. `ui-tui/scripts/gateway_bootstrap.py` is a thin wrapper
-over `hermes_cli/gateway_runtime_attach.py::attach_gateway`, the attach `hermes gateway attach
---json` gives any other local client. Only `HERMES_TUI_GATEWAY_URL` (the dashboard's `/chat`)
+over `hermes_cli/gateway_runtime_attach.py::attach_gateway`, the attach `a2assistant gateway attach
+--json` gives any other local client. Only `A2ASSISTANT_TUI_GATEWAY_URL` (the dashboard's `/chat`)
 dials another URL, and then negotiates the wire from that listener's ready frame.
 
 TypeScript owns the screen. Python owns sessions, tools, model calls, and slash-command logic.
@@ -47,7 +47,7 @@ in an existing topical sibling, registered in the table — no `if method == ...
 has a `Params` + `Result` model, every server→client request a `Params` + `Result`, every event a
 `Payload` — one Pydantic class each, `extra="forbid"` by default (`OpenModel` for producer-owned dicts).
 `register_method` refuses an undeclared name at import; the dispatcher rejects unknown param keys
-(`4000` + key path) and, under `HERMES_TEST_ISOLATION=1`, raises `ContractViolation` when a handler's
+(`4000` + key path) and, under `A2ASSISTANT_TEST_ISOLATION=1`, raises `ContractViolation` when a handler's
 result or an emitted payload does not match its model (production only logs). `apps/shared/src/
 gateway-contract.generated.ts` (`RpcMethods`, `ServerRequestMap`, `BackendGatewayEventMap` + every value
 shape) and `gateway-contract.openrpc.json` are rendered by `scripts/gen_gateway_contracts.py`;
@@ -73,7 +73,7 @@ New event = `event("<type>", Payload)` in `contracts/events.py`; the emitter is 
 
 One `serve` process may host sessions from several profile homes (Desktop pooled backends launch
 under a profile; the dashboard serves several). The launch profile is a profile: "default" means
-the launch home, never `~/.hermes`. The first non-launch home hosted flips
+the launch home, never `~/.a2assistant`. The first non-launch home hosted flips
 `launch_profile_policy.py` → `set_multiplex_active(True)`; without it every fail-closed guard is
 silently off. Every method that reads or writes home-, config- or `.env`-derived state runs under
 `server.py::@_profile_scoped` (resolved from the live session's `profile_home`, or the explicit
@@ -87,7 +87,7 @@ enter `_session_profile_runtime_scope(session)` around `on_session_end`, the mem
 `agent.close()` (their callers are unscoped reapers, Timers, atexit and pool threads); background
 threads start via `agent.memory_provider.spawn_context_thread`, never bare `threading.Thread`;
 children act for the served profile through `tools/environments/local.py::served_profile_child_env`
-(`hermes -p X` workers, `key_cmd` helpers, browser drivers), never `dict(os.environ)`. Grep for
+(`a2assistant -p X` workers, `key_cmd` helpers, browser drivers), never `dict(os.environ)`. Grep for
 unscoped handlers before adding one: `rg -n "^(async )?def " tui_gateway/methods_*.py | rg -v
 _profile_scoped`. Probe with two on-disk homes and a `.env` name present only in the secondary:
 call the method for that session and assert the secondary's value resolves and the launch

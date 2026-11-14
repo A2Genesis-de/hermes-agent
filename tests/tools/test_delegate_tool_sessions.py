@@ -1,13 +1,13 @@
 """A delegated child's stored session stays addressable by its subagent_id after the registry forgets it.
 
-Through ``_build_child_agent`` with real AIAgents and a real SessionDB in a temp HERMES_HOME: the
+Through ``_build_child_agent`` with real AIAgents and a real SessionDB in a temp A2ASSISTANT_HOME: the
 child's row carries the id it was spawned with, and only the conversation it descends from (directly
 or through an orchestrator child) resolves it.
 """
 
 
 def test_spawned_children_resolve_by_subagent_id_only_under_their_conversation(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from hermes_state import SessionDB
     from run_agent import AIAgent
     from tools import delegate_tool as dt

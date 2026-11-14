@@ -81,13 +81,13 @@ def _parent_live_home(parent_agent: Any) -> Optional[Path]:
         logger.debug(
             "delegate_task: parent _session_db.db_path is %r (not a str/Path); "
             "live-transcript home pinning skipped, falling back to ambient "
-            "HERMES_HOME resolve (transcripts may land in a different profile, #91996)",
+            "A2ASSISTANT_HOME resolve (transcripts may land in a different profile, #91996)",
             parent_db,
         )
         return None
     logger.warning(
         "delegate_task: parent agent exposes no _session_db; live-transcript "
-        "home pinning skipped, falling back to ambient HERMES_HOME resolve "
+        "home pinning skipped, falling back to ambient A2ASSISTANT_HOME resolve "
         "(transcripts may land in a different profile, #91996)"
     )
     return None

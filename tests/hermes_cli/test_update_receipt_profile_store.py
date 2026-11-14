@@ -43,9 +43,9 @@ def test_named_profile_sees_update_and_pm_receipts_in_both_directions(tmp_path):
     profile.mkdir(parents=True)
     script = tmp_path / "probe.py"
     script.write_text(_PROBE, encoding="utf-8")
-    env = {key: value for key, value in os.environ.items() if not key.startswith(("HERMES_", "PYTEST_"))}
-    env.update(HOME=str(home), USERPROFILE=str(home), HERMES_HOME=str(profile),
-               HERMES_RUNTIME_DIR=str(tmp_path / "tools"), PYTHONDONTWRITEBYTECODE="1",
+    env = {key: value for key, value in os.environ.items() if not key.startswith(("A2ASSISTANT_", "PYTEST_"))}
+    env.update(HOME=str(home), USERPROFILE=str(home), A2ASSISTANT_HOME=str(profile),
+               A2ASSISTANT_RUNTIME_DIR=str(tmp_path / "tools"), PYTHONDONTWRITEBYTECODE="1",
                PYTHONPATH=os.pathsep.join([str(ROOT), *filter(None, sys.path)]))
     done = subprocess.run([sys.executable, str(script), str(ROOT), str(profile)], env=env, cwd=tmp_path,
                           text=True, capture_output=True, timeout=60, check=False)

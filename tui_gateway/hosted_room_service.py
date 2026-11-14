@@ -119,7 +119,7 @@ def _discussion_limits(root: Path) -> discussion.DiscussionLimits:
 
 def _hosted_room_turn_timeout_seconds() -> float:
     try:
-        agent_timeout = float(os.getenv("HERMES_AGENT_TIMEOUT", "1800"))
+        agent_timeout = float(os.getenv("A2ASSISTANT_AGENT_TIMEOUT", "1800"))
     except (TypeError, ValueError):
         agent_timeout = 0.0
     return (agent_timeout if agent_timeout > 0 else 1800.0) + _HOSTED_ROOM_TERMINAL_GRACE_SECONDS

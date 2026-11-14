@@ -347,7 +347,7 @@ def handle_computer_use(args: dict[str, Any], **kwargs) -> Any:
         backend = call.enter_context(_backend_for_call(session_id))
     except Exception as e:
         from plugins.computer_use import DEFAULT_BACKEND, configured_backend_name
-        hint = ({"hint": "If the cua-driver binary is missing, run `hermes computer-use install`. If a Python "
+        hint = ({"hint": "If the cua-driver binary is missing, run `a2assistant computer-use install`. If a Python "
                          "dependency is missing, the error above shows the exact install command."}
                 if configured_backend_name() == DEFAULT_BACKEND else {})
         return json.dumps({"error": f"computer_use backend unavailable: {e}", **hint})
@@ -769,8 +769,8 @@ def _secure_dir_policy(cache_dir) -> None:
     A capture is as sensitive as the screen it came from — an open password
     manager, a private chat, a bank tab. The umask-derived 0755 these dirs
     used to get made every local account able to list (and read) those
-    frames whenever ``HERMES_HOME`` itself is traversable, which is exactly
-    what the documented ``HERMES_HOME_MODE=0701`` web-server escape hatch
+    frames whenever ``A2ASSISTANT_HOME`` itself is traversable, which is exactly
+    what the documented ``A2ASSISTANT_HOME_MODE=0701`` web-server escape hatch
     arranges. Delegates to the same house policy as every Hermes secret dir —
     ``hermes_cli.config._secure_dir`` — with the mode passed to ``mkdir`` so
     there is no window between mkdir and chmod; managed/NixOS installs keep
@@ -822,7 +822,7 @@ def _write_private_bytes(path, data: bytes) -> None:
 
 
 def _cache_file(subdir: str, legacy: str, name: str, pattern: str = "", cap: int = 0):
-    """Path for a new file under ``$HERMES_HOME/<subdir>`` (dir created owner-only, per #77579).
+    """Path for a new file under ``$A2ASSISTANT_HOME/<subdir>`` (dir created owner-only, per #77579).
     With ``pattern``/``cap``, first unlinks the oldest matching files so at most ``cap - 1`` remain
     (best-effort)."""
     from hermes_constants import get_hermes_dir  # lazy so tests can patch get_hermes_dir
@@ -923,7 +923,7 @@ _VISION_PROMPT = ("Describe what is visible in this desktop application screensh
 def _route_capture_through_aux_vision(cap: CaptureResult, summary: str, *, visible_elements: Optional[list[UIElement]] = None,
                                       truncated_elements: int = 0, elements_file: Optional[str] = None,
                                       screenshot_path: Optional[str] = None) -> Optional[str]:
-    """Pre-analyse the capture via ``vision_analyze_tool`` (temp file under ``$HERMES_HOME/cache/vision/``) and merge
+    """Pre-analyse the capture via ``vision_analyze_tool`` (temp file under ``$A2ASSISTANT_HOME/cache/vision/``) and merge
     the description with the AX/SOM summary into one text payload. JSON, or None on any failure."""
     if not cap.png_b64:
         return None

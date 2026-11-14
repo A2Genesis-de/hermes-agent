@@ -1,9 +1,9 @@
 """An isolated serve says so in the spawn ledger; an ordinary serve does not.
 
 Desktop's attach-first discovery reads ``spawn-ledger.json`` and attaches to any live loopback
-serve. ``hermes serve --isolated`` (the backend another machine's Desktop spawns over SSH) opts out
+serve. ``a2assistant serve --isolated`` (the backend another machine's Desktop spawns over SSH) opts out
 of the host singleton on the CLI side, so the ledger row must carry that fact as a structured field
-for Desktop to honour it too. Real processes against a temp ``HERMES_HOME``; no mocks.
+for Desktop to honour it too. Real processes against a temp ``A2ASSISTANT_HOME``; no mocks.
 """
 
 import json
@@ -55,9 +55,9 @@ def _stop(proc):
 def test_isolated_serve_ledger_row_is_marked_and_ordinary_serve_is_not(tmp_path):
     home = tmp_path / "home"
     home.mkdir()
-    env = {**os.environ, "HERMES_HOME": str(home), "HERMES_GATEWAY_LOCK_DIR": str(tmp_path / "locks")}
-    for key in ("HERMES_DESKTOP", "HERMES_PARENT_PID", "HERMES_PARENT_START_MARKER",
-                "HERMES_DASHBOARD_SESSION_TOKEN", "HERMES_SPAWN"):
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home), "A2ASSISTANT_GATEWAY_LOCK_DIR": str(tmp_path / "locks")}
+    for key in ("A2ASSISTANT_DESKTOP", "A2ASSISTANT_PARENT_PID", "A2ASSISTANT_PARENT_START_MARKER",
+                "A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "A2ASSISTANT_SPAWN"):
         env.pop(key, None)
     ledger = home / "spawn-ledger.json"
 

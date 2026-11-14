@@ -24,7 +24,7 @@ def homes(tmp_path, monkeypatch):
     """A launch home with no hooks config and a profile home declaring both hook kinds."""
     launch = tmp_path / "launch"
     launch.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     profile = tmp_path / "profile"
     profile.mkdir()
     (profile / "config.yaml").write_text(

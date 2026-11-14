@@ -218,7 +218,7 @@ def _ssh_pre(config: dict[str, Any]) -> bool:
     if config.get("ssh_host") and config.get("ssh_user"):
         return True
     return _reject("the SSH host and user are not configured (TERMINAL_SSH_HOST / TERMINAL_SSH_USER); "
-                   "run `hermes setup terminal` to enter them or pick the 'local' backend")
+                   "run `a2assistant setup terminal` to enter them or pick the 'local' backend")
 
 
 _BACKEND_SPECS: dict[str, dict[str, Any]] = {

@@ -27,11 +27,11 @@ def _plugins():
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    """(launch_home, secondary_home); HERMES_HOME points at the launch home, multiplex off on exit."""
+    """(launch_home, secondary_home); A2ASSISTANT_HOME points at the launch home, multiplex off on exit."""
     launch = tmp_path / "launch"
     secondary = tmp_path / "launch" / "profiles" / "b2"
     secondary.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
     yield launch, secondary
     set_multiplex_active(False)
@@ -61,7 +61,7 @@ def test_secondary_reads_own_yaml_and_never_the_launch_env(homes, monkeypatch):
         # Omitted keys resolve to the DEFAULT, not the launch profile's bridged env.
         assert not t._reactions_enabled()
         # The secondary's YAML proxy reaches request construction without an env bridge.
-        monkeypatch.setenv("HERMES_TELEGRAM_DISABLE_FALLBACK_IPS", "true")
+        monkeypatch.setenv("A2ASSISTANT_TELEGRAM_DISABLE_FALLBACK_IPS", "true")
         built: list = []
         with patch.object(tg, "HTTPXRequest", lambda **kw: built.append(kw) or types.SimpleNamespace()), \
                 patch.object(t, "_instrument_polling_request", side_effect=lambda r: r):

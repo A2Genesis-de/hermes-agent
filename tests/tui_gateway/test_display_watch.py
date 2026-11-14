@@ -1,6 +1,6 @@
-"""Lease transitions made by ANOTHER process reach `hermes serve` clients as ``display.lease``.
+"""Lease transitions made by ANOTHER process reach `a2assistant serve` clients as ``display.lease``.
 
-The agent lives in whatever process hosts it (messaging gateway, ``hermes chat``, a cron worker);
+The agent lives in whatever process hosts it (messaging gateway, ``a2assistant chat``, a cron worker);
 ``lease.on_change`` is in-process only, so the serve backend must notice the file move itself.
 """
 
@@ -17,7 +17,7 @@ REPO = Path(__file__).resolve().parents[2]
 
 
 def _other_process(home: Path, stmt: str) -> None:
-    env = {**os.environ, "HERMES_HOME": str(home)}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home)}
     subprocess.run(
         [sys.executable, "-c", f"import sys; sys.path.insert(0, {str(REPO)!r}); "
          f"from tools.bot_desktop import lease; {stmt}"],

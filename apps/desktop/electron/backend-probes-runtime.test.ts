@@ -11,7 +11,7 @@ import { canImportHermesCli } from './backend-probes'
 const REPO: string = path.resolve(import.meta.dirname, '../../..')
 
 const PYTHON: string =
-  process.env.HERMES_PYTHON || process.env.UV_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
+  process.env.A2ASSISTANT_PYTHON || process.env.UV_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
 
 interface RuntimeFixture {
   python: string
@@ -26,9 +26,9 @@ test('the real bootstrap supplies ruamel-only dependencies and rejects foreign-p
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: home,
-    HERMES_HOME: home,
-    HERMES_RUNTIME_DIR: path.join(temp, 'tools'),
-    HERMES_DISABLE_LAZY_INSTALLS: '1',
+    A2ASSISTANT_HOME: home,
+    A2ASSISTANT_RUNTIME_DIR: path.join(temp, 'tools'),
+    A2ASSISTANT_DISABLE_LAZY_INSTALLS: '1',
     UV_CACHE_DIR: path.join(temp, 'cache'),
     UV_NO_CONFIG: '1',
     PYTHONPATH: '',

@@ -331,7 +331,7 @@ async def connect_gateway(endpoint=None, subject=None, *, max_size=8 * 1024 * 10
     from hermes_cli.gateway_runtime_discovery import DiscoveryError
     from urllib.parse import urlsplit
 
-    remote = "" if endpoint is not None else os.environ.get("HERMES_TUI_GATEWAY_URL", "").strip()
+    remote = "" if endpoint is not None else os.environ.get("A2ASSISTANT_TUI_GATEWAY_URL", "").strip()
     protocols = None
     if endpoint is not None:
         ticket = await asyncio.to_thread(_session_ticket, gateway_profile_home(get_hermes_home()), endpoint,

@@ -1,7 +1,7 @@
 """Container-boot reconciliation of per-profile gateway s6 services.
 
 Wired into the image as /etc/cont-init.d/02-reconcile-profiles. Runs as root after
-01-hermes-setup (the stage2 hook) has chowned the volume and seeded $HERMES_HOME, but
+01-hermes-setup (the stage2 hook) has chowned the volume and seeded $A2ASSISTANT_HOME, but
 before s6-rc starts user services.
 """
 from __future__ import annotations
@@ -67,7 +67,7 @@ def _slot_action(profile: str, profile_dir: Path, prior_state: str | None, start
 
 
 def _named_profile_dirs(hermes_home: Path) -> list[tuple[str, Path]]:
-    """Every real named profile under ``$HERMES_HOME/profiles`` (``SOUL.md`` is the marker)."""
+    """Every real named profile under ``$A2ASSISTANT_HOME/profiles`` (``SOUL.md`` is the marker)."""
     profiles_root = hermes_home / "profiles"
     if not profiles_root.is_dir():
         return []
@@ -90,10 +90,10 @@ def reconcile_profile_gateways(
     """Recreate s6 service registrations for every persistent profile.
 
     Always registers a ``gateway-default`` slot for the root profile (the implicit profile at
-    the top of ``$HERMES_HOME``): ``hermes_cli.gateway`` maps an empty profile suffix to it,
-    so it is what ``hermes gateway start`` (no ``-p``) targets.
+    the top of ``$A2ASSISTANT_HOME``): ``hermes_cli.gateway`` maps an empty profile suffix to it,
+    so it is what ``a2assistant gateway start`` (no ``-p``) targets.
 
-    Without it, bare ``hermes gateway start`` inside the container would land on ``s6-svc -u
+    Without it, bare ``a2assistant gateway start`` inside the container would land on ``s6-svc -u
     /run/hermes-service/gateway-default`` → uncaught ``CalledProcessError`` → traceback to the user (PR #30136
     review).
     """
@@ -161,7 +161,7 @@ def _maybe_migrate_legacy_gateway_run_state(
     state_file = hermes_home / "gateway_state.json"
     if state_file.exists():
         return None
-    if os.environ.get("HERMES_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes"):
+    if os.environ.get("A2ASSISTANT_GATEWAY_NO_SUPERVISE", "").lower() in ("1", "true", "yes"):
         return None
     argv = tuple(container_argv) if container_argv is not None else _read_container_argv()
     if not _is_legacy_gateway_run_request(argv):
@@ -218,7 +218,7 @@ def _strip_container_argv_prefix(argv: Sequence[str]) -> list[str]:
         args = args[1:]
     if args and args[0].endswith("entrypoint-dispatch.sh"):  # non-PID-1 dispatch shim
         args = args[1:]
-    if args and Path(args[0]).name == "hermes":  # the wrapper re-execs `hermes <subcommand>`
+    if args and Path(args[0]).name in ("hermes", "a2assistant"):  # the wrapper re-execs `hermes <subcommand>`
         args = args[1:]
     return args
 
@@ -326,7 +326,7 @@ _LOG_ROTATE_BYTES = 256 * 1024
 
 
 def _write_reconcile_log(hermes_home: Path, actions: list[ReconcileAction]) -> None:
-    """Append one line per profile to $HERMES_HOME/logs/container-boot.log (rotated to ``.1``) —
+    """Append one line per profile to $A2ASSISTANT_HOME/logs/container-boot.log (rotated to ``.1``) —
     a separate greppable file for "why didn't my profile come back up".
 
     Size-bounded: when the file exceeds ``_LOG_ROTATE_BYTES`` (defaults to 256 KiB ≈ 3000 reconcile lines),
@@ -363,7 +363,7 @@ def main() -> int:
 
     from hermes_cli.service_manager import S6_DYNAMIC_SCANDIR
 
-    hermes_home = Path(os.environ.get("HERMES_HOME", "/opt/data"))
+    hermes_home = Path(os.environ.get("A2ASSISTANT_HOME", "/opt/data"))
     scandir = Path(os.environ.get("S6_PROFILE_GATEWAY_SCANDIR", str(S6_DYNAMIC_SCANDIR)))
     actions = reconcile_profile_gateways(hermes_home=hermes_home, scandir=scandir)
     folded = [a.profile for a in actions if a.profile != "default" and a.folded_into_root]

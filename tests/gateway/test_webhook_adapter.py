@@ -387,8 +387,8 @@ class TestPayloadFilters:
 
     @pytest.mark.asyncio
     async def test_filter_accepts_nested_any_and_in_file(self, tmp_path, monkeypatch):
-        """Nested any groups can match dynamic watchlists under HERMES_HOME."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        """Nested any groups can match dynamic watchlists under A2ASSISTANT_HOME."""
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         watchlist = tmp_path / "data" / "watchlist.json"
         watchlist.parent.mkdir()
         watchlist.write_text(json.dumps(["chat-1", "chat-2"]), encoding="utf-8")
@@ -401,11 +401,11 @@ class TestPayloadFilters:
                         "any": [
                             {
                                 "field": "payload.chatId",
-                                "in_file": "~/.hermes/data/watchlist.json",
+                                "in_file": "~/.a2assistant/data/watchlist.json",
                             },
                             {
                                 "field": "payload.id.remote",
-                                "in_file": "~/.hermes/data/watchlist.json",
+                                "in_file": "~/.a2assistant/data/watchlist.json",
                             },
                         ]
                     },
@@ -444,7 +444,7 @@ class TestPayloadFilters:
     @pytest.mark.asyncio
     async def test_script_transforms_payload_before_prompt_rendering(self, tmp_path, monkeypatch):
         """A script can replace the payload used by prompt templates."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         scripts = tmp_path / "scripts"
         scripts.mkdir()
         script = scripts / "todoist_filter.py"
@@ -934,7 +934,7 @@ class TestCrossPlatformDeliveryMirror:
         default_home = tmp_path / ".hermes"
         default_home.mkdir()
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(default_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
         # The hermetic conftest pins DEFAULT_DB_PATH when hermes_state is already imported; un-pin it so
         # state.db resolves from the active (profile-scoped) home at call time, as in production.
         monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH)

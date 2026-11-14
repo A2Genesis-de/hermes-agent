@@ -53,7 +53,7 @@ def test_standalone_without_hermes_reports_setup_not_ambient_installs(command, t
     (tmp_path / "google_client_secret.json").write_text("{}")
     result = subprocess.run(
         [sys.executable, "-I", "-S", str(SETUP_PATH), command],
-        env={**os.environ, "HERMES_HOME": str(tmp_path), "PATH": ""},
+        env={**os.environ, "A2ASSISTANT_HOME": str(tmp_path), "PATH": ""},
         capture_output=True,
         text=True,
         timeout=15,
@@ -61,6 +61,6 @@ def test_standalone_without_hermes_reports_setup_not_ambient_installs(command, t
     )
     assert result.returncode == 1
     assert "A2Assistant environment" in result.stdout
-    assert "hermes setup" in result.stdout
+    assert "a2assistant setup" in result.stdout
     assert "pip" not in result.stdout + result.stderr
     assert "Traceback" not in result.stderr

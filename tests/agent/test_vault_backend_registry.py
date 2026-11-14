@@ -109,7 +109,7 @@ def test_real_plugin_discovery_reload_and_disable(tmp_path, monkeypatch):
     _record_verified_install(home, "login_example")
     config = home / "config.yaml"
     config.write_text("plugins:\n  enabled: [login_example]\nvault:\n  example:\n    enabled: true\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     token = set_hermes_home_override(home)
     manager = PluginManager(scope_key=str(home))
     try:

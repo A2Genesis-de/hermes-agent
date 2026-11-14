@@ -1,13 +1,13 @@
 /**
  * windows-hermes-path.ts
  *
- * Pure, dependency-injected pieces of Windows `hermes` resolution pulled out
+ * Pure, dependency-injected pieces of Windows `a2assistant` resolution pulled out
  * of main.ts's findOnPath(), handOffWindowsBootstrapRecovery(), and
  * unwrapWindowsVenvHermesCommand(). Each of the three functions here pins one
  * of the Windows resolution bugs that caused desktop reinstall loops:
  *
  *   1. buildPathExtCandidates() — findOnPath() tried the empty extension
- *      FIRST, so an extensionless Git-Bash `hermes` shim shadowed the real
+ *      FIRST, so an extensionless Git-Bash `a2assistant` shim shadowed the real
  *      hermes.cmd/hermes.exe; the shim then failed the --version probe and
  *      the desktop fell through to a spurious bootstrap/repair. The fix:
  *      PATHEXT extensions first, empty extension LAST.
@@ -35,7 +35,7 @@
  * On Windows this MUST try PATHEXT extensions (.COM;.EXE;.BAT;.CMD by
  * default) BEFORE the bare/empty-extension name: a real command resolves via
  * its .exe/.cmd per Windows command-resolution semantics, and an
- * extensionless file (e.g. a Git-Bash shell-script shim named `hermes`) must
+ * extensionless file (e.g. a Git-Bash shell-script shim named `a2assistant`) must
  * not shadow `hermes.cmd`/`hermes.exe`. The empty entry is kept LAST so
  * callers that already include the extension (py.exe, pwsh.exe,
  * powershell.exe) still resolve.
@@ -58,7 +58,7 @@ export function buildPathExtCandidates(pathext: string | undefined, isWindows: b
 /**
  * Choose the Windows bootstrap-recovery invocation. The gentle in-place
  * updater can only start when both pieces of its runtime contract exist: the
- * venv Python interpreter and the Hermes launcher that drives `hermes update`.
+ * venv Python interpreter and the Hermes launcher that drives `a2assistant update`.
  * A bootstrap-complete marker proves install provenance, not current runtime
  * usability, and may remain after the venv is removed or quarantined.
  *
@@ -89,7 +89,7 @@ export interface ResolveVenvHermesCommandDeps {
 }
 
 /**
- * If `command` is a Windows venv `hermes`/`hermes.exe` console-script shim
+ * If `command` is a Windows venv `a2assistant`/`hermes.exe` console-script shim
  * (i.e. `<venvRoot>/Scripts/hermes(.exe)`), resolve it to the underlying
  * venv python invoked as `python -m hermes_cli.main <backendArgs>` — but
  * ONLY after smoke-testing that interpreter with canImportHermesCli(). A

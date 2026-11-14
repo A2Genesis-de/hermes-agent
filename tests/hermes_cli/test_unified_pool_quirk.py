@@ -196,7 +196,7 @@ def test_vulkan_device_type_decides_discrete_vs_unified(monkeypatch, tmp_path, d
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "config.yaml").write_text("local_runtime:\n  backend: vulkan\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     requested = []
     engine = binaries.Engine("vulkan", "b10964", tmp_path / "engine" / "llama-server")
     monkeypatch.setattr(binaries, "installed_engine",

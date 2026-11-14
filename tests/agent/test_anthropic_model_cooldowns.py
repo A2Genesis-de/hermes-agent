@@ -21,7 +21,7 @@ def pool(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "fakehome"))
     for var in ("ANTHROPIC_TOKEN", "ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN"):
         monkeypatch.delenv(var, raising=False)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     import hermes_constants
     hermes_constants._default_hermes_root_memo = None  # type: ignore[attr-defined]
     (root / "auth.json").write_text(json.dumps({"credential_pool": {"anthropic": [{

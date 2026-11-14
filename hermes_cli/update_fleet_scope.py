@@ -1,15 +1,15 @@
-"""Home scoping for ``hermes update``'s fleet restart (#93349).
+"""Home scoping for ``a2assistant update``'s fleet restart (#93349).
 
-The restart phase enumerates ``hermes-gateway*``/``hermes-serve*`` units, ``ai.hermes.gateway*``
+The restart phase enumerates ``a2assistant-gateway*``/``hermes-serve*`` units, ``de.a2genesis.a2assistant.gateway*``
 LaunchAgents and every ``gateway run`` process on the host. Those are HOST-wide namespaces: a
-second Hermes install (another ``HERMES_HOME`` root under the same account, its own checkout and
+second Hermes install (another ``A2ASSISTANT_HOME`` root under the same account, its own checkout and
 venv) shares them, and the update used to restart that install's gateway too — including the
-account's real ``hermes-gateway.service`` when a scratch home ran ``hermes update``.
+account's real ``a2assistant-gateway.service`` when a scratch home ran ``a2assistant update``.
 
 The fleet an update owns is the set of homes its plan inventories: the updating root plus every
 ``<root>/profiles/<name>``. Ownership is judged from what a runtime actually runs on — the live
-process environment (``HERMES_HOME``/``HOME``, via ``_hermes_home_for_pid``), the unit's declared
-``Environment=`` or the plist's pinned ``HERMES_HOME`` — never from a unit label or an argv
+process environment (``A2ASSISTANT_HOME``/``HOME``, via ``_hermes_home_for_pid``), the unit's declared
+``Environment=`` or the plist's pinned ``A2ASSISTANT_HOME`` — never from a unit label or an argv
 substring. Unknown ownership is left alone: a restart we cannot prove is ours is somebody else's
 outage.
 """
@@ -106,7 +106,7 @@ def partition_gateway_pids_by_scope(pids, scope: set[Path] | None = None) -> tup
 
 def systemd_unit_hermes_home(scope_cmd: list, svc_name: str) -> str | None:
     """Home the systemd unit *svc_name* runs on: its live MainPID's environment first, then the
-    unit's declared ``Environment=HERMES_HOME``; for a user-scope unit that declares none, the
+    unit's declared ``Environment=A2ASSISTANT_HOME``; for a user-scope unit that declares none, the
     user's own default home. ``None`` when nothing readable names a home."""
     from hermes_cli.update_cmd_fleet import _systemctl, _unit_main_pid
 
@@ -129,10 +129,12 @@ def systemd_unit_hermes_home(scope_cmd: list, svc_name: str) -> str | None:
         tokens = env_line.split()
     for token in tokens:
         key, sep, value = token.partition("=")
-        if sep and key == "HERMES_HOME" and value.strip():
+        if sep and key in ("A2ASSISTANT_HOME", "HERMES_HOME") and value.strip():
             return value.strip()
     if "--user" in scope_cmd:
-        return str(Path.home() / ".hermes")
+        from hermes_constants import default_home_in
+
+        return str(default_home_in(Path.home()))
     return None
 
 
@@ -145,9 +147,9 @@ def systemd_unit_in_update_scope(scope_cmd: list, svc_name: str, scope: set[Path
 
 
 def launchd_label_foreign_home(label: str, scope: set[Path] | None = None) -> str | None:
-    """The HERMES_HOME a derived launchd label's installed plist pins when that home is NOT one of
+    """The A2ASSISTANT_HOME a derived launchd label's installed plist pins when that home is NOT one of
     this update's — labels are account-global, so root B's default profile derives the same bare
-    ``ai.hermes.gateway`` root A installed. ``None`` = ours, or no/unreadable plist (the locate step
+    ``de.a2genesis.a2assistant.gateway`` root A installed. ``None`` = ours, or no/unreadable plist (the locate step
     decides whether a job exists; only a proven foreign home is refused)."""
     import plistlib
     with suppress(Exception):
@@ -156,7 +158,7 @@ def launchd_label_foreign_home(label: str, scope: set[Path] | None = None) -> st
         if not plist_path.exists():
             return None
         data = plistlib.loads(plist_path.read_bytes())
-        pinned = str(data["EnvironmentVariables"]["HERMES_HOME"])
+        pinned = str(data["EnvironmentVariables"]["A2ASSISTANT_HOME"])
         return None if home_in_update_scope(pinned, scope) else pinned
     return None
 

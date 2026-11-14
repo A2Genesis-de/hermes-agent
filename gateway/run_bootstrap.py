@@ -28,14 +28,14 @@ def _start_deferred_state_db_integrity_check(evidence: dict) -> None:
 logger = logging.getLogger("gateway.run")
 
 async def _start_gateway_replace_existing_instance(existing_pid: int, replace: bool) -> bool:
-    """Handle a live gateway PID under this HERMES_HOME: replace it (``--replace``) or refuse.
+    """Handle a live gateway PID under this A2ASSISTANT_HOME: replace it (``--replace``) or refuse.
     Returns False when startup must abort (refused, permission denied, target still alive)."""
     from gateway.run import (_clear_takeover_marker_quiet, _replace_target_belongs_to_other_profile, _wait_for_pid_exit, get_hermes_home, suppress)
     from gateway.status import get_process_start_time, remove_pid_file, terminate_pid
     if not replace:
         hermes_home = str(get_hermes_home())
         logger.error(
-            "Another gateway instance is already running (PID %d, HERMES_HOME=%s) and did not "
+            "Another gateway instance is already running (PID %d, A2ASSISTANT_HOME=%s) and did not "
             "publish a host record this process could attach to.",
             existing_pid, hermes_home)
         print(
@@ -43,8 +43,8 @@ async def _start_gateway_replace_existing_instance(existing_pid: int, replace: b
             f"   One gateway per host serves every profile, so there is nothing to start here.\n"
             f"   Attach is impossible: PID {existing_pid} published no usable host record\n"
             f"   (an older build, or an unwritable lock directory).\n"
-            f"   Take the host over:  hermes gateway run --replace\n"
-            f"   Or stop it first:    hermes gateway stop\n")
+            f"   Take the host over:  a2assistant gateway run --replace\n"
+            f"   Or stop it first:    a2assistant gateway stop\n")
         return False
 
     # Never signal a process not provably ours (a poisoned PID record → cross-profile restart loop).
@@ -52,7 +52,7 @@ async def _start_gateway_replace_existing_instance(existing_pid: int, replace: b
         from gateway.status import _get_process_hermes_home, write_runtime_status
         logger.error(
             "Refusing --replace: PID %d cannot be proven to belong "
-            "to this profile's gateway (HERMES_HOME %s). Remove the "
+            "to this profile's gateway (A2ASSISTANT_HOME %s). Remove the "
             "stale PID record or stop the owning profile explicitly.",
             existing_pid, _get_process_hermes_home())
         # The stamp must be ON DISK before this process exits: every CLI exit path funnels
@@ -337,7 +337,7 @@ async def _start_gateway_start_control_socket(runner):
                 "pid": os.getpid(), "drain_timeout": _drain}
 
         def _rescan_profiles_handler() -> dict:
-            """``hermes profile create/delete`` asks the multiplexer to reconcile ``profiles/`` now
+            """``a2assistant profile create/delete`` asks the multiplexer to reconcile ``profiles/`` now
             (the watcher also rescans periodically). Runs on the socket executor: marshal onto the loop
             and wait briefly so the caller learns whether the profile is served. A gateway standalone
             only because the host had one profile starts multiplexing in place on this rescan."""
@@ -515,7 +515,7 @@ def _launch_home_may_multiplex(config=None) -> bool:
         decision = MultiplexDecision(
             False, "guard",
             f"profile {name!r} launched the gateway, and only the default profile runs the multiplexer "
-            "(start it with `hermes gateway run` from the default profile to serve every profile)")
+            "(start it with `a2assistant gateway run` from the default profile to serve every profile)")
         config.multiplex_profiles = False
         # The first load armed fail-closed secret reads for a multiplexer; boot work before the
         # runner (the left-core install) reads this profile's own env, unscoped.
@@ -528,7 +528,7 @@ def _launch_home_may_multiplex(config=None) -> bool:
     logger.error(
         "gateway.multiplex_profiles is set on profile %r, but only the default profile can run the "
         "multiplexer. Unset the flag in this profile's config.yaml, or start the gateway from the "
-        "default profile (`hermes gateway run`), which serves this profile too.", name)
+        "default profile (`a2assistant gateway run`), which serves this profile too.", name)
     _write_runtime_status_quiet(gateway_state="startup_failed", exit_reason="multiplex_requires_default_profile")
     raise SystemExit(GATEWAY_FATAL_CONFIG_EXIT_CODE)
 
@@ -612,7 +612,7 @@ def _start_gateway_reserve_profiles(profile_homes) -> bool:
             from gateway.run import _write_runtime_status_quiet
             logger.error(
                 "The default gateway is running as a profile multiplexer and already serves this profile. "
-                "Manage it with `hermes gateway restart` from the default profile instead of starting a "
+                "Manage it with `a2assistant gateway restart` from the default profile instead of starting a "
                 "second gateway for the profile.")
             _write_runtime_status_quiet(gateway_state="startup_failed", exit_reason=str(exc))
             raise SystemExit(GATEWAY_FATAL_CONFIG_EXIT_CODE)
@@ -732,7 +732,7 @@ async def _start_gateway_runtime(config: Optional[GatewayConfig] = None, replace
         threading,
     )
     # Set here (not at import) so incidental gateway.run imports from CLI code don't poison it.
-    os.environ["HERMES_EXEC_ASK"] = "1"
+    os.environ["A2ASSISTANT_EXEC_ASK"] = "1"
     from hermes_cli.update_proxy_env import restore_user_proxy_env
     restore_user_proxy_env()  # a gateway an update restarted keeps the user's proxy env, not the update's
     _start_gateway_resolve_terminal_cwd()

@@ -1,7 +1,7 @@
 """Concurrent ``.env`` writers must not clobber each other (#77187).
 
 ``save_env_value`` / ``remove_env_value`` do a read-modify-write cycle on
-``~/.hermes/.env``. Without a lock serializing the whole cycle, two concurrent
+``~/.a2assistant/.env``. Without a lock serializing the whole cycle, two concurrent
 writers both snapshot the file and the loser's atomic replace silently drops
 the winner's key.
 
@@ -43,10 +43,10 @@ def _env_keys(env_path) -> set:
 
 @pytest.fixture
 def race_env_home(tmp_path, monkeypatch):
-    """A temp HERMES_HOME whose .env carries a pre-existing BASE key."""
+    """A temp A2ASSISTANT_HOME whose .env carries a pre-existing BASE key."""
     env_path = tmp_path / ".env"
     env_path.write_text("BASE_KEY=base\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     for leaked in ("RACE_A", "RACE_B"):
         monkeypatch.delenv(leaked, raising=False)
     return env_path

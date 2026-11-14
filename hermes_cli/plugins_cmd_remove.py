@@ -1,4 +1,4 @@
-"""``hermes plugins remove``: tree + install-metadata removal kept consistent, config bookkeeping, and the
+"""``a2assistant plugins remove``: tree + install-metadata removal kept consistent, config bookkeeping, and the
 dashboard/TUI remove path.
 
 Sibling of :mod:`hermes_cli.plugins_cmd` (the facade re-exports the names other modules use and is
@@ -23,7 +23,7 @@ _PENDING_DELETE_DIR = "plugin-pending-delete"
 
 
 def _pending_delete_root() -> Path:
-    """``<HERMES_HOME>/cache/plugin-pending-delete``: trees a running process still held at removal."""
+    """``<A2ASSISTANT_HOME>/cache/plugin-pending-delete``: trees a running process still held at removal."""
     from hermes_constants import get_hermes_home
     return get_hermes_home() / "cache" / _PENDING_DELETE_DIR
 
@@ -114,7 +114,7 @@ def cmd_remove(name: str) -> None:
     console.print(f"[red]✗[/red] Plugin [bold]{name}[/bold] removed from {plugins_dir}")
     if result.get("cleared_memory_provider"):
         console.print("[yellow]memory.provider pointed at this plugin and was reset; "
-                      "run `hermes memory setup` to pick another.[/yellow]")
+                      "run `a2assistant memory setup` to pick another.[/yellow]")
     console.print()
 
 
@@ -142,7 +142,7 @@ def _remove_user_plugin(plugins_dir: Path, name: str, target: Path) -> dict[str,
 
 
 def dashboard_remove_user_plugin(name: str) -> dict[str, Any]:
-    """Delete a plugin tree under ``~/.hermes/plugins/`` only."""
+    """Delete a plugin tree under ``~/.a2assistant/plugins/`` only."""
     plugins_dir = _pc()._plugins_dir()
     if any(n == name and src == "bundled" for n, _ver, _d, src, _path, _key in _pc()._discover_all_plugins()):
         return {"ok": False, "error": "Bundled plugins cannot be removed from the dashboard."}

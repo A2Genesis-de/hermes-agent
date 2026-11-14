@@ -39,7 +39,7 @@ def _pool_entry(provider: str, cooldown: str, model: str = "some-model") -> dict
 def pooled_home(tmp_path, monkeypatch):
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     # Only the pooled credential under test may authenticate anything.
     (home / "config.yaml").write_text(
         "model:\n  provider: nous\n  default: test-model\nauth:\n  adopt_external_logins: false\n")

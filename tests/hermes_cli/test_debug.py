@@ -1,4 +1,4 @@
-"""Tests for ``hermes debug`` CLI command and debug utilities."""
+"""Tests for ``a2assistant debug`` CLI command and debug utilities."""
 
 import os
 from unittest.mock import MagicMock, patch
@@ -11,10 +11,10 @@ import pytest
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    """Set up an isolated HERMES_HOME with minimal logs."""
+    """Set up an isolated A2ASSISTANT_HOME with minimal logs."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     # Create log files
     logs_dir = home / "logs"
@@ -83,7 +83,7 @@ class TestCaptureLogSnapshot:
 class TestMissingLogNote:
     """A missing log explains itself when the writer isn't this backend.
 
-    `hermes debug share` runs on the backend, so a desktop connected to a
+    `a2assistant debug share` runs on the backend, so a desktop connected to a
     remote/docker/SSH backend can never contribute desktop.log. Reporting a
     bare absence sends triage after a client-side bug it cannot see.
     """
@@ -152,16 +152,16 @@ class TestCaptureLogSnapshotRedaction:
 
     @pytest.fixture
     def hermes_home_with_secret(self, tmp_path, monkeypatch):
-        """Isolated HERMES_HOME whose agent.log contains a vendor-prefixed token."""
+        """Isolated A2ASSISTANT_HOME whose agent.log contains a vendor-prefixed token."""
         home = tmp_path / ".hermes"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         # Baseline fixture: no explicit env-var opinion. With the post-#17691
         # default of ON, the default-path tests below exercise the
         # secure-default behaviour. The `force=True` regression test
         # setenvs to "false" inline to prove force=True works even when
         # the runtime flag is disabled.
-        monkeypatch.delenv("HERMES_REDACT_SECRETS", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_REDACT_SECRETS", raising=False)
 
         logs_dir = home / "logs"
         logs_dir.mkdir()
@@ -198,18 +198,18 @@ class TestCaptureLogSnapshotRedaction:
 
         If a future refactor drops `force=True` from `redact_debug_support_text`, this
         test fails immediately. Without `force=True`, the redactor returns the
-        input unchanged when HERMES_REDACT_SECRETS=false, and the share-time
+        input unchanged when A2ASSISTANT_REDACT_SECRETS=false, and the share-time
         redaction feature ships silently broken for users who opted out of
         runtime redaction (e.g. developers working on the redactor itself).
         """
 
         # Force the runtime flag off so we're exercising the force=True path,
         # not the default-on path.
-        monkeypatch.setenv("HERMES_REDACT_SECRETS", "false")
+        monkeypatch.setenv("A2ASSISTANT_REDACT_SECRETS", "false")
 
         from hermes_cli.debug import _capture_log_snapshot
 
-        assert os.environ.get("HERMES_REDACT_SECRETS", "") == "false"
+        assert os.environ.get("A2ASSISTANT_REDACT_SECRETS", "") == "false"
 
         snap = _capture_log_snapshot("agent", tail_lines=10)
 
@@ -293,7 +293,7 @@ class TestCaptureLogSnapshotRedaction:
 # ---------------------------------------------------------------------------
 
 class TestRunDebugShare:
-    """``hermes debug share`` prints the report and full logs locally."""
+    """``a2assistant debug share`` prints the report and full logs locally."""
 
     def test_share_prints_report_and_full_logs(self, hermes_home, capsys):
         from types import SimpleNamespace
@@ -301,14 +301,14 @@ class TestRunDebugShare:
         from hermes_cli.debug import run_debug_share
 
         with patch("hermes_cli.dump.run_dump") as mock_dump:
-            mock_dump.side_effect = lambda a: print("--- hermes dump ---\nversion: test\n--- end dump ---")
+            mock_dump.side_effect = lambda a: print("--- a2assistant dump ---\nversion: test\n--- end dump ---")
             run_debug_share(SimpleNamespace(lines=50))
 
         out = capsys.readouterr().out
         for name in ("agent.log", "gateway.log", "gui.log", "desktop.log"):
             assert f"FULL {name}" in out
             assert f"--- full {name} ---" in out
-        assert "--- hermes dump ---" in out
+        assert "--- a2assistant dump ---" in out
 
     def test_share_never_prompts(self, hermes_home, capsys, monkeypatch):
         from types import SimpleNamespace
@@ -333,11 +333,11 @@ class TestRunDebugShareRedaction:
 
     @pytest.fixture
     def hermes_home_with_secret(self, tmp_path, monkeypatch):
-        """Isolated HERMES_HOME whose agent.log contains a vendor-prefixed token."""
+        """Isolated A2ASSISTANT_HOME whose agent.log contains a vendor-prefixed token."""
         home = tmp_path / ".hermes"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.delenv("HERMES_REDACT_SECRETS", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+        monkeypatch.delenv("A2ASSISTANT_REDACT_SECRETS", raising=False)
 
         logs_dir = home / "logs"
         logs_dir.mkdir()
@@ -368,7 +368,7 @@ class TestRunDebugShareRedaction:
         assert _REDACT_FIXTURE_TOKEN not in out
 
     def test_fallback_provider_key_never_reaches_upload_bound_content(self, hermes_home_with_secret):
-        """``hermes dump`` quotes ``fallback_providers`` from config.yaml; neither the CLI share
+        """``a2assistant dump`` quotes ``fallback_providers`` from config.yaml; neither the CLI share
         bundle nor the gateway /debug report may carry a fallback entry's api_key."""
         from hermes_cli.debug import _capture_dump, collect_debug_report, collect_share_bundle
 
@@ -452,7 +452,7 @@ class TestRunDebugShareRedaction:
     ])
     def test_fallback_base_url_credential_never_reaches_upload_bound_content(self, hermes_home_with_secret, base_url):
         """A fallback ``base_url`` can carry its credential in the URL (userinfo, query, fragment). The
-        dump is config made to be pasted, so ``hermes dump`` itself and every upload of it get strict
+        dump is config made to be pasted, so ``a2assistant dump`` itself and every upload of it get strict
         URL-credential redaction, not the log policy."""
         from hermes_cli.debug import _capture_dump, collect_debug_report, collect_share_bundle
 

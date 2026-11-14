@@ -14,6 +14,7 @@ from acp.schema import (
     SessionCapabilities, SessionForkCapabilities, SessionListCapabilities, SessionResumeCapabilities,
 )
 
+from hermes_cli.branding import CLI_COMMAND
 from hermes_cli.gateway_client import GatewayClientError, connect_gateway
 from hermes_constants import get_hermes_home
 from acp_adapter.gateway_reply import GatewayReplyMixin, _text
@@ -45,16 +46,16 @@ def _slash_command(text):
 
 def _bypass_route():
     """--safe-mode / --ignore-user-config read no profile default route, so the session freezes the
-    launch's explicit one (``hermes -m <model> --provider <name> --safe-mode acp``). Both, refused at
+    launch's explicit one (``a2assistant -m <model> --provider <name> --safe-mode acp``). Both, refused at
     session/new: a model alone is accepted by the owner, then its first turn cannot build the agent."""
-    model = (os.environ.get("HERMES_MODEL") or os.environ.get("HERMES_INFERENCE_MODEL") or "").strip()
+    model = (os.environ.get("A2ASSISTANT_MODEL") or os.environ.get("A2ASSISTANT_INFERENCE_MODEL") or "").strip()
     if not model:
         raise GatewayClientError("--safe-mode / --ignore-user-config read no profile default model: launch "
-                                 "with one, e.g. hermes -m <model> --provider <provider> --safe-mode acp")
-    provider = os.environ.get("HERMES_INFERENCE_PROVIDER", "").strip()
+                                 "with one, e.g. a2assistant -m <model> --provider <provider> --safe-mode acp")
+    provider = os.environ.get("A2ASSISTANT_INFERENCE_PROVIDER", "").strip()
     if not provider:
         raise GatewayClientError("--safe-mode / --ignore-user-config read no profile provider: launch with "
-                                 "--provider too, e.g. hermes -m <model> --provider <provider> --safe-mode acp")
+                                 "--provider too, e.g. a2assistant -m <model> --provider <provider> --safe-mode acp")
     return {"model": model, "provider": provider}
 
 
@@ -877,7 +878,7 @@ class GatewayACPAgent(GatewayReplyMixin, acp.Agent):
         lost = [row["admission_id"] for row in self._snapshots.get(session_id, {}).get("pending", [])
                 if row.get("status") == "unknown"] or [admission_id]
         profile = profile_name_for_home(self._home)
-        command = "hermes" + (f" -p {profile}" if profile not in (None, "default") else "")
+        command = CLI_COMMAND + (f" -p {profile}" if profile not in (None, "default") else "")
         state = ("your input is accepted and kept" if submitted else "nothing was submitted")
         return (f"unknown_execution: do not resend accepted input; a turn in this session was lost when the "
                 f"gateway restarted and its outcome is unknown ({state}). Send "

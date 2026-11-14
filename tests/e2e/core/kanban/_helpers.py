@@ -1,5 +1,5 @@
-"""Real-process Kanban board harness: a scratch HOME/HERMES_HOME, the recording fake provider, and
-the real ``hermes kanban`` CLI (dispatcher ticks spawn real ``hermes chat -q`` workers).
+"""Real-process Kanban board harness: a scratch HOME/A2ASSISTANT_HOME, the recording fake provider, and
+the real ``a2assistant kanban`` CLI (dispatcher ticks spawn real ``a2assistant chat -q`` workers).
 
 Nothing below imports the dispatcher: every board mutation goes through a child process and every
 verdict is read back from ``kanban.db`` (tasks / task_runs / task_events rows) or the files on disk.
@@ -23,8 +23,8 @@ PY = sys.executable
 
 # Clocks shrunk through the documented env knobs, never by patching code.
 FAST_ENV = {
-    "HERMES_KANBAN_CRASH_GRACE_SECONDS": "0",
-    "HERMES_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS": "0",
+    "A2ASSISTANT_KANBAN_CRASH_GRACE_SECONDS": "0",
+    "A2ASSISTANT_KANBAN_RATE_LIMIT_COOLDOWN_SECONDS": "0",
 }
 
 
@@ -94,19 +94,19 @@ class Board:
     # env / processes -------------------------------------------------------
     def env(self) -> dict[str, str]:
         env = {k: v for k, v in os.environ.items()
-               if not k.startswith("HERMES_") and not k.endswith(("_API_KEY", "_TOKEN"))}
+               if not k.startswith("A2ASSISTANT_") and not k.endswith(("_API_KEY", "_TOKEN"))}
         env.pop("PYTEST_CURRENT_TEST", None)
         env.update({
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home),
-            "HERMES_BIN": str(self.hermes_bin), "PYTHONPATH": str(REPO),
+            "HOME": str(self.home), "A2ASSISTANT_HOME": str(self.hermes_home),
+            "A2ASSISTANT_BIN": str(self.hermes_bin), "PYTHONPATH": str(REPO),
             "NO_COLOR": "1", "TERM": "dumb",
             # Children keep pytest's PYTEST_VERSION, which arms the live-DB guard against the scratch
             # HOME's own state.db; the whole tree is under ``root`` (asserted below), so let workers
             # open their real session store.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
             **FAST_ENV, **self.env_extra,
         })
-        assert env["HERMES_HOME"].startswith(str(self.root))
+        assert env["A2ASSISTANT_HOME"].startswith(str(self.root))
         return env
 
     def cli(self, *args: str, timeout: float = 90.0, check: bool = True) -> subprocess.CompletedProcess:

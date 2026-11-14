@@ -1,4 +1,4 @@
-"""``hermes sessions adopt``: bring this profile's pre-gateway history under its gateway, as the host.
+"""``a2assistant sessions adopt``: bring this profile's pre-gateway history under its gateway, as the host.
 
 Since #106742 the profile's gateway owns its sessions. Chats written before that (main's CLI, TUI and
 Desktop rows) carry no gateway receipt until one native, same-OS-user client resumes them, which
@@ -113,8 +113,8 @@ def _unreadable_store(exc: sqlite3.Error, store: str) -> str:
         return f'Error: {store} is locked by another program. Close that program, then run this command again.'
     if _schema_not_built(exc):
         return (f'Error: {store} is from an older A2Assistant and has not been upgraded ({exc}). Run '
-                '`hermes sessions repair` to upgrade it (it makes a backup first), then run this command again.')
-    return f'Error: could not read {store} ({exc}). Run `hermes sessions repair` to check it.'
+                '`a2assistant sessions repair` to upgrade it (it makes a backup first), then run this command again.')
+    return f'Error: could not read {store} ({exc}). Run `a2assistant sessions repair` to check it.'
 
 
 def cmd_adopt(args) -> int:
@@ -158,5 +158,5 @@ def add_adopt_parser(sessions_subparsers) -> None:
         description="Chats written before the gateway owned sessions become gateway sessions the first "
             "time a native client on this host opens them. This adopts them all at once, so remote "
             "clients such as the Webapp can continue them. Run it as the gateway's OS user; use "
-            "`hermes -p <profile> sessions adopt` for another profile.")
+            "`a2assistant -p <profile> sessions adopt` for another profile.")
     parser.add_argument('--dry-run', action='store_true', help='Only count what would be adopted')

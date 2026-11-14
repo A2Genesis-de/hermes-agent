@@ -1,6 +1,8 @@
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
 
+import { CLI_COMMAND_ALTERNATION } from '../../shared/src/product-names.mjs'
+
 /**
  * The Hermes runtime executable, matched as a whole argv TOKEN's basename — never an
  * argv substring (root AGENTS.md HX003 forbids argv-substring process identity). A
@@ -10,7 +12,7 @@ import fs from 'node:fs'
  * policy in `isSharedRuntime` (package-process-reap.ts) and the Python canonical
  * matchers named in AGENTS.md HX003.
  */
-const HERMES_RUNTIME_BASENAME = /^hermes(?:-agent|-acp)?(?:\.exe|\.cmd)?$/i
+const A2ASSISTANT_RUNTIME_BASENAME = new RegExp(`^(?:${CLI_COMMAND_ALTERNATION})(?:-agent|-acp)?(?:\\.exe|\\.cmd)?$`, 'i')
 
 /** Tokenize a raw command line: `/proc/<pid>/cmdline` is NUL-separated, `ps -o args=`
  *  is whitespace-separated. Either way, split on both so one matcher serves both. */
@@ -50,7 +52,7 @@ function tokensNameGatewaySubcommand(tokens: string[]): boolean {
 /** True when `raw` is a Hermes runtime command line, identified by a whole argv TOKEN
  *  (never an argv substring — root AGENTS.md HX003). Two shapes, mirroring the canonical
  *  Python matcher `gateway.status.looks_like_gateway_command_line`:
- *    1. a token whose basename is the Hermes executable (`hermes`, launched directly or by
+ *    1. a token whose basename is the Hermes executable (`a2assistant`, launched directly or by
  *       an interpreter such as `python …/hermes gateway run`); or
  *    2. a `hermes_cli.main` / `hermes_cli/main.py` module entry (`python -m hermes_cli.main
  *       … gateway run`, the real unmanaged-gateway launch) carrying the `gateway` subcommand.
@@ -59,7 +61,7 @@ function tokensNameGatewaySubcommand(tokens: string[]): boolean {
 export function commandLineIsHermesRuntime(raw: string): boolean {
   const tokens = commandLineTokens(raw)
 
-  if (tokens.some(token => HERMES_RUNTIME_BASENAME.test(tokenBasename(token)))) {
+  if (tokens.some(token => A2ASSISTANT_RUNTIME_BASENAME.test(tokenBasename(token)))) {
     return true
   }
 

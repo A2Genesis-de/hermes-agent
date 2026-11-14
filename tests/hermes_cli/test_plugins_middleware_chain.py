@@ -39,7 +39,7 @@ def seen(tmp_path, monkeypatch):
     (plugin / "plugin.yaml").write_text("name: request_chain\nversion: 0.1.0\n")
     (plugin / "__init__.py").write_text(_PLUGIN)
     (home / "config.yaml").write_text("plugins:\n  enabled: [request_chain]\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     manager = PluginManager()
     manager.discover_and_load()
     monkeypatch.setattr(plugins, "get_plugin_manager", lambda: manager)

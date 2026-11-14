@@ -40,8 +40,8 @@ def test_fresh_takeover_prepares_generation_and_runs_selected_python(tmp_path):
     uv = shutil.which("uv")
     assert uv
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(store), UV_PYTHON_DOWNLOADS="never")
+           if not key.startswith(("A2ASSISTANT_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home), A2ASSISTANT_RUNTIME_DIR=str(store), UV_PYTHON_DOWNLOADS="never")
     subprocess.run([uv, "lock", "--offline", "--python", sys.executable], cwd=root, env=env, check=True, capture_output=True)
     # A main-era venv that carried a gated extra: the takeover interpreter
     # (-S, so no `packaging`) must still judge the gate and drop it.

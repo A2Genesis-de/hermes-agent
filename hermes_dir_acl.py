@@ -263,7 +263,7 @@ def _expected_final(path: Path) -> str | None:
 def _warn_refused(path: Path, exc: BaseException) -> None:
     log.warning("Not granting the current user access to %s while elevated (%s): an elevated grant "
                 "never follows a junction or link out of the A2Assistant home. If this is your own link, "
-                "point HERMES_HOME (or the link) at the real directory.", path, exc)
+                "point A2ASSISTANT_HOME (or the link) at the real directory.", path, exc)
 
 
 def _elevated(elevated: bool | None) -> bool:
@@ -343,7 +343,7 @@ def grant_tree_user_access(root: str | Path, *, pin_root: bool = False,
     """Recursive :func:`grant_user_access` (the elevated post-update repair): grant the token's user
     full control on *root* and every directory and file under it, inheriting on directories.
 
-    With *pin_root*, *root* is the operator's own choice (``HERMES_HOME``) and may itself be a link:
+    With *pin_root*, *root* is the operator's own choice (``A2ASSISTANT_HOME``) and may itself be a link:
     it is resolved once and the walk runs below the real directory. A link BELOW it is still never
     entered or granted through.
 

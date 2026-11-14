@@ -54,7 +54,7 @@ def _load_api_key() -> str:
         for line in env_path.read_text().splitlines():
             if line.startswith("OPENROUTER_API_KEY="):
                 return line.split("=", 1)[1].strip().strip('"').strip("'")
-    raise SystemExit("OPENROUTER_API_KEY not found (env or ~/.hermes/.env)")
+    raise SystemExit("OPENROUTER_API_KEY not found (env or ~/.a2assistant/.env)")
 
 
 def extract_arm(ref: str, workdir: Path, name: str) -> Path:

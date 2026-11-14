@@ -96,7 +96,7 @@ class _Owners:
 
 @pytest.mark.asyncio
 async def test_resume_after_a_restart_resupplies_the_launch_key(tmp_path, monkeypatch):
-    """``hermes --resume <id> --api-key K`` (or ``-c`` with a keyed alias) once the gateway restarted; then
+    """``a2assistant --resume <id> --api-key K`` (or ``-c`` with a keyed alias) once the gateway restarted; then
     ``/resume`` of a session launched without that key still attaches."""
     owners = await _Owners().start(tmp_path, monkeypatch)
     await owners.boot('restarted')
@@ -113,7 +113,7 @@ async def test_resume_after_a_restart_resupplies_the_launch_key(tmp_path, monkey
 
 @pytest.mark.asyncio
 async def test_a_reconnect_after_a_restart_resupplies_the_launch_key(tmp_path, monkeypatch):
-    """A classic CLI left open across ``hermes gateway restart``: its redial resubscribes with the key, and
+    """A classic CLI left open across ``a2assistant gateway restart``: its redial resubscribes with the key, and
     a session launched without it is still resubscribed."""
     owners = await _Owners().start(tmp_path, monkeypatch)
     conn = GatewayConnection(connect=owners.dial)
@@ -204,7 +204,7 @@ async def test_a_read_only_viewer_still_gets_the_plain_attach(tmp_path, monkeypa
 
 
 def _typed(session_id, key):
-    """``hermes --resume <id> --api-key <key>``: the key the user typed (``HermesCLI._typed_api_key``)."""
+    """``a2assistant --resume <id> --api-key <key>``: the key the user typed (``HermesCLI._typed_api_key``)."""
     return SimpleNamespace(_resumed=True, session_id=session_id, _typed_api_key=key)
 
 

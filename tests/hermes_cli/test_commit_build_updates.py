@@ -22,7 +22,7 @@ def commit_build(tmp_path, monkeypatch):
     monkeypatch.setattr("hermes_cli.image_provenance.IMAGE_PROVENANCE_PATH", tmp_path / "absent")
     monkeypatch.setattr("hermes_cli.config.get_project_root", lambda: root)
     monkeypatch.setattr("pm.paths.repo_root", lambda: root)
-    monkeypatch.delenv("HERMES_INSTALL_ROOT", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INSTALL_ROOT", raising=False)
     from hermes_cli.version_info import _reset_version_info_cache
     _reset_version_info_cache()
     yield root
@@ -45,7 +45,7 @@ def test_commit_build_never_checks_upstream_or_reuses_source_cache(commit_build,
     from hermes_cli import banner, source_check
 
     # Even a shared home's source-checkout cache and an embedded SHA cannot turn this into an update.
-    monkeypatch.setenv("HERMES_REVISION", "b" * 40)
+    monkeypatch.setenv("A2ASSISTANT_REVISION", "b" * 40)
     check = Mock(side_effect=AssertionError("must not probe"))
     monkeypatch.setattr(source_check, "_branch_tip", check)
     assert source_check.check_for_updates(passive=passive)["behind"] is None

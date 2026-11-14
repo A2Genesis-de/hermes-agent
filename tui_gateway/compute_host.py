@@ -83,7 +83,7 @@ class ComputeHost:
         self._transport = _HostTransport(self.emit)
         self._heartbeat_secs = (
             float(heartbeat_secs) if heartbeat_secs is not None
-            else float(os.environ.get("HERMES_COMPUTE_HOST_HEARTBEAT_SECS") or "15"))
+            else float(os.environ.get("A2ASSISTANT_COMPUTE_HOST_HEARTBEAT_SECS") or "15"))
         if self._heartbeat_secs > 0:
             for target, name in (
                 (self._heartbeat_loop, "compute-host-heartbeat"),
@@ -548,13 +548,13 @@ def _rss_mb(pid: int) -> float:
 
 def _default_workers() -> int:
     try:
-        return max(2, int(os.environ.get("HERMES_TUI_RPC_POOL_WORKERS") or "8"))
+        return max(2, int(os.environ.get("A2ASSISTANT_TUI_RPC_POOL_WORKERS") or "8"))
     except (TypeError, ValueError):
         return 8
 
 
 def run_host(stdin: Any = None, stdout: Any = None) -> None:
-    os.environ["HERMES_COMPUTE_HOST_CHILD"] = "1"
+    os.environ["A2ASSISTANT_COMPUTE_HOST_CHILD"] = "1"
     # JSONL framing is byte-oriented; avoid text-stream read-ahead on Windows pipes.
     stdin = stdin if stdin is not None else getattr(sys.stdin, "buffer", sys.stdin)
     host = ComputeHost(stdout=stdout or sys.stdout)
@@ -577,7 +577,7 @@ def run_host(stdin: Any = None, stdout: Any = None) -> None:
     host.emit({
         "type": "hello", "host_pid": os.getpid(), "boot_id": host._boot_id,
         "build_sha": _build_sha(), "cwd": os.getcwd(),
-        "hermes_home": os.environ.get("HERMES_HOME", "")})
+        "hermes_home": os.environ.get("A2ASSISTANT_HOME", "")})
 
     def _reader() -> None:
         for raw in stdin:

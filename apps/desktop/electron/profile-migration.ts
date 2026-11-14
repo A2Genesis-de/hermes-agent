@@ -15,9 +15,9 @@ export const PROFILE_SCORE_MIN_SIZE_BYTES = 1024
 
 export interface MigrationDeps {
   legacyActivePath: string
-  /** Default profile home (`~/.hermes`). Default's state.db and gateway.pid live here. */
+  /** Default profile home (`~/.a2assistant`). Default's state.db and gateway.pid live here. */
   hermesHome: string
-  /** Named-profile root (`~/.hermes/profiles`). Does not contain `default`. */
+  /** Named-profile root (`~/.a2assistant/profiles`). Does not contain `default`. */
   profilesRoot: string
   existsSync: (path: string) => boolean
   readFileSync: (path: string, encoding: 'utf8') => string
@@ -227,7 +227,7 @@ export function listProfileDirs(deps: MigrationDeps): string[] {
     .map(e => e.name)
 }
 
-/** Default is always a candidate; it is `$HERMES_HOME`, not `$HERMES_HOME/profiles/default`. */
+/** Default is always a candidate; it is `$A2ASSISTANT_HOME`, not `$A2ASSISTANT_HOME/profiles/default`. */
 export function withDefaultCandidate(named: string[]): string[] {
   return ['default', ...named.filter(name => name !== 'default')]
 }
@@ -288,7 +288,7 @@ export function migrateActiveProfileIfMissing(desktopProfileConfigPath: string, 
   )
 
   // Same as the heuristic rung: pinning `default` into active-profile.json
-  // launches `hermes --profile default` and is worse than writing nothing
+  // launches `a2assistant --profile default` and is worse than writing nothing
   // (legacy sticky / implicit default). Covers a lone default gateway.pid.
   if (!decision || decision.profile === 'default') {
     if (existing?.migrated) {

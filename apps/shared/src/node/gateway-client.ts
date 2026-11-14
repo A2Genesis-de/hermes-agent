@@ -1,7 +1,7 @@
 /** The renderer-free `hermes-gateway-v1` client (Node): ticketed WebSocket dial, `runtime.describe`, the
  *  `session.create` contract, reconnect with bounded owner recovery, typed requests and events. Where the
  *  URL and ticket come from is the caller's `connect` (Ink: `gateway_bootstrap.py`; any other local
- *  client: `hermes gateway attach --json`). */
+ *  client: `a2assistant gateway attach --json`). */
 import { EventEmitter } from 'node:events'
 
 import { CircularBuffer } from '../circular-buffer.js'
@@ -42,7 +42,7 @@ export const RECONNECT_BASE_MS = 1_000
 export const RECONNECT_MAX_MS = 30_000
 
 /** One attach grant: the owner's WebSocket URL and the subprotocols (with the single-use ticket) to
- *  dial it with. From `hermes gateway attach --json`: its `url`, `protocols`, and `endpoint.profile_id`
+ *  dial it with. From `a2assistant gateway attach --json`: its `url`, `protocols`, and `endpoint.profile_id`
  *  / `endpoint.instance_id`. */
 export interface GatewayConnection { url: string; protocols: string[]; profile_id: string; instance_id: string }
 
@@ -54,9 +54,9 @@ export interface GatewayClientOptions {
   connect: ConnectGateway
   /** For a `connect` failure no retry can fix, the line to report; the client then stops retrying. */
   terminalConnectFailure?: (error: Error) => string | undefined
-  /** An explicit listener to dial instead of `connect` (Ink: `HERMES_TUI_GATEWAY_URL`); read per request. */
+  /** An explicit listener to dial instead of `connect` (Ink: `A2ASSISTANT_TUI_GATEWAY_URL`); read per request. */
   attachUrl?: () => null | string
-  /** A socket every event frame is mirrored to (Ink: `HERMES_TUI_SIDECAR_URL`). */
+  /** A socket every event frame is mirrored to (Ink: `A2ASSISTANT_TUI_SIDECAR_URL`). */
   sidecarUrl?: () => null | string
   /** How long a dial may take to reach `gateway.ready` before `gateway.start_timeout` (default 15 s). */
   startupTimeoutMs?: number
@@ -117,7 +117,7 @@ const redactUrl = (raw: string): string => {
 
 // Reconnects after the first launch are discovery-only, except that a bounded number per window
 // re-ensure an owner that is not ready (gateway_bootstrap.py --recover): crashed, idle-exited,
-// stopped with `hermes gateway stop` while this TUI is open, or an older Hermes's gateway. Main's
+// stopped with `a2assistant gateway stop` while this TUI is open, or an older Hermes's gateway. Main's
 // TUI owned its sidecar, so an open TUI comes back on its own; the budget keeps a crash-looping
 // owner from being respawned without pause.
 export const OWNER_RECOVERY_LIMIT = 3
@@ -212,7 +212,7 @@ export class GatewayClient extends EventEmitter {
   private publishWire(ev: AnyGatewayEvent) {
     if (!this.isCanonical && ev.type === 'gateway.ready' && this.attachUrl !== null &&
         (ev as { payload?: { session_authority?: boolean } }).payload?.session_authority === true) {
-      // An explicit HERMES_TUI_GATEWAY_URL endpoint whose session verbs belong to an authority:
+      // An explicit A2ASSISTANT_TUI_GATEWAY_URL endpoint whose session verbs belong to an authority:
       // negotiate the canonical wire exactly like a local grant, keeping the listener's skin.
       return this.adoptCanonicalAttach(ev as GatewayEvent<'gateway.ready'>)
     }

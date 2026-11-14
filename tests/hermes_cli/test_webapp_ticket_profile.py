@@ -29,7 +29,7 @@ def two_profiles(monkeypatch, tmp_path):
     for home in (launch, beta):
         (home / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     registry = SessionAuthorities(launch, multiplexed=True)
     runner = SimpleNamespace(_draining=False, session_authorities=registry)
     authorities, dbs = {}, {}

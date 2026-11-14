@@ -24,7 +24,7 @@ vi.mock("@/lib/api", async (importOriginal) => {
   };
 });
 
-import { HERMES_BASE_PATH } from "@/lib/api";
+import { A2ASSISTANT_BASE_PATH } from "@/lib/api";
 import { MANIFEST_CACHE_KEY, usePlugins } from "./usePlugins";
 import { exposePluginSDK, getPluginComponent } from "./registry";
 import { getSlotEntries } from "./slots";
@@ -109,7 +109,7 @@ describe("usePlugins across a profile switch", () => {
     expect(scripts).toHaveLength(2);
     expect(scripts.every((src) => src.includes("/dashboard-plugins/@beta/"))).toBe(true);
     expect(attrs('link[rel="stylesheet"]', "href")).toEqual([
-      `${HERMES_BASE_PATH}/dashboard-plugins/@beta/same/beta.css`,
+      `${A2ASSISTANT_BASE_PATH}/dashboard-plugins/@beta/same/beta.css`,
     ]);
     expect(sessionStorage.getItem(`${MANIFEST_CACHE_KEY}:alpha`)).toBeNull();
   });

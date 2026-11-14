@@ -63,7 +63,7 @@ so nothing is lost.
   **off by default** — opt in with `curator.consolidate: true` or
   `a2assistant curator run --consolidate`. Routine background curation costs
   zero tokens.
-- **Telemetry:** sidecar at `~/.hermes/skills/.usage.json` holds
+- **Telemetry:** sidecar at `~/.a2assistant/skills/.usage.json` holds
   per-skill `use_count`, `view_count`, `patch_count`,
   `last_activity_at`, `state`, `pinned`.
 
@@ -75,7 +75,7 @@ User docs: https://hermes-agent.nousresearch.com/docs/user-guide/features/curato
 
 Durable SQLite board for multi-profile / multi-worker collaboration.
 Users drive it via `a2assistant kanban <verb>`; dispatcher-spawned workers
-see a focused `kanban_*` toolset gated by `HERMES_KANBAN_TASK`, and
+see a focused `kanban_*` toolset gated by `A2ASSISTANT_KANBAN_TASK`, and
 orchestrator profiles can opt into the broader `kanban` toolset. Normal
 sessions still have zero `kanban_*` schema footprint unless configured.
 
@@ -95,7 +95,7 @@ sessions still have zero `kanban_*` schema footprint unless configured.
   (default 2; configurable via `kanban.failure_limit` or per-task
   `max_retries`).
 - **Isolation:** board is the hard boundary (workers get
-  `HERMES_KANBAN_BOARD` pinned in env); tenant is a soft namespace
+  `A2ASSISTANT_KANBAN_BOARD` pinned in env); tenant is a soft namespace
   within a board for workspace-path + memory-key isolation.
 
 Project-linked tasks (worktree + branch by default under a Project's primary folder, when it has one):

@@ -4,10 +4,10 @@ Regression guard for the hosted-chat failure where the embedded dashboard
 Chat tab died with a 502 / "[session ended]". Root cause: the runtime image
 carries no workspace node_modules (frontend dependencies stay in the build
 stage), so source dependency preparation can never converge there. Without
-HERMES_TUI_DIR set, ``_make_tui_argv`` falls through to that preparation,
+A2ASSISTANT_TUI_DIR set, ``_make_tui_argv`` falls through to that preparation,
 racing itself across concurrent /api/pty connections → ENOTEMPTY.
 
-The fix is ``ENV HERMES_TUI_DIR=/opt/hermes/ui-tui`` in the Dockerfile, which
+The fix is ``ENV A2ASSISTANT_TUI_DIR=/opt/hermes/ui-tui`` in the Dockerfile, which
 makes the launcher take the prebuilt-bundle fast path (``node --expose-gc
 .../dist/entry.js``) and skip the install check entirely. These tests assert
 that invariant holds in the built image.
@@ -75,7 +75,7 @@ from hermes_cli.main_tui_launch import _apply_tui_python_env
 env = dict(os.environ)
 _apply_tui_python_env(env)
 child = subprocess.run(
-    [env["HERMES_PYTHON"], "-c",
+    [env["A2ASSISTANT_PYTHON"], "-c",
      "import os, sys; print(os.path.realpath(sys.executable), flush=True); import tui_gateway.entry"],
     cwd="/opt/hermes", env=env, capture_output=True, text=True, timeout=30,
 )

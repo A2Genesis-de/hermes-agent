@@ -109,7 +109,7 @@ function ensurePlatformBuilds() {
 }
 
 function ensurePackagedApp() {
-  if (process.env.HERMES_DESKTOP_SKIP_BUILD === '1' && exists(APP.binary)) {
+  if (process.env.A2ASSISTANT_DESKTOP_SKIP_BUILD === '1' && exists(APP.binary)) {
     return
   }
 
@@ -155,7 +155,7 @@ function ensureDmg() {
   if (PLATFORM !== 'darwin') {
     die('DMG mode is macOS-only; on Windows use the `msix` mode instead.')
   }
-  if (process.env.HERMES_DESKTOP_SKIP_BUILD === '1' && exists(resolveDmgPath())) {
+  if (process.env.A2ASSISTANT_DESKTOP_SKIP_BUILD === '1' && exists(resolveDmgPath())) {
     return
   }
   run('pnpm', ['run', 'dist:mac:dmg'])
@@ -165,7 +165,7 @@ function ensureMsix() {
   if (PLATFORM !== 'win32') {
     die('MSIX mode is win32-only; on macOS use the `dmg` mode instead.')
   }
-  if (process.env.HERMES_DESKTOP_SKIP_BUILD === '1' && resolveMsixPath()) {
+  if (process.env.A2ASSISTANT_DESKTOP_SKIP_BUILD === '1' && resolveMsixPath()) {
     return
   }
   run('pnpm', ['run', 'dist:win:msix'])
@@ -249,13 +249,13 @@ function launchFresh() {
     env[key] = value
   }
 
-  env.HERMES_DESKTOP_CWD = cwd
-  env.HERMES_DESKTOP_IGNORE_EXISTING = '1'
-  env.HERMES_DESKTOP_TEST_MODE = 'fresh-install'
-  env.HERMES_DESKTOP_USER_DATA_DIR = userDataDir
-  env.HERMES_HOME = hermesHome
-  delete env.HERMES_DESKTOP_HERMES
-  delete env.HERMES_DESKTOP_HERMES_ROOT
+  env.A2ASSISTANT_DESKTOP_CWD = cwd
+  env.A2ASSISTANT_DESKTOP_IGNORE_EXISTING = '1'
+  env.A2ASSISTANT_DESKTOP_TEST_MODE = 'fresh-install'
+  env.A2ASSISTANT_DESKTOP_USER_DATA_DIR = userDataDir
+  env.A2ASSISTANT_HOME = hermesHome
+  delete env.A2ASSISTANT_DESKTOP_HERMES
+  delete env.A2ASSISTANT_DESKTOP_HERMES_ROOT
 
   const child = spawn(APP.binary, [], {
     cwd: os.homedir(),
@@ -268,7 +268,7 @@ function launchFresh() {
   console.log('\nFresh install sandbox:')
   console.log(`  root: ${sandbox}`)
   console.log(`  electron userData: ${userDataDir}`)
-  console.log(`  HERMES_HOME: ${hermesHome}`)
+  console.log(`  A2ASSISTANT_HOME: ${hermesHome}`)
   console.log(`  cwd: ${cwd}`)
 
 }
@@ -277,14 +277,14 @@ function launchFresh() {
 // (launch / firstWindow / app.close() — the app's own exact quit path, backend
 // teardown included), so the harness never kills a process itself. Isolation
 // and identity come from the flags main.ts already honors: sandboxed Electron
-// userData (own single-instance lock) + sandboxed HERMES_HOME + an explicit
+// userData (own single-instance lock) + sandboxed A2ASSISTANT_HOME + an explicit
 // backend root (main.ts backend-resolution rung 1). Readiness is the serve
 // protocol — a python backend child LISTENING on 127.0.0.1 answering
 // GET /api/health — never gateway.pid (that file is the messaging gateway's
 // record, a different surface) and never a mock.
-const LIFECYCLE_BACKEND_ROOT = process.env.HERMES_DESKTOP_LIFECYCLE_BACKEND_ROOT
-const LIFECYCLE_TIMEOUT_MS = Number(process.env.HERMES_DESKTOP_LIFECYCLE_TIMEOUT_MS) || 150_000
-const LIFECYCLE_KEEP = process.env.HERMES_DESKTOP_LIFECYCLE_KEEP === '1'
+const LIFECYCLE_BACKEND_ROOT = process.env.A2ASSISTANT_DESKTOP_LIFECYCLE_BACKEND_ROOT
+const LIFECYCLE_TIMEOUT_MS = Number(process.env.A2ASSISTANT_DESKTOP_LIFECYCLE_TIMEOUT_MS) || 150_000
+const LIFECYCLE_KEEP = process.env.A2ASSISTANT_DESKTOP_LIFECYCLE_KEEP === '1'
 
 function lifecycleEnv(sandbox) {
   const userDataDir = path.join(sandbox, 'electron-user-data')
@@ -297,29 +297,29 @@ function lifecycleEnv(sandbox) {
     if (isCredentialEnvVar(key)) continue
     env[key] = value
   }
-  env.HERMES_DESKTOP_CWD = cwd
-  env.HERMES_DESKTOP_USER_DATA_DIR = userDataDir
-  env.HERMES_HOME = hermesHome
-  env.HERMES_DESKTOP_SKIP_QUIT_CONFIRM = '1'
+  env.A2ASSISTANT_DESKTOP_CWD = cwd
+  env.A2ASSISTANT_DESKTOP_USER_DATA_DIR = userDataDir
+  env.A2ASSISTANT_HOME = hermesHome
+  env.A2ASSISTANT_DESKTOP_SKIP_QUIT_CONFIRM = '1'
   // Window-title label only — NOT package identity; package identity is build-
   // time. Identity isolation here is the sandboxed userData (single-instance
   // lock is scoped to it), so a live Hermes instance can never be contacted.
-  env.HERMES_DESKTOP_APP_NAME = 'HermesLifecycleProbe'
+  env.A2ASSISTANT_DESKTOP_APP_NAME = 'HermesLifecycleProbe'
   // REQUIRED: with a thin (external-payload) build there is no sealed runtime,
   // and an unresolved backend would fall through to first-run bootstrap —
   // install.ps1, which writes User PATH, Start-Menu shortcuts and ACLs on a
   // real host. This harness must never let that happen.
   if (LIFECYCLE_BACKEND_ROOT) {
-    env.HERMES_DESKTOP_HERMES_ROOT = path.resolve(LIFECYCLE_BACKEND_ROOT)
+    env.A2ASSISTANT_DESKTOP_HERMES_ROOT = path.resolve(LIFECYCLE_BACKEND_ROOT)
   }
-  delete env.HERMES_DESKTOP_HERMES
-  delete env.HERMES_DESKTOP_TEST_MODE
+  delete env.A2ASSISTANT_DESKTOP_HERMES
+  delete env.A2ASSISTANT_DESKTOP_TEST_MODE
   return { env, userDataDir, hermesHome, cwd }
 }
 
 // Readiness, the app's own way: the Electron main logs
-// `HERMES_BACKEND_READY port=<N>` (backend-ready.ts's announcement contract)
-// into <HERMES_HOME>/logs/desktop.log once uvicorn has bound the serve socket.
+// `A2ASSISTANT_BACKEND_READY port=<N>` (backend-ready.ts's announcement contract)
+// into <A2ASSISTANT_HOME>/logs/desktop.log once uvicorn has bound the serve socket.
 // Parse that, then confirm externally that the announced port answers
 // GET /api/health with 200 — the same anonymous health route the app probes.
 // No process enumeration, no kills.
@@ -333,7 +333,7 @@ async function serveBackendReady(hermesHome, label, offset) {
     try {
       text = fs.readFileSync(logPath, 'utf8').slice(offset)
     } catch { /* log not created yet */ }
-    for (const m of text.matchAll(/HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)/g)) {
+    for (const m of text.matchAll(/A2ASSISTANT_(?:BACKEND|DASHBOARD)_READY port=(\d+)/g)) {
       announced.add(Number(m[1]))
     }
     for (const port of announced) {
@@ -423,13 +423,13 @@ async function runLifecycle() {
       throw new Error(`preserved-state check FAILED — entries missing after relaunch:\n  ${lost.join('\n  ')}`)
     }
     console.log('  preservation: all pre-relaunch home entries survived the quit + relaunch cycle')
-    console.log(JSON.stringify({ sandbox, userDataDir, hermesHome, backendRoot: env.HERMES_DESKTOP_HERMES_ROOT || null, sessions, preserved: { before: preservedBefore.length, after: preservedAfter.length, lost: 0 } }, null, 2))
+    console.log(JSON.stringify({ sandbox, userDataDir, hermesHome, backendRoot: env.A2ASSISTANT_DESKTOP_HERMES_ROOT || null, sessions, preserved: { before: preservedBefore.length, after: preservedAfter.length, lost: 0 } }, null, 2))
   } finally {
     if (!LIFECYCLE_KEEP) {
       fs.rmSync(sandbox, { recursive: true, force: true })
       console.log(`  sandbox removed: ${sandbox}`)
     } else {
-      console.log(`  sandbox kept (HERMES_DESKTOP_LIFECYCLE_KEEP=1): ${sandbox}`)
+      console.log(`  sandbox kept (A2ASSISTANT_DESKTOP_LIFECYCLE_KEEP=1): ${sandbox}`)
     }
   }
 }
@@ -440,7 +440,7 @@ function validateBundle() {
   }
 
   // The payload may be the real pm bundle (staged by scripts/bundles/desktop.py /
-  // `hermes pm bundle --out build/agent-payload`) or the external stub
+  // `a2assistant pm bundle --out build/agent-payload`) or the external stub
   // (plain `pnpm run pack` in the PR/JS lane — the app fetches the runtime at
   // first launch via the stage protocol). Validate the payload only when a
   // real one is present; the stub is the thin-installer contract.
@@ -552,22 +552,22 @@ function printArtifacts(options = {}) {
 function help() {
   console.log(`Usage:
   pnpm run test:desktop:existing # build packaged app, launch with normal PATH/existing A2Assistant
-  pnpm run test:desktop:fresh    # build packaged app, launch with temp userData + HERMES_HOME
+  pnpm run test:desktop:fresh    # build packaged app, launch with temp userData + A2ASSISTANT_HOME
   pnpm run test:desktop:dmg      # (macOS only) build DMG and open it
   pnpm run test:desktop:msix     # (win32 only) build MSIX package
   pnpm run test:desktop:all      # build the platform package and validate the payload
 
 Fast rerun (skip rebuild if the packaged app already exists):
-  HERMES_DESKTOP_SKIP_BUILD=1 pnpm run test:desktop:fresh
+  A2ASSISTANT_DESKTOP_SKIP_BUILD=1 pnpm run test:desktop:fresh
 
-Automated packaged lifecycle (no host side effects; isolated userData + HERMES_HOME):
+Automated packaged lifecycle (no host side effects; isolated userData + A2ASSISTANT_HOME):
   pnpm run test:desktop:lifecycle
   # start packaged app → real serve backend ready (/api/health 200) → graceful
   # quit → relaunch → preserved-home check → full teardown of our own processes.
   # Requires a backend root the packaged app may use (backend-resolution rung 1):
-  #   HERMES_DESKTOP_LIFECYCLE_BACKEND_ROOT=<hermes checkout with .venv|venv>
-  # Knobs: HERMES_DESKTOP_LIFECYCLE_TIMEOUT_MS and
-  # HERMES_DESKTOP_LIFECYCLE_KEEP=1 to keep the sandbox for inspection.
+  #   A2ASSISTANT_DESKTOP_LIFECYCLE_BACKEND_ROOT=<hermes checkout with .venv|venv>
+  # Knobs: A2ASSISTANT_DESKTOP_LIFECYCLE_TIMEOUT_MS and
+  # A2ASSISTANT_DESKTOP_LIFECYCLE_KEEP=1 to keep the sandbox for inspection.
 `)
 }
 

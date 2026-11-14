@@ -98,8 +98,8 @@ def _managed_oauth_env_host(provider: str) -> str:
     from hermes_cli.auth_xai import DEFAULT_XAI_OAUTH_BASE_URL, _xai_validate_inference_base_url
 
     if provider == "openai-codex":
-        return get_secret_str("HERMES_CODEX_BASE_URL", "").strip()
-    raw = get_secret_str("HERMES_XAI_BASE_URL", "").strip() or get_secret_str("XAI_BASE_URL", "").strip()
+        return get_secret_str("A2ASSISTANT_CODEX_BASE_URL", "").strip()
+    raw = get_secret_str("A2ASSISTANT_XAI_BASE_URL", "").strip() or get_secret_str("XAI_BASE_URL", "").strip()
     return _xai_validate_inference_base_url(raw, fallback=DEFAULT_XAI_OAUTH_BASE_URL)
 
 
@@ -617,7 +617,7 @@ class GatewayTurnPrepareMixin:
         try:
             _lease_token = await _lease_registry.acquire(
                 session_entry.session_id, owner_key=_quick_key, generation=run_generation,
-                timeout=_float_env("HERMES_TURN_LEASE_TIMEOUT", DEFAULT_LEASE_WAIT),
+                timeout=_float_env("A2ASSISTANT_TURN_LEASE_TIMEOUT", DEFAULT_LEASE_WAIT),
             )
         except TurnLeaseTimeoutError:
             # The cleanup finally starts later; restore the tokens here or this exit leaks identity.

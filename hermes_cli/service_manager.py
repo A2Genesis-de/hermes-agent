@@ -60,7 +60,7 @@ def detect_service_manager() -> ServiceManagerKind:
     This function does NOT replace ``supports_systemd_services()`` —
     host call sites continue to use that. It exists for new backend-
     agnostic code (profile create/delete hooks, the s6 dispatch path
-    in ``hermes gateway start/stop/restart``).
+    in ``a2assistant gateway start/stop/restart``).
     """
     # Deferred so importing this module (Protocol type, validate_profile_name) doesn't drag in
     # the whole gateway dependency graph.
@@ -242,12 +242,12 @@ def _profile_dir_for_gateway_service(name: str) -> Path:
     """Resolve ``gateway-<profile>`` to its persistent profile directory.
 
     s6 lifecycle commands may run from any active profile (``gateway stop --all``), so never write
-    the caller's HERMES_HOME blindly: derive the shared profile root and map the suffix to the root
+    the caller's A2ASSISTANT_HOME blindly: derive the shared profile root and map the suffix to the root
     default profile or ``<root>/profiles/<profile>``.
     """
     profile = _profile_from_service(name)
     validate_profile_name(profile)
-    hermes_home = Path(os.environ.get("HERMES_HOME", "/opt/data"))
+    hermes_home = Path(os.environ.get("A2ASSISTANT_HOME", "/opt/data"))
     root = hermes_home.parent.parent if hermes_home.parent.name == "profiles" else hermes_home
     return root if profile == "default" else root / "profiles" / profile
 
@@ -280,7 +280,7 @@ def _write_gateway_desired_state(name: str, desired_state: str) -> None:
 def register_unregistered_profile_gateway(mgr: ServiceManager, profile: str) -> bool:
     """Register a ``down`` s6 slot for a profile whose directory exists but was never registered.
 
-    `hermes profile create` can only register a slot when it runs inside the container; created
+    `a2assistant profile create` can only register a slot when it runs inside the container; created
     from the host against a bind-mounted home, the directory lands where the container reads it
     but no ``/run/hermes-service/gateway-<name>`` exists, and the boot reconciler only notices on the
     next container restart. Returns False without touching anything unless the directory carries
@@ -442,7 +442,7 @@ class GatewayNotRegisteredError(S6Error):
         self.profile = profile
         super().__init__(
             f"no such gateway {profile!r}: register it with "
-            f"`hermes profile create {profile}` first, or pass "
+            f"`a2assistant profile create {profile}` first, or pass "
             "an existing profile name via `-p <name>`",
             service=f"gateway-{profile}",
         )
@@ -491,9 +491,9 @@ class S6ServiceManager:
     def _render_run_script(profile: str, extra_env: dict[str, str]) -> str:
         """Run script for a profile-gateway s6 service.
 
-        Sources HERMES_HOME via with-contenv (run time, not baked in), resets ``HOME`` before the
+        Sources A2ASSISTANT_HOME via with-contenv (run time, not baked in), resets ``HOME`` before the
         privilege drop so root's HOME does not leak, activates the venv, drops to hermes.
-        ``profile == "default"`` emits NO ``-p`` flag: it is the sentinel for the root HERMES_HOME
+        ``profile == "default"`` emits NO ``-p`` flag: it is the sentinel for the root A2ASSISTANT_HOME
         profile and ``-p default`` would look up ``profiles/default/``. Port comes from the
         profile's own env (``API_SERVER_PORT``, default 8642); two profiles that both leave it
         unset collide.
@@ -501,7 +501,7 @@ class S6ServiceManager:
         Port selection: the gateway binds the port resolved by ``gateway/config.py`` from the profile's own
         environment — ``API_SERVER_PORT`` (or ``platforms.api_server.extra.port`` in that profile's
         ``config.yaml``), defaulting to 8642. There is no ``[gateway] port`` key and no Python-side
-        allocator: because each supervised profile gateway loads its own ``HERMES_HOME``, two profiles that
+        allocator: because each supervised profile gateway loads its own ``A2ASSISTANT_HOME``, two profiles that
         both leave the port unset will both try to bind 8642 — give each profile a distinct
         ``API_SERVER_PORT`` in its ``.env``. Previously this method took a ``port`` parameter that was
         passed in but never substituted into the rendered script (carried for "API parity" with a
@@ -521,10 +521,10 @@ class S6ServiceManager:
         # Supervised-child sentinel: without it the supervised gateway re-entering
         # `_gateway_command_inner` with subcmd == "run" would dispatch `gateway start` → re-exec
         # `gateway run --replace` → `gateway start` … (see the matching guard there).
-        lines.append("export HERMES_S6_SUPERVISED_CHILD=1")
+        lines.append("export A2ASSISTANT_S6_SUPERVISED_CHILD=1")
         # Generalized supervisor marker — same meaning for the profile-redirect guard in
         # hermes_cli.main._apply_profile_override; kept alongside the s6 one for back-compat.
-        lines.append("export HERMES_SUPERVISED_CHILD=1")
+        lines.append("export A2ASSISTANT_SUPERVISED_CHILD=1")
         # ``--replace`` makes the supervised gateway authoritative for its HERMES_HOME. Without it
         # a gateway started OUTSIDE s6 (stray ``hermes gateway run``, an agent action, the Open
         # WebUI helper) grabs the PID lock first; the slot then hits "Another gateway instance is
@@ -534,9 +534,9 @@ class S6ServiceManager:
         # above prevents the run→start→run recursion. s6 guarantees one supervised instance per
         # slot, so there is no legitimate sibling for ``--replace`` to clobber.
         if profile == "default":
-            gateway_cmd = "hermes gateway run --replace"
+            gateway_cmd = "a2assistant gateway run --replace"
         else:
-            gateway_cmd = f"hermes -p {shlex.quote(profile)} gateway run --replace"
+            gateway_cmd = f"a2assistant -p {shlex.quote(profile)} gateway run --replace"
         # Skip the drop when already non-root (setgroups() lacks CAP_SETGID → s6 boot-loop).
         lines.append(f'[ "$(id -u)" = 0 ] || exec {gateway_cmd}')
         lines.append(f"exec s6-setuidgid hermes {gateway_cmd}")
@@ -580,8 +580,8 @@ class S6ServiceManager:
         return (
             f"#!/command/with-contenv sh\n"
             f"# shellcheck shell=sh\n"
-            f': "${{HERMES_HOME:=/opt/data}}"\n'
-            f'log_dir="$HERMES_HOME/logs/gateways/{prof}"\n'
+            f': "${{A2ASSISTANT_HOME:=/opt/data}}"\n'
+            f'log_dir="$A2ASSISTANT_HOME/logs/gateways/{prof}"\n'
             # Create the leaf and clear a stale s6-log lock AS HERMES when starting as root. Never
             # chown/unlink hermes-writable volume paths from this restartable root-context script:
             # an unprivileged user can race a pathname op through a symlink swap (CWE-59/CWE-367).

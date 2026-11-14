@@ -14,7 +14,7 @@ REF = SessionRef('owned', 's')
 
 
 def _authority(tmp_path, monkeypatch, platform=None):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')
     epoch = begin_runtime_epoch(db, instance_id='current')

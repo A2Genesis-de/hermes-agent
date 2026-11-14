@@ -1,6 +1,6 @@
 """Kanban triage specifier — flesh out a one-liner into a real spec.
 
-``hermes kanban specify [task_id | --all]`` asks the auxiliary LLM for a
+``a2assistant kanban specify [task_id | --all]`` asks the auxiliary LLM for a
 tightened title + concrete body for a Triage task, then flips it
 ``triage -> todo`` via ``kanban_db.specify_triage_task``.
 
@@ -24,7 +24,7 @@ from hermes_cli import kanban_db_connect as kbc
 
 from utils import env_int
 
-HERMES_KANBAN_SPECIFY_MAX_TOKENS = max(1500, env_int("HERMES_KANBAN_SPECIFY_MAX_TOKENS", 6000))
+HERMES_KANBAN_SPECIFY_MAX_TOKENS = max(1500, env_int("A2ASSISTANT_KANBAN_SPECIFY_MAX_TOKENS", 6000))
 
 logger = logging.getLogger(__name__)
 

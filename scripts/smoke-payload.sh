@@ -27,8 +27,8 @@ try {
   }
   const home = join(scratch, 'home')
   mkdirSync(home)
-  const env = { HOME: home, USERPROFILE: home, HERMES_HOME: join(home, '.hermes'),
-    PYTHONUTF8: '1', PYTHONDONTWRITEBYTECODE: '1', HERMES_DISABLE_LAZY_INSTALLS: '1',
+  const env = { HOME: home, USERPROFILE: home, A2ASSISTANT_HOME: join(home, '.hermes'),
+    PYTHONUTF8: '1', PYTHONDONTWRITEBYTECODE: '1', A2ASSISTANT_DISABLE_LAZY_INSTALLS: '1',
     UV_OFFLINE: '1', npm_config_offline: 'true' }
   // Keep OS process necessities only; no checkout, Python, PM, or Node overrides.
   for (const [key, value] of Object.entries(process.env)) {

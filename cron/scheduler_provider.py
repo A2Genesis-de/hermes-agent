@@ -49,7 +49,7 @@ def _guarded_store_write(action, description, *args, **kwargs):
 
     The gateway runs the provider on an unsupervised daemon thread: one escaping exception
     there stops cron silently while the gateway keeps serving (#111010). Heartbeat/error
-    markers are diagnostics for ``hermes cron status`` — losing one write to a broken store
+    markers are diagnostics for ``a2assistant cron status`` — losing one write to a broken store
     must degrade to a logged warning, not thread death.
     """
     try:
@@ -70,7 +70,7 @@ def _existing_profile_homes(profile_homes: list) -> list:
 
     Ticking or heartbeating a deleted home recreates its ``cron/`` workspace (``record_ticker_heartbeat`` ->
     ``ensure_dirs`` -> ``mkdir(parents=True)``) on every 60s cycle, so the "deleted" profile silently comes
-    back on disk and in ``hermes profile list`` (#47368). Filtering on directory existence leaves a deleted
+    back on disk and in ``a2assistant profile list`` (#47368). Filtering on directory existence leaves a deleted
     profile's home untouched, which is the correct invariant: a home that does not exist cannot hold jobs to
     fire.
     """
@@ -91,7 +91,7 @@ def routed_profile_fire(home=None) -> bool:
     Derived from the fire's home itself (``home``, else the task's active ``get_hermes_home()``), never from
     a marker one entry point sets: the desktop ticker (``_profile_cron_scope``), the dashboard's
     manual Run now (``hermes_cli.web_server_cron._cron_store_scope``) and any other caller that
-    binds a HERMES_HOME override for a sibling profile all reach ``run_one_job`` the same way, and a
+    binds a A2ASSISTANT_HOME override for a sibling profile all reach ``run_one_job`` the same way, and a
     marker set only in the ticker left the manual path with the original cross-profile leak.
 
     The desktop backend fires every local profile from one process without setting the

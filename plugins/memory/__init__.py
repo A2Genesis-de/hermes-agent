@@ -1,6 +1,6 @@
 """Memory provider plugin discovery: bundled ``plugins/memory/<name>/``, user
-``$HERMES_HOME/plugins/<name>/``, project ``./.hermes/plugins/<name>/`` (opt-in via
-HERMES_ENABLE_PROJECT_PLUGINS), then ``hermes_agent.memory_providers`` entry points.
+``$A2ASSISTANT_HOME/plugins/<name>/``, project ``./.hermes/plugins/<name>/`` (opt-in via
+A2ASSISTANT_ENABLE_PROJECT_PLUGINS), then ``hermes_agent.memory_providers`` entry points.
 Precedence is deliberately the REVERSE of PluginManager's later-source-wins:
 bundled wins, then user, project, entry point — a provider is activated by name
 (``memory.provider``, one at a time), so a directory dropped into the working tree
@@ -50,12 +50,12 @@ _get_user_plugins_dir = _loader.user_plugins_dir
 
 
 def _get_project_plugins_dir() -> Optional[Path]:
-    """``./.hermes/plugins/`` or None. Gated on HERMES_ENABLE_PROJECT_PLUGINS like the
+    """``./.hermes/plugins/`` or None. Gated on A2ASSISTANT_ENABLE_PROJECT_PLUGINS like the
     PluginManager scan: a repo you merely ``cd`` into must not offer a memory backend."""
     try:
         from hermes_cli.plugins import _env_enabled
 
-        if not _env_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
+        if not _env_enabled("A2ASSISTANT_ENABLE_PROJECT_PLUGINS"):
             return None
         d = Path.cwd() / ".hermes" / "plugins"
         return d if d.is_dir() else None
@@ -248,7 +248,7 @@ def load_memory_provider(name: str, *, register_skills: Optional[bool] = None) -
 def import_memory_provider_module(name: Optional[str] = None) -> bool:
     """Import the provider's module (default: the configured ``memory.provider``) WITHOUT
     constructing a provider — the later ``load_memory_provider`` then hits ``sys.modules``
-    instead of a fresh native extension load. Exists so ``hermes acp`` can pay the heavy
+    instead of a fresh native extension load. Exists so ``a2assistant acp`` can pay the heavy
     import (numpy / ML stack) on the main thread before any other thread starts: on Windows
     a first-time native import racing another thread's import chain deadlocked
     ``session/new`` (#58083). False when no provider is configured, the provider is
@@ -296,7 +296,7 @@ def import_provider_module(name: str, submodule: Optional[str] = None):
 
     Host-side code (dashboard host-block storage, OAuth routes, doctor, profile clone) used to
     ``import plugins.memory.<name>.<submodule>``, which only exists for the bundled copy; a
-    catalog install under ``$HERMES_HOME/plugins/`` loads under the synthetic user namespace,
+    catalog install under ``$A2ASSISTANT_HOME/plugins/`` loads under the synthetic user namespace,
     so those surfaces 500'd/404'd the moment the bundled copy left core. Resolving through
     ``find_provider_dir`` makes bundled and user-dir copies behave identically. Raises
     ``ImportError`` when the provider is not installed or lacks the submodule.
@@ -552,7 +552,7 @@ def parked_provider_notice(name: str) -> Optional[str]:
     why = (f" An update turned it off ({recorded.get('reason')}) and a later update retries it."
            if isinstance(recorded, dict) and recorded.get("reason") else "")
     return (f"⚠ Memory provider '{name}' is turned off: plugins.disabled lists it, so external memory is off "
-            f"(built-in memory still works).{why} Turn it back on with `hermes plugins enable {name}`.")
+            f"(built-in memory still works).{why} Turn it back on with `a2assistant plugins enable {name}`.")
 
 
 def _explicitly_disabled(name: str, provider_dir: Path) -> bool:

@@ -771,7 +771,7 @@ def _write_profile_cfg(home: Path, cwd: str | None) -> Path:
 
 
 def test_profile_scoped_mcp_discovery_uses_target_home(monkeypatch, tmp_path):
-    """MCP discovery must start under the selected profile's HERMES_HOME."""
+    """MCP discovery must start under the selected profile's A2ASSISTANT_HOME."""
     from hermes_cli import mcp_startup
     from hermes_constants import get_hermes_home
     from tui_gateway import entry
@@ -786,7 +786,7 @@ def test_profile_scoped_mcp_discovery_uses_target_home(monkeypatch, tmp_path):
         encoding="utf-8",
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "default"))
     token = set_hermes_home_override(str(profile_home))
 
     seen = []
@@ -825,7 +825,7 @@ def test_profile_scoped_agent_build_starts_mcp_discovery_in_profile_home(
     profile_home = tmp_path / "profiles" / "sheepyr"
     profile_home.mkdir(parents=True)
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "default"))
 
     seen = []
     built = threading.Event()
@@ -888,7 +888,7 @@ def test_profile_scoped_agent_build_installs_secret_scope(monkeypatch, tmp_path)
         "PROXMOX_TOKEN=grace-secret\n", encoding="utf-8"
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "default"))
 
     scopes = []
     built = threading.Event()
@@ -1725,7 +1725,7 @@ def test_voice_toggle_returns_configured_record_key(monkeypatch):
     # ownership of the var so the change is reverted at teardown and
     # later tests don't inherit a stale ON state (Copilot round-5
     # review on #19835).
-    monkeypatch.setenv("HERMES_VOICE", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "0")
 
     on_resp = _dispatch_sync(
         {"id": "voice-on", "method": "voice.toggle", "params": {"action": "on"}}
@@ -1812,7 +1812,7 @@ def test_voice_record_start_handles_non_dict_voice_cfg(monkeypatch):
             start_continuous=fake_start_continuous, stop_continuous=lambda: None
         ),
     )
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
 
     for bad in (True, "cmd+b", None, 42, ["ctrl+b"], {"silence_threshold": "loud"}):
         captured.clear()
@@ -1892,8 +1892,8 @@ def test_prompt_submit_typed_stop_phrase_ends_voice_chat(monkeypatch):
         ),
     )
     monkeypatch.setattr(server, "_tts_stream_stop", lambda user_barge=False: None)
-    monkeypatch.setenv("HERMES_VOICE", "1")
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
 
     resp = server.dispatch(
         {
@@ -1904,8 +1904,8 @@ def test_prompt_submit_typed_stop_phrase_ends_voice_chat(monkeypatch):
     )
 
     assert resp["result"] == {"voice_stopped": True}
-    assert os.environ["HERMES_VOICE"] == "0"
-    assert os.environ["HERMES_VOICE_TTS"] == "0"
+    assert os.environ["A2ASSISTANT_VOICE"] == "0"
+    assert os.environ["A2ASSISTANT_VOICE_TTS"] == "0"
     assert calls["stop_continuous"] == 1
     assert ("voice.transcript", {"stop_phrase": True, "typed": True}) in emitted
 
@@ -1922,7 +1922,7 @@ def test_prompt_submit_typed_stop_passes_through_when_voice_off(monkeypatch):
             )
         ),
     )
-    monkeypatch.setenv("HERMES_VOICE", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "0")
 
     resp = server.dispatch(
         {
@@ -2009,7 +2009,7 @@ def test_wake_owner_is_sticky_and_routes_detection_to_first_transport(monkeypatc
             stop_continuous=lambda **_kwargs: None,
         ),
     )
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
 
     first = types.SimpleNamespace(_closed=False)
     second = types.SimpleNamespace(_closed=False)
@@ -2223,7 +2223,7 @@ def test_voice_record_start_forwards_max_recording_seconds(monkeypatch):
             start_continuous=fake_start_continuous, stop_continuous=lambda: None
         ),
     )
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
 
     for cfg, expected in (
         ({"max_recording_seconds": 45}, 45),        # explicit cap forwarded as-is
@@ -2278,7 +2278,7 @@ def test_voice_record_start_cuts_inflight_tts(monkeypatch):
     monkeypatch.setattr(
         server, "_tts_stream_stop", lambda user_barge=True: tts_calls.append(user_barge)
     )
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
 
     resp = _dispatch_sync(
         {
@@ -2352,7 +2352,7 @@ def test_voice_record_start_reports_busy_when_stop_is_in_progress(monkeypatch):
             stop_continuous=lambda **_kwargs: None,
         ),
     )
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
     monkeypatch.setattr(server, "_load_cfg", lambda: {"voice": {}})
 
     resp = _dispatch_sync(
@@ -2387,11 +2387,11 @@ def test_voice_toggle_tts_branch_also_carries_record_key(monkeypatch):
             check_voice_requirements=lambda: {"available": True, "details": ""}
         ),
     )
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
     # setenv (not delenv) — the handler writes HERMES_VOICE_TTS directly, and
     # delenv on an absent var registers no teardown, leaking TTS=1 into every
     # later test in the file (which now spins up the streaming TTS pipeline).
-    monkeypatch.setenv("HERMES_VOICE_TTS", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "0")
 
     tts_resp = _dispatch_sync(
         {"id": "voice-tts", "method": "voice.toggle", "params": {"action": "tts"}}
@@ -2402,13 +2402,13 @@ def test_voice_toggle_tts_branch_also_carries_record_key(monkeypatch):
 
 
 def test_load_enabled_toolsets_prefers_tui_env(monkeypatch):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "web, terminal, ,memory")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "web, terminal, ,memory")
 
     assert server._load_enabled_toolsets() == ["web", "terminal", "memory"]
 
 
 def test_load_enabled_toolsets_filters_invalid_tui_env(monkeypatch, capsys):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "web, nope")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "web, nope")
     monkeypatch.setitem(
         sys.modules,
         "hermes_cli.plugins",
@@ -2420,7 +2420,7 @@ def test_load_enabled_toolsets_filters_invalid_tui_env(monkeypatch, capsys):
 
 
 def test_load_enabled_toolsets_accepts_plugin_env_after_discovery(monkeypatch):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "plugin_demo")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "plugin_demo")
 
     import toolsets
 
@@ -2446,7 +2446,7 @@ def test_load_enabled_toolsets_folds_project_into_focus_posture(monkeypatch):
     # Focus-mode coding posture returns before the config fallback, but it's
     # still a GUI-only resolver — `project` must come along so the desktop keeps
     # the project tools while sitting in a repo.
-    monkeypatch.delenv("HERMES_TUI_TOOLSETS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_TOOLSETS", raising=False)
 
     import agent.coding_context as cc
 
@@ -2457,7 +2457,7 @@ def test_load_enabled_toolsets_folds_project_into_focus_posture(monkeypatch):
 
 def test_load_enabled_toolsets_honors_disabled_project_on_focus_path(monkeypatch):
     """#54433: focus/coding posture must not re-add `project` when disabled."""
-    monkeypatch.delenv("HERMES_TUI_TOOLSETS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_TOOLSETS", raising=False)
 
     import agent.coding_context as cc
 
@@ -2473,7 +2473,7 @@ def test_load_enabled_toolsets_honors_disabled_project_on_configured_fallback(
     monkeypatch,
 ):
     """#54433: configured/fallback path must not re-add disabled `project`."""
-    monkeypatch.delenv("HERMES_TUI_TOOLSETS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_TOOLSETS", raising=False)
 
     import agent.coding_context as cc
     import hermes_cli.tools_config as tools_config_mod
@@ -2503,7 +2503,7 @@ def test_with_session_toolsets_keeps_desktop_ui_when_project_disabled(monkeypatc
 
 
 def test_load_enabled_toolsets_rejects_disabled_mcp_env(monkeypatch, capsys):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "mcp-off")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "mcp-off")
     monkeypatch.setitem(
         sys.modules,
         "hermes_cli.plugins",
@@ -2538,7 +2538,7 @@ def test_load_enabled_toolsets_rejects_disabled_mcp_env(monkeypatch, capsys):
 
 
 def test_load_enabled_toolsets_falls_back_when_tui_env_invalid(monkeypatch, capsys):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "nope")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "nope")
     monkeypatch.setitem(
         sys.modules,
         "hermes_cli.plugins",
@@ -2562,7 +2562,7 @@ def test_load_enabled_toolsets_falls_back_when_tui_env_invalid(monkeypatch, caps
 
 
 def test_load_enabled_toolsets_warns_when_config_fallback_fails(monkeypatch, capsys):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "nope")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "nope")
     monkeypatch.setitem(
         sys.modules,
         "hermes_cli.plugins",
@@ -2580,7 +2580,7 @@ def test_load_enabled_toolsets_warns_when_config_fallback_fails(monkeypatch, cap
 
 
 def test_load_enabled_toolsets_honors_builtin_env_if_config_fails(monkeypatch):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "web")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "web")
 
     import hermes_cli.config as config_mod
 
@@ -2592,7 +2592,7 @@ def test_load_enabled_toolsets_honors_builtin_env_if_config_fails(monkeypatch):
 
 
 def test_load_enabled_toolsets_all_env_means_all(monkeypatch):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "all")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "all")
 
     assert server._load_enabled_toolsets() is None
 
@@ -2625,7 +2625,7 @@ def test_load_disabled_toolsets_none_when_unset_or_config_fails(monkeypatch):
 
 
 def test_load_enabled_toolsets_reports_disabled_mcp_separately(monkeypatch, capsys):
-    monkeypatch.setenv("HERMES_TUI_TOOLSETS", "web,mcp-off,nope")
+    monkeypatch.setenv("A2ASSISTANT_TUI_TOOLSETS", "web,mcp-off,nope")
     monkeypatch.setitem(
         sys.modules,
         "hermes_cli.plugins",
@@ -3071,7 +3071,7 @@ def _two_repo_project_skill_sessions(tmp_path, monkeypatch) -> tuple[Path, Path]
     (home / "skills").mkdir(parents=True)
     (home / "config.yaml").write_text(
         f"skills:\n  external_dirs: []\n  trusted_project_dirs: ['{repo_a}', '{repo_b}']\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(skills_tool, "SKILLS_DIR", home / "skills")
     monkeypatch.setattr(skill_utils, "_skills_cfg", lambda: {
         "external_dirs": [], "trusted_project_dirs": [str(repo_a), str(repo_b)]})
@@ -3120,7 +3120,7 @@ def test_command_dispatch_reviews_staged_skill_writes(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     (home / "config.yaml").write_text("skills:\n  write_approval: true\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     rec = wa.stage_write(
         wa.SKILLS,
         {"action": "create", "name": "demo-review",
@@ -3158,7 +3158,7 @@ def test_command_dispatch_skills_gate_off_answers_instead_of_refusing(tmp_path, 
     home = tmp_path / "home"
     home.mkdir()
     (home / "config.yaml").write_text("skills:\n  write_approval: false\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     server._sessions["sid-wa"] = _session(profile_home=str(home))
     try:
         res = server._methods["command.dispatch"](
@@ -3177,7 +3177,7 @@ def test_command_dispatch_memory_pending_reviews_staged_writes(tmp_path, monkeyp
     home = tmp_path / "home"
     home.mkdir()
     (home / "config.yaml").write_text("memory:\n  write_approval: true\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     wa.stage_write(wa.MEMORY, {"action": "add", "target": "memory", "content": "dispatched fact"},
                    summary="add dispatched fact", origin="foreground")
     server._sessions["sid-wa"] = _session(profile_home=str(home))
@@ -4284,15 +4284,15 @@ def test_status_callback_accepts_single_message_argument():
 
 
 def test_resolve_model_uses_inference_model_env(monkeypatch):
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
-    monkeypatch.setenv("HERMES_INFERENCE_MODEL", " anthropic/claude-sonnet-4.6\n")
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_INFERENCE_MODEL", " anthropic/claude-sonnet-4.6\n")
 
     assert server._resolve_model() == "anthropic/claude-sonnet-4.6"
 
 
 def test_resolve_model_strips_config_model(monkeypatch):
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_MODEL", raising=False)
     monkeypatch.setattr(
         server, "_load_cfg", lambda: {"model": {"default": " nous/hermes-test "}}
     )
@@ -4310,8 +4310,8 @@ def _sync_test_session(**extra):
 
 
 def _patch_config_model(monkeypatch, model, provider=""):
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_MODEL", raising=False)
     cfg_model = {"default": model}
     if provider:
         cfg_model["provider"] = provider
@@ -4442,8 +4442,8 @@ def test_config_sync_failure_emits_error_once_per_edit(monkeypatch):
 def test_config_sync_config_wins_over_env_seed(monkeypatch):
     # Hosted instances set HERMES_INFERENCE_MODEL as a provision-time seed;
     # the per-turn sync must follow config.yaml edits, not stay pinned to it.
-    monkeypatch.setenv("HERMES_INFERENCE_MODEL", "seed/model")
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_INFERENCE_MODEL", "seed/model")
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
     monkeypatch.setattr(server, "_load_cfg", lambda: {"model": {"default": "new/model"}})
     session = _sync_test_session(config_model_seen=("seed/model", ""))
     calls = []
@@ -4466,8 +4466,8 @@ def test_config_sync_ignores_env_seed_without_config_model(monkeypatch):
     # config target — doing so replayed the -m flag as a /model switch and
     # (with persist_switch_by_default=True) wrote it into config.yaml
     # permanently.
-    monkeypatch.setenv("HERMES_MODEL", "one-shot/model")
-    monkeypatch.setenv("HERMES_INFERENCE_MODEL", "one-shot/model")
+    monkeypatch.setenv("A2ASSISTANT_MODEL", "one-shot/model")
+    monkeypatch.setenv("A2ASSISTANT_INFERENCE_MODEL", "one-shot/model")
     monkeypatch.setattr(
         server, "_load_cfg", lambda: {"model": {"provider": "custom:mylocal"}}
     )
@@ -4524,17 +4524,17 @@ def test_apply_model_switch_persist_override_false_never_persists(monkeypatch):
 
 
 def test_startup_runtime_uses_tui_provider_env(monkeypatch):
-    monkeypatch.setenv("HERMES_MODEL", "nous/hermes-test")
-    monkeypatch.setenv("HERMES_TUI_PROVIDER", "nous")
-    monkeypatch.delenv("HERMES_INFERENCE_PROVIDER", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_MODEL", "nous/hermes-test")
+    monkeypatch.setenv("A2ASSISTANT_TUI_PROVIDER", "nous")
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_PROVIDER", raising=False)
 
     assert server._resolve_startup_runtime() == ("nous/hermes-test", "nous")
 
 
 def test_startup_runtime_does_not_treat_inference_provider_as_explicit(monkeypatch):
-    monkeypatch.setenv("HERMES_MODEL", "nous/hermes-test")
-    monkeypatch.delenv("HERMES_TUI_PROVIDER", raising=False)
-    monkeypatch.setenv("HERMES_INFERENCE_PROVIDER", "nous")
+    monkeypatch.setenv("A2ASSISTANT_MODEL", "nous/hermes-test")
+    monkeypatch.delenv("A2ASSISTANT_TUI_PROVIDER", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_INFERENCE_PROVIDER", "nous")
     monkeypatch.setattr(
         "hermes_cli.models.detect_static_provider_for_model",
         lambda model, provider: None,
@@ -4577,11 +4577,11 @@ def test_make_agent_passes_configured_fallback_chain(monkeypatch):
         captured.update(kwargs)
         return types.SimpleNamespace(model=kwargs.get("model"))
 
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_MODEL", raising=False)
-    monkeypatch.delenv("HERMES_TUI_PROVIDER", raising=False)
-    monkeypatch.delenv("HERMES_DESKTOP", raising=False)
-    monkeypatch.delenv("HERMES_DESKTOP_TERMINAL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_PROVIDER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_TERMINAL", raising=False)
     monkeypatch.setattr(
         server,
         "_load_cfg",
@@ -4846,9 +4846,9 @@ def test_background_agent_kwargs_falls_back_to_config_disabled_toolsets(monkeypa
 
 
 def test_startup_runtime_resolves_short_alias_without_network(monkeypatch):
-    monkeypatch.setenv("HERMES_MODEL", "sonnet")
-    monkeypatch.delenv("HERMES_TUI_PROVIDER", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_PROVIDER", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_MODEL", "sonnet")
+    monkeypatch.delenv("A2ASSISTANT_TUI_PROVIDER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_PROVIDER", raising=False)
     monkeypatch.setattr(server, "_load_cfg", lambda: {"model": {"provider": "auto"}})
     monkeypatch.setattr(
         "hermes_cli.models.fetch_openrouter_models",
@@ -4864,9 +4864,9 @@ def test_startup_runtime_resolves_short_alias_without_network(monkeypatch):
 
 
 def test_startup_runtime_does_not_call_network_detector(monkeypatch):
-    monkeypatch.setenv("HERMES_MODEL", "sonnet")
-    monkeypatch.delenv("HERMES_TUI_PROVIDER", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_PROVIDER", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_MODEL", "sonnet")
+    monkeypatch.delenv("A2ASSISTANT_TUI_PROVIDER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_PROVIDER", raising=False)
     monkeypatch.setattr(server, "_load_cfg", lambda: {"model": {"provider": "auto"}})
     monkeypatch.setattr(
         "hermes_cli.models.detect_provider_for_model",
@@ -8230,8 +8230,8 @@ def test_ensure_session_db_row_persists_explicit_cwd(monkeypatch, tmp_path):
 
     monkeypatch.setattr(server, "_get_db", lambda: _FakeDB())
     monkeypatch.setattr(server, "_resolve_model", lambda: "test-model")
-    monkeypatch.delenv("HERMES_DESKTOP", raising=False)
-    monkeypatch.delenv("HERMES_DESKTOP_TERMINAL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_TERMINAL", raising=False)
 
     server._ensure_session_db_row({"session_key": "k1", "cwd": str(tmp_path), "explicit_cwd": True})
 
@@ -8276,8 +8276,8 @@ def test_ensure_session_db_row_records_a_terminal_workspace(monkeypatch, tmp_pat
 
     monkeypatch.setattr(server, "_get_db", lambda: _FakeDB())
     monkeypatch.setattr(server, "_resolve_model", lambda: "test-model")
-    monkeypatch.delenv("HERMES_DESKTOP", raising=False)
-    monkeypatch.delenv("HERMES_DESKTOP_TERMINAL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_TERMINAL", raising=False)
 
     server._ensure_session_db_row({"session_key": "k1", "cwd": str(tmp_path)})
 
@@ -8732,8 +8732,8 @@ def test_config_set_yolo_toggles_session_scope():
 
 def test_config_set_yolo_stale_session_id_is_refused_not_process_scoped(monkeypatch):
     """A runtime id the backend no longer holds must answer 4001 so the client resumes, not flip
-    the process HERMES_YOLO_MODE that every child spawned afterwards inherits."""
-    monkeypatch.setenv("HERMES_YOLO_MODE", "0")  # setenv, not delenv: undo must also drop a leaked "1"
+    the process A2ASSISTANT_YOLO_MODE that every child spawned afterwards inherits."""
+    monkeypatch.setenv("A2ASSISTANT_YOLO_MODE", "0")  # setenv, not delenv: undo must also drop a leaked "1"
 
     with patch.dict(server._sessions, {}, clear=True):
         resp = server.handle_request(
@@ -8745,7 +8745,7 @@ def test_config_set_yolo_stale_session_id_is_refused_not_process_scoped(monkeypa
         )
 
     assert resp.get("error", {}).get("code") == 4001, resp
-    assert os.environ["HERMES_YOLO_MODE"] == "0"
+    assert os.environ["A2ASSISTANT_YOLO_MODE"] == "0"
 
 
 def test_config_set_yolo_global_scope_writes_approvals_mode(tmp_path, monkeypatch):
@@ -8787,7 +8787,7 @@ def test_config_get_approval_mode_uses_smart_default_when_key_is_missing(
     # Point the canonical resolver (load_config → env HERMES_HOME) at the
     # temp home too, so the smart default is asserted against THIS config
     # rather than whatever the developer's real ~/.hermes happens to hold.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"approvals": {"timeout": 15}})
     )
@@ -8808,7 +8808,7 @@ def test_config_get_approval_mode_fails_safe_to_manual_for_invalid_explicit_valu
     # tools.approval, which reads via hermes_cli.config.load_config —
     # that path resolves HERMES_HOME from the environment, not
     # server._hermes_home.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"approvals": {"mode": "sometimes"}})
     )
@@ -8825,7 +8825,7 @@ def test_config_get_approval_mode_normalizes_yaml_off(tmp_path, monkeypatch):
     monkeypatch.setattr(server, "_hermes_home", tmp_path)
     # See fail-safe test above: the canonical resolver reads via
     # load_config, which resolves HERMES_HOME from the environment.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"approvals": {"mode": False}})
     )
@@ -8845,7 +8845,7 @@ def test_config_set_approval_mode_persists_three_way_value_and_emits_live_status
     # config.set writes via server._hermes_home, but the post-write
     # session.info emit resolves the effective mode through the canonical
     # tools.approval resolver (load_config → env HERMES_HOME).
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     emitted = []
     monkeypatch.setattr(server, "_emit", lambda *args: emitted.append(args))
     server._sessions["sid"] = {"agent": object(), "session_key": "profile-session"}
@@ -8877,7 +8877,7 @@ def test_pet_gallery_quoted_false_enabled_reports_disabled(tmp_path, monkeypatch
     import hermes_yaml as yaml
 
     monkeypatch.setattr(server, "_hermes_home", tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"display": {"pet": {"enabled": "false"}}})
     )
@@ -9158,7 +9158,7 @@ def test_config_busy_get_and_set(monkeypatch):
 
 
 def test_config_set_yolo_process_scope_treats_false_like_env_as_disabled(monkeypatch):
-    monkeypatch.setenv("HERMES_YOLO_MODE", "false")
+    monkeypatch.setenv("A2ASSISTANT_YOLO_MODE", "false")
 
     resp = server.handle_request(
         {
@@ -9169,7 +9169,7 @@ def test_config_set_yolo_process_scope_treats_false_like_env_as_disabled(monkeyp
     )
 
     assert resp["result"]["value"] == "1"
-    assert os.environ.get("HERMES_YOLO_MODE") == "1"
+    assert os.environ.get("A2ASSISTANT_YOLO_MODE") == "1"
 
 
 def test_config_get_statusbar_survives_non_dict_display(monkeypatch):
@@ -9387,19 +9387,19 @@ def test_config_mouse_accepts_preset_strings_and_aliases(monkeypatch):
 
 
 def test_enable_gateway_prompts_sets_gateway_env(monkeypatch):
-    monkeypatch.delenv("HERMES_EXEC_ASK", raising=False)
-    monkeypatch.delenv("HERMES_GATEWAY_SESSION", raising=False)
-    monkeypatch.delenv("HERMES_INTERACTIVE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_EXEC_ASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_GATEWAY_SESSION", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INTERACTIVE", raising=False)
 
     server._enable_gateway_prompts()
 
-    assert server.os.environ["HERMES_GATEWAY_SESSION"] == "1"
-    assert server.os.environ["HERMES_EXEC_ASK"] == "1"
-    assert server.os.environ["HERMES_INTERACTIVE"] == "1"
+    assert server.os.environ["A2ASSISTANT_GATEWAY_SESSION"] == "1"
+    assert server.os.environ["A2ASSISTANT_EXEC_ASK"] == "1"
+    assert server.os.environ["A2ASSISTANT_INTERACTIVE"] == "1"
 
 
 def test_setup_status_answers_from_the_bootstrap_record_once_it_exists(monkeypatch):
-    """Under ``hermes serve`` the boot bootstrap records who carries inference; ``setup.status``
+    """Under ``a2assistant serve`` the boot bootstrap records who carries inference; ``setup.status``
     reports its record (blocking for it while it is in flight) instead of re-probing, so a client's
     first poll sees the boot's answer rather than racing it."""
     import threading
@@ -9505,7 +9505,7 @@ def test_setup_runtime_check_failure_names_the_configured_pin_not_the_chain_tail
 
 
 def test_setup_runtime_check_failure_names_startup_env_pin(monkeypatch):
-    """The startup env pin (HERMES_TUI_PROVIDER) outranks the config model pin."""
+    """The startup env pin (A2ASSISTANT_TUI_PROVIDER) outranks the config model pin."""
     monkeypatch.setattr("hermes_cli.main._has_any_provider_configured", lambda **_kw: True)
     monkeypatch.setattr(server, "_resolve_startup_runtime", lambda: ("glm-5.3", "zai"))
     monkeypatch.setattr(server, "_load_cfg", lambda: {"model": {"provider": "openai-api"}})
@@ -9644,7 +9644,7 @@ def test_setup_runtime_check_scopes_launch_profile_in_multiplex_backend(monkeypa
 
     launch_home = tmp_path / ".hermes"
     launch_home.mkdir()
-    monkeypatch.setenv("HERMES_CODEX_BASE_URL", "https://codex.launch.test/v1")
+    monkeypatch.setenv("A2ASSISTANT_CODEX_BASE_URL", "https://codex.launch.test/v1")
     monkeypatch.setattr(server, "_hermes_home", launch_home)
     monkeypatch.setattr(launch_profile_policy, "_snapshot", None)
     monkeypatch.setattr("hermes_cli.main._has_any_provider_configured", lambda **_kw: True)
@@ -9655,7 +9655,7 @@ def test_setup_runtime_check_scopes_launch_profile_in_multiplex_backend(monkeypa
         return {
             "provider": "openai-codex",
             "api_key": "codex-oauth-token",
-            "base_url": secret_scope.get_secret("HERMES_CODEX_BASE_URL"),
+            "base_url": secret_scope.get_secret("A2ASSISTANT_CODEX_BASE_URL"),
             "source": "credential-pool",
         }
 
@@ -10281,9 +10281,9 @@ def test_config_set_model_recovers_failed_profile_resume_after_build_completes(
     (profile_home / ".env").write_text(
         "PROFILE_API_KEY=profile-secret\n", encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_MODEL", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_MODEL", raising=False)
 
     class ControlledReady:
         def __init__(self):
@@ -10544,7 +10544,7 @@ def test_config_set_model_explicit_provider_surfaces_selected_provider_errors(mo
 def test_config_set_model_does_not_leak_inference_provider_env(monkeypatch):
     """A /model switch must NOT mutate process-global env vars. The desktop /
     dashboard tui_gateway backend hosts every same-profile session in one
-    process; writing HERMES_INFERENCE_PROVIDER on a switch leaked the new
+    process; writing A2ASSISTANT_INFERENCE_PROVIDER on a switch leaked the new
     provider into every other live session's next agent rebuild. The switch
     must instead record a per-session override and leave shared env untouched.
 
@@ -10573,7 +10573,7 @@ def test_config_set_model_does_not_leak_inference_provider_env(monkeypatch):
 
     session = _session(agent=_Agent())
     server._sessions["sid"] = session
-    monkeypatch.setenv("HERMES_INFERENCE_PROVIDER", "openrouter")
+    monkeypatch.setenv("A2ASSISTANT_INFERENCE_PROVIDER", "openrouter")
     monkeypatch.setattr(
         "hermes_cli.model_switch.switch_model", lambda **_kwargs: result
     )
@@ -10594,7 +10594,7 @@ def test_config_set_model_does_not_leak_inference_provider_env(monkeypatch):
         )
 
         # Shared process env is UNCHANGED (the contamination vector is gone).
-        assert os.environ["HERMES_INFERENCE_PROVIDER"] == "openrouter"
+        assert os.environ["A2ASSISTANT_INFERENCE_PROVIDER"] == "openrouter"
         # The switch was recorded as a per-session override instead.
         assert session["model_override"]["provider"] == "anthropic"
         assert session["model_override"]["model"] == "claude-sonnet-4.6"
@@ -10633,8 +10633,8 @@ def test_config_set_model_records_per_session_override_not_env(monkeypatch):
 
     session = _session(agent=_Agent())
     server._sessions["sid"] = session
-    monkeypatch.delenv("HERMES_TUI_PROVIDER", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_PROVIDER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_PROVIDER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_PROVIDER", raising=False)
     monkeypatch.setattr(
         "hermes_cli.model_switch.switch_model", lambda **_kwargs: result
     )
@@ -10655,8 +10655,8 @@ def test_config_set_model_records_per_session_override_not_env(monkeypatch):
         )
 
         # No process-global env mutation.
-        assert "HERMES_TUI_PROVIDER" not in os.environ
-        assert "HERMES_INFERENCE_PROVIDER" not in os.environ
+        assert "A2ASSISTANT_TUI_PROVIDER" not in os.environ
+        assert "A2ASSISTANT_INFERENCE_PROVIDER" not in os.environ
         # The user's explicit provider + resolved endpoint live on the session,
         # carried into the next /new rebuild by _make_agent.
         override = session["model_override"]
@@ -10671,7 +10671,7 @@ def test_config_set_model_records_per_session_override_not_env(monkeypatch):
 
 def test_config_set_model_switches_agent_without_touching_env(monkeypatch):
     """A /model switch mutates the target session's agent in place and records
-    a per-session override; it does NOT write HERMES_MODEL / HERMES_TUI_PROVIDER
+    a per-session override; it does NOT write A2ASSISTANT_MODEL / A2ASSISTANT_TUI_PROVIDER
     etc. into the shared process environment.
 
     (Was test_config_set_model_syncs_tui_provider_env.)
@@ -10720,9 +10720,9 @@ def test_config_set_model_switches_agent_without_touching_env(monkeypatch):
     agent._session_db = db
     session = _session(agent=agent)
     server._sessions["sid"] = session
-    monkeypatch.setenv("HERMES_TUI_PROVIDER", "openai-codex")
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_MODEL", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_TUI_PROVIDER", "openai-codex")
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_MODEL", raising=False)
     monkeypatch.setattr(server, "_restart_slash_worker", lambda sid, session: None)
     monkeypatch.setattr(server, "_emit", lambda *args, **kwargs: None)
 
@@ -10778,9 +10778,9 @@ def test_config_set_model_switches_agent_without_touching_env(monkeypatch):
             "content": session["history"][-1]["content"],
         }
         # ...and the shared process env was NOT touched.
-        assert os.environ["HERMES_TUI_PROVIDER"] == "openai-codex"
-        assert "HERMES_MODEL" not in os.environ
-        assert "HERMES_INFERENCE_MODEL" not in os.environ
+        assert os.environ["A2ASSISTANT_TUI_PROVIDER"] == "openai-codex"
+        assert "A2ASSISTANT_MODEL" not in os.environ
+        assert "A2ASSISTANT_INFERENCE_MODEL" not in os.environ
     finally:
         server._sessions.clear()
 
@@ -10813,8 +10813,8 @@ def test_config_set_model_once_keeps_env_and_records_restore(monkeypatch):
     agent = Agent()
     session = _session(agent=agent)
     server._sessions["sid"] = session
-    monkeypatch.setenv("HERMES_INFERENCE_PROVIDER", "openrouter")
-    monkeypatch.setenv("HERMES_MODEL", "old/model")
+    monkeypatch.setenv("A2ASSISTANT_INFERENCE_PROVIDER", "openrouter")
+    monkeypatch.setenv("A2ASSISTANT_MODEL", "old/model")
     monkeypatch.setattr(
         "hermes_cli.model_switch.switch_model",
         lambda **kwargs: seen.update(kwargs) or result,
@@ -10839,8 +10839,8 @@ def test_config_set_model_once_keeps_env_and_records_restore(monkeypatch):
         assert seen["is_global"] is False
         assert agent.model == "claude-sonnet-4.6"
         assert session["one_turn_model_restore"]["model"] == "old/model"
-        assert os.environ["HERMES_INFERENCE_PROVIDER"] == "openrouter"
-        assert os.environ["HERMES_MODEL"] == "old/model"
+        assert os.environ["A2ASSISTANT_INFERENCE_PROVIDER"] == "openrouter"
+        assert os.environ["A2ASSISTANT_MODEL"] == "old/model"
     finally:
         server._sessions.clear()
 
@@ -12179,7 +12179,7 @@ def test_plugin_slash_command_runs_under_the_session_env(monkeypatch):
     seen = {}
 
     def handler(arg):
-        seen["key"] = get_session_env("HERMES_SESSION_KEY")
+        seen["key"] = get_session_env("A2ASSISTANT_SESSION_KEY")
         return f"ok:{arg}"
 
     monkeypatch.setattr("hermes_cli.plugins.get_plugin_command_handler",
@@ -12191,7 +12191,7 @@ def test_plugin_slash_command_runs_under_the_session_env(monkeypatch):
     assert res["result"] == {"type": "plugin", "output": "ok:x"}
     assert seen["key"] == "agent:tui:key-p"
     # Nothing leaks past the RPC.
-    assert get_session_env("HERMES_SESSION_KEY") in ("", None)
+    assert get_session_env("A2ASSISTANT_SESSION_KEY") in ("", None)
 
 
 def test_session_status_reads_live_gateway_agent(monkeypatch):
@@ -16253,7 +16253,7 @@ def test_session_branch_writes_to_parent_profile_db(monkeypatch, tmp_path):
     """session.branch must copy history into the parent's profile state.db."""
     profile_home = tmp_path / "profiles" / "mlperf"
     profile_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     seen: dict = {"msgs": []}
 
     class LaunchDB:
@@ -16741,7 +16741,7 @@ def test_session_create_without_parent_still_defers_row(monkeypatch):
 def test_session_branch_installs_parent_profile_secret_scope(monkeypatch, tmp_path):
     """The branched agent must be built under the parent profile's secrets.
 
-    session.branch already binds the parent's HERMES_HOME and state.db, but the
+    session.branch already binds the parent's A2ASSISTANT_HOME and state.db, but the
     secret scope is what makes get_secret() resolve that profile's .env. Without
     it the build falls through to process os.environ — the LAUNCH profile's
     credentials — which is exactly the cross-profile resolution #67605 fixed for
@@ -16753,7 +16753,7 @@ def test_session_branch_installs_parent_profile_secret_scope(monkeypatch, tmp_pa
 
     profile_home = tmp_path / "profiles" / "mlperf"
     profile_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (profile_home / ".env").write_text(
         "PROXMOX_TOKEN=mlperf-secret\n", encoding="utf-8"
     )
@@ -16846,7 +16846,7 @@ def test_session_branch_uses_persisted_display_history_after_compaction(monkeypa
     """A live branch must copy the complete visible transcript, not the compacted model tail."""
     profile_home = tmp_path / "profiles" / "mlperf"
     profile_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     seen: dict = {"msgs": []}
 
     display_history = [
@@ -16979,7 +16979,7 @@ def test_session_branch_uses_persisted_display_history_after_compaction(monkeypa
 
 def test_model_options_does_not_overwrite_curated_models(monkeypatch):
     """The TUI model.options handler must surface the same curated model
-    list as `hermes model` and the classic CLI /model picker.
+    list as `a2assistant model` and the classic CLI /model picker.
 
     Regression: earlier versions of this handler unconditionally replaced
     each provider's curated ``models`` field with ``provider_model_ids()``
@@ -17235,7 +17235,7 @@ def test_prompt_submit_releases_old_history_before_heap_trim(monkeypatch, tmp_pa
     session = _session(agent=_Agent())
     profile_home = tmp_path / "profiles" / "worker"
     profile_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     session["profile_home"] = str(profile_home)
     session["history"] = [old]
     del old
@@ -17489,7 +17489,7 @@ def test_session_active_list_excludes_finalized_sessions(monkeypatch):
     that window ``session.active_list`` would otherwise still report the dead
     session, which is exactly the footer "N sessions" count that only ever grew
     until a gateway restart. A live session on the real stdio transport (the
-    standalone ``hermes --tui`` case) must still be reported.
+    standalone ``a2assistant --tui`` case) must still be reported.
     """
     class _DB:
         def get_session_title(self, key):
@@ -17832,7 +17832,7 @@ def test_session_most_recent_handles_db_unavailable(monkeypatch):
 
 
 def test_verification_status_returns_recorded_evidence(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_VERIFY_ON_STOP", "1")  # ledger is inert when the guard is off
+    monkeypatch.setenv("A2ASSISTANT_VERIFY_ON_STOP", "1")  # ledger is inert when the guard is off
     profile_home = tmp_path / "profiles" / "verify"
     profile_home.mkdir(parents=True)
     monkeypatch.setattr(server, "_profile_home", lambda p: profile_home if p == "verify" else None)
@@ -17873,7 +17873,7 @@ def test_verification_status_returns_recorded_evidence(tmp_path, monkeypatch):
 
 
 def test_verification_status_outside_workspace_is_not_applicable(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_VERIFY_ON_STOP", "1")  # ledger is inert when the guard is off
+    monkeypatch.setenv("A2ASSISTANT_VERIFY_ON_STOP", "1")  # ledger is inert when the guard is off
     # A cwd with no project facts (outside any code workspace) must report
     # not_applicable. Force the "no facts" precondition rather than relying on
     # tmp_path's ancestors being pristine — a stray marker file in a shared
@@ -18343,7 +18343,7 @@ def test_session_save_writes_under_hermes_home_with_system_prompt(monkeypatch, t
     """
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     # Run from a different CWD to prove the snapshot does NOT leak there.
     work = tmp_path / "workspace"
@@ -18398,7 +18398,7 @@ def test_session_save_lands_in_the_sessions_own_profile_a_b_a(monkeypatch, tmp_p
     launch_home = tmp_path / ".hermes"
     work_home = launch_home / "profiles" / "s6probe-work"
     work_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
     set_multiplex_active(True)
     parents = []
     try:
@@ -20006,9 +20006,9 @@ class TestResolveRuntimeWithFallback:
             captured.update(kwargs)
             return types.SimpleNamespace(model=kwargs.get("model"))
 
-        monkeypatch.delenv("HERMES_MODEL", raising=False)
-        monkeypatch.delenv("HERMES_INFERENCE_MODEL", raising=False)
-        monkeypatch.delenv("HERMES_TUI_PROVIDER", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_INFERENCE_MODEL", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_TUI_PROVIDER", raising=False)
         monkeypatch.setattr(
             server,
             "_load_cfg",
@@ -20153,20 +20153,20 @@ def _fake_tts_modules(monkeypatch, *, requirements=True, playback_stops=None, li
 
 
 def test_tts_stream_begin_requires_voice_tts(monkeypatch):
-    monkeypatch.setenv("HERMES_VOICE_TTS", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "0")
     assert server._tts_stream_begin() is None
 
 
 def test_tts_stream_begin_requires_working_provider(monkeypatch):
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
     _fake_tts_modules(monkeypatch, requirements=False)
     assert server._tts_stream_begin() is None
 
 
 def test_tts_stream_begin_and_stop_lifecycle(monkeypatch):
     """begin() spawns the consumer; stop() cuts it and clears the slot."""
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
-    monkeypatch.setenv("HERMES_VOICE", "0")  # no barge-in monitor (no mic)
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "0")  # no barge-in monitor (no mic)
     playback_stops: list = []
     started = _fake_tts_modules(monkeypatch, playback_stops=playback_stops)
 
@@ -20187,8 +20187,8 @@ def test_tts_stream_begin_and_stop_lifecycle(monkeypatch):
 
 def test_tts_stream_begin_barges_in_on_previous_pipeline(monkeypatch):
     """A new turn's pipeline stops the previous turn's speech (one speaker)."""
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
-    monkeypatch.setenv("HERMES_VOICE", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "0")
     _fake_tts_modules(monkeypatch)
 
     server._tts_stream_begin()
@@ -20205,8 +20205,8 @@ def test_tts_stream_stop_latches_interruption_for_next_turn(monkeypatch):
     import tools.tts_streaming as ts
 
     ts._interrupted_at = None
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
-    monkeypatch.setenv("HERMES_VOICE", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "0")
     _fake_tts_modules(monkeypatch)
 
     server._tts_stream_begin()
@@ -20223,8 +20223,8 @@ def test_tts_stream_stop_after_natural_finish_does_not_latch(monkeypatch):
     import tools.tts_streaming as ts
 
     ts._interrupted_at = None
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
-    monkeypatch.setenv("HERMES_VOICE", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "0")
     _fake_tts_modules(monkeypatch)
 
     server._tts_stream_begin()
@@ -20243,8 +20243,8 @@ def test_tts_stream_vad_barge_in_cuts_pipeline_and_submits_capture(monkeypatch, 
     import tools.tts_streaming as ts
 
     ts._interrupted_at = None
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
     monkeypatch.setattr(server, "_load_cfg", lambda: {"voice": {"barge_in": True}})
     events: list = []
     monkeypatch.setattr(
@@ -20283,8 +20283,8 @@ def test_full_duplex_generation_phase_interrupts_running_turn(monkeypatch, tmp_p
     import tools.tts_streaming as ts
 
     ts._interrupted_at = None
-    monkeypatch.setenv("HERMES_VOICE", "1")
-    monkeypatch.setenv("HERMES_VOICE_TTS", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "0")
     monkeypatch.setattr(server, "_load_cfg", lambda: {"voice": {"barge_in": True}})
     events: list = []
     monkeypatch.setattr(
@@ -20324,7 +20324,7 @@ def test_full_duplex_generation_phase_interrupts_running_turn(monkeypatch, tmp_p
 def test_full_duplex_stop_phrase_mid_generation_ends_voice_chat(monkeypatch, tmp_path):
     """Bare 'stop' during generation = interrupt the turn AND end the voice
     chat ('stop everything'), emitted as the explicit stop_phrase signal."""
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
     monkeypatch.setattr(server, "_load_cfg", lambda: {"voice": {"barge_in": True}})
     events: list = []
     monkeypatch.setattr(
@@ -20366,7 +20366,7 @@ def test_full_duplex_stop_phrase_mid_generation_ends_voice_chat(monkeypatch, tmp
         time.sleep(0.01)
     assert interrupted.is_set()
     assert ("voice.transcript", {"stop_phrase": True, "text": "stop"}) in events
-    assert os.environ.get("HERMES_VOICE") == "0"  # voice chat ended
+    assert os.environ.get("A2ASSISTANT_VOICE") == "0"  # voice chat ended
 
 
 def test_speak_text_with_barge_arms_monitor_and_cuts_playback(monkeypatch, tmp_path):
@@ -20378,8 +20378,8 @@ def test_speak_text_with_barge_arms_monitor_and_cuts_playback(monkeypatch, tmp_p
     import tools.tts_streaming as ts
 
     ts._interrupted_at = None
-    monkeypatch.setenv("HERMES_VOICE", "1")
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
     monkeypatch.setattr(
         server,
         "_load_cfg",
@@ -20439,8 +20439,8 @@ def test_speak_text_with_barge_arms_monitor_and_cuts_playback(monkeypatch, tmp_p
 
 def test_speak_text_with_barge_no_monitor_when_voice_mode_off(monkeypatch):
     """Auto-speak with voice mode off (no mic loop) must not open the mic."""
-    monkeypatch.setenv("HERMES_VOICE", "0")
-    monkeypatch.setenv("HERMES_VOICE_TTS", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "0")
+    monkeypatch.setenv("A2ASSISTANT_VOICE_TTS", "1")
     monkeypatch.setattr(server, "_load_cfg", lambda: {"voice": {"barge_in": True}})
 
     listened = threading.Event()
@@ -21958,7 +21958,7 @@ def test_prompt_submit_unconfirmed_truncation_refuses_before_target_resolution(
 
 def test_persist_live_session_system_prompt_uses_profile_home(monkeypatch, tmp_path):
     """Issue #50233: _persist_live_session_system_prompt must re-bind
-    HERMES_HOME to the session's profile before rebuilding the system
+    A2ASSISTANT_HOME to the session's profile before rebuilding the system
     prompt.  Without this, a /model switch rebuilds the prompt with the
     root profile's SOUL.md and skills instead of the session's profile.
     """

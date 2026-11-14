@@ -3,7 +3,7 @@
 Debian's ``/etc/profile`` resets PATH for every login shell, so without
 ``/etc/profile.d/hermes.sh`` a ``bash -l`` (``docker exec <c> bash -l``, ssh, the
 terminal tool's background ``bash -lic``) lost ``/opt/hermes/bin`` and bare
-``hermes`` exited 127 (#56634).
+``a2assistant`` exited 127 (#56634).
 """
 from __future__ import annotations
 

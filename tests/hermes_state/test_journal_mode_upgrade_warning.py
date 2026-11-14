@@ -34,7 +34,7 @@ import hermes_yaml as yaml
 def _write_config(monkeypatch: pytest.MonkeyPatch, tmp_path, config: object) -> None:
     home = tmp_path / "hermes-home"
     home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "config.yaml").write_text(yaml.safe_dump(config), encoding="utf-8")
 
 

@@ -14,7 +14,7 @@ import { defaultRehypePlugins, defaultRemarkPlugins, Streamdown } from 'streamdo
 import { getApiRequestConnection } from '@/api/client'
 import { requestComposerFocus, requestComposerInsertRefs } from '@/app/chat/composer/focus'
 import { droppedFileInlineRef } from '@/app/chat/composer/inline-refs'
-import { HERMES_PATHS_MIME } from '@/app/chat/hooks/use-composer-actions'
+import { A2ASSISTANT_PATHS_MIME } from '@/app/chat/hooks/use-composer-actions'
 import { RichCodeBlock } from '@/components/assistant-ui/embeds'
 import { CodeEditor } from '@/components/chat/code-editor'
 import { FileDiffPanel } from '@/components/chat/diff-lines'
@@ -609,7 +609,7 @@ function startLineDrag(event: ReactDragEvent<HTMLElement>, filePath: string, { e
   const lineEnd = end > start ? end : undefined
   const label = lineEnd ? `${filePath}:${start}-${end}` : `${filePath}:${start}`
 
-  event.dataTransfer.setData(HERMES_PATHS_MIME, JSON.stringify([{ line: start, lineEnd, path: filePath }]))
+  event.dataTransfer.setData(A2ASSISTANT_PATHS_MIME, JSON.stringify([{ line: start, lineEnd, path: filePath }]))
   event.dataTransfer.setData('text/plain', label)
   event.dataTransfer.effectAllowed = 'copy'
 }

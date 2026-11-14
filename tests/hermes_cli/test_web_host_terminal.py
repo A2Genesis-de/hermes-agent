@@ -85,7 +85,7 @@ def _assert_host_terminal_resolver_uses_real_host(tmp_path):
     assert shell_name
     assert env["TERM"] == "xterm-256color"
     assert env["COLORTERM"] == "truecolor"
-    assert env["HERMES_DESKTOP_TERMINAL"] == "1"
+    assert env["A2ASSISTANT_DESKTOP_TERMINAL"] == "1"
 
 
 def test_host_terminal_resolver_applies_selected_profile_home_and_config(
@@ -103,14 +103,14 @@ def test_host_terminal_resolver_applies_selected_profile_home_and_config(
         encoding="utf-8",
     )
     monkeypatch.setenv("HOME", str(current / "home"))
-    monkeypatch.setenv("HERMES_HOME", str(current))
-    monkeypatch.setenv("HERMES_REAL_HOME", str(real_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(current))
+    monkeypatch.setenv("A2ASSISTANT_REAL_HOME", str(real_home))
     monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
     monkeypatch.setenv("OPENAI_API_KEY", "current-profile-secret")
 
     _argv, _cwd, env, _shell_name = web_host_terminal.resolve_argv(home=target)
 
-    assert env["HERMES_HOME"] == str(target)
+    assert env["A2ASSISTANT_HOME"] == str(target)
     assert env["HOME"] == str(target / "home")
     assert env["TERMINAL_HOME_MODE"] == "profile"
     assert "OPENAI_API_KEY" not in env

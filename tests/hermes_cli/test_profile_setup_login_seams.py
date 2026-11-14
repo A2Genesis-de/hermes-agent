@@ -1,11 +1,11 @@
 """Provider-profile setup/sign-in seams (``providers.base`` L6 block) through the real routes.
 
 A model-provider plugin installed in ONE profile's home declares an in-app device-code login, an
-Accounts card and a ``hermes model`` step; core drives them with no provider-specific code:
+Accounts card and a ``a2assistant model`` step; core drives them with no provider-specific code:
   * ``/api/providers/oauth`` lists the card as ``device_code`` for that profile only;
   * ``/start`` + ``/poll`` run the profile's start/poll hooks and save inside that profile's scope;
   * a cancel before approval never saves;
-  * ``hermes model`` dispatch and the effort picker consult the profile.
+  * ``a2assistant model`` dispatch and the effort picker consult the profile.
 """
 
 from __future__ import annotations
@@ -84,7 +84,7 @@ def acme(tmp_path, monkeypatch):
         f"name: {NAME}\nkind: model-provider\nversion: 0.0.1\ndescription: device login seam fixture\n")
     (plugin_dir / "__init__.py").write_text(_PLUGIN_SOURCE)
     log = tmp_path / "acme.jsonl"
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("ACME_DEVICE_LOG", str(log))
     _rediscover()
 
@@ -173,7 +173,7 @@ def test_provider_without_device_login_cannot_start_one(acme):
 
 def test_hermes_model_dispatch_and_effort_picker_consult_the_profile(acme, monkeypatch):
     coder, events = acme
-    monkeypatch.setenv("HERMES_HOME", str(coder))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(coder))
     _rediscover()
     from hermes_cli.main_provider_setup import _main_model_reasoning_efforts
     from hermes_cli.model_setup_flows import _profile_model_setup_flow

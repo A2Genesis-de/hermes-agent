@@ -168,7 +168,7 @@ def test_browser_explicit_local_mode_stays_local_even_when_managed_gateway_is_re
     (tmp_path / "config.yaml").write_text("browser:\n  cloud_provider: local\n", encoding="utf-8")
     env = os.environ.copy()
     env.update({
-        "HERMES_HOME": str(tmp_path),
+        "A2ASSISTANT_HOME": str(tmp_path),
         "TOOL_GATEWAY_USER_TOKEN": "nous-token",
     })
 

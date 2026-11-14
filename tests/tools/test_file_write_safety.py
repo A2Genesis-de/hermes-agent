@@ -1,4 +1,4 @@
-"""Tests for file write safety and HERMES_WRITE_SAFE_ROOT sandboxing.
+"""Tests for file write safety and A2ASSISTANT_WRITE_SAFE_ROOT sandboxing.
 
 Based on PR #1085 by ismoilh (salvaged).
 """
@@ -68,36 +68,36 @@ class TestSshConfigApprovalGate:
 
 
 class TestSafeWriteRoot:
-    """HERMES_WRITE_SAFE_ROOT should sandbox writes to a specific subtree."""
+    """A2ASSISTANT_WRITE_SAFE_ROOT should sandbox writes to a specific subtree."""
 
     def test_writes_inside_safe_root_are_allowed(self, tmp_path: Path, monkeypatch):
         safe_root = tmp_path / "workspace"
         child = safe_root / "subdir" / "file.txt"
         os.makedirs(child.parent, exist_ok=True)
 
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", str(safe_root))
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", str(safe_root))
         assert _is_write_denied(str(child)) is False
 
 
     def test_safe_root_with_tilde_expansion(self, tmp_path: Path, monkeypatch):
-        """~ in HERMES_WRITE_SAFE_ROOT should be expanded."""
+        """~ in A2ASSISTANT_WRITE_SAFE_ROOT should be expanded."""
         # Use a real subdirectory of tmp_path so we can test tilde-style paths
         safe_root = tmp_path / "workspace"
         inside = safe_root / "file.txt"
         os.makedirs(safe_root, exist_ok=True)
 
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", str(safe_root))
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", str(safe_root))
         assert _is_write_denied(str(inside)) is False
 
     def test_safe_root_does_not_override_static_deny(self, tmp_path: Path, monkeypatch):
         """Even if a static-denied path is inside the safe root, it's still denied."""
         # Point safe root at home to include ~/.ssh
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", os.path.expanduser("~"))
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", os.path.expanduser("~"))
         assert _is_write_denied(os.path.expanduser("~/.ssh/id_rsa")) is True
 
 
 class TestMultipleSafeWriteRoots:
-    """HERMES_WRITE_SAFE_ROOT with multiple colon-separated directories."""
+    """A2ASSISTANT_WRITE_SAFE_ROOT with multiple colon-separated directories."""
 
     def test_write_inside_first_root_allowed(self, tmp_path: Path, monkeypatch):
         root_a = tmp_path / "workspace_a"
@@ -106,7 +106,7 @@ class TestMultipleSafeWriteRoots:
         os.makedirs(child.parent, exist_ok=True)
         os.makedirs(root_b, exist_ok=True)
 
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", f"{root_a}{os.pathsep}{root_b}")
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", f"{root_a}{os.pathsep}{root_b}")
         assert _is_write_denied(str(child)) is False
 
 
@@ -115,7 +115,7 @@ class TestMultipleSafeWriteRoots:
         inside = root / "file.txt"
         os.makedirs(root, exist_ok=True)
 
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", f"{root}{os.pathsep}")
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", f"{root}{os.pathsep}")
         assert _is_write_denied(str(inside)) is False
 
 
@@ -125,7 +125,7 @@ class TestMultipleSafeWriteRoots:
         os.makedirs(root, exist_ok=True)
 
         monkeypatch.setenv(
-            "HERMES_WRITE_SAFE_ROOT",
+            "A2ASSISTANT_WRITE_SAFE_ROOT",
             f"{root}{os.pathsep}{os.path.expanduser('~')}",
         )
         assert _is_write_denied(os.path.expanduser("~/.ssh/id_rsa")) is True
@@ -136,7 +136,7 @@ class TestMultipleSafeWriteRoots:
         os.makedirs(root, exist_ok=True)
 
         monkeypatch.setenv(
-            "HERMES_WRITE_SAFE_ROOT",
+            "A2ASSISTANT_WRITE_SAFE_ROOT",
             f"{root}{os.pathsep}{root}",
         )
         assert _is_write_denied(str(inside)) is False
@@ -151,7 +151,7 @@ class TestGetWriteDeniedError:
         err = get_write_denied_error(os.path.expanduser("~/.ssh/id_rsa"))
         assert err is not None
         assert "protected system/credential file" in err
-        assert "HERMES_WRITE_SAFE_ROOT" not in err
+        assert "A2ASSISTANT_WRITE_SAFE_ROOT" not in err
 
     def test_safe_root_message(self, tmp_path: Path, monkeypatch):
         from agent.file_safety import get_write_denied_error
@@ -160,10 +160,10 @@ class TestGetWriteDeniedError:
         outside = tmp_path / "outside.txt"
         os.makedirs(safe_root, exist_ok=True)
 
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", str(safe_root))
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", str(safe_root))
         err = get_write_denied_error(str(outside))
         assert err is not None
-        assert "outside HERMES_WRITE_SAFE_ROOT" in err
+        assert "outside A2ASSISTANT_WRITE_SAFE_ROOT" in err
         assert str(safe_root) in err
         assert "protected system/credential file" not in err
 
@@ -176,7 +176,7 @@ class TestGetWriteDeniedError:
 
 class TestSafeRootDenialMessageIntegration:
     """Regression tests verifying that file-tools surface the correct denial
-    message when HERMES_WRITE_SAFE_ROOT blocks a path.
+    message when A2ASSISTANT_WRITE_SAFE_ROOT blocks a path.
 
     Prior to this fix, ALL write denials returned the same "protected
     system/credential file" message regardless of root cause.  These tests
@@ -198,11 +198,11 @@ class TestSafeRootDenialMessageIntegration:
         safe_root.mkdir()
         outside = tmp_path / "other" / "file.txt"
         outside.parent.mkdir()
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", str(safe_root))
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", str(safe_root))
 
         res = ops.write_file(str(outside), "content")
         assert res.error is not None
-        assert "outside HERMES_WRITE_SAFE_ROOT" in res.error
+        assert "outside A2ASSISTANT_WRITE_SAFE_ROOT" in res.error
         assert str(safe_root) in res.error
         assert "credential" not in res.error
         assert not outside.exists()
@@ -222,7 +222,7 @@ class TestSafeRootDenialMessageIntegration:
         safe_root = tmp_path / "workspace"
         safe_root.mkdir()
         inside = safe_root / "file.txt"
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", str(safe_root))
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", str(safe_root))
 
         res = ops.write_file(str(inside), "content")
         assert res.error is None
@@ -432,7 +432,7 @@ class TestBomHandling:
         # lands at the head of the file. Remote backends announce things on connect, so the local
         # native fast path is off here and the base64 transport is what runs.
         from tools.file_operations import ShellFileOperations
-        monkeypatch.setenv("HERMES_NATIVE_FILE_READ", "0")
+        monkeypatch.setenv("A2ASSISTANT_NATIVE_FILE_READ", "0")
 
         target = tmp_path / "conf.txt"
         original = b"HEADER\nVERSION=1\n"
@@ -449,7 +449,7 @@ class TestBomHandling:
         # file is editable at all and what a refusal reports about it. The sample must be the file's
         # own leading bytes, not the backend's banner decoded into them.
         from tools.file_operations import ShellFileOperations
-        monkeypatch.setenv("HERMES_NATIVE_FILE_READ", "0")
+        monkeypatch.setenv("A2ASSISTANT_NATIVE_FILE_READ", "0")
 
         target = tmp_path / "head.bin"
         original = b"\x00\x01\x02binary payload\n"
@@ -477,7 +477,7 @@ class TestBomHandling:
         # base64 is not on every backend. The sample path already degrades when it is missing
         # (_detect_binary), so the byte-exact read must too, and byte-exactly.
         from tools.file_operations import ShellFileOperations
-        monkeypatch.setenv("HERMES_NATIVE_FILE_READ", "0")
+        monkeypatch.setenv("A2ASSISTANT_NATIVE_FILE_READ", "0")
         target = tmp_path / "conf.txt"
         original = b"HEADER\nVERSION=1\n"
         target.write_bytes(original)
@@ -493,7 +493,7 @@ class TestBomHandling:
         # transport at all makes that read FAIL, which must not read as "the path is free" —
         # that writes the Add payload over the file the check exists to protect.
         from tools.file_operations import ShellFileOperations
-        monkeypatch.setenv("HERMES_NATIVE_FILE_READ", "0")
+        monkeypatch.setenv("A2ASSISTANT_NATIVE_FILE_READ", "0")
         target = tmp_path / "KEEP.txt"
         precious = b"KEEP ME\n"
         target.write_bytes(precious)
@@ -510,7 +510,7 @@ class TestBomHandling:
         # Validation must keep "the read failed" apart from "the path is absent" for a Move
         # destination too, and the apply must re-check it before `mv` replaces whatever is there.
         from tools.file_operations import ShellFileOperations
-        monkeypatch.setenv("HERMES_NATIVE_FILE_READ", "0")
+        monkeypatch.setenv("A2ASSISTANT_NATIVE_FILE_READ", "0")
         dst = tmp_path / "dst.txt"
         dst.write_bytes(b"PRECIOUS DESTINATION\n")
         ops = ShellFileOperations(self._env_without("base64", "od")(cwd=str(tmp_path)), cwd=str(tmp_path))
@@ -531,7 +531,7 @@ class TestBomHandling:
         # hook firing for the transport command alone puts text inside the payload that still
         # decodes ("TERM" is b"LDL"; "4c 44" is hex). Such a read must fail, and no edit may write.
         from tools.file_operations import ShellFileOperations
-        monkeypatch.setenv("HERMES_NATIVE_FILE_READ", "0")
+        monkeypatch.setenv("A2ASSISTANT_NATIVE_FILE_READ", "0")
         hook = tmp_path / "hook.sh"
         hook.write_text(f"trap '[[ $BASH_COMMAND == {transport}* ]] && echo \"{noise}\"' DEBUG\n")
         target = tmp_path / "conf.txt"
@@ -597,7 +597,7 @@ class TestBomHandling:
         from tools.environments.local import LocalEnvironment
         if not shutil.which("bash"):
             pytest.skip("bash not installed")
-        monkeypatch.setenv("HERMES_NATIVE_FILE_READ", "0")
+        monkeypatch.setenv("A2ASSISTANT_NATIVE_FILE_READ", "0")
         hook = tmp_path / "xtrace.sh"
         hook.write_text("set -x\n")
         target = tmp_path / "conf.txt"
@@ -778,7 +778,7 @@ class TestProtectedInstructionFiles:
         assert res.get("error") and "BLOCKED" in res["error"]
 
     def test_checkout_nested_under_hermes_dir_not_gated(self, tmp_path, approvals):
-        """A repo living UNDER a .hermes dir (e.g. ~/.hermes/hermes-agent)
+        """A repo living UNDER a .hermes dir (e.g. ~/.a2assistant/app)
         must not have every write gated — only files directly inside a
         .hermes dir count as project config."""
         repo = tmp_path / ".hermes" / "some-repo" / "src"
@@ -790,7 +790,7 @@ class TestProtectedInstructionFiles:
     def test_real_hermes_home_not_gated_by_this_check(
         self, tmp_path, approvals, monkeypatch
     ):
-        """~/.hermes itself is governed by existing guards, not this gate."""
+        """~/.a2assistant itself is governed by existing guards, not this gate."""
         import tools.file_tools_write_guards as ft
         fake_home = tmp_path / ".hermes"
         (fake_home / "notes").mkdir(parents=True)
@@ -920,7 +920,7 @@ class TestProtectedInstructionFiles:
 
 
 class TestProfileHomeExemptsHermesRoot:
-    """issue #60: under ``hermes -p <name>`` (``HERMES_HOME=<root>/profiles/<name>``)
+    """issue #60: under ``a2assistant -p <name>`` (``A2ASSISTANT_HOME=<root>/profiles/<name>``)
     the exemption used to cover ONLY the profile dir, so the ROOT's direct files
     (LEDGER.md / MEMORY.md / SOUL.md ...) fell through to the ``.hermes`` component
     rule, were read as project-local ``.hermes`` config, and — having no approval
@@ -972,7 +972,7 @@ class TestProfileHomeExemptsHermesRoot:
         from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
         root, profile = self._profile_layout(tmp_path)
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         token = set_hermes_home_override(str(profile))
         try:
             assert os.path.realpath(str(root)) in ft._hermes_exempt_homes()
@@ -995,7 +995,7 @@ class TestProfileHomeExemptsHermesRoot:
         _root, profile = self._profile_layout(tmp_path)
         repo = tmp_path / "repo"
         (repo / ".hermes").mkdir(parents=True)
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         token = set_hermes_home_override(str(profile))
         try:
             assert ft._protected_instruction_reason(str(repo / ".hermes" / "config.yaml"))
@@ -1018,7 +1018,7 @@ class TestProfileHomeExemptsHermesRoot:
 
 
 class TestMultiplexProfileWriteGuardsAreProfileScoped:
-    """#107327: a multiplexed gateway scopes ``HERMES_HOME`` per turn via a
+    """#107327: a multiplexed gateway scopes ``A2ASSISTANT_HOME`` per turn via a
     contextvar. The home/config path getters must resolve per call, or whichever
     profile ran first in the process freezes both the protected-instruction gate
     and the ``config.yaml`` hard-block for every later profile — up to letting a

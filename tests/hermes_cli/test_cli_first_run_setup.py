@@ -271,7 +271,7 @@ def test_empty_key_error_names_actual_provider(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert "fireworks" in out
     assert "OPENROUTER_API_KEY" not in out
-    assert "hermes model" in out or "hermes setup" in out
+    assert "a2assistant model" in out or "a2assistant setup" in out
 
 
 # ---------------------------------------------------------------------------
@@ -328,7 +328,7 @@ def test_benched_credential_prints_cooldown_instead_of_wizard(monkeypatch, capsy
                          cause=t("cli.startup.cooldown_cause_rate_limit"), minutes=1))
     assert t("cli.startup.cooldown_cause_token_refresh") not in out
     assert "not logged into Nous Portal" in out
-    assert "re-authenticate" not in out and "hermes model" not in out
+    assert "re-authenticate" not in out and "a2assistant model" not in out
 
 
 def test_auth_json_only_login_explains_instead_of_wizard(monkeypatch, capsys, tmp_path):
@@ -340,7 +340,7 @@ def test_auth_json_only_login_explains_instead_of_wizard(monkeypatch, capsys, tm
 
     import hermes_cli.runtime_provider as rp
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("model:\n  default: some-model\n", encoding="utf-8")
     for key in [k for k in os.environ if k.endswith("_API_KEY")]:
         monkeypatch.delenv(key, raising=False)

@@ -173,7 +173,7 @@ def usage_frame(stats: dict) -> dict:
     viewer from one frame, and leaves the counters untouched for every existing consumer.
 
     ``usage`` is the standard status-bar projection of the embedded ticker's ``server._get_usage``
-    view, with two exceptions: ``dev_credits_spent_micros`` (``HERMES_DEV_CREDITS`` only) is not
+    view, with two exceptions: ``dev_credits_spent_micros`` (``A2ASSISTANT_DEV_CREDITS`` only) is not
     carried, and ``avg_latency_s`` / ``avg_tps`` are rounded from the counters' two decimals rather
     than the raw values, so they can differ by 0.1 at a rounding boundary. A Desktop bundle that
     reads only ``payload.usage`` fills its meters here too. The

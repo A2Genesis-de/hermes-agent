@@ -39,7 +39,7 @@ async def test_retry_after_a_lost_refresh_replays_the_same_rewind(tmp_path, monk
     from hermes_cli.gateway_client import GatewayClientError
     from hermes_cli.gateway_mutations import PreparedMutations
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     runner = SimpleNamespace(session_store=store, _session_db=store._db, adapters={}, _draining=False,

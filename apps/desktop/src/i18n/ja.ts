@@ -927,7 +927,7 @@ export const jaOverrides = {
         'A2Assistant Desktop はデフォルトで独自のローカルゲートウェイを起動します。別のマシンや信頼できるプロキシの背後で既に動作している A2Assistant バックエンドをこのアプリで制御する場合は、リモートゲートウェイを使用してください。ゲートウェイ接続はマシン単位の設定で、プロファイルは接続したゲートウェイから検出されます。',
       envOverrideTitle: '環境変数がこのデスクトップセッションを制御しています。',
       envOverrideDesc:
-        '保存された設定を使用するには HERMES_DESKTOP_REMOTE_URL と HERMES_DESKTOP_REMOTE_TOKEN の設定を解除してください。',
+        '保存された設定を使用するには A2ASSISTANT_DESKTOP_REMOTE_URL と A2ASSISTANT_DESKTOP_REMOTE_TOKEN の設定を解除してください。',
       localTitle: 'ローカルゲートウェイ',
       localDesc:
         'ローカルホストでプライベートな A2Assistant バックエンドを起動します。これがデフォルトで、オフラインでも動作します。',
@@ -1318,7 +1318,7 @@ export const jaOverrides = {
     unlockedHint: 'ロックすると、エージェントはこのスキルを変更できなくなります。自分では引き続き編集できます。',
     archive: 'アーカイブ',
     skillArchivedTitle: 'スキルをアーカイブしました',
-    skillArchivedMessage: 'hermes curator restore で復元できます。',
+    skillArchivedMessage: 'a2assistant curator restore で復元できます。',
     officialCatalog: 'インストール可能',
     officialPill: '公式'
   },
@@ -1613,7 +1613,7 @@ export const jaOverrides = {
     failedImport: 'プロファイルのインポートに失敗しました',
     failedExport: 'プロファイルのエクスポートに失敗しました',
     exportNeedsHost: name =>
-      `ブラウザーではプロファイルのアーカイブを保存できません。A2Assistant ホストで次を実行してください: hermes profile export ${name}`,
+      `ブラウザーではプロファイルのアーカイブを保存できません。A2Assistant ホストで次を実行してください: a2assistant profile export ${name}`,
     allProfiles: 'すべてのプロファイル',
     showAllProfiles: 'すべてのプロファイルを表示',
     notServedHere: 'ここでは提供されていません',
@@ -3262,7 +3262,7 @@ export const jaOverrides = {
       reject: '拒否',
       alwaysTitle: 'このコマンドを常に許可しますか？',
       alwaysDescription: pattern =>
-        `これにより "${pattern}" パターンが永続的な許可リスト (~/.hermes/config.yaml) に追加されます。A2Assistant はこのセッションや将来のセッションで、このようなコマンドについて再度尋ねません。`,
+        `これにより "${pattern}" パターンが永続的な許可リスト (~/.a2assistant/config.yaml) に追加されます。A2Assistant はこのセッションや将来のセッションで、このようなコマンドについて再度尋ねません。`,
       alwaysAllow: '常に許可'
     },
     clarify: jaClarify,
@@ -3529,7 +3529,7 @@ export const jaOverrides = {
       success: platform => `${platform} に引き継ぎました。いつでもここで再開できます。`,
       systemNote: platform => `↻ ${platform} に引き継ぎました — いつでもここで再開できます。`,
       failed: error => `引き継ぎに失敗しました: ${error}`,
-      timedOut: 'ゲートウェイの待機がタイムアウトしました。`hermes gateway` は起動していますか？'
+      timedOut: 'ゲートウェイの待機がタイムアウトしました。`a2assistant gateway` は起動していますか？'
     }
   },
 

@@ -20,10 +20,10 @@ from hermes_cli import kanban_db_dispatch as kbd
 
 @pytest.fixture
 def kanban_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with an empty kanban DB."""
+    """Isolated A2ASSISTANT_HOME with an empty kanban DB."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home
@@ -121,7 +121,7 @@ def test_allowlist_config_read_failure_skips_all_cards(
     ("kanban:\n  dispatch_profiles: []\n", "none (fail-closed"),
 ], ids=["absent", "listed", "empty_list"])
 def test_diagnostics_reports_resolved_allowlist(kanban_home, capsys, config, expected):
-    """`hermes kanban diagnostics` (text and --json) shows what this home may claim."""
+    """`a2assistant kanban diagnostics` (text and --json) shows what this home may claim."""
     import argparse
     import json
 

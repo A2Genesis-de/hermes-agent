@@ -1,4 +1,4 @@
-"""``hermes verify`` subcommand parser.
+"""``a2assistant verify`` subcommand parser.
 
 Follows the pattern of ``hermes_cli/subcommands/doctor.py``: parser built
 here, handler injected to avoid importing ``main``.

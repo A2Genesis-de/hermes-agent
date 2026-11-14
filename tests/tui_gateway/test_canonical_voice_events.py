@@ -30,7 +30,7 @@ def test_voice_transcript_for_an_unregistered_session_goes_to_the_capturing_clie
     callbacks = {}
     monkeypatch.setitem(sys.modules, "hermes_cli.voice", types.SimpleNamespace(
         start_continuous=lambda **kw: callbacks.update(kw), stop_continuous=lambda **kw: None))
-    monkeypatch.setenv("HERMES_VOICE", "1")
+    monkeypatch.setenv("A2ASSISTANT_VOICE", "1")
     monkeypatch.setattr(server, "_load_cfg", dict)
     ws, stdio = _Sink(), _Sink()
     monkeypatch.setattr(server, "_stdio_transport", stdio)

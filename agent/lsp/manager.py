@@ -262,7 +262,7 @@ class LSPService:
 
     def enabled_for(self, file_path: str) -> bool:
         """True iff LSP should run for this file: registered non-disabled server, git workspace,
-        and pair not broken (a failed server costs nothing until ``hermes lsp restart`` / exit)."""
+        and pair not broken (a failed server costs nothing until ``a2assistant lsp restart`` / exit)."""
         srv = self._server_for(file_path) if self._enabled else None
         if srv is None or srv.server_id in self._disabled_servers:
             return False
@@ -498,7 +498,7 @@ class LSPService:
         clear_cache()
 
     def get_status(self) -> dict[str, Any]:
-        """Return a snapshot of the service for ``hermes lsp status``."""
+        """Return a snapshot of the service for ``a2assistant lsp status``."""
         with self._state_lock:
             clients = [
                 {"server_id": c.server_id, "workspace_root": c.workspace_root,

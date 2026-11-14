@@ -22,7 +22,7 @@ def worker_setup(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path,
     root.joinpath("config.yaml").write_text("{}\n", encoding="utf-8")
     profile.joinpath("config.yaml").write_text("{}\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
     workspace = tmp_path / "candidate-worktree"
@@ -85,11 +85,11 @@ def test_managed_gateway_worker_is_spawned_in_restart_safe_scope(
     separator = captured_cmd.index("--")
     assert captured_cmd[separator + 1 :] == [sys.executable, "-m", "hermes_cli.kanban_worker_client"]
     assert task.assignee is not None
-    assert captured_env["HERMES_PROFILE"] == task.assignee
-    assert captured_env["HERMES_HOME"] == str(workspace.parent / ".hermes" / "profiles" / task.assignee)
+    assert captured_env["A2ASSISTANT_PROFILE"] == task.assignee
+    assert captured_env["A2ASSISTANT_HOME"] == str(workspace.parent / ".hermes" / "profiles" / task.assignee)
     assert captured_cwd == str(workspace)
-    assert captured_env["HERMES_KANBAN_TASK"] == task.id
-    assert captured_env["HERMES_KANBAN_RUN_ID"] == "23"
+    assert captured_env["A2ASSISTANT_KANBAN_TASK"] == task.id
+    assert captured_env["A2ASSISTANT_KANBAN_RUN_ID"] == "23"
     assert "ANTHROPIC_API_KEY" not in captured_env
 
 
@@ -216,13 +216,13 @@ def test_real_user_systemd_scope_preserves_worker_context(
         "p = pathlib.Path(sys.argv[1]); t = p.with_suffix('.tmp'); "
         "t.write_text(json.dumps({"
         "'pid': os.getpid(), 'cwd': os.getcwd(), "
-        "'task': os.environ.get('HERMES_KANBAN_TASK'), "
-        "'run': os.environ.get('HERMES_KANBAN_RUN_ID'), "
-        "'claim': os.environ.get('HERMES_KANBAN_CLAIM_LOCK'), "
-        "'board': os.environ.get('HERMES_KANBAN_BOARD'), "
-        "'home': os.environ.get('HERMES_HOME'), "
-        "'profile': os.environ.get('HERMES_PROFILE'), "
-        "'source': os.environ.get('HERMES_SESSION_SOURCE'), "
+        "'task': os.environ.get('A2ASSISTANT_KANBAN_TASK'), "
+        "'run': os.environ.get('A2ASSISTANT_KANBAN_RUN_ID'), "
+        "'claim': os.environ.get('A2ASSISTANT_KANBAN_CLAIM_LOCK'), "
+        "'board': os.environ.get('A2ASSISTANT_KANBAN_BOARD'), "
+        "'home': os.environ.get('A2ASSISTANT_HOME'), "
+        "'profile': os.environ.get('A2ASSISTANT_PROFILE'), "
+        "'source': os.environ.get('A2ASSISTANT_SESSION_SOURCE'), "
         "'terminal_cwd': os.environ.get('TERMINAL_CWD'), "
         "'cgroup': pathlib.Path('/proc/self/cgroup').read_text()})); os.replace(t, p); time.sleep(0.5)"
     )
@@ -254,7 +254,7 @@ def test_real_user_systemd_scope_preserves_worker_context(
         assert payload["source"] == 'kanban'
         assert payload["terminal_cwd"] == str(workspace)
         assert unit in payload["cgroup"]
-        assert "hermes-gateway.service" not in payload["cgroup"]
+        assert "a2assistant-gateway.service" not in payload["cgroup"]
         import psutil
         assert psutil.Process(pid).wait(timeout=5) == 0
     finally:

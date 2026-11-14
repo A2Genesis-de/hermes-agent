@@ -70,7 +70,7 @@ def _home(tmp_path: Path, name: str) -> dict:
     (home / ".hermes" / "config.yaml").write_text(
         "quick_commands:\n  linger:\n    type: exec\n    command: sleep 120\n", encoding="utf-8")
     env = {k: v for k, v in os.environ.items() if not k.endswith("_API_KEY")}
-    env.update(HOME=str(home), HERMES_HOME=str(home / ".hermes"), PYTHONPATH=str(_REPO))
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home / ".hermes"), PYTHONPATH=str(_REPO))
     return env
 
 
@@ -167,7 +167,7 @@ def test_a_worker_that_already_died_is_never_group_signalled(monkeypatch):
 
 
 def test_main_arms_the_legacy_watchdog_then_imports_cli_before_runtime_prep(monkeypatch):
-    """``cli`` loads ~/.hermes/.env, which MCP discovery in the runtime prep needs. A gateway started
+    """``cli`` loads ~/.a2assistant/.env, which MCP discovery in the runtime prep needs. A gateway started
     before an update still passes ``--parent-pid``; its death guard starts before the slow import."""
     events = []
 

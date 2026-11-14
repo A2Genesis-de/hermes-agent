@@ -1,6 +1,6 @@
 """OpenAI Codex OAuth: token store, refresh, quota probe, device-code login.
 
-Tokens live in ~/.hermes/auth.json, NOT ~/.codex/: Hermes keeps its own Codex OAuth session
+Tokens live in ~/.a2assistant/auth.json, NOT ~/.codex/: Hermes keeps its own Codex OAuth session
 separate from the Codex CLI / VS Code extension so one app's refresh-token rotation cannot
 invalidate the other's session.
 
@@ -69,12 +69,12 @@ def _codex_access_token_is_expiring(access_token: Any, skew_seconds: int) -> boo
 
 
 def _codex_base_url() -> str:
-    return os.getenv("HERMES_CODEX_BASE_URL", "").strip().rstrip("/") or DEFAULT_CODEX_BASE_URL
+    return os.getenv("A2ASSISTANT_CODEX_BASE_URL", "").strip().rstrip("/") or DEFAULT_CODEX_BASE_URL
 
 
 def _codex_pool_route_base_url(entry_base_url: Optional[str] = "") -> str:
     """Base URL the chat route sends a pooled Codex credential to — the same rule
-    ``runtime_provider._pool_entry_mode_and_url`` applies (``HERMES_CODEX_BASE_URL`` > ``model.base_url``
+    ``runtime_provider._pool_entry_mode_and_url`` applies (``A2ASSISTANT_CODEX_BASE_URL`` > ``model.base_url``
     while the row still carries the canonical URL > the row's own URL). A pooled gateway key belongs to
     that host only; composing it with the ambient default sends it to chatgpt.com (#121486)."""
     base = _stripped(entry_base_url).rstrip("/")
@@ -89,7 +89,7 @@ def _codex_pool_route_base_url(entry_base_url: Optional[str] = "") -> str:
         # Profile-scoped override only (never the raw process env: a multiplexed sibling's gateway).
         with suppress(Exception):
             from agent.secret_scope import get_secret_str
-            base = _stripped(get_secret_str("HERMES_CODEX_BASE_URL", "")).rstrip("/") or base
+            base = _stripped(get_secret_str("A2ASSISTANT_CODEX_BASE_URL", "")).rstrip("/") or base
         return base or DEFAULT_CODEX_BASE_URL
 
 
@@ -110,7 +110,7 @@ def _load_auth_store_maybe_locked(lock: bool) -> dict[str, Any]:
 
 
 def _read_codex_tokens(*, _lock: bool = True) -> dict[str, Any]:
-    """Read Codex OAuth tokens from Hermes auth store (~/.hermes/auth.json)."""
+    """Read Codex OAuth tokens from Hermes auth store (~/.a2assistant/auth.json)."""
     from hermes_cli.auth import _load_provider_state, _nonempty_str
     auth_store = _load_auth_store_maybe_locked(_lock)
     state = _load_provider_state(auth_store, "openai-codex")
@@ -136,8 +136,8 @@ def _sync_codex_pool_entries(
     previous_singleton_tokens: Optional[dict[str, str]] = None) -> None:
     """Mirror a fresh Codex re-auth into the credential_pool OAuth entries.
 
-    ``device_code`` (the singleton-seeded entry from ``hermes setup`` / the model picker) is always
-    synced. ``manual:device_code`` (``hermes auth add openai-codex``) is synced only when its
+    ``device_code`` (the singleton-seeded entry from ``a2assistant setup`` / the model picker) is always
+    synced. ``manual:device_code`` (``a2assistant auth add openai-codex``) is synced only when its
     access_token equals the PREVIOUS singleton token — a legacy alias of the singleton; an entry
     with its own token material is an independent account and must be left alone. ``manual:api_key``
     and any other source are independent credentials and are never overwritten by a re-auth.
@@ -671,7 +671,7 @@ def resolve_codex_runtime_credentials(
                          "codex_auth_missing", relogin=True)
     tokens = dict(data["tokens"])
     access_token = _stripped(tokens.get("access_token"))
-    refresh_timeout_seconds = env_float("HERMES_CODEX_REFRESH_TIMEOUT_SECONDS", 20)
+    refresh_timeout_seconds = env_float("A2ASSISTANT_CODEX_REFRESH_TIMEOUT_SECONDS", 20)
 
     def _should_refresh(token: str) -> bool:
         if read_only:
@@ -944,7 +944,7 @@ def _pool_codex_credential() -> tuple[str, str]:
 
 def _login_openai_codex(args, pconfig: ProviderConfig, *, force_new_login: bool = False) -> None:
     """OpenAI Codex login: device code by default, browser PKCE when opted in (``--browser`` /
-    ``auth.codex_login_flow``). Tokens stored in ~/.hermes/auth.json."""
+    ``auth.codex_login_flow``). Tokens stored in ~/.a2assistant/auth.json."""
     from hermes_cli.auth import (
         _codex_access_token_is_expiring, _import_codex_cli_tokens,
         _offer_existing_oauth_credentials, _print_login_success, _prompt_yes_no, _save_codex_tokens,

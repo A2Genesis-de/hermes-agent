@@ -3,9 +3,9 @@
 A main-era install (a release before PM, v2026.9.24 and older) holds its features in the checkout's
 own ``venv/`` with no PM ledger. Its launch migration normally builds the first generation and
 carries them, but a tree can reach a later sync with no selection recorded: the migration was
-skipped (``HERMES_DISABLE_LAZY_INSTALLS``, a tree with no self-update stamp) or interrupted before
-it published. Whichever sync then runs first (``hermes update``'s completion bootstrap, the
-historical takeover, the launch migration, the stdlib ``venv_sync`` entry, ``hermes pm update``,
+skipped (``A2ASSISTANT_DISABLE_LAZY_INSTALLS``, a tree with no self-update stamp) or interrupted before
+it published. Whichever sync then runs first (``a2assistant update``'s completion bootstrap, the
+historical takeover, the launch migration, the stdlib ``venv_sync`` entry, ``a2assistant pm update``,
 or a setup flow's narrow request), the generation it publishes must keep those features: nothing
 carries them afterwards, so a sync that records less drops Telegram, Discord and the rest for good
 while it reports success.
@@ -76,7 +76,7 @@ def legacy_tree(monkeypatch, tmp_path):
 
 
 def _completion_bootstrap(root: Path, tmp_path: Path, monkeypatch) -> None:
-    """``hermes update``'s completion bootstrap, on a pre-PM tree with no recorded selection."""
+    """``a2assistant update``'s completion bootstrap, on a pre-PM tree with no recorded selection."""
     from hermes_cli import update_completion
 
     result = tmp_path / "result.json"
@@ -116,7 +116,7 @@ def _venv_sync_entry(root: Path, tmp_path: Path, monkeypatch) -> None:
 
 
 def _pm_update_step(root: Path, tmp_path: Path, monkeypatch) -> None:
-    """``hermes pm update``/``pm lock --upgrade``'s venv step after it moved a pin or the lock."""
+    """``a2assistant pm update``/``pm lock --upgrade``'s venv step after it moved a pin or the lock."""
     import pm.cli
 
     monkeypatch.setattr(pm.cli, "repo_root", lambda: root)
@@ -165,7 +165,7 @@ def test_a_facts_file_without_a_recorded_selection_still_carries_the_old_venv(le
 
 
 def test_a_narrow_request_on_a_pre_pm_tree_extends_what_the_old_venv_held(legacy_tree):
-    """`hermes setup` installing one extra unions it into the tree's selection, as on any PM install.
+    """`a2assistant setup` installing one extra unions it into the tree's selection, as on any PM install.
 
     The tree still runs its old venv, so that venv's extras are the selection. A first generation
     holding only the request would end the old venv's re-scan, and every other feature would be gone.
@@ -238,7 +238,7 @@ def developer_tree(legacy_tree):
 
 
 def test_a_pm_built_checkout_venv_is_not_an_old_install(developer_tree):
-    """A data root with no recorded selection (a test's or a borrowing launch's HERMES_HOME) on a
+    """A data root with no recorded selection (a test's or a borrowing launch's A2ASSISTANT_HOME) on a
     checkout with a developer ``.venv``: that venv is not the install's old state, so a sync
     records only what was asked for."""
     import pm
@@ -292,7 +292,7 @@ def test_a_bare_venv_holds_no_old_install(legacy_tree):
 
 
 def _pm_repair(root: Path, tmp_path: Path, monkeypatch) -> None:
-    """`hermes pm repair`, in the PM runtime it re-executes into."""
+    """`a2assistant pm repair`, in the PM runtime it re-executes into."""
     import pm.cli
 
     monkeypatch.setattr("pm.runtime.is_runtime", lambda: True)

@@ -18,7 +18,7 @@ from tui_gateway import server as tui_server
 
 class TestPrependToolPaths:
     def test_prepends_managed_venv_and_user_bin(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hh"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hh"))
         env = {"PATH": "/usr/bin"}
         result = tui_server._prepend_tool_paths(env)
 
@@ -31,7 +31,7 @@ class TestPrependToolPaths:
         assert parts[-1] == "/usr/bin"
 
     def test_preserves_existing_path_when_empty(self, monkeypatch, tmp_path):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hh"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hh"))
         env = {}
         result = tui_server._prepend_tool_paths(env)
 
@@ -43,7 +43,7 @@ class TestPrependToolPaths:
     def test_pm_store_dirs_go_ahead_of_user_local_bin(self, monkeypatch, tmp_path):
         """A user's node/uv in ~/.local/bin must never shadow Hermes's PM toolchain."""
         store_dir = str(tmp_path / "store" / "node" / "bin")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hh"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hh"))
         monkeypatch.setattr("pm.install._store_path_dirs", lambda: [store_dir])
         result = tui_server._prepend_tool_paths({"PATH": os.pathsep.join(["/usr/bin", store_dir])})
 

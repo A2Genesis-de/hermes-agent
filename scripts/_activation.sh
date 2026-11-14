@@ -30,6 +30,22 @@ hermes_sync() {
     ) >&2
 }
 
+# a2assistant_default_home [USER_HOME]: ~/.a2assistant, or ~/.hermes while only the
+# pre-rename home exists (same rule as hermes_constants.default_home_in).
+a2assistant_default_home() {
+    local base="${1:-$HOME}"
+    if [ ! -e "$base/.a2assistant" ] && [ ! -L "$base/.a2assistant" ] && [ -d "$base/.hermes" ] && [ ! -L "$base/.hermes" ]; then
+        printf '%s\n' "$base/.hermes"
+    else
+        printf '%s\n' "$base/.a2assistant"
+    fi
+}
+
+# a2assistant_home: the active home (A2ASSISTANT_HOME, legacy HERMES_HOME, else the default).
+a2assistant_home() {
+    printf '%s\n' "${A2ASSISTANT_HOME:-${HERMES_HOME:-$(a2assistant_default_home)}}"
+}
+
 # hermes_bootstrap_python REPO: print the interpreter that can run pm before
 # any dependency is importable. It only emits the environment; it installs nothing.
 hermes_bootstrap_python() {
@@ -38,7 +54,7 @@ hermes_bootstrap_python() {
                      "$repo/venv/bin/python" "$repo/venv/Scripts/python.exe"; do
         [ -x "$candidate" ] && { printf '%s\n' "$candidate"; return 0; }
     done
-    for store in "${HERMES_RUNTIME_DIR:-}" "$repo/../tools" "${HERMES_HOME:-$HOME/.hermes}/tools"; do
+    for store in "${A2ASSISTANT_RUNTIME_DIR:-}" "$repo/../tools" "$(a2assistant_home)/tools"; do
         [ -n "$store" ] || continue
         for candidate in "$store"/python-*/bin/python3 "$store"/python-*/python.exe \
                          "$store"/python-*/bin/python "$store"/python-*/bin/python.exe; do

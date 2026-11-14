@@ -17,13 +17,13 @@ import pytest
 
 @pytest.fixture
 def hermes_env(tmp_path, monkeypatch):
-    """Isolate HERMES_HOME for each test so jobs/scripts don't leak."""
+    """Isolate A2ASSISTANT_HOME for each test so jobs/scripts don't leak."""
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "scripts").mkdir()
     (home / "cron").mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     # Reload modules that cache get_hermes_home() at import time.
     import importlib
@@ -50,7 +50,7 @@ def test_create_job_no_agent_requires_script(hermes_env):
 
 
 def test_script_must_be_a_file_under_scripts_dir_not_a_shell_command(hermes_env):
-    """``script`` names a file under HERMES_HOME/scripts/. A command line (``echo hi``) is
+    """``script`` names a file under A2ASSISTANT_HOME/scripts/. A command line (``echo hi``) is
     refused at creation instead of firing every tick as "Script not found" delivered as the
     payload; a real file whose name contains a space is still a path."""
     from cron.jobs import create_job, update_job

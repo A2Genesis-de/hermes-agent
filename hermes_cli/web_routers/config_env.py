@@ -173,7 +173,7 @@ def _catalog_provider_env_metadata() -> dict:
 
     Returns ``{env_var: {provider, provider_label, description, url, is_password,
     advanced}}`` for every API-key provider in the unified ``provider_catalog()``
-    (the ``hermes model`` universe). When multiple providers intentionally share
+    (the ``a2assistant model`` universe). When multiple providers intentionally share
     one env var, ``provider_profiles`` preserves every provider identity while
     the legacy singular fields keep describing the first provider. Hand
     ``OPTIONAL_ENV_VARS`` prose is layered on top in the endpoint; this only
@@ -719,7 +719,7 @@ def list_custom_endpoints(profile: Optional[str] = None):
 
     Scoped to the requested profile's config.yaml: the desktop settings UI
     targets the active profile, so read/write must resolve that profile's home
-    rather than the process-level HERMES_HOME (mirrors ``/api/config``).
+    rather than the process-level A2ASSISTANT_HOME (mirrors ``/api/config``).
     """
     with http_failure("GET /api/providers/custom-endpoints failed", 500, detail="Failed to list custom endpoints"):
         with _config_profile_scope(profile):

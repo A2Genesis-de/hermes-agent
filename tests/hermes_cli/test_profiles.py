@@ -54,13 +54,13 @@ def profile_env(tmp_path, monkeypatch):
     """Set up an isolated environment for profile tests.
 
     * Path.home() -> tmp_path  (so _get_profiles_root() = tmp_path/.hermes/profiles)
-    * HERMES_HOME  -> tmp_path/.hermes  (so get_hermes_home() agrees)
-    * Creates the bare-minimum ~/.hermes directory.
+    * A2ASSISTANT_HOME  -> tmp_path/.hermes  (so get_hermes_home() agrees)
+    * Creates the bare-minimum ~/.a2assistant directory.
     """
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     default_home = tmp_path / ".hermes"
     default_home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     return tmp_path
 
 
@@ -487,7 +487,7 @@ class TestCreateProfile:
 # ===================================================================
 
 class TestNoSkillsOptOut:
-    """Tests for `hermes profile create --no-skills` and the opt-out marker."""
+    """Tests for `a2assistant profile create --no-skills` and the opt-out marker."""
 
     def test_no_skills_writes_marker_and_skips_seeding(self, profile_env):
         profile_dir = create_profile("orchestrator", no_alias=True, no_skills=True)
@@ -512,7 +512,7 @@ class TestNoSkillsOptOut:
 # ===================================================================
 
 class TestBackfillProfileEnvs:
-    """Tests for backfill_profile_envs() — the `hermes update` pass that
+    """Tests for backfill_profile_envs() — the `a2assistant update` pass that
     gives pre-#44792 profiles (created before .env seeding) their own
     .env: the placeholder header, never a copy of the default's secrets."""
 
@@ -653,11 +653,11 @@ class TestDeleteProfile:
         # Typed partial success: the filesystem delete completed, the identity did not, and the
         # payload carries what a surfacing caller needs to report it and retry.
         assert ei.value.profile == "gone"
-        assert ei.value.retry_command == "hermes profile purge-identity gone"
+        assert ei.value.retry_command == "a2assistant profile purge-identity gone"
         assert not ei.value.path.exists()
         assert isinstance(ei.value, RuntimeError)  # the CLI handler catches RuntimeError
 
-        assert "hermes profile purge-identity gone" in capsys.readouterr().err
+        assert "a2assistant profile purge-identity gone" in capsys.readouterr().err
         check = SessionDB(tmp_path / ".hermes" / "state.db")
         try:
             # The CLI left the identity alone rather than racing the live owner.
@@ -710,7 +710,7 @@ class TestDeleteProfile:
         assert pids == [101]
 
     def test_backend_scan_matches_shebang_exec_of_hermes_shim(self, profile_env, monkeypatch):
-        """A `hermes` console-script shim spawned directly (e.g. Electron's
+        """A `a2assistant` console-script shim spawned directly (e.g. Electron's
         findOnPath('hermes') resolution) reports argv[0] as the interpreter
         (python3) and argv[1] as the shim's path -- not "hermes" -- because
         the OS execs the shebang. The scanner must still recognize it so
@@ -1002,15 +1002,15 @@ class TestGetActiveProfileName:
         tmp_path = profile_env
         create_profile("coder", no_alias=True)
         profile_dir = tmp_path / ".hermes" / "profiles" / "coder"
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_dir))
         assert get_active_profile_name() == "coder"
 
     def test_custom_path_returns_default(self, profile_env, monkeypatch):
-        """A custom HERMES_HOME (Docker, etc.) IS the default root."""
+        """A custom A2ASSISTANT_HOME (Docker, etc.) IS the default root."""
         tmp_path = profile_env
         custom = tmp_path / "some" / "other" / "path"
         custom.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(custom))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(custom))
         # With Docker-aware roots, a custom HERMES_HOME is the default —
         # not "custom".  The user is on the default profile of their
         # custom deployment.
@@ -1279,7 +1279,7 @@ class TestRenameProfile:
 
 
     def test_migrate_identity_command_repairs_a_failed_live_migration(self, profile_env, capsys):
-        """The failed-live-migration end state must be recoverable: `hermes profile
+        """The failed-live-migration end state must be recoverable: `a2assistant profile
         migrate-identity <old> <new>` rekeys the durable rows once no gateway holds the store, and
         is idempotent (a second run has nothing left to rekey but still succeeds)."""
         from hermes_cli.profile_cmd import cmd_profile
@@ -1308,7 +1308,7 @@ class TestRenameProfile:
              patch("hermes_cli.profiles._notify_multiplexer"), \
              patch("gateway.control_socket.migrate_gateway_profile_identity", return_value=None):
             rename_profile("oldname", "newname")
-        assert "hermes profile migrate-identity oldname newname" in capsys.readouterr().err
+        assert "a2assistant profile migrate-identity oldname newname" in capsys.readouterr().err
 
         # Gateway restarted/stopped → the retry command repairs both stores.
         with patch("hermes_cli.profiles._live_default_multiplexer", return_value=False):
@@ -1462,11 +1462,11 @@ class TestInternalHelpers:
 
 
     def test_create_profile_docker(self, tmp_path, monkeypatch):
-        """Profile created in Docker lands under HERMES_HOME/profiles/."""
+        """Profile created in Docker lands under A2ASSISTANT_HOME/profiles/."""
         docker_home = tmp_path / "opt" / "data"
         docker_home.mkdir(parents=True)
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(docker_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(docker_home))
         result = create_profile("orchestrator", no_alias=True)
         expected = docker_home / "profiles" / "orchestrator"
         assert result == expected
@@ -1632,7 +1632,7 @@ class TestEdgeCases:
         # runs the gateway with no profile flag).
         with patch("gateway.status.get_running_pid", return_value=None), patch(
             "gateway.status._read_process_cmdline",
-            return_value="hermes gateway run --replace",
+            return_value="a2assistant gateway run --replace",
         ):
             assert _check_gateway_running(default_home) is True
 
@@ -1667,7 +1667,7 @@ class TestProfilesToServe:
         # A named profile's gateway runs with HERMES_HOME pointing at the
         # profile dir; get_active_profile_name() infers the name from there.
         create_profile("coder", no_alias=True)
-        monkeypatch.setenv("HERMES_HOME", str(get_profile_dir("coder")))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(get_profile_dir("coder")))
         serve = profiles_to_serve(multiplex=False)
         assert len(serve) == 1
         assert serve[0][0] == "coder"
@@ -1777,7 +1777,7 @@ class TestProfilesToServe:
 
 
 class TestResolveProfileEnvSpelling:
-    """resolve_profile_env() keeps the configured HERMES_HOME spelling as
+    """resolve_profile_env() keeps the configured A2ASSISTANT_HOME spelling as
 
     the launch root (junction installs) while preserving the pre-existing
     profile-path handling and existence/validation semantics.
@@ -1801,18 +1801,18 @@ class TestResolveProfileEnvSpelling:
             (custom, "beta", custom / "profiles" / "beta"),
         ]
         for env_home, profile, expected in cases:
-            monkeypatch.setenv("HERMES_HOME", str(env_home))
+            monkeypatch.setenv("A2ASSISTANT_HOME", str(env_home))
             assert Path(resolve_profile_env(profile)) == expected
 
     def test_missing_named_profile_still_raises(self, monkeypatch, tmp_path):
         root = tmp_path / "configured-root"
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
         with pytest.raises(FileNotFoundError):
             resolve_profile_env("nope")
 
     def test_unset_env_falls_back_to_default_root(self, monkeypatch):
         # No HERMES_HOME: the platform default root applies (existing contract).
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         assert Path(resolve_profile_env("default")) == _get_default_hermes_home()
 
 
@@ -1890,7 +1890,7 @@ def test_export_leaves_the_bot_desktop_browser_profile_out(profile_env, tmp_path
 
 class TestCloneAllExcludesRuntimeTrees:
     """``--clone-all`` from the default profile must not copy the machine-scoped
-    runtime trees the local-models flow puts under ``~/.hermes``: ``models/``
+    runtime trees the local-models flow puts under ``~/.a2assistant``: ``models/``
     (GGUF weights, tens of GB), ``runtimes/`` (llama.cpp binaries) and ``node/``
     (managed Node). ``backup.py`` already excludes exactly these; the clone-all
     ignore list had not followed.

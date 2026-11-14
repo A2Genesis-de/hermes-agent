@@ -39,9 +39,9 @@ def _identity() -> dict:
     try:
         from gateway.session_context import get_session_env
         from tools import approval_context
-        session_id = approval_context._approval_session_id.get() or get_session_env("HERMES_SESSION_ID")
-        platform = (os.getenv("HERMES_PLATFORM") or get_session_env("HERMES_SESSION_PLATFORM")
-                    or get_session_env("HERMES_SESSION_SOURCE") or "cli")
+        session_id = approval_context._approval_session_id.get() or get_session_env("A2ASSISTANT_SESSION_ID")
+        platform = (os.getenv("A2ASSISTANT_PLATFORM") or get_session_env("A2ASSISTANT_SESSION_PLATFORM")
+                    or get_session_env("A2ASSISTANT_SESSION_SOURCE") or "cli")
         return {"session_id": session_id, "session_key": approval_context.get_current_session_key(default=""),
                 "platform": platform}
     except Exception:  # a broken lookup must not take the human prompt down with it

@@ -14,7 +14,7 @@ def _write_managed(tmp_path, monkeypatch, *, config=None, env=None):
         (managed / "config.yaml").write_text(textwrap.dedent(config), encoding="utf-8")
     if env is not None:
         (managed / ".env").write_text(textwrap.dedent(env), encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     return managed
 

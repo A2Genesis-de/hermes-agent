@@ -2,9 +2,9 @@
 
 * ``drive_tui_gateway`` — ``python -m tui_gateway.entry`` over stdio, exactly how
   the Ink TUI spawns it (launch dir = the user's shell cwd); stops on stdin EOF.
-* ``drive_serve`` — ``hermes serve --host 127.0.0.1 --port 0`` spawned the way the
-  Desktop spawns it (``TERMINAL_CWD`` + ``HERMES_DASHBOARD_SESSION_TOKEN`` +
-  ``HERMES_DESKTOP=1`` env, stdin closed), port read from the READY sentinel on
+* ``drive_serve`` — ``a2assistant serve --host 127.0.0.1 --port 0`` spawned the way the
+  Desktop spawns it (``TERMINAL_CWD`` + ``A2ASSISTANT_DASHBOARD_SESSION_TOKEN`` +
+  ``A2ASSISTANT_DESKTOP=1`` env, stdin closed), port read from the READY sentinel on
   stdout, one turn over the ``/api/ws`` JSON-RPC WebSocket; stops on SIGTERM.
 
 Both speak the same contract (``tui_gateway/contracts``): ``session.create`` →
@@ -184,12 +184,12 @@ class ServeProcess:
 
 
 def spawn_serve(ph: ParityHome) -> ServeProcess:
-    """Spawn ``hermes serve`` with the Desktop's argv/env/stdio shape (electron/main.ts)."""
+    """Spawn ``a2assistant serve`` with the Desktop's argv/env/stdio shape (electron/main.ts)."""
     token = uuid.uuid4().hex
     env = ph.env({
         "TERMINAL_CWD": str(ph.project),
-        "HERMES_DASHBOARD_SESSION_TOKEN": token,
-        "HERMES_DESKTOP": "1",
+        "A2ASSISTANT_DASHBOARD_SESSION_TOKEN": token,
+        "A2ASSISTANT_DESKTOP": "1",
     })
     proc = subprocess.Popen(
         hermes_argv("serve", "--host", "127.0.0.1", "--port", "0"), cwd=ph.home, env=env,
@@ -210,7 +210,7 @@ def first_stdout_line(sp: ServeProcess, timeout: float = READY_TIMEOUT) -> str:
             raise AssertionError(f"serve exited {sp.proc.poll()} before any stdout line\n{sp.cap.stderr[-3000:]}")
         if line:
             return line
-        if "HERMES_BACKEND_READY" in sp.cap.stderr:
+        if "A2ASSISTANT_BACKEND_READY" in sp.cap.stderr:
             raise AssertionError(
                 "READY sentinel was written to STDERR; the Desktop only watches stdout "
                 f"(backend-ready.ts):\n{sp.cap.stderr[-1500:]}")

@@ -3,7 +3,7 @@
 A ``state.db`` that moved with its profile (another machine, a moved home) keeps receipts whose
 ``profile_id`` names the old path. Restoring one is that store's own row, but an API receipt's
 stored origin still places the turn's runtime scope, so one naming another profile is refused. A
-``hermes profile rename`` moves the store AND changes the name, so its identity migration must move
+``a2assistant profile rename`` moves the store AND changes the name, so its identity migration must move
 the receipts' origin and route namespace too, API and local receipts alike (#150651, #149384).
 """
 import contextlib

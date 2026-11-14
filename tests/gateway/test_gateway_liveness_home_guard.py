@@ -1,4 +1,4 @@
-"""A profile directory copied out of another HERMES_HOME must never read as running.
+"""A profile directory copied out of another A2ASSISTANT_HOME must never read as running.
 
 Copying a profile directory wholesale (sandbox injection, restore-from-backup, cloning) carries
 that home's ``gateway_state.json`` along, and a copy with NO identity files at all still keeps
@@ -21,7 +21,7 @@ def fake_root(tmp_path, monkeypatch):
     root = tmp_path / ".hermes"
     root.mkdir()
     monkeypatch.setattr(hermes_constants.Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None, raising=False)
     return root
 

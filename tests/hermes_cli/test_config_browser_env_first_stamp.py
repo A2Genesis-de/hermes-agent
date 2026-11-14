@@ -27,13 +27,13 @@ def _clean_env(monkeypatch):
 
 
 def _home(tmp_path, monkeypatch, config_text):
-    """A real HERMES_HOME holding the legacy .env and *config_text* (None: no config.yaml)."""
+    """A real A2ASSISTANT_HOME holding the legacy .env and *config_text* (None: no config.yaml)."""
     home = tmp_path / "home"
     home.mkdir()
     (home / ".env").write_text(_LEGACY, encoding="utf-8")
     if config_text is not None:
         (home / "config.yaml").write_text(config_text, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 

@@ -3,7 +3,7 @@
 The sign-in page (``dashboard_auth/login_page.py``) loads its brand fonts from ``/fonts/``. Those
 files ship in the dashboard's ``web/public`` tree, which the dashboard build copies into its own
 dist, but the Webapp serves ``apps/desktop/dist-webapp`` and has no ``fonts/`` dir. A font missing
-from the served dist is read from the packaged dashboard dist (``HERMES_WEB_DIST`` / ``web_dist``,
+from the served dist is read from the packaged dashboard dist (``A2ASSISTANT_WEB_DIST`` / ``web_dist``,
 which is all a Nix or wheel install ships, since those exclude ``web/``), then from a source
 checkout's ``web/public``.
 """

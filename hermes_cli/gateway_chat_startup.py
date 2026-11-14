@@ -16,7 +16,7 @@ def ensure_launch_provider(args) -> bool:
     # launches can also be usable without a configured local profile.
     if (
         getattr(args, "resume", None)
-        or os.environ.get("HERMES_TUI_GATEWAY_URL", "").strip()
+        or os.environ.get("A2ASSISTANT_TUI_GATEWAY_URL", "").strip()
         or getattr(args, "base_url", None)
         or getattr(args, "api_key", None)
     ):

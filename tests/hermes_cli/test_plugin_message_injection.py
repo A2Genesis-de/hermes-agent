@@ -24,7 +24,7 @@ def _write_plugin_config(tmp_path, monkeypatch, entry: dict) -> None:
     (hermes_home / "config.yaml").write_text(
         yaml.safe_dump({"plugins": {"entries": {"notify-plugin": entry}}})
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
 
 def test_cli_idle_injection_keeps_existing_queue_behaviour():
@@ -221,7 +221,7 @@ def test_published_gateway_host_reaches_existing_and_future_profile_managers(tmp
                 "plugins": {"entries": {"notify-plugin": {"allow_gateway_injection": True}}}
             })
         )
-    monkeypatch.setenv("HERMES_HOME", str(homes[0]))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(homes[0]))
     plugins_mod._reset_plugin_managers_for_tests()
     # Multiplex gateway: launch home + secondary profiles served by one process.
     was_active = secret_scope.is_multiplex_active()

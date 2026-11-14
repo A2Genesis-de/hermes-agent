@@ -7,11 +7,11 @@ after an upgrade, is the user's *own* state still there?
 Standalone and stdlib-only. Both modes are read-only against the home; nothing
 is ever created, deleted or written under it. There is deliberately NO `seed`
 mode: the state this verifies must be produced by the product through the
-ordinary user path (a real chat turn, `hermes auth add`, `hermes profile
+ordinary user path (a real chat turn, `a2assistant auth add`, `a2assistant profile
 create`), never hand-written by the harness. Assertions over fixtures we wrote
 ourselves would only prove the harness can write files.
 
-  snapshot  walk the durable state of a HERMES_HOME and record, per entry —
+  snapshot  walk the durable state of a A2ASSISTANT_HOME and record, per entry —
             kind (file/dir/symlink), byte size + sha256 for regular files, link
             target, and, for every state.db, its ROW COUNTS — into JSON.
   verify    re-walk and diff against a snapshot. FAILS (exit 1) on any deleted
@@ -37,8 +37,8 @@ cannot see a file cannot defend it. An empty snapshot is refused as
 inconclusive (exit 3) rather than reported as a pass.
 
 Usage:
-  python verify-user-state.py snapshot --home <HERMES_HOME> --out snap.json
-  python verify-user-state.py verify --home <HERMES_HOME> --snapshot snap.json [--report r.json]
+  python verify-user-state.py snapshot --home <A2ASSISTANT_HOME> --out snap.json
+  python verify-user-state.py verify --home <A2ASSISTANT_HOME> --snapshot snap.json [--report r.json]
 """
 
 from __future__ import annotations
@@ -580,7 +580,7 @@ def _render(report: dict) -> str:
 def env_key_report(home: str, profiles_dir: str | None = None) -> list[str]:
     """Every .env this verifier judges, with its key names -- names only.
 
-    Exists to be compared against the driver's own view of ``$HERMES_HOME/.env``.
+    Exists to be compared against the driver's own view of ``$A2ASSISTANT_HOME/.env``.
     The install e2e's probe showed OPENAI_BASE_URL present immediately before AND
     after the snapshot while the report called it an ADDITION, which can only mean
     the snapshot read a different file than the run wrote. Printing the paths the

@@ -6,9 +6,9 @@ def test_termux_fast_launch_defers_agent_startup_like_main(monkeypatch):
     from hermes_cli import main
 
     monkeypatch.setenv("TERMUX_VERSION", "fixture")
-    monkeypatch.delenv("HERMES_TERMUX_DISABLE_FAST_CLI", raising=False)
-    monkeypatch.delenv("HERMES_DEFER_AGENT_STARTUP", raising=False)
-    monkeypatch.delenv("HERMES_FAST_STARTUP_BANNER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TERMUX_DISABLE_FAST_CLI", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DEFER_AGENT_STARTUP", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_FAST_STARTUP_BANNER", raising=False)
     monkeypatch.setattr(sys, "argv", ["hermes", "--cli"])
     launches = []
     monkeypatch.setattr(main, "cmd_chat", launches.append)
@@ -16,5 +16,5 @@ def test_termux_fast_launch_defers_agent_startup_like_main(monkeypatch):
     assert len(launches) == 1
     assert launches[0].compact is True
     import os
-    assert os.environ["HERMES_DEFER_AGENT_STARTUP"] == "1"
-    assert os.environ["HERMES_FAST_STARTUP_BANNER"] == "1"
+    assert os.environ["A2ASSISTANT_DEFER_AGENT_STARTUP"] == "1"
+    assert os.environ["A2ASSISTANT_FAST_STARTUP_BANNER"] == "1"

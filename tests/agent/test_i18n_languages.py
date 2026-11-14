@@ -16,7 +16,7 @@ def test_bundled_table_matches_bundled_catalogs():
 
 
 def test_language_options_are_en_first_sorted_and_sourced(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     i18n.reset_language_cache()
     try:
         options = i18n.language_options()
@@ -51,7 +51,7 @@ def test_language_surfaces_report_each_layer(monkeypatch, tmp_path):
 
     home = tmp_path / "home"
     (home / "locales").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     i18n_layers._reset_registry_for_tests()
     i18n.reset_language_cache()
     try:

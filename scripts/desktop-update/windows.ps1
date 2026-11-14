@@ -2,14 +2,14 @@
 #
 # WHY THIS EXISTS (the frozen-binary problem): the Desktop's Update button
 # used to hand off exclusively to the staged Tauri binary
-# (%HERMES_HOME%\hermes-setup.exe). That binary has no self-update path --
+# (%A2ASSISTANT_HOME%\hermes-setup.exe). That binary has no self-update path --
 # copy_self_to_hermes_home deliberately no-ops during --update -- so every
 # updater-side fix (cache refresh #67369, marker self-adopt #74782, straggler
 # handling) only reaches users when a new installer is built, signed, and
 # published. In practice binaries go months stale and users hit long-fixed
 # bugs on every update (the 2026-08-09 incident chain).
 #
-# This script lives in the repo checkout, so EVERY `hermes update` refreshes
+# This script lives in the repo checkout, so EVERY `a2assistant update` refreshes
 # the very code that drives the next update. The Desktop spawns it through a
 # `cmd start` wrapper (see wrapHandoffForDetachedConsole in
 # apps/desktop/electron/updater-process.ts -- a bare detached+hidden
@@ -19,7 +19,7 @@
 # CONTRACT (keep in sync with apps/desktop/electron/main.ts):
 #   cmd /d /s /c start "" /b powershell -NoProfile -ExecutionPolicy Bypass
 #     -File scripts\desktop-update\windows.ps1
-#     -InstallRoot <path>   repo checkout (HERMES_HOME\hermes-agent)
+#     -InstallRoot <path>   repo checkout (A2ASSISTANT_HOME\hermes-agent)
 #     [-Branch <ref> | -Channel stable|canary|main]  default: branch main
 #     -DesktopPid <pid>     the Electron main process to wait out
 #     [-RelaunchExe <path>] Hermes.exe to start when done (omit = no relaunch)
@@ -48,7 +48,7 @@
 # relaunches the Desktop so the user is never left stranded. The one
 # exception is a refused run (exit 2): it changed nothing and writes no result.
 #
-# Marker (contract C1 v2 + A7, marker.ps1): claiming HERMES_HOME\.hermes-update-
+# Marker (contract C1 v2 + A7, marker.ps1): claiming A2ASSISTANT_HOME\.hermes-update-
 # in-progress is the FIRST thing the script does -- before any Add-Type, UI
 # or probe -- and every read/judge/mutate of it happens inside one hold of
 # the kernel lock on "<marker>.lock". With -HandoffRun it only adopts the
@@ -98,14 +98,14 @@ if (-not $SelfTestUi -and -not $SelfTestPipeDrain -and -not $SelfTestLogConcurre
 
 $ErrorActionPreference = "Continue"
 $TempDir = if ($env:TEMP) { $env:TEMP } else { [System.IO.Path]::GetTempPath() }
-$HermesHome = if ($env:HERMES_HOME) { $env:HERMES_HOME } elseif ($InstallRoot) { Split-Path -Parent $InstallRoot } else { $TempDir }
-$env:HERMES_HOME = $HermesHome
+$HermesHome = if ($env:A2ASSISTANT_HOME) { $env:A2ASSISTANT_HOME } elseif ($InstallRoot) { Split-Path -Parent $InstallRoot } else { $TempDir }
+$env:A2ASSISTANT_HOME = $HermesHome
 $MarkerPath = Join-Path $HermesHome ".hermes-update-in-progress"
 $LogDir = Join-Path $HermesHome "logs"
 $LogPath = Join-Path $LogDir "desktop-update-handoff.log"
 $ResultPath = Join-Path $HermesHome ".hermes-update-result.json"
 $script:HandoffLogMutex = $null
-# One mutex per log path (case-normalized: the same HERMES_HOME spelled
+# One mutex per log path (case-normalized: the same A2ASSISTANT_HOME spelled
 # differently must still serialize), hashed because a mutex name cannot carry
 # path characters.
 $handoffLogHash = ""
@@ -226,7 +226,7 @@ try {
 # Console selection must never hold the hand-off (#103222). The console is
 # hidden by design (wrapHandoffForDetachedConsole), but an older Desktop or a
 # manual run can leave it visible, and conhost blocks every write to it while a
-# selection is active: the child output replayed after `hermes update` exited
+# selection is active: the child output replayed after `a2assistant update` exited
 # stalled on Write-Host until the user pressed Esc, and the result, marker
 # cleanup and relaunch waited behind it. QuickEdit goes off for the run (so a
 # stray click cannot start a selection) and the console echo is skipped while
@@ -288,12 +288,12 @@ $script:UiState = [hashtable]::Synchronized(@{
     acknowledged_receipt = $null
 })
 $script:UiServer = $null     # @{ Listener; Runspace; PowerShell; Port; BrowserProc; Profile }
-# `hermes update` publishes its own stages (hermes_cli/update_stage.py: downloading, dependencies,
+# `a2assistant update` publishes its own stages (hermes_cli/update_stage.py: downloading, dependencies,
 # each app build, packaging) into this file, as it does under posix.sh. The step loop relays them
 # to the window, which otherwise read "Updating code and dependencies" for a whole 20-60 minute
 # run (#139952, #135363), and to the hand-off log, whose timestamps then name the slow stage.
 $script:ChildStageFile = Join-Path ([IO.Path]::GetTempPath()) ("hermes-update-status.{0}" -f $PID)
-$env:HERMES_UPDATE_STATUS_FILE = $script:ChildStageFile
+$env:A2ASSISTANT_UPDATE_STATUS_FILE = $script:ChildStageFile
 $script:ChildStageSeen = $null
 
 function Get-UiHtmlPath {
@@ -467,7 +467,7 @@ function Stop-UiServer([switch]$LeaveWindow) {
     }
     # Best-effort removal of the dedicated browser profile dirs: this run's
     # profile plus hermes-update-ui-<pid> leftovers whose hand-off process is
-    # gone. %TEMP% is shared by every HERMES_HOME of this user, and the marker
+    # gone. %TEMP% is shared by every A2ASSISTANT_HOME of this user, and the marker
     # only serialises one home, so a dir whose pid is still running belongs to
     # another live hand-off and is left alone. A browser that is still
     # shutting down may hold the lock; the delete then silently no-ops.
@@ -658,7 +658,7 @@ function Show-ProgressWindow {
 
 function Show-ErrorFinale([string]$Message) {
     # Terse by design: a title + the debug-share pointer. No error text, no
-    # log tail -- `hermes debug share` uploads the real evidence and the
+    # log tail -- `a2assistant debug share` uploads the real evidence and the
     # relaunched Desktop surfaces the result message.
     if ($script:UiServer) {
         # The shim renders the error state itself; leave the window up for
@@ -674,7 +674,7 @@ function Show-ErrorFinale([string]$Message) {
         if ($ui.Timer) { $ui.Timer.Stop() }
         $ui.Bar.Visible = $false
         $ui.Title.Text = "Failed to update"
-        $ui.Sub.Text = "Run `"hermes debug share`" in a terminal to send a report."
+        $ui.Sub.Text = "Run `"a2assistant debug share`" in a terminal to send a report."
         $close = New-Object System.Windows.Forms.Button
         $close.Text = "Close"
         $close.SetBounds(100, 252, 80, 28)
@@ -794,7 +794,7 @@ function Write-Result([bool]$Ok, [int]$Code, [string]$Message, [bool]$ManualActi
     }
 }
 
-# Post-commit follow-ups (contract C3): each failed step after `hermes update`
+# Post-commit follow-ups (contract C3): each failed step after `a2assistant update`
 # exited 0 becomes a warning, never a failed update.
 $script:Warnings = New-Object System.Collections.Generic.List[string]
 # A plain array: Windows PowerShell 5.1's @() over a non-empty List[object] throws
@@ -836,17 +836,17 @@ function Get-DesktopWorkingDirectory {
 
 function Restore-UserProxyEnv {
     # Port of restoreUserProxyEnv (electron/updater/system-proxy-env.ts): the Desktop handed its
-    # system proxy to the update only. HERMES_UPDATE_SYSTEM_PROXY names the variables it added and
-    # HERMES_UPDATE_USER_NO_PROXY holds the user's own NO_PROXY it extended.
-    foreach ($key in ("$env:HERMES_UPDATE_SYSTEM_PROXY" -split ',')) {
+    # system proxy to the update only. A2ASSISTANT_UPDATE_SYSTEM_PROXY names the variables it added and
+    # A2ASSISTANT_UPDATE_USER_NO_PROXY holds the user's own NO_PROXY it extended.
+    foreach ($key in ("$env:A2ASSISTANT_UPDATE_SYSTEM_PROXY" -split ',')) {
         if (@('HTTPS_PROXY', 'HTTP_PROXY', 'NO_PROXY') -contains $key) { Remove-Item "Env:$key" -ErrorAction SilentlyContinue }
     }
-    $saved = [Environment]::GetEnvironmentVariable('HERMES_UPDATE_USER_NO_PROXY', 'Process')
+    $saved = [Environment]::GetEnvironmentVariable('A2ASSISTANT_UPDATE_USER_NO_PROXY', 'Process')
     if ($null -ne $saved) {
         [Environment]::SetEnvironmentVariable('NO_PROXY', $saved, 'Process')
-        Remove-Item Env:HERMES_UPDATE_USER_NO_PROXY -ErrorAction SilentlyContinue
+        Remove-Item Env:A2ASSISTANT_UPDATE_USER_NO_PROXY -ErrorAction SilentlyContinue
     }
-    Remove-Item Env:HERMES_UPDATE_SYSTEM_PROXY -ErrorAction SilentlyContinue
+    Remove-Item Env:A2ASSISTANT_UPDATE_SYSTEM_PROXY -ErrorAction SilentlyContinue
 }
 
 function Start-DesktopRelaunch {
@@ -986,7 +986,7 @@ function Start-DesktopRelaunch {
             # Fallback keeps the old behavior (console tie-in and all) --
             # a tethered Desktop beats no Desktop. Unlike the WMI and explorer rungs it inherits
             # this script's environment: the stage relay is the update's, never the app's.
-            Remove-Item Env:HERMES_UPDATE_STATUS_FILE -ErrorAction SilentlyContinue
+            Remove-Item Env:A2ASSISTANT_UPDATE_STATUS_FILE -ErrorAction SilentlyContinue
             $p = Start-Process -FilePath $RelaunchExe -WorkingDirectory (Get-DesktopWorkingDirectory) -PassThru
             Start-Sleep -Milliseconds 1500
             if ($p -and -not $p.HasExited) { $spawned = $true }
@@ -1007,7 +1007,7 @@ function Start-DesktopRelaunch {
 # write end of a redirected pipe to the child as an INHERITABLE handle, so
 # every descendant that is spawned without its own redirection gets a
 # duplicate -- and the read side does not see EOF until the last of them
-# closes it. `hermes update` deliberately runs its build steps with stdout
+# closes it. `a2assistant update` deliberately runs its build steps with stdout
 # inherited (hermes_cli/main.py, the tee-stderr runner), so the tree under a
 # step is arbitrarily deep and not something this script can enumerate. When
 # one of those descendants is a resident gateway, the pipe stays open for the
@@ -1016,9 +1016,9 @@ function Start-DesktopRelaunch {
 # Overridable so the pipe-drain self-test does not have to sit out the real
 # grace; not documented as a user knob.
 $script:StepDrainGraceSeconds = 20
-if ($env:HERMES_UPDATE_PIPE_DRAIN_SECONDS) {
+if ($env:A2ASSISTANT_UPDATE_PIPE_DRAIN_SECONDS) {
     $parsedGrace = 0
-    if ([int]::TryParse($env:HERMES_UPDATE_PIPE_DRAIN_SECONDS, [ref]$parsedGrace) -and $parsedGrace -ge 0) {
+    if ([int]::TryParse($env:A2ASSISTANT_UPDATE_PIPE_DRAIN_SECONDS, [ref]$parsedGrace) -and $parsedGrace -ge 0) {
         $script:StepDrainGraceSeconds = $parsedGrace
     }
 }
@@ -1030,9 +1030,9 @@ if ($env:HERMES_UPDATE_PIPE_DRAIN_SECONDS) {
 # every step is assigned to a private, non-breakaway Windows job and a timed-out
 # step is retryable only after that job reports zero active processes.
 $script:StepIdleTimeoutSeconds = 600
-if ($env:HERMES_UPDATE_STEP_IDLE_SECONDS) {
+if ($env:A2ASSISTANT_UPDATE_STEP_IDLE_SECONDS) {
     $parsedIdle = 0
-    if ([int]::TryParse($env:HERMES_UPDATE_STEP_IDLE_SECONDS, [ref]$parsedIdle) -and $parsedIdle -gt 0) {
+    if ([int]::TryParse($env:A2ASSISTANT_UPDATE_STEP_IDLE_SECONDS, [ref]$parsedIdle) -and $parsedIdle -gt 0) {
         $script:StepIdleTimeoutSeconds = $parsedIdle
     }
 }
@@ -1042,14 +1042,14 @@ if ($env:HERMES_UPDATE_STEP_IDLE_SECONDS) {
 # refuses, so nothing is replaced under a live Desktop. Overridable so the
 # self-tests need not sit it out; not documented as a user knob.
 $script:DesktopExitSeconds = 150
-if ($env:HERMES_UPDATE_DESKTOP_EXIT_SECONDS) {
+if ($env:A2ASSISTANT_UPDATE_DESKTOP_EXIT_SECONDS) {
     $parsedExit = 0
-    if ([int]::TryParse($env:HERMES_UPDATE_DESKTOP_EXIT_SECONDS, [ref]$parsedExit) -and $parsedExit -gt 0) {
+    if ([int]::TryParse($env:A2ASSISTANT_UPDATE_DESKTOP_EXIT_SECONDS, [ref]$parsedExit) -and $parsedExit -gt 0) {
         $script:DesktopExitSeconds = $parsedExit
     }
 }
 
-# Silence on the pipes is NOT silence in the update. `hermes update` captures
+# Silence on the pipes is NOT silence in the update. `a2assistant update` captures
 # the (very loud) Electron/vite build into logs/update.log instead of its own
 # stdout (hermes_cli/update_cmd.py, the update-log tee), so a real update is
 # routinely stdout-silent for 40+ minutes while demonstrably progressing. An
@@ -1059,8 +1059,8 @@ if ($env:HERMES_UPDATE_DESKTOP_EXIT_SECONDS) {
 # Overridable so the pipe-drain self-test can point it at its own file; not
 # documented as a user knob.
 $script:StepProgressLogPath = Join-Path $LogDir "update.log"
-if ($env:HERMES_UPDATE_PROGRESS_LOG) {
-    $script:StepProgressLogPath = $env:HERMES_UPDATE_PROGRESS_LOG
+if ($env:A2ASSISTANT_UPDATE_PROGRESS_LOG) {
+    $script:StepProgressLogPath = $env:A2ASSISTANT_UPDATE_PROGRESS_LOG
 }
 
 function Get-StepProgressLogStamp {
@@ -1128,7 +1128,7 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
     # DoEvents loop keeps the marquee animating through long silent
     # stretches (pip installs) -- the old EndOfStream pump blocked on quiet
     # children and froze it. Full output still lands in the hand-off log
-    # afterwards, where `hermes debug share` picks it up.
+    # afterwards, where `a2assistant debug share` picks it up.
     #
     # The drain is bounded once the step exits (#90455). Waiting for pipe EOF
     # is waiting on the step's whole surviving descendant tree, and this
@@ -1230,7 +1230,7 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
                 break
             }
         } elseif (-not $stalled -and $job -ne [IntPtr]::Zero -and ((Get-Date) - $lastProgressAt).TotalSeconds -ge $script:StepIdleTimeoutSeconds) {
-            # Quiet pipes are how a healthy `hermes update` looks for 40+
+            # Quiet pipes are how a healthy `a2assistant update` looks for 40+
             # minutes: its build output streams to logs/update.log, not the
             # child's stdout. Growth of that file is progress -- reset the
             # clock instead of cancelling. Stat'd only once the ceiling is
@@ -1312,7 +1312,7 @@ function Invoke-HermesStep([string]$Exe, [string[]]$HermesArgs, [string]$Tag) {
     return @{ Code = $code; Output = $all; TreeQuiesced = (-not $stalled -or $proc.HasExited); StartedAfterJobAssignment = $true }
 }
 
-# `hermes update` can COMPLETE (its output carries "✓ Update complete!") and
+# `a2assistant update` can COMPLETE (its output carries "✓ Update complete!") and
 # still be killed with the idle-watchdog sentinel 124: the post-update phase
 # (gateway restart hand-off) stayed alive and silent past the ceiling, so
 # Invoke-HermesStep terminated the tree (#96205). The install is done; failing
@@ -1334,7 +1334,7 @@ function Resolve-HermesUpdateOutcome($StepResult) {
 }
 
 # -- The commit point (contract C3) --------------------------------------------
-# `hermes update` exits 0 once committed, except an interrupt (130) or a parked
+# `a2assistant update` exits 0 once committed, except an interrupt (130) or a parked
 # autostash (1) after the commit point, and a crash of a committed run. Its own
 # receipt says which (same rule as posix.sh::update_committed_after_exit): the
 # run's receipt -- matched by the correlation id handed to it, finalized
@@ -1371,8 +1371,8 @@ $script:TreeSafeToFinalize = $true
 # Manual QA for the Edge shell without a checkout or a real update. Exits
 # before the marker/desktop/venv machinery — touches nothing. Off Windows
 # (or without Edge) the loopback server still starts and the URL prints, so
-# the page can be QA'd in any browser; HERMES_SELFTEST_FAIL=1 exercises the
-# error state, HERMES_SELFTEST_HOLD_SECONDS delays the terminal event.
+# the page can be QA'd in any browser; A2ASSISTANT_SELFTEST_FAIL=1 exercises the
+# error state, A2ASSISTANT_SELFTEST_HOLD_SECONDS delays the terminal event.
 if ($SelfTestUi) {
     New-Item -ItemType Directory -Path $LogDir -Force -ErrorAction SilentlyContinue | Out-Null
     Show-ProgressWindow
@@ -1387,10 +1387,10 @@ if ($SelfTestUi) {
     }
     Write-HandoffLog "SELF-TEST: shim simulation (no update will run)"
     $hold = 6
-    if ($env:HERMES_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:HERMES_SELFTEST_HOLD_SECONDS }
+    if ($env:A2ASSISTANT_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:A2ASSISTANT_SELFTEST_HOLD_SECONDS }
     Publish-UiProgress "Testing quiet update"
     Start-Sleep -Seconds $hold
-    if ($env:HERMES_SELFTEST_FAIL) {
+    if ($env:A2ASSISTANT_SELFTEST_FAIL) {
         Show-ErrorFinale "self-test error state"
     } else {
         Close-ProgressWindow
@@ -1418,16 +1418,16 @@ if ($SelfTestUi) {
 #            output. Guards #95589: the hand-off must terminate it and reach its
 #            retry/finally recovery rather than strand the Desktop.
 #   logstall -- a step that is silent on its pipes but keeps growing the
-#            update log, the shape of every real `hermes update` build (output
+#            update log, the shape of every real `a2assistant update` build (output
 #            goes to logs/update.log, not stdout, for 40+ minutes). Guards the
 #            watchdog's other cliff: the idle ceiling must count update.log
 #            growth as progress and must NOT kill the healthy step.
 if ($SelfTestPipeDrain) {
     New-Item -ItemType Directory -Path $LogDir -Force -ErrorAction SilentlyContinue | Out-Null
     $hold = 60
-    if ($env:HERMES_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:HERMES_SELFTEST_HOLD_SECONDS }
+    if ($env:A2ASSISTANT_SELFTEST_HOLD_SECONDS) { $hold = [int]$env:A2ASSISTANT_SELFTEST_HOLD_SECONDS }
     $floodKb = 8192
-    if ($env:HERMES_SELFTEST_FLOOD_KB) { $floodKb = [int]$env:HERMES_SELFTEST_FLOOD_KB }
+    if ($env:A2ASSISTANT_SELFTEST_FLOOD_KB) { $floodKb = [int]$env:A2ASSISTANT_SELFTEST_FLOOD_KB }
     # $PSHOME is this interpreter's own directory -- no hardcoded system path.
     $powershell = Join-Path $PSHOME "powershell.exe"
     $stamp = [Guid]::NewGuid().ToString("N")
@@ -1457,7 +1457,7 @@ Write-Output "pipe-drain step output"
 exit 7
 '@
     # Writes straight to the console stream, holding nothing: a step that is
-    # merely loud. `hermes update` is this shape -- the Electron/vite build
+    # merely loud. `a2assistant update` is this shape -- the Electron/vite build
     # alone is megabytes. Few large lines rather than many small ones on
     # purpose: Write-HandoffLog is one file append per line and runs inside the
     # measured window, so line-heavy output would time the logger instead of
@@ -1714,7 +1714,7 @@ try {
 
     # StartAssigned passes a null CreateProcess currentDirectory, so children
     # inherit the hand-off process directory rather than PowerShell's $PWD.
-    # Desktop launches us from HERMES_HOME; pin the process directory to the
+    # Desktop launches us from A2ASSISTANT_HOME; pin the process directory to the
     # checkout before any update child can resolve files against the wrong tree.
     try {
         $resolvedInstallRoot = Set-InstallRootCurrentDirectory $InstallRoot
@@ -1815,12 +1815,12 @@ try {
     # close-holder consent is bound to -HandoffRun. That run id beats an inherited
     # one: a Desktop the Start-Process rung relaunched carried the previous run's
     # id, under which its next retry's consent could never match (#101789).
-    $script:UpdateCorrelation = if ($HandoffRun) { $HandoffRun } elseif ($env:HERMES_UPDATE_CORRELATION_ID) { $env:HERMES_UPDATE_CORRELATION_ID } else { $script:ResultRunId }
-    $env:HERMES_UPDATE_CORRELATION_ID = $script:UpdateCorrelation
+    $script:UpdateCorrelation = if ($HandoffRun) { $HandoffRun } elseif ($env:A2ASSISTANT_UPDATE_CORRELATION_ID) { $env:A2ASSISTANT_UPDATE_CORRELATION_ID } else { $script:ResultRunId }
+    $env:A2ASSISTANT_UPDATE_CORRELATION_ID = $script:UpdateCorrelation
     Write-HandoffLog ("running: python " + ($updateArgs -join " "))
     Publish-UiProgress "Updating code and dependencies"
     $res = Invoke-HermesStep $pythonExe $updateArgs "update"
-    Write-HandoffLog "hermes update exit code: $($res.Code)"
+    Write-HandoffLog "a2assistant update exit code: $($res.Code)"
     $res = Resolve-HermesUpdateOutcome $res
 
     # Retry only the identified pre-PM update-boundary transition. Current
@@ -1842,34 +1842,34 @@ try {
     if ($res.Code -ne 0 -and $res.Code -ne 2) { $committedAfterExit = Get-CommittedReceiptOutcome }
     if ($res.Code -ne 0 -and -not $committedAfterExit) {
         $finalCode = $res.Code
-        $finalMsg = "Update failed (exit $($res.Code)). Run `hermes debug share` in a terminal to send a report."
+        $finalMsg = "Update failed (exit $($res.Code)). Run `a2assistant debug share` in a terminal to send a report."
         exit $finalCode
     }
 
-    # -- Commit point: `hermes update` exited 0 (contract C3). The install is
+    # -- Commit point: `a2assistant update` exited 0 (contract C3). The install is
     # on the new version; every step below is follow-up work whose failure is
     # a warning on an ok result, never "still on the previous version".
     $script:Committed = $true
     $finalCode = 0
     $finalMsg = "Update complete."
     if ($script:UpdateInterrupted) {
-        Add-Followup "post-update steps (gateway resume) were interrupted; run hermes update again" "its post-update steps (gateway resume) were interrupted. Run 'hermes update' again to finish them." -Manual
+        Add-Followup "post-update steps (gateway resume) were interrupted; run a2assistant update again" "its post-update steps (gateway resume) were interrupted. Run 'a2assistant update' again to finish them." -Manual
     }
     if ($committedAfterExit) {
         # Past the commit point with a nonzero exit: installed, with an owed follow-up.
         $sentence = switch ($committedAfterExit) {
-            'partial' { "one step is left for you: your local source changes may still be parked in git stash. Run 'hermes update' in a terminal for the exact commands." }
-            'interrupted' { "its post-update steps were interrupted. The next launch or 'hermes update' finishes them." }
-            default { "'hermes update' exited with code $($res.Code) afterwards. Run 'hermes update' in a terminal to finish any remaining steps." }
+            'partial' { "one step is left for you: your local source changes may still be parked in git stash. Run 'a2assistant update' in a terminal for the exact commands." }
+            'interrupted' { "its post-update steps were interrupted. The next launch or 'a2assistant update' finishes them." }
+            default { "'a2assistant update' exited with code $($res.Code) afterwards. Run 'a2assistant update' in a terminal to finish any remaining steps." }
         }
-        Add-Followup "update: hermes update exited $($res.Code) after the commit point (receipt outcome: $committedAfterExit)" $sentence -Manual
+        Add-Followup "update: a2assistant update exited $($res.Code) after the commit point (receipt outcome: $committedAfterExit)" $sentence -Manual
     }
 
     # Pre-PM updates reported a successful exit with a failed build warning.
     # Keep that historical transition here only; current failures propagate.
     $desktopBuildFailed = $false
     if ($legacyInstall -and $res.Output -match "Desktop build failed") {
-        Write-HandoffLog "hermes update reported a desktop build failure; retrying build"
+        Write-HandoffLog "a2assistant update reported a desktop build failure; retrying build"
         Publish-UiProgress "Rebuilding Desktop"
         $rebuildFailure = $null
         try {
@@ -1883,7 +1883,7 @@ try {
         }
         if ($rebuildFailure) {
             $desktopBuildFailed = $true
-            Add-Followup "desktop rebuild: $rebuildFailure" "the Desktop app rebuild failed, so you may still be running the previous build. Run 'hermes desktop --force-build' in a terminal to retry." -Manual
+            Add-Followup "desktop rebuild: $rebuildFailure" "the Desktop app rebuild failed, so you may still be running the previous build. Run 'a2assistant desktop --force-build' in a terminal to retry." -Manual
         }
     }
 
@@ -1908,7 +1908,7 @@ try {
             $closeOffer = if (@($script:ReleaseHolders | Where-Object { $_.exe }).Count -gt 0) { 'Close it and update again, or choose to close it below.' } else { 'Close it yourself (Task Manager) and update again.' }
             Add-Followup "build: the Desktop app folder is in use by $holderNames" "the Desktop app could not be replaced because $holderNames is using its folder. It is not part of Hermes, so it was left running. $closeOffer" -Manual
         } else {
-            Add-Followup "build: the Desktop app build is owed by the committed update" "the Desktop app could not be rebuilt, so it still runs its old build. Run 'hermes desktop --force-build' in a terminal to rebuild it; the update log has the build error." -Manual
+            Add-Followup "build: the Desktop app build is owed by the committed update" "the Desktop app could not be rebuilt, so it still runs its old build. Run 'a2assistant desktop --force-build' in a terminal to rebuild it; the update log has the build error." -Manual
         }
     }
 
@@ -1923,9 +1923,9 @@ try {
         # command in the log. The hint drops only when EVERY gateway_restart line is serve-only; any other
         # reason, including a raw restart-phase error, keeps it (#141071).
         $gwReasons = @((($res.Output -join "`n") -split "`r?`n") | Where-Object { $_ -cmatch "Update follow-up 'gateway_restart' did not finish: " })
-        $serveOnly = ($gwReasons.Count -gt 0) -and -not @($gwReasons | Where-Object { ($_ -cnotmatch "did not finish: serve/dashboard ") -or ($_ -cmatch "hermes gateway restart") }).Count
-        $owedHint = if (($owedSteps -contains 'gateway_restart') -and -not $serveOnly) { " Run 'hermes gateway restart' to move the messaging gateway onto the new code now." } else { '' }
-        Add-Followup ("followup: owed by the committed update: " + ($owedSteps -join ', ')) ("some follow-up steps did not finish (" + ($owedSteps -join ', ') + "). The next launch or 'hermes update' retries them; the update log has the details." + $owedHint) -Manual
+        $serveOnly = ($gwReasons.Count -gt 0) -and -not @($gwReasons | Where-Object { ($_ -cnotmatch "did not finish: serve/dashboard ") -or ($_ -cmatch "a2assistant gateway restart") }).Count
+        $owedHint = if (($owedSteps -contains 'gateway_restart') -and -not $serveOnly) { " Run 'a2assistant gateway restart' to move the messaging gateway onto the new code now." } else { '' }
+        Add-Followup ("followup: owed by the committed update: " + ($owedSteps -join ', ')) ("some follow-up steps did not finish (" + ($owedSteps -join ', ') + "). The next launch or 'a2assistant update' retries them; the update log has the details." + $owedHint) -Manual
     }
 
     # A zero-exit update is not proof that the runtime survived the update.
@@ -1940,13 +1940,13 @@ try {
             $verifyFailure = $_.Exception.Message
         }
         if ($verifyFailure) {
-            Add-Followup "verify: $verifyFailure" "the new Desktop build could not be verified. Nothing was removed. If Hermes does not start normally, run 'hermes desktop --force-build' in a terminal to rebuild it." -Manual
+            Add-Followup "verify: $verifyFailure" "the new Desktop build could not be verified. Nothing was removed. If Hermes does not start normally, run 'a2assistant desktop --force-build' in a terminal to rebuild it." -Manual
         }
     }
 
     # Desktop stopped every locally running profile gateway before handing off
     # so their venv launchers could not hold the update lock. That happens
-    # before `hermes update` captures its Windows pause inventory, leaving the
+    # before `a2assistant update` captures its Windows pause inventory, leaving the
     # updater nothing to resume on its normal success path. Restore the same
     # all-profile fleet after the update -- also when a follow-up above failed:
     # the code is committed and the gateways must not stay down. A remote-served
@@ -1964,7 +1964,7 @@ try {
             $gatewayFailure = $_.Exception.Message
         }
         if ($gatewayFailure) {
-            Add-Followup "gateway start: $gatewayFailure" "it could not restart every messaging gateway. Run `hermes gateway start --all` in a terminal." -Manual
+            Add-Followup "gateway start: $gatewayFailure" "it could not restart every messaging gateway. Run `a2assistant gateway start --all` in a terminal." -Manual
         }
     }
 
@@ -1976,13 +1976,13 @@ try {
     # tree gets its own warning in the finally block.
     Write-HandoffLog "hand-off error: $($_.Exception.Message)"
     if ($script:Committed -and $script:TreeSafeToFinalize) {
-        Add-Followup "hand-off: $($_.Exception.Message)" "a post-update step failed unexpectedly. Run 'hermes update' again to finish it." -Manual
+        Add-Followup "hand-off: $($_.Exception.Message)" "a post-update step failed unexpectedly. Run 'a2assistant update' again to finish it." -Manual
         $finalCode = 0
     }
 } finally {
     # This run's id is ours, not the relaunched Desktop's: the Start-Process rung
     # would hand it on to every update that Desktop starts.
-    Remove-Item -LiteralPath Env:HERMES_UPDATE_CORRELATION_ID -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath Env:A2ASSISTANT_UPDATE_CORRELATION_ID -ErrorAction SilentlyContinue
     if (@('claimed', 'adopted') -contains $script:MarkerClaim -and $InstallRoot) {
         # #101789: a Desktop "close and retry" consent belongs to this run alone. One its swap
         # never reached (a failed build) must not let a later update close the program unasked.

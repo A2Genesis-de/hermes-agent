@@ -49,7 +49,7 @@ def _run_logging_git(tmp_path: Path, code: str) -> tuple[dict, list[str]]:
         **os.environ,
         "PATH": f"{bindir}{os.pathsep}{os.environ.get('PATH', '')}",
         "PYTHONPATH": str(ROOT),
-        "HERMES_HOME": str(home),
+        "A2ASSISTANT_HOME": str(home),
     }
     out = subprocess.run(
         [sys.executable, "-c", code], cwd=str(ROOT), env=env, capture_output=True, text=True,

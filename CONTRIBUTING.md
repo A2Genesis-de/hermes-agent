@@ -61,21 +61,21 @@ Bundled skills (in `skills/`) ship with every Hermes install. They should be **b
 - Document handling, web research, common dev workflows, system administration
 - Used regularly by a wide range of people
 
-If your skill is official and useful but not universally needed (e.g., a paid service integration, a heavyweight dependency), put it in **`optional-skills/`** — it ships with the repo but isn't activated by default. Users can discover it via `hermes skills browse` (labeled "official") and install it with `hermes skills install` (no third-party warning, built-in trust).
+If your skill is official and useful but not universally needed (e.g., a paid service integration, a heavyweight dependency), put it in **`optional-skills/`** — it ships with the repo but isn't activated by default. Users can discover it via `a2assistant skills browse` (labeled "official") and install it with `a2assistant skills install` (no third-party warning, built-in trust).
 
-If your skill is specialized, community-contributed, or niche, it's better suited for a **Skills Hub** — upload it to a skills registry and share it in the [Nous Research Discord](https://discord.gg/NousResearch). Users can install it with `hermes skills install`.
+If your skill is specialized, community-contributed, or niche, it's better suited for a **Skills Hub** — upload it to a skills registry and share it in the [Nous Research Discord](https://discord.gg/NousResearch). Users can install it with `a2assistant skills install`.
 
 ---
 
 ## Memory Providers: Ship as a Standalone Plugin
 
-**We are no longer accepting new memory providers into this repo.** The set of built-in providers under `plugins/memory/` (byterover, retaindb) is closed, and the former in-tree providers hindsight, honcho, supermemory, mem0, openviking and holographic now ship from the plugin catalog. If you want to add a new memory backend, publish it as a **standalone plugin repo** that users install into `~/.hermes/plugins/` (or via a pip entry point).
+**We are no longer accepting new memory providers into this repo.** The set of built-in providers under `plugins/memory/` (byterover, retaindb) is closed, and the former in-tree providers hindsight, honcho, supermemory, mem0, openviking and holographic now ship from the plugin catalog. If you want to add a new memory backend, publish it as a **standalone plugin repo** that users install into `~/.a2assistant/plugins/` (or via a pip entry point).
 
 Standalone memory plugins:
 
 - Implement the same `MemoryProvider` ABC (`agent/memory_provider.py`) — `sync_turn`, `prefetch`, `shutdown`, and optionally `post_setup(hermes_home, config)` for setup-wizard integration
 - Use the same discovery system — `discover_memory_providers()` picks them up from user/project plugin directories and pip entry points
-- Integrate with `hermes memory setup` via `post_setup()` — no need to touch core code
+- Integrate with `a2assistant memory setup` via `post_setup()` — no need to touch core code
 - Can register their own CLI subcommands via `register_cli(subparser)` in a `cli.py` file
 - Get all the same lifecycle hooks and config plumbing as in-tree providers
 
@@ -93,7 +93,7 @@ The reason is maintenance load, not quality. Every external product absorbed int
 
 Publish these as a **standalone plugin repo** instead:
 
-- Implement the relevant ABC and use the existing plugin discovery path (`~/.hermes/plugins/`, project `.hermes/plugins/`, or a pip entry point) — see [Build a Hermes Plugin](https://hermes-agent.nousresearch.com/docs/guides/build-a-hermes-plugin)
+- Implement the relevant ABC and use the existing plugin discovery path (`~/.a2assistant/plugins/`, project `.hermes/plugins/`, or a pip entry point) — see [Build a Hermes Plugin](https://hermes-agent.nousresearch.com/docs/guides/build-a-hermes-plugin)
 - Register lifecycle hooks (`pre_tool_call`, `post_tool_call`, `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`), tools (`ctx.register_tool`), and CLI subcommands (`ctx.register_cli_command`) through the surface we already expose — no core changes needed
 - If your plugin needs a capability the framework doesn't expose, that's a feature request to **widen the generic plugin surface** (a new hook or `ctx` method) — never special-case your plugin in core
 - Promote it in the [Nous Research Discord](https://discord.gg/NousResearch) `#plugins-skills-and-skins` channel so users can find and install it
@@ -104,7 +104,7 @@ A well-built third-party-product plugin can clear automated review and still be 
 
 ## Submitting a Plugin to the Catalog
 
-A standalone plugin reaches users through the [plugin catalog](https://hermes-agent.nousresearch.com/docs/plugins): a PR to this repo adding one `plugin-catalog/<name>.yaml` file that pins your repo at an exact commit. Read **[Submitting to the plugin catalog](https://hermes-agent.nousresearch.com/docs/developer-guide/plugins/catalog-submission)** before opening one. It covers what to check first (`hermes plugins validate --install-deps`), how review works, and every admission rule. The canonical rules live in [`plugin-catalog/README.md`](plugin-catalog/README.md); if you change them, change the mirrored block in the docs page in the same PR (a test keeps the two identical).
+A standalone plugin reaches users through the [plugin catalog](https://hermes-agent.nousresearch.com/docs/plugins): a PR to this repo adding one `plugin-catalog/<name>.yaml` file that pins your repo at an exact commit. Read **[Submitting to the plugin catalog](https://hermes-agent.nousresearch.com/docs/developer-guide/plugins/catalog-submission)** before opening one. It covers what to check first (`a2assistant plugins validate --install-deps`), how review works, and every admission rule. The canonical rules live in [`plugin-catalog/README.md`](plugin-catalog/README.md); if you change them, change the mirrored block in the docs page in the same PR (a test keeps the two identical).
 
 The rules that most often send a submission back: the plugin must extend Hermes only through public hooks, `ctx.register_*` APIs and the Desktop SDK (no patching core code or Desktop markup at runtime), must not update itself, must declare the capabilities it registers, and must disclose risky behaviour.
 
@@ -134,25 +134,25 @@ Bash:
 
 ```bash
 source ./activate
-hermes --version
+a2assistant --version
 ```
 
 fish:
 
 ```fish
 source ./activate.fish
-hermes --version
+a2assistant --version
 ```
 
 PowerShell:
 
 ```powershell
 . .\activate.ps1
-hermes --version
+a2assistant --version
 ```
 
-Run `hermes` for this checkout. Activation defines it as a function for this
-worktree, so it hides a global `hermes` command or MSIX alias and refuses
+Run `a2assistant` for this checkout. Activation defines it as a function for this
+worktree, so it hides a global `a2assistant` command or MSIX alias and refuses
 outside the worktree. PM activation
 syncs tools and Python dependencies before adding them to the shell. It does not
 install JS workspaces or rewrite launchers and shell configuration. `deactivate`
@@ -191,7 +191,7 @@ a shell that was never activated. A new developer command is a script under
 
 Use the [PM developer workflow](website/docs/reference/package-management.md#developer-workflow) to prepare Python 3.14 (`>=3.14,<3.15`) first.
 Run these commands from that checkout with its prepared Python. Keep the same
-development `HERMES_HOME`. PM must be able to start before it can build another
+development `A2ASSISTANT_HOME`. PM must be able to start before it can build another
 environment. On Windows, initialize the native C++ build environment for your
 architecture before building source dependencies.
 
@@ -212,18 +212,18 @@ that disposable environment first. PM does not delete an existing destination.
 Do not run raw pip or uv commands to change a PM-built environment.
 
 To keep the test environment outside the checkout, replace `.venv` with a fresh absolute
-path. Set `HERMES_PYTHON` to that environment's interpreter:
+path. Set `A2ASSISTANT_PYTHON` to that environment's interpreter:
 
-- POSIX: `export HERMES_PYTHON="/absolute/path/to/hermes-dev/bin/python"`
-- PowerShell: `$env:HERMES_PYTHON = 'C:\absolute\path\to\hermes-dev\Scripts\python.exe'`
+- POSIX: `export A2ASSISTANT_PYTHON="/absolute/path/to/hermes-dev/bin/python"`
+- PowerShell: `$env:A2ASSISTANT_PYTHON = 'C:\absolute\path\to\hermes-dev\Scripts\python.exe'`
 
 The canonical runner discovers repository `.venv` automatically. It clears
 `PYTHONPATH`, so pytest must be installed in the interpreter's own environment.
 This test environment does not replace PM's application selection or tool
 store. Do not point a bundled app at it or install into an MSIX payload.
 
-For an isolated development instance, select a disposable `HERMES_HOME` before
-starting the source command. Use `hermes setup` to configure it rather
+For an isolated development instance, select a disposable `A2ASSISTANT_HOME` before
+starting the source command. Use `a2assistant setup` to configure it rather
 than copying production credentials into the checkout.
 
 ### JavaScript workspaces and website
@@ -265,7 +265,7 @@ Native desktop dependencies can also require the platform build toolchain.
 
 Logos and icons are generated from `assets/nous-girl-*.svg` and
 `assets/backgrounds/`. `node scripts/generate-icons.mjs` (`just icons`) renders them with the
-Hermes runtime Python (`HERMES_PYTHON`, else `python` on PATH): Pillow and
+Hermes runtime Python (`A2ASSISTANT_PYTHON`, else `python` on PATH): Pillow and
 resvg-py are core dependencies. Generated outputs are committed and CI fails if
 they are stale; rerun the generator and commit after changing any source SVG.
 
@@ -282,8 +282,8 @@ Both recipes call `scripts/run_tests.sh`; `just test` refuses to start
 without a path, and `just test-all` runs the full suite.
 
 On Windows, run the script through Bash. When no local `.venv` or `venv`
-contains pytest, the runner accepts the explicit `HERMES_PYTHON` above. It
-clears credentials, isolates `HERMES_HOME`, and runs each test file in a separate
+contains pytest, the runner accepts the explicit `A2ASSISTANT_PYTHON` above. It
+clears credentials, isolates `A2ASSISTANT_HOME`, and runs each test file in a separate
 subprocess through `scripts/run_tests_parallel.py`. It does not use xdist.
 
 Run the relevant JS workspace checks for JS changes. Native install/update
@@ -361,28 +361,28 @@ hermes-agent/
 │   ├── install.ps1               # Windows PowerShell installer
 │   └── whatsapp-bridge/          # Node.js WhatsApp bridge (Baileys)
 │
-├── skills/                   # Bundled skills (copied to ~/.hermes/skills/ on install)
+├── skills/                   # Bundled skills (copied to ~/.a2assistant/skills/ on install)
 ├── optional-skills/          # Official optional skills (discoverable via hub, not activated by default)
 ├── tests/                    # Test suite
 ├── website/                  # Documentation site (hermes-agent.nousresearch.com)
 │
-├── cli-config.yaml.example   # Example configuration (copied to ~/.hermes/config.yaml)
+├── cli-config.yaml.example   # Example configuration (copied to ~/.a2assistant/config.yaml)
 └── AGENTS.md                 # Development guide for AI coding assistants
 ```
 
-### User configuration (stored in `~/.hermes/`)
+### User configuration (stored in `~/.a2assistant/`)
 
 | Path | Purpose |
 |------|---------|
-| `~/.hermes/config.yaml` | Settings (model, terminal, toolsets, compression, etc.) |
-| `~/.hermes/.env` | API keys and secrets |
-| `~/.hermes/auth.json` | OAuth credentials (Nous Portal) |
-| `~/.hermes/skills/` | All active skills (bundled + hub-installed + agent-created) |
-| `~/.hermes/memories/` | Persistent memory (MEMORY.md, USER.md) |
-| `~/.hermes/state.db` | SQLite session database |
-| `~/.hermes/sessions/` | Gateway routing index (`sessions.json`), request-dump breadcrumbs, gateway `*.jsonl` transcripts, and explicit `/save` exports. Automatic per-session JSON snapshots are no longer written; state.db is canonical. |
-| `~/.hermes/cron/` | Scheduled job data |
-| `~/.hermes/whatsapp/session/` | WhatsApp bridge credentials |
+| `~/.a2assistant/config.yaml` | Settings (model, terminal, toolsets, compression, etc.) |
+| `~/.a2assistant/.env` | API keys and secrets |
+| `~/.a2assistant/auth.json` | OAuth credentials (Nous Portal) |
+| `~/.a2assistant/skills/` | All active skills (bundled + hub-installed + agent-created) |
+| `~/.a2assistant/memories/` | Persistent memory (MEMORY.md, USER.md) |
+| `~/.a2assistant/state.db` | SQLite session database |
+| `~/.a2assistant/sessions/` | Gateway routing index (`sessions.json`), request-dump breadcrumbs, gateway `*.jsonl` transcripts, and explicit `/save` exports. Automatic per-session JSON snapshots are no longer written; state.db is canonical. |
+| `~/.a2assistant/cron/` | Scheduled job data |
+| `~/.a2assistant/whatsapp/session/` | WhatsApp bridge credentials |
 
 ---
 
@@ -409,7 +409,7 @@ User message → AIAgent._run_agent_loop()
 
 - **Self-registering tools**: Each tool file calls `registry.register()` at import time. `model_tools.py` triggers discovery by importing all tool modules.
 - **Toolset grouping**: Tools are grouped into toolsets (`web`, `terminal`, `file`, `browser`, etc.) that can be enabled/disabled per platform.
-- **Session persistence**: All conversations are stored in SQLite (`hermes_state.py`) with full-text search and unique session titles. Automatic per-session JSON snapshots have been removed. Existing files are left untouched; use `/save json` or `hermes sessions export` for an explicit export.
+- **Session persistence**: All conversations are stored in SQLite (`hermes_state.py`) with full-text search and unique session titles. Automatic per-session JSON snapshots have been removed. Existing files are left untouched; use `/save json` or `a2assistant sessions export` for an explicit export.
 - **Ephemeral injection**: System prompts and prefill messages are injected at API call time, never persisted to the database or logs.
 - **Provider abstraction**: The agent works with any OpenAI-compatible API. Provider resolution happens at init time (Nous Portal OAuth, OpenRouter API key, or custom endpoint).
 - **Provider routing**: When using OpenRouter, `provider_routing` in config.yaml controls provider selection (sort by throughput/latency/price, allow/ignore specific providers, data retention policies). These are injected as `extra_body.provider` in API requests.
@@ -423,7 +423,7 @@ User message → AIAgent._run_agent_loop()
 - **Error handling**: Catch specific exceptions. Log with `logger.warning()`/`logger.error()` — use `exc_info=True` for unexpected errors so stack traces appear in logs
 - **Error messages**: every user-facing error message names the actual cause and the remediation step — never the proximate symptom. A missing API key is "no OpenRouter API key configured — set `OPENROUTER_API_KEY`", never "payment/credit error"; a failed request logs the exception class and message (secret-redacted) rather than an empty reason; a timed-out long job reports the timeout and where the job went, not a fallback-routing noise string. If you know the cause, say it; if you don't, say what you do know plus what to check — never a placeholder that points somewhere else.
 - **Cross-platform**: Never assume Unix. See [Cross-Platform Compatibility](#cross-platform-compatibility)
-- **Code health ratchet**: `python scripts/check` runs every blocking lint check CI runs, with the same pinned tools. To run it automatically, `python scripts/check --install-hook pre-push` judges the tip of each branch you push, as CI judges the PR as a whole, not each intermediate commit (`--install-hook` alone runs it on every commit instead, judging what you staged; `--uninstall-hook` removes either; `--no-verify` skips once). The hook covers every worktree of your clone, judges each pushed tip with that tip's own checker, prefers the repo's `.venv`/`venv` Python (3.11+), and needs ruff 0.15.10 or `uv` on `PATH`; re-run `--install-hook` after pulling to refresh the hook script. Its code-health part gives every function and file its own cap: new functions stay at cyclomatic complexity ≤ 20, ≤ 300 lines and nesting ≤ 6, files at ≤ 2,000 lines, and code already over a target may only get smaller (a file already past 2,000 lines may not grow: offset the growth by moving an existing function into a `<stem>_<topic>` sibling, or put new tests in a new test file). Pattern rules (blind `except Exception`, missing timeouts, profile-scope hazards such as a hardcoded `~/.hermes` or a new `HERMES_*` env var) track each existing violation where it sits, so existing debt never blocks you, but a new instance does, even one that replaces an identical violation you removed. Moving code keeps its history: a function or module-level statement moved to another file keeps the cap and the existing violations it had, and so does a moved function you lightly edit, unless a function of that name already exists in the destination (the edited one is then judged against that function's cap). A function you both rename and edit is new code, and so is a copy that leaves the original in place. A file the checker cannot parse or measure fails. TypeScript complexity follows ESLint's `complexity` rule except where `scripts/code_health/ts_units.mjs` says otherwise. Each finding prints its fix; a genuine exception takes a `# health: allow <RULE> -- <why>` comment on the line (or on a comment-only line directly above it), which reviewers read; ruff's `# noqa` does not waive a ratchet finding, and a broad catch that logs must keep the traceback (`logger.exception` or `exc_info=True`). Heuristic rules print as warnings until a frozen replay of merged PRs shows they are precise enough to block. Rules and targets: `scripts/code_health/config.py`. Maintainers switch the whole ratchet with `ENFORCEMENT` there (`blocking`, `advisory` or `off`): it is always read from main (CI: the merge commit's first parent; local runs: `origin/main`), never from the branch under test, so a one-line commit to main reaches every open PR on its next CI run (a re-run reuses the old merge commit) and every local hook after a fetch, and a PR cannot relax its own check; one rule can be demoted with `blocking=False`.
+- **Code health ratchet**: `python scripts/check` runs every blocking lint check CI runs, with the same pinned tools. To run it automatically, `python scripts/check --install-hook pre-push` judges the tip of each branch you push, as CI judges the PR as a whole, not each intermediate commit (`--install-hook` alone runs it on every commit instead, judging what you staged; `--uninstall-hook` removes either; `--no-verify` skips once). The hook covers every worktree of your clone, judges each pushed tip with that tip's own checker, prefers the repo's `.venv`/`venv` Python (3.11+), and needs ruff 0.15.10 or `uv` on `PATH`; re-run `--install-hook` after pulling to refresh the hook script. Its code-health part gives every function and file its own cap: new functions stay at cyclomatic complexity ≤ 20, ≤ 300 lines and nesting ≤ 6, files at ≤ 2,000 lines, and code already over a target may only get smaller (a file already past 2,000 lines may not grow: offset the growth by moving an existing function into a `<stem>_<topic>` sibling, or put new tests in a new test file). Pattern rules (blind `except Exception`, missing timeouts, profile-scope hazards such as a hardcoded `~/.a2assistant` or a new `A2ASSISTANT_*` env var) track each existing violation where it sits, so existing debt never blocks you, but a new instance does, even one that replaces an identical violation you removed. Moving code keeps its history: a function or module-level statement moved to another file keeps the cap and the existing violations it had, and so does a moved function you lightly edit, unless a function of that name already exists in the destination (the edited one is then judged against that function's cap). A function you both rename and edit is new code, and so is a copy that leaves the original in place. A file the checker cannot parse or measure fails. TypeScript complexity follows ESLint's `complexity` rule except where `scripts/code_health/ts_units.mjs` says otherwise. Each finding prints its fix; a genuine exception takes a `# health: allow <RULE> -- <why>` comment on the line (or on a comment-only line directly above it), which reviewers read; ruff's `# noqa` does not waive a ratchet finding, and a broad catch that logs must keep the traceback (`logger.exception` or `exc_info=True`). Heuristic rules print as warnings until a frozen replay of merged PRs shows they are precise enough to block. Rules and targets: `scripts/code_health/config.py`. Maintainers switch the whole ratchet with `ENFORCEMENT` there (`blocking`, `advisory` or `off`): it is always read from main (CI: the merge commit's first parent; local runs: `origin/main`), never from the branch under test, so a one-line commit to main reaches every open PR on its next CI run (a re-run reuses the old merge commit) and every local hook after a fetch, and a PR cannot relax its own check; one rule can be demoted with `blocking=False`.
 
 ### Fail loud at integration boundaries
 
@@ -645,7 +645,7 @@ prerequisites:
   commands: [curl, jq]            # Advisory CLI checks
 ```
 
-Gateway and messaging sessions never collect secrets in-band; they instruct the user to run `hermes setup` or update `~/.hermes/.env` locally.
+Gateway and messaging sessions never collect secrets in-band; they instruct the user to run `a2assistant setup` or update `~/.a2assistant/.env` locally.
 
 **When to declare required environment variables:**
 - The skill uses an API key or token that should be collected securely at load time
@@ -714,7 +714,7 @@ Every new or modernized skill — bundled, optional, or contributed — must mee
 - **No external dependencies unless absolutely necessary.** Prefer stdlib Python, curl, and existing Hermes tools (`web_extract`, `terminal`, `read_file`).
 - **Progressive disclosure.** Put the most common workflow first. Edge cases and advanced usage go at the bottom.
 - **Include helper scripts** for XML/JSON parsing or complex logic — don't expect the LLM to write parsers inline every time.
-- **Test it.** Run `hermes --toolsets skills -q "Use the X skill to do Y"` and verify the agent follows the instructions correctly.
+- **Test it.** Run `a2assistant --toolsets skills -q "Use the X skill to do Y"` and verify the agent follows the instructions correctly.
 
 ---
 
@@ -724,7 +724,7 @@ Hermes uses a data-driven skin system — no code changes needed to add a new sk
 
 **Option A: User skin (YAML file)**
 
-Create `~/.hermes/skins/<name>.yaml`:
+Create `~/.a2assistant/skins/<name>.yaml`:
 
 ```yaml
 name: mytheme
@@ -1029,7 +1029,7 @@ refactor/description   # Code restructuring
 
 1. **Run tests**: `just test <paths>` (scripts/run_tests.sh) for the same environment and per-file isolation as CI.
 2. **Run the lint checks**: `just check` (the blocking lint lane, locally).
-3. **Test manually**: Run `hermes` and exercise the code path you changed
+3. **Test manually**: Run `a2assistant` and exercise the code path you changed
 4. **Check cross-platform impact**: If you touch file I/O, process management, or terminal handling, consider macOS, Linux, and WSL2
 5. **Keep PRs focused**: One logical change per PR. Don't mix a bug fix with a refactor with a new feature.
 
@@ -1073,7 +1073,7 @@ test(tools): add unit tests for file_operations
 ## Reporting Issues
 
 - Use [GitHub Issues](https://github.com/NousResearch/hermes-agent/issues)
-- Include: OS, Python version, Hermes version (`hermes --version`), full error traceback
+- Include: OS, Python version, Hermes version (`a2assistant --version`), full error traceback
 - Include steps to reproduce
 - Check existing issues before creating duplicates
 - For security vulnerabilities, please report privately

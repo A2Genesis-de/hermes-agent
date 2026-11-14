@@ -101,7 +101,7 @@ export const it: Translations = {
   status: {
     actionFailed: "Azione non riuscita",
     actionFinished: "Completata",
-    actionFinishedOwed: "Aggiornato, ma ancora in sospeso (riesegui `hermes update` per completare)",
+    actionFinishedOwed: "Aggiornato, ma ancora in sospeso (riesegui `a2assistant update` per completare)",
     actions: "Azioni",
     agent: "Agente",
     activeSessions: "Sessioni attive",
@@ -337,7 +337,7 @@ export const it: Translations = {
       "Salvato: riavvia il gateway per applicare la modifica.",
     forceReinstall: "Forza reinstallazione (elimina prima la cartella esistente)",
     headline:
-      "Scopri, installa, abilita e aggiorna i plugin A2Assistant (parità con `hermes plugins`).",
+      "Scopri, installa, abilita e aggiorna i plugin A2Assistant (parità con `a2assistant plugins`).",
     identifierLabel: "URL Git o owner/repo",
     inactive: "inattivo",
     installBtn: "Installa",
@@ -354,8 +354,8 @@ export const it: Translations = {
     providersHint:
       "Scrive memory.provider (vuoto = integrato) e context.engine in config.yaml. Effetto dalla prossima sessione.",
     refreshDashboard: "Riscansiona estensioni dashboard",
-    removeConfirm: "Rimuovere questo plugin da ~/.hermes/plugins/?",
-    removeHint: "Solo i plugin installati dall'utente in ~/.hermes/plugins possono essere rimossi.",
+    removeConfirm: "Rimuovere questo plugin da ~/.a2assistant/plugins/?",
+    removeHint: "Solo i plugin installati dall'utente in ~/.a2assistant/plugins possono essere rimossi.",
     rescanHeading: "Registro plugin SPA",
     rescanHint: "Riscansiona dopo aver aggiunto file su disco affinché la barra laterale rilevi i nuovi manifest.",
     runtimeHeading: "Runtime gateway (plugin YAML)",
@@ -376,7 +376,7 @@ export const it: Translations = {
     all: "Tutti",
     categories: "Categorie",
     filters: "Filtri",
-    noSkills: "Nessuna competenza trovata. Le competenze vengono caricate da ~/.hermes/skills/",
+    noSkills: "Nessuna competenza trovata. Le competenze vengono caricate da ~/.a2assistant/skills/",
     noSkillsMatch: "Nessuna competenza corrisponde alla ricerca o al filtro.",
     skillCount: "{count} competenz{s}",
     resultCount: "{count} risultat{s}",
@@ -390,7 +390,7 @@ export const it: Translations = {
   },
 
   config: {
-    configPath: "~/.hermes/config.yaml",
+    configPath: "~/.a2assistant/config.yaml",
     filters: "Filtri",
     sections: "Sezioni",
     exportConfig: "Esporta configurazione come JSON",

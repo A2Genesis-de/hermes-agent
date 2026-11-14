@@ -121,10 +121,10 @@ def test_doctor_blocks_live_network(tmp_path: Path) -> None:
 def test_doctor_default_target_does_not_copy_cwd(
     tmp_path: Path, monkeypatch
 ) -> None:
-    """``hermes plugins doctor`` with no argument defaults to ``.``.
+    """``a2assistant plugins doctor`` with no argument defaults to ``.``.
 
     Before the manifest guard, that copied the whole working directory into
-    a temporary HERMES_HOME — running it from ``$HOME`` copied the home
+    a temporary A2ASSISTANT_HOME — running it from ``$HOME`` copied the home
     directory, cloud-storage placeholders included.
     """
     import os
@@ -158,7 +158,7 @@ def test_doctor_does_not_copy_home_with_a_plugin_checkout(
     """A home with one plugin checkout next to other directories is not a category.
 
     ``_holds_plugin`` used to accept any immediate child manifest, so
-    ``hermes plugins doctor`` from ``$HOME`` resolved to the home and
+    ``a2assistant plugins doctor`` from ``$HOME`` resolved to the home and
     ``copytree`` copied it. A category directory's children are plugins.
     """
     import os

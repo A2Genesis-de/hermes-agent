@@ -40,12 +40,12 @@ export interface CoreSandbox {
 }
 
 /**
- * HOME is faked too, not just HERMES_HOME: profile roots are anchored to
- * `Path.home()/.hermes`, so a sandbox HERMES_HOME under the real ~/.hermes
+ * HOME is faked too, not just A2ASSISTANT_HOME: profile roots are anchored to
+ * `Path.home()/.hermes`, so a sandbox A2ASSISTANT_HOME under the real ~/.a2assistant
  * would read and write the real install's profiles/.
  */
 export function createCoreSandbox(label: string): CoreSandbox {
-  const parent = process.env.HERMES_E2E_CORE_ROOT || os.tmpdir()
+  const parent = process.env.A2ASSISTANT_E2E_CORE_ROOT || os.tmpdir()
   fs.mkdirSync(parent, { recursive: true })
   const root = fs.mkdtempSync(path.join(parent, `core-${label}-`))
   const home = path.join(root, 'home')
@@ -80,7 +80,7 @@ export function createCoreSandbox(label: string): CoreSandbox {
       // every spec left its sandbox `gateway run` behind (~20 per suite run).
       stopSandboxGatewayDaemons(root, hermesHome)
 
-      if (!process.env.HERMES_E2E_CORE_KEEP) {
+      if (!process.env.A2ASSISTANT_E2E_CORE_KEEP) {
         fs.rmSync(root, { recursive: true, force: true })
       }
     }
@@ -126,15 +126,15 @@ export function writeProviderHome(
 const CREDENTIAL_RE = /(_API_KEY|_TOKEN|_SECRET|_PASSWORD|_CREDENTIALS|_ACCESS_KEY|_PRIVATE_KEY|_BASE_URL)$/
 
 /**
- * The runner's own env minus credentials and every HERMES_* knob: an agent
- * shell exports HERMES_YOLO_MODE / _HERMES_GATEWAY, which the spawned backend
+ * The runner's own env minus credentials and every A2ASSISTANT_* knob: an agent
+ * shell exports A2ASSISTANT_YOLO_MODE / _HERMES_GATEWAY, which the spawned backend
  * would inherit (auto-approving every command, changing the run under test).
  */
 export function coreAppEnv(sandbox: CoreSandbox, extra: Record<string, string> = {}): Record<string, string> {
   const env: Record<string, string> = {}
 
   for (const [key, value] of Object.entries(process.env)) {
-    if (!value || CREDENTIAL_RE.test(key) || /^_?HERMES_/.test(key) || key === 'VIRTUAL_ENV') {
+    if (!value || CREDENTIAL_RE.test(key) || /^_?A2ASSISTANT_/.test(key) || key === 'VIRTUAL_ENV') {
       continue
     }
 
@@ -145,18 +145,18 @@ export function coreAppEnv(sandbox: CoreSandbox, extra: Record<string, string> =
     ...env,
     PATH: `${sandbox.bin}${path.delimiter}${env.PATH ?? ''}`,
     HOME: sandbox.home,
-    HERMES_HOME: sandbox.hermesHome,
-    HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
-    HERMES_DESKTOP_IGNORE_EXISTING: '1',
-    HERMES_DESKTOP_HERMES_ROOT: REPO_ROOT,
+    A2ASSISTANT_HOME: sandbox.hermesHome,
+    A2ASSISTANT_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
+    A2ASSISTANT_DESKTOP_IGNORE_EXISTING: '1',
+    A2ASSISTANT_DESKTOP_HERMES_ROOT: REPO_ROOT,
     // setup-pm exports an install-scoped interpreter, not a checkout .venv.
-    // The Desktop override must be explicit because the sandbox strips HERMES_*.
-    ...(process.env.HERMES_E2E_PYTHON ? { HERMES_DESKTOP_PYTHON: process.env.HERMES_E2E_PYTHON } : {}),
-    HERMES_DESKTOP_APP_NAME: `HermesCoreE2E-${path.basename(sandbox.root)}`,
-    HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1',
+    // The Desktop override must be explicit because the sandbox strips A2ASSISTANT_*.
+    ...(process.env.A2ASSISTANT_E2E_PYTHON ? { A2ASSISTANT_DESKTOP_PYTHON: process.env.A2ASSISTANT_E2E_PYTHON } : {}),
+    A2ASSISTANT_DESKTOP_APP_NAME: `HermesCoreE2E-${path.basename(sandbox.root)}`,
+    A2ASSISTANT_DESKTOP_SKIP_QUIT_CONFIRM: '1',
     // Never repoint the user's OS hermes:// handler (HKCU on Windows) at a test checkout.
-    HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
-    HERMES_DESKTOP_CDP_PORT: 'off',
+    A2ASSISTANT_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1',
+    A2ASSISTANT_DESKTOP_CDP_PORT: 'off',
     // A partial-clone (blob:none) dev checkout turns some backend git read into
     // a lazy `git fetch origin` over the network, which outlived quit by >60 s
     // (reported as a finding). CI checkouts are not partial; keep dev runs
@@ -180,7 +180,7 @@ export function freePort(): Promise<number> {
 
 /** `hermes <args>` in the sandbox, as an operator runs it. */
 export function hermesCli(sandbox: CoreSandbox, args: string[]): { code: number | null; output: string } {
-  const result = spawnSync(process.env.HERMES_E2E_PYTHON || 'python3', ['-m', 'hermes_cli.main', ...args], {
+  const result = spawnSync(process.env.A2ASSISTANT_E2E_PYTHON || 'python3', ['-m', 'hermes_cli.main', ...args], {
     cwd: REPO_ROOT,
     env: coreAppEnv(sandbox),
     encoding: 'utf8',
@@ -190,14 +190,14 @@ export function hermesCli(sandbox: CoreSandbox, args: string[]): { code: number 
   return { code: result.status, output: `${result.stdout ?? ''}${result.stderr ?? ''}` }
 }
 
-/** Starts the gateway if needed and returns a one-use launch link for its Webapp (`hermes -p <profile> webapp`
+/** Starts the gateway if needed and returns a one-use launch link for its Webapp (`a2assistant -p <profile> webapp`
  * when a profile is named). */
 export function webappLaunchLink(sandbox: CoreSandbox, profile?: string): string {
   const profileArgs = profile ? ['-p', profile] : []
   const { code, output } = hermesCli(sandbox, [...profileArgs, 'webapp', '--no-open', '--skip-build'])
   const link = /^\s+(http:\/\/127\.0\.0\.1:\d+\/webapp\/launch#\S+)$/m.exec(output)?.[1]
-  expect(code, `hermes webapp --no-open\n${output.replace(/ticket=\S+/g, 'ticket=<redacted>')}`).toBe(0)
-  expect(link, 'hermes webapp printed a one-use launch link').toBeTruthy()
+  expect(code, `a2assistant webapp --no-open\n${output.replace(/ticket=\S+/g, 'ticket=<redacted>')}`).toBe(0)
+  expect(link, 'a2assistant webapp printed a one-use launch link').toBeTruthy()
 
   return link!
 }
@@ -241,13 +241,13 @@ export function appLogTail(app: ElectronApplication, n = 60): string {
 
 // ─── Process census ─────────────────────────────────────────────────────
 
-/** Every live process carrying this sandbox's HERMES_HOME (orphans included); see process-census.ts. */
+/** Every live process carrying this sandbox's A2ASSISTANT_HOME (orphans included); see process-census.ts. */
 export function sandboxProcesses(sandbox: CoreSandbox): ProcInfo[] {
   return sandboxProcessesOf(sandbox.hermesHome)
 }
 
 /**
- * The `hermes serve` backend(s) spawned for this sandbox.
+ * The `a2assistant serve` backend(s) spawned for this sandbox.
  *
  * A child of the backend still shows the backend's argv and environ between
  * fork and exec, and the backend forks ~40 probes per boot (git, ps,
@@ -258,7 +258,7 @@ export function sandboxProcesses(sandbox: CoreSandbox): ProcInfo[] {
  * dead backend is reparented away and still counted.
  */
 export function backendProcesses(sandbox: CoreSandbox): ProcInfo[] {
-  // The local backend is the gateway `hermes gateway ensure` attached to or started
+  // The local backend is the gateway `a2assistant gateway ensure` attached to or started
   // (`hermes_cli.main [--profile X] gateway run --quiet`); `serve` covers a pool backend.
   const serve = sandboxProcesses(sandbox).filter(
     proc => (/ serve( |$)/.test(proc.cmdline) || / gateway run( |$)/.test(proc.cmdline))
@@ -272,7 +272,7 @@ export function backendProcesses(sandbox: CoreSandbox): ProcInfo[] {
 
 
 /**
- * `hermes gateway stop` for the sandbox profile, run with the backend's own
+ * `a2assistant gateway stop` for the sandbox profile, run with the backend's own
  * interpreter (argv[0] of the live `gateway run`). Attach-mode Desktop never
  * owns the gateway, so this is how a test proves teardown works when asked.
  * `interrupt` passes `--yes`: stop refuses while a turn is live unless told to

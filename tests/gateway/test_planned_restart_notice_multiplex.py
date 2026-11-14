@@ -46,7 +46,7 @@ def _home_config(platform: Platform, chat_id: str) -> GatewayConfig:
 @pytest.fixture
 def multiplex_runner(tmp_path, monkeypatch):
     """A host multiplexer: launch profile on Discord, served profile ``coder`` on Telegram."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
     runner = object.__new__(gateway_run.GatewayRunner)
     runner.config = _home_config(_CHAT_A, "launch-home")
@@ -140,7 +140,7 @@ async def test_profiles_sharing_one_home_chat_get_one_notice(tmp_path, monkeypat
     A single Telegram group as the home channel of both the launch profile and a served profile
     is a common setup; keyed per profile it received two "Gateway online" messages.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
     runner = object.__new__(gateway_run.GatewayRunner)
     runner.config = _home_config(Platform.TELEGRAM, "-100999")
@@ -191,7 +191,7 @@ async def test_unserved_profile_config_is_pruned_from_the_fan_out(tmp_path, monk
     ``owed`` is built from ``_profile_configs`` while delivery needs a live transport, so a stale
     entry makes ``owed <= delivered`` permanently false and ``.restart_pending.json`` immortal.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     runner = object.__new__(gateway_run.GatewayRunner)
     runner.config = _home_config(_CHAT_A, "launch-home")
     runner._profile_configs = {"ghost": _home_config(Platform.TELEGRAM, "-200")}

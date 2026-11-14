@@ -27,7 +27,7 @@ const REUSE_TOKEN = 'stored-token'
 test.skipIf(process.platform === 'win32')(
   'a dev build hands its renderer origin to the remote serve (real sh parse)',
   async (): Promise<void> => {
-    // The backend trusts a dev renderer's http origin only when it inherits HERMES_DESKTOP_DEV_SERVER,
+    // The backend trusts a dev renderer's http origin only when it inherits A2ASSISTANT_DESKTOP_DEV_SERVER,
     // as a locally spawned backend does. A packaged build (no dev server) must not set it at all.
     const shell: string = (await exec('command -v bash', { shell: 'bash' })).stdout.trim()
     const directory: string = await mkdtemp(path.join(os.tmpdir(), 'hermes-dev-server-env-'))
@@ -39,7 +39,7 @@ test.skipIf(process.platform === 'win32')(
       await execFile('mkfifo', [reportPath])
       await writeFile(
         hermesPath,
-        `#!${shell}\nprintf '%s' "\${HERMES_DESKTOP_DEV_SERVER-unset}" > ${expandRemotePath(reportPath)}\n`,
+        `#!${shell}\nprintf '%s' "\${A2ASSISTANT_DESKTOP_DEV_SERVER-unset}" > ${expandRemotePath(reportPath)}\n`,
         { encoding: 'utf8', mode: 0o700 }
       )
 
@@ -58,11 +58,11 @@ test.skipIf(process.platform === 'win32')(
         })
 
         // A runner launched from a dev shell may export the variable itself; only `remote` may reach the spawn.
-        const env: NodeJS.ProcessEnv = { ...process.env, HOME: directory, HERMES_HOME: directory }
-        delete env.HERMES_DESKTOP_DEV_SERVER
+        const env: NodeJS.ProcessEnv = { ...process.env, HOME: directory, A2ASSISTANT_HOME: directory }
+        delete env.A2ASSISTANT_DESKTOP_DEV_SERVER
 
         if (remote !== undefined) {
-          env.HERMES_DESKTOP_DEV_SERVER = remote
+          env.A2ASSISTANT_DESKTOP_DEV_SERVER = remote
         }
 
         await exec(command, { shell, env })
@@ -86,7 +86,7 @@ function ownedLock(devServer?: string): Record<string, unknown> {
     port: 40000,
     profile: '',
     hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.hermes',
+    hermesHome: '~/.a2assistant',
     logPath: spawnLogPath(OWNERSHIP_ID, SPAWN_NONCE),
     tokenFingerprint: fingerprintToken(REUSE_TOKEN),
     startedAt: '2026-07-14T00:00:00.000Z',
@@ -126,7 +126,7 @@ function ownedBackendSsh(lock: Record<string, unknown>): { calls: string[]; exec
         [/print\("OWNED"/, 'OWNED\n'],
         [/pidfd_open/, 'TERMINATED\n'],
         [/grep -q ssh-session-token-file/, 'YES\n'],
-        [/cat .*\.log/, 'HERMES_DASHBOARD_READY port=52050\n']
+        [/cat .*\.log/, 'A2ASSISTANT_DASHBOARD_READY port=52050\n']
       ]
 
       return rules.find(([matcher]) => matcher.test(cmd))?.[1] ?? ''
@@ -142,7 +142,7 @@ for (const [label, recorded, current, reused] of [
   ['a packaged build reuses a packaged backend', undefined, '', true]
 ] as const) {
   test(`SSH reuse: ${label}`, async (): Promise<void> => {
-    // The backend trusts the renderer's http origin only from the HERMES_DESKTOP_DEV_SERVER it was
+    // The backend trusts the renderer's http origin only from the A2ASSISTANT_DESKTOP_DEV_SERVER it was
     // spawned with, so reusing one spawned for another renderer would refuse every renderer socket.
     const ssh = ownedBackendSsh(ownedLock(recorded))
 

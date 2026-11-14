@@ -50,7 +50,7 @@ class TestChannelCards:
 class TestStillConfigurable:
     def test_gateway_still_honors_the_env_vars(self, tmp_path, monkeypatch):
         """Nothing was removed from the product — only from the setup form."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123456:abcdefghijklmnop")
         monkeypatch.setenv("TELEGRAM_HOME_CHANNEL", "999")
         monkeypatch.setenv("TELEGRAM_REPLY_TO_MODE", "off")

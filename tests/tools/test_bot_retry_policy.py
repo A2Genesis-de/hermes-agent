@@ -66,7 +66,7 @@ def home(tmp_path, monkeypatch):
     h = tmp_path / ".hermes"
     (h / "profiles" / "ops").mkdir(parents=True)
     (h / "profiles" / "ops" / "config.yaml").touch()  # identity marker: bare dirs are not profiles
-    monkeypatch.setenv("HERMES_HOME", str(h))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(h))
     return h
 
 

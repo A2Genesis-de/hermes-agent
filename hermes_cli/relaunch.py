@@ -1,5 +1,5 @@
 """Unified self-relaunch for Hermes CLI: preserves inherited flags (--tui, --dev, --profile, --model…)
-across process replacement so ``hermes sessions browse`` / post-setup relaunch keep the user's mode."""
+across process replacement so ``a2assistant sessions browse`` / post-setup relaunch keep the user's mode."""
 
 import os
 import pathlib
@@ -60,7 +60,7 @@ def _extract_inherited_flags(argv: Sequence[str]) -> list[str]:
 
 
 def resolve_hermes_bin() -> Optional[str]:
-    """Hermes entry point: ``sys.argv[0]`` if a real executable, else ``which hermes``, else ``None``
+    """Hermes entry point: ``sys.argv[0]`` if a real executable, else ``which a2assistant``, else ``None``
     (caller falls back to ``python -m hermes_cli.main``).
 
     Python launchers are never returned: on Windows a ``.py`` can't be exec'd directly, and on
@@ -93,7 +93,9 @@ def resolve_hermes_bin() -> Optional[str]:
         abs_path = os.path.abspath(argv0)
         if os.access(abs_path, os.X_OK) and not _is_unsafe_python_launcher(abs_path):
             return abs_path
-    path_bin = shutil.which("hermes")
+    from hermes_cli.service_names import CLI_COMMANDS
+
+    path_bin = next(filter(None, map(shutil.which, CLI_COMMANDS)), None)
     if path_bin and not _is_unsafe_python_launcher(path_bin):
         return path_bin
     return None

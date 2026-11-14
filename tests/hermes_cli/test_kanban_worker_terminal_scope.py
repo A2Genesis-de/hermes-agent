@@ -29,7 +29,7 @@ def profile_b(tmp_path, monkeypatch):
     (served / "config.yaml").write_text(
         "terminal:\n  backend: docker\n  docker_image: b-image\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "fakehome"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("TERMINAL_ENV", "local")  # ambient launch-profile policy
     monkeypatch.setenv("TERMINAL_DOCKER_IMAGE", "launch-image")
     return served
@@ -82,7 +82,7 @@ def test_launch_profiles_own_worker_keeps_its_credentials(tmp_path, monkeypatch)
     launch = tmp_path / "fakehome" / ".hermes"
     (launch / "profiles").mkdir(parents=True)
     monkeypatch.setenv("HOME", str(tmp_path / "fakehome"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("OPENAI_API_KEY", "dispatcher-launch-key")
 
     from hermes_cli.kanban_db import Task

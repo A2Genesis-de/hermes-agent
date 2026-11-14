@@ -139,7 +139,7 @@ def test_normal_entrypoint_earns_authenticated_authority_readiness(tmp_path, mod
     }))
     root = Path(__file__).resolve().parents[2]
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home),
                PYTHONPATH=str(root), PYTHONUNBUFFERED='1',
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=model_url)
     with (tmp_path / 'gateway.log').open('w+') as log:

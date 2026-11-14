@@ -5,7 +5,7 @@
 // how the two halves drift.
 //
 // A .cjs module (not JSON) so the variant is decided at require time:
-// HERMES_DESKTOP_VARIANT=light builds "Hermes Light". The whole config
+// A2ASSISTANT_DESKTOP_VARIANT=light builds "Hermes Light". The whole config
 // derives from that one flag.
 // @ts-check
 'use strict'
@@ -13,6 +13,7 @@
 const fs = require('node:fs')
 const path = require('node:path')
 const feedContract = require('./update-feed.cjs')
+const { URL_SCHEMES } = require('../shared/src/product-names.mjs')
 const { createMacSigner } = require('./scripts/mac-sign.mjs')
 
 const {
@@ -36,7 +37,7 @@ const {
 // invariant lives in product-identity.cjs:33-34/58-68.
 /** @type {NonNullable<typeof storeMsix> | undefined} */
 const storeMsixWhenStore = storeMsix
-const releaseBuild = Boolean(process.env.HERMES_PAYLOAD_TAG)
+const releaseBuild = Boolean(process.env.A2ASSISTANT_PAYLOAD_TAG)
 
 /**
  * The store MSIX packaging identity. Callers must only invoke this when
@@ -78,7 +79,7 @@ module.exports = {
   protocols: [
     {
       name: `${displayName} Protocol`,
-      schemes: ['hermes']
+      schemes: [...URL_SCHEMES]
     }
   ],
   // A store build is archived, never served to a feed — prefix its artifact
@@ -129,7 +130,7 @@ module.exports = {
       from: 'build/install-stamp.json',
       to: 'install-stamp.json'
     },
-    ...(['bundled', 'store'].includes(process.env.HERMES_DESKTOP_VARIANT || '')
+    ...(['bundled', 'store'].includes(process.env.A2ASSISTANT_DESKTOP_VARIANT || '')
       ? [{ from: 'build/agent-payload', to: 'agent-payload' }]
       : []),
     {

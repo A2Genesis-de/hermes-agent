@@ -74,7 +74,7 @@ def test_finalize_settles_session_before_a_successor_can_take_over(tmp_path, mon
     from hermes_state import SessionDB
 
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     db = SessionDB(db_path=tmp_path / "state.db")
     sid = "s1"
     db.create_session(sid, "cli")

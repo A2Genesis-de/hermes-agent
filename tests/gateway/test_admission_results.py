@@ -72,7 +72,7 @@ async def test_a_turn_that_failed_before_running_settles_failed_on_every_surface
     from gateway.session_contract import SessionActor, SessionRef, Submission
     from hermes_state_runtime import get_session_admission
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'state.db')
     db.create_session('s', source='telegram')
     gateway = object.__new__(GatewayRunner)
@@ -112,7 +112,7 @@ async def test_a_turn_that_failed_before_running_settles_failed_on_every_surface
 @pytest.mark.parametrize('text,outcome', [('do the work', 'failed'), ('/status', 'completed')],
                          ids=['refused-prompt', 'command-answer'])
 async def test_a_finite_prompt_answered_without_running_settles_failed(tmp_path, monkeypatch, text, outcome):
-    """``hermes chat -q`` exits on the committed outcome. A handler that answers a finite prompt
+    """``a2assistant chat -q`` exits on the committed outcome. A handler that answers a finite prompt
     with a notice and never runs the turn (drain gate, lease timeout, any stub refusal) did not do
     the asked work, so the admission settles failed and the CLI exits non-zero; a finite slash
     command's reply IS its answer and still completes."""
@@ -126,7 +126,7 @@ async def test_a_finite_prompt_answered_without_running_settles_failed(tmp_path,
     from hermes_cli.turn_exit import turn_exit_code
     from hermes_state_runtime import get_session_admission
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'state.db')
     db.create_session('s', source='cli')
 

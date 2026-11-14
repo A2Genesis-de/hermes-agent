@@ -26,7 +26,7 @@ from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
 def upload_app(tmp_path, monkeypatch):
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setattr(web_server.app.state, "auth_required", True, raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "0.0.0.0", raising=False)
@@ -228,7 +228,7 @@ def test_other_upload_routes_keep_their_larger_caps(upload_app, monkeypatch):
     home, spools = upload_app
     root = home / "managed"
     root.mkdir()
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(root))
 
     async def run():
         async with httpx.AsyncClient(

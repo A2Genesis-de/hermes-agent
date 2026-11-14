@@ -5,7 +5,7 @@ export interface PrimaryGatewayRoute {
   /** Registry source the primary socket serves, when known. */
   connectionId: null | string
   /** Resolved mode of the primary's descriptor: a `local` primary is ONE
-   *  `hermes serve --profile <primary>` child and can never stand in for a
+   *  `a2assistant serve --profile <primary>` child and can never stand in for a
    *  pooled profile's own backend. */
   mode: 'local' | 'remote' | null
 }

@@ -8,7 +8,7 @@ into the WebSocket as binary frames with backpressure both ways, and runs the cl
 only from the viewer that currently holds the lease. noVNC's ``viewOnly`` is UX; this is the gate.
 
 A lease change closes the evicted viewer's socket with 4000 ``control-taken`` so its UI drops back to
-Watch mode and reconnects. A viewer a browser tab asked for signs out with that tab: ``hermes webapp
+Watch mode and reconnects. A viewer a browser tab asked for signs out with that tab: ``a2assistant webapp
 --sign-out`` closes it with 4401, and its ticket opens nothing afterwards.
 
 Design notes. The ticket rides in the query string on purpose: noVNC's Websock owns the socket and

@@ -25,7 +25,7 @@ def portal(monkeypatch, tmp_path):
 
 
 def _write_config(monkeypatch, **nous):
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     (home / "config.yaml").write_text("nous:\n" + "".join(f"  {k}: {str(v).lower()}\n" for k, v in nous.items()))
     from hermes_cli import config as cfg_mod
     for attr in ("_config_cache", "_cached_config"):
@@ -62,7 +62,7 @@ class TestIdentityLifecycle:
         first = anon_auth.ensure_portal_identity(explicit=True)
         other_home = tmp_path / "profiles" / "two"
         other_home.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(other_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(other_home))
         before = len(portal.calls)
         second = anon_auth.ensure_portal_identity(explicit=True)
         assert second["anon_token"] == first["anon_token"]
@@ -113,7 +113,7 @@ class TestExplicitProvision:
         # A sibling profile adopts the same identity implicitly; no second create call.
         sibling = tmp_path / "sibling-profile"
         sibling.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(sibling))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(sibling))
         adopted = anon_auth.ensure_portal_identity(explicit=True)
         assert adopted and adopted["anon_token"] == token
         assert portal.minted == 1

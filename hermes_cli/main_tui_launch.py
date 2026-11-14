@@ -4,6 +4,7 @@ Split out of ``hermes_cli/main.py``. Names that still live in main (``PROJECT_RO
 are imported lazily inside the functions that use them (avoids an import cycle).
 """
 
+from hermes_constants import unset_env
 import logging
 import contextlib
 import json
@@ -111,9 +112,9 @@ def _print_tui_exit_summary(session_id: Optional[str], active_session_file: Opti
     from hermes_cli.profiles import get_active_profile_name
     active_profile = get_active_profile_name()
     profile_flag = "" if active_profile in ("default", "custom") else f" -p {active_profile}"
-    print(f"\n{t('cli.session.exit_resume_hint')}\n  hermes --tui --resume {resume_id}{profile_flag}")
+    print(f"\n{t('cli.session.exit_resume_hint')}\n  a2assistant --tui --resume {resume_id}{profile_flag}")
     if title:
-        print(f'  hermes --tui -c "{title}"{profile_flag}')
+        print(f'  a2assistant --tui -c "{title}"{profile_flag}')
     print(f"\nSession:        {resume_id}")
     if title:
         print(f"Title:          {title}")
@@ -126,7 +127,7 @@ def _print_tui_exit_summary(session_id: Optional[str], active_session_file: Opti
 
 
 def _tui_force_build() -> bool:
-    return (os.environ.get("HERMES_TUI_FORCE_BUILD") or "").strip().lower() in {"1", "true", "yes", "on"}
+    return (os.environ.get("A2ASSISTANT_TUI_FORCE_BUILD") or "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _tui_need_rebuild(root: Path) -> bool:
@@ -145,10 +146,10 @@ def _find_bundled_tui(hermes_cli_dir: Path | None = None) -> Path | None:
 
 def _restore_tui_workspace(tui_dir: Path) -> bool:
     """Best-effort ``git restore`` of a missing ``ui-tui/`` (Windows AV/NTFS filters can delete
-    tracked files after ``hermes update``); True when the directory exists afterwards.
+    tracked files after ``a2assistant update``); True when the directory exists afterwards.
 
     On Windows an antivirus / NTFS filter driver can leave tracked ``ui-tui/`` files deleted in the working
-    tree after ``hermes update`` (HEAD stays intact; the files just vanish — see issue #49145). Those files
+    tree after ``a2assistant update`` (HEAD stays intact; the files just vanish — see issue #49145). Those files
     are tracked, so ``git restore`` puts them back deterministically. Best-effort: returns False (rather
     than raising) when git is unavailable, this isn't a checkout, or the restore leaves the directory still
     missing — the caller then prints the manual-recovery message.
@@ -178,27 +179,27 @@ def _ensure_tui_workspace(tui_dir: Path) -> None:
         return
 
     if _restore_tui_workspace(tui_dir):
-        if not os.environ.get("HERMES_QUIET"):
+        if not os.environ.get("A2ASSISTANT_QUIET"):
             print(f"Restored missing TUI workspace: {tui_dir}")
         return
 
     print(
         "Error: the TUI workspace is missing from this A2Assistant checkout.\n"
         f"Expected directory: {tui_dir}\n"
-        "This usually means `hermes update` left tracked ui-tui files deleted.\n"
+        "This usually means `a2assistant update` left tracked ui-tui files deleted.\n"
         "Recovery:\n"
         "  1. From the A2Assistant checkout, run `git restore -- ui-tui`\n"
         "  2. Run `pnpm install --frozen-lockfile`\n"
-        "  3. Retry `hermes --tui`\n"
-        "If the checkout is still inconsistent, run `hermes update --force`.",
+        "  3. Retry `a2assistant --tui`\n"
+        "If the checkout is still inconsistent, run `a2assistant update --force`.",
         file=sys.stderr)
     sys.exit(1)
 
 
 def _tui_node_bin(bin: str) -> str:
-    """Resolve the TUI runtime through PM; an explicit bundled HERMES_NODE wins."""
+    """Resolve the TUI runtime through PM; an explicit bundled A2ASSISTANT_NODE wins."""
     if bin == "node":
-        env_node = os.environ.get("HERMES_NODE")
+        env_node = os.environ.get("A2ASSISTANT_NODE")
         if env_node and os.path.isfile(env_node) and os.access(env_node, os.X_OK):
             return env_node
     from pm import ensure
@@ -206,26 +207,26 @@ def _tui_node_bin(bin: str) -> str:
     if not path:
         print(
             f"Node.js is required for the TUI but `{bin}` was not found. Install it from "
-            "https://nodejs.org (run `hermes doctor` for the install hint for your OS), then "
-            "retry `hermes --tui`. To keep working now, run `hermes --cli`."
+            "https://nodejs.org (run `a2assistant doctor` for the install hint for your OS), then "
+            "retry `a2assistant --tui`. To keep working now, run `a2assistant --cli`."
         )
         sys.exit(1)
     return path
 
 
 def _make_tui_argv(tui_dir: Path, tui_dev: bool, notices: Optional[list] = None) -> tuple[list[str], Path]:
-    """TUI: --dev → tsx src; else node dist (HERMES_TUI_DIR prebuilt or esbuild).
+    """TUI: --dev → tsx src; else node dist (A2ASSISTANT_TUI_DIR prebuilt or esbuild).
 
     *notices* collects warnings the caller must show again once the TUI exits: the TUI clears the
     screen and scrollback on start, so a line printed before it is gone by the time anyone looks."""
 
     # Footgun: --dev against a prebuilt bundle that has no source/node_modules.
-    ext_dir = os.environ.get("HERMES_TUI_DIR")
+    ext_dir = os.environ.get("A2ASSISTANT_TUI_DIR")
     if tui_dev and ext_dir:
         print(
-            f"Error: --dev is incompatible with HERMES_TUI_DIR={ext_dir}\n"
+            f"Error: --dev is incompatible with A2ASSISTANT_TUI_DIR={ext_dir}\n"
             f"The prebuilt TUI has no source code to hot-reload.\n"
-            f"Unset HERMES_TUI_DIR (e.g. `unset HERMES_TUI_DIR`) to use --dev from a checkout.",
+            f"Unset A2ASSISTANT_TUI_DIR (e.g. `unset A2ASSISTANT_TUI_DIR`) to use --dev from a checkout.",
             file=sys.stderr)
         sys.exit(1)
 
@@ -269,8 +270,8 @@ def _make_tui_argv(tui_dir: Path, tui_dev: bool, notices: Optional[list] = None)
         # trees and bundle. Nothing pins a TUI build to its backend: like a TUI left open across
         # an update, it negotiates with the gateway (runtime.describe), so it usually still works.
         notice = ("⚠ Could not prepare the TUI's Node dependencies, so the previous TUI build was started.\n"
-                  "  It predates the current code and may not support all of it. Run `hermes update` again\n"
-                  "  once the package registry is reachable, or use `hermes --cli`.")
+                  "  It predates the current code and may not support all of it. Run `a2assistant update` again\n"
+                  "  once the package registry is reachable, or use `a2assistant --cli`.")
         # A failed command printed its own output; a refusal before it (PM acquiring pnpm) did not.
         cause = "(The error is above.)" if isinstance(exc, subprocess.CalledProcessError) else f"({exc})"
         print(f"{notice}\n  {cause}", file=sys.stderr)
@@ -381,12 +382,12 @@ def _apply_tui_python_env(env: dict) -> None:
     and the gateway child must run the code and interpreter of the Hermes that spawned it.
     """
     from hermes_cli.main import PROJECT_ROOT
-    env["HERMES_PYTHON_SRC_ROOT"] = str(PROJECT_ROOT)
-    env["HERMES_PYTHON"] = sys.executable
+    env["A2ASSISTANT_PYTHON_SRC_ROOT"] = str(PROJECT_ROOT)
+    env["A2ASSISTANT_PYTHON"] = sys.executable
 
-    cwd = str(env.get("HERMES_CWD") or "").strip()
+    cwd = str(env.get("A2ASSISTANT_CWD") or "").strip()
     if not cwd or not Path(cwd).is_dir():
-        env["HERMES_CWD"] = _safe_tui_cwd(env)
+        env["A2ASSISTANT_CWD"] = _safe_tui_cwd(env)
 
 
 def _setup_tui_worktree() -> dict:
@@ -452,11 +453,11 @@ def _require_bypass_model(env: dict, model: Optional[str], resume_session_id: Op
     refuses its session.create without one (bare invalid_params). Say so before the TUI starts,
     as classic chat does; a resume reuses the frozen route and needs none."""
     from utils import is_truthy_value
-    bypass = any(is_truthy_value(env.get(name)) for name in ("HERMES_SAFE_MODE", "HERMES_IGNORE_USER_CONFIG"))
-    if bypass and not resume_session_id and not (model or env.get("HERMES_MODEL", "").strip()):
-        print("Error: --safe-mode / --ignore-user-config (or HERMES_IGNORE_USER_CONFIG=1) read no profile "
+    bypass = any(is_truthy_value(env.get(name)) for name in ("A2ASSISTANT_SAFE_MODE", "A2ASSISTANT_IGNORE_USER_CONFIG"))
+    if bypass and not resume_session_id and not (model or env.get("A2ASSISTANT_MODEL", "").strip()):
+        print("Error: --safe-mode / --ignore-user-config (or A2ASSISTANT_IGNORE_USER_CONFIG=1) read no profile "
               "default model: pass --model explicitly.\n"
-              "  Example: hermes --tui --safe-mode --provider openrouter --model anthropic/claude-sonnet-4",
+              "  Example: a2assistant --tui --safe-mode --provider openrouter --model anthropic/claude-sonnet-4",
               file=sys.stderr)
         raise SystemExit(1)
 
@@ -471,7 +472,7 @@ def _refuse_unforwarded_tui_flags(args) -> None:
     flags = [flag for name, flag in _TUI_UNFORWARDED.items() if getattr(args, name, None)]
     if flags:
         print(f"Error: Unsupported --tui options: {', '.join(flags)}. No session was started.\n"
-              f"  Use classic chat for this launch: hermes chat --cli {' '.join(flags)} ...\n"
+              f"  Use classic chat for this launch: a2assistant chat --cli {' '.join(flags)} ...\n"
               "  Or set model.base_url / agent.reasoning_effort in config.yaml (/reasoning in the TUI).",
               file=sys.stderr)
         raise SystemExit(2)
@@ -522,7 +523,7 @@ def _run_tui(argv: list[str], cwd: Path, env: dict, notices: list[str]) -> int:
     the terminal a launch notice waits for Enter (at most a minute) first; every notice is printed
     again once the TUI exits. A launch that carries its query (``-q``) does not wait."""
     try:
-        if notices and not env.get("HERMES_TUI_QUERY") and _someone_at_the_terminal():
+        if notices and not env.get("A2ASSISTANT_TUI_QUERY") and _someone_at_the_terminal():
             _wait_for_enter(f"  Press Enter to start it, or wait {_NOTICE_WAIT_S} s (Ctrl+C to cancel). ",
                             _NOTICE_WAIT_S)
         code = subprocess.call(argv, cwd=str(cwd), env=env)  # health: allow HX006 -- the interactive TUI runs until the user quits
@@ -554,7 +555,7 @@ def _launch_tui(
     # HERMES_CWD (exported by an outer `hermes --tui`, or by the user's own shell) merely
     # names *a* real directory, so the is_dir() repair in _apply_tui_python_env keeps it
     # and the gateway starts in last session's project. `--worktree` still wins below.
-    env["HERMES_CWD"] = _safe_tui_cwd(env)
+    env["A2ASSISTANT_CWD"] = _safe_tui_cwd(env)
     from hermes_cli.shared_session_attach import configure_tui_attachment
     try:
         configure_tui_attachment(env, resume_session_id)
@@ -569,7 +570,7 @@ def _launch_tui(
     active_session_fd, active_session_file = tempfile.mkstemp(
         prefix="hermes-tui-active-session-", suffix=".json")
     os.close(active_session_fd)
-    env["HERMES_TUI_ACTIVE_SESSION_FILE"] = active_session_file
+    env["A2ASSISTANT_TUI_ACTIVE_SESSION_FILE"] = active_session_file
     env.setdefault("NODE_ENV", "development" if tui_dev else "production")
     if native_mode is None:
         try:
@@ -579,44 +580,44 @@ def _launch_tui(
             native_mode = is_truthy_value(display.get("tui_native", False)) if isinstance(display, dict) else False
         except Exception:
             native_mode = False
-    env["HERMES_TUI_NATIVE"] = "1" if native_mode else "0"
+    env["A2ASSISTANT_TUI_NATIVE"] = "1" if native_mode else "0"
 
     wt_info = None
     if worktree:
         wt_info = _setup_tui_worktree()
-        env["HERMES_CWD"] = wt_info["path"]
+        env["A2ASSISTANT_CWD"] = wt_info["path"]
         env["TERMINAL_CWD"] = wt_info["path"]
 
     # A local interactive session starts where the user launched (or in the --worktree), the
     # classic CLI's rule; terminal.cwd stays the default for gateway, cron and remote backends.
     # HERMES_TUI_CWD is what the TUI sends on session.create, which beats the configured cwd (#84015).
     if str(env.get("TERMINAL_ENV") or "local") == "local":
-        env["TERMINAL_CWD"] = env["HERMES_TUI_CWD"] = env["HERMES_CWD"]
+        env["TERMINAL_CWD"] = env["A2ASSISTANT_TUI_CWD"] = env["A2ASSISTANT_CWD"]
     else:
-        env.pop("HERMES_TUI_CWD", None)
+        unset_env(env, "TUI_CWD")
 
     _apply_tui_python_env(env)
     # This shell's allowlisted environment, sent as each session's ``client_env`` (LC-8, T3): taken from
     # the shell before the launcher's own edits (NODE_OPTIONS heap, TUI pins) so the session gets the
     # PATH / venv / HERMES_* values the user exported.
     from hermes_cli.gateway_chat import shell_client_env
-    env["HERMES_TUI_CLIENT_ENV"] = json.dumps(shell_client_env())
+    env["A2ASSISTANT_TUI_CLIENT_ENV"] = json.dumps(shell_client_env())
 
     skills_value = ""
     if skills:
         skills_value = (
             ",".join(_split_comma_items(skills)) if isinstance(skills, (list, tuple)) else str(skills).strip())
     for key, value in (
-        ("HERMES_MODEL", model), ("HERMES_INFERENCE_MODEL", model),
-        ("HERMES_TUI_PROVIDER", provider), ("HERMES_INFERENCE_PROVIDER", provider),
-        ("HERMES_TUI_TOOLSETS", ",".join(_normalize_tui_toolsets(toolsets))),
-        ("HERMES_TUI_SKILLS", skills_value),
-        ("HERMES_TUI_QUERY", query), ("HERMES_TUI_IMAGE", image),
-        ("HERMES_TUI_CHECKPOINTS", "1" if checkpoints else None),
-        ("HERMES_TUI_PASS_SESSION_ID", "1" if pass_session_id else None),
-        ("HERMES_TUI_MAX_TURNS", str(max_turns) if max_turns is not None else None),
-        ("HERMES_TUI_TOOL_PROGRESS", "verbose" if verbose else "off" if quiet else None),
-        ("HERMES_ACCEPT_HOOKS", "1" if accept_hooks else None)):
+        ("A2ASSISTANT_MODEL", model), ("A2ASSISTANT_INFERENCE_MODEL", model),
+        ("A2ASSISTANT_TUI_PROVIDER", provider), ("A2ASSISTANT_INFERENCE_PROVIDER", provider),
+        ("A2ASSISTANT_TUI_TOOLSETS", ",".join(_normalize_tui_toolsets(toolsets))),
+        ("A2ASSISTANT_TUI_SKILLS", skills_value),
+        ("A2ASSISTANT_TUI_QUERY", query), ("A2ASSISTANT_TUI_IMAGE", image),
+        ("A2ASSISTANT_TUI_CHECKPOINTS", "1" if checkpoints else None),
+        ("A2ASSISTANT_TUI_PASS_SESSION_ID", "1" if pass_session_id else None),
+        ("A2ASSISTANT_TUI_MAX_TURNS", str(max_turns) if max_turns is not None else None),
+        ("A2ASSISTANT_TUI_TOOL_PROGRESS", "verbose" if verbose else "off" if quiet else None),
+        ("A2ASSISTANT_ACCEPT_HOOKS", "1" if accept_hooks else None)):
         if value:
             env[key] = value
     # Generous V8 heap (8GB target; default cap can fatal-OOM on long sessions),
@@ -632,9 +633,9 @@ def _launch_tui(
     # full os.environ snapshot, so a stale exported value would make a plain
     # `hermes --tui` try to resume a non-existent session; only forward the id
     # argparse resolved for this invocation.
-    env.pop("HERMES_TUI_RESUME", None)
+    unset_env(env, "TUI_RESUME")
     if resume_session_id:
-        env["HERMES_TUI_RESUME"] = resume_session_id
+        env["A2ASSISTANT_TUI_RESUME"] = resume_session_id
 
     notices: list[str] = []
     argv, cwd = _make_tui_argv(tui_dir, tui_dev, notices)
@@ -679,24 +680,24 @@ def _launch_tui(
 
 
 def _pin_kanban_board_env() -> None:
-    """Pin the active kanban board into ``HERMES_KANBAN_BOARD`` so in-process tools and shelled-out
-    ``hermes kanban`` calls agree even if a concurrent ``boards switch`` flips the file mid-turn.
+    """Pin the active kanban board into ``A2ASSISTANT_KANBAN_BOARD`` so in-process tools and shelled-out
+    ``a2assistant kanban`` calls agree even if a concurrent ``boards switch`` flips the file mid-turn.
 
-    Without this, in-process tools (``kanban_*``) and shelled-out CLI calls (``hermes kanban …``) resolve
+    Without this, in-process tools (``kanban_*``) and shelled-out CLI calls (``a2assistant kanban …``) resolve
     the board on different paths: the env-pin if set, otherwise the global ``<root>/kanban/current`` file. A
-    concurrent ``hermes kanban boards switch`` from another session can flip the file mid-turn, so the same
+    concurrent ``a2assistant kanban boards switch`` from another session can flip the file mid-turn, so the same
     chat sees its tool calls hit board A while its shell calls hit board B (#20074). Pinning at chat boot
     mirrors what the dispatcher already does for spawned workers.
     """
-    if os.environ.get("HERMES_KANBAN_BOARD"):
+    if os.environ.get("A2ASSISTANT_KANBAN_BOARD"):
         return
     with contextlib.suppress(Exception):
         from hermes_cli.kanban_db import get_current_board
-        os.environ["HERMES_KANBAN_BOARD"] = get_current_board()
+        os.environ["A2ASSISTANT_KANBAN_BOARD"] = get_current_board()
 
 
 def _sync_bundled_skills_quietly() -> None:
-    """Seed ``~/.hermes/skills/`` with the bundled library (idempotent, milliseconds when synced).
+    """Seed ``~/.a2assistant/skills/`` with the bundled library (idempotent, milliseconds when synced).
     Failures are swallowed: skills are an enhancement, not a hard dependency."""
     with contextlib.suppress(Exception):
         from tools.skills_sync import sync_skills
@@ -705,10 +706,10 @@ def _sync_bundled_skills_quietly() -> None:
 
 def _resolve_use_tui(args) -> bool:
     """Decide whether to launch the TUI: ``--cli`` → classic; ``--tui`` → TUI; no TTY → classic;
-    ``HERMES_TUI=1`` → TUI; ``display.interface`` config; default classic.
+    ``A2ASSISTANT_TUI=1`` → TUI; ``display.interface`` config; default classic.
 
     The TTY gate is load-bearing: ambient preferences must never hijack a piped
-    ``hermes chat -q`` (kanban workers, cron) — the Ink no-TTY bail-out exits 0 and
+    ``a2assistant chat -q`` (kanban workers, cron) — the Ink no-TTY bail-out exits 0 and
     the worker dies with a protocol violation. Explicit ``--tui`` still bails out.
     """
     if getattr(args, "cli", False):
@@ -720,7 +721,7 @@ def _resolve_use_tui(args) -> bool:
             return False
     except Exception:
         return False
-    if os.environ.get("HERMES_TUI") == "1":
+    if os.environ.get("A2ASSISTANT_TUI") == "1":
         return True
     try:
         from hermes_cli.config import load_config

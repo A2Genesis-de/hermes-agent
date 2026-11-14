@@ -25,7 +25,7 @@ def home(tmp_path, monkeypatch):
     h = tmp_path / ".hermes"
     (h / "profiles" / "ops").mkdir(parents=True)
     (h / "profiles" / "ops" / "config.yaml").write_text("{}\n")  # identity marker: a bare dir is no target
-    monkeypatch.setenv("HERMES_HOME", str(h))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(h))
     return h
 
 
@@ -281,17 +281,17 @@ def test_deliver_restamps_relayed_sender_with_a_reply_safe_handle(home, monkeypa
 
 @pytest.mark.parametrize("subdir", ["profiles/ops", "dev"])
 def test_gateway_drains_the_mailbox_the_tools_write_to(tmp_path, monkeypatch, subdir):
-    """Both ends of the relay mailbox derive the install root from HERMES_HOME with ONE formula.
+    """Both ends of the relay mailbox derive the install root from A2ASSISTANT_HOME with ONE formula.
     The writer side (``message_agent``'s ``_hermes_root``) and the drain side
     (``methods_bot_relay._relay_root``) must agree for a ``profiles/<name>`` home AND for an
-    arbitrary subdir of the native ``~/.hermes`` — a split here is silent non-delivery."""
+    arbitrary subdir of the native ``~/.a2assistant`` — a split here is silent non-delivery."""
     from tools.bot_mode_probe import _default_home, _hermes_root
     from tui_gateway import methods_bot_relay
 
     monkeypatch.setenv("HOME", str(tmp_path))
     home = tmp_path / ".hermes" / subdir
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     writer_root = _hermes_root(Path(_default_home()))
     target = {"profile": "scout", "handle": "scout", "connection_id": "cloud-1",

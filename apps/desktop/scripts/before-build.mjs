@@ -30,9 +30,9 @@ const {
 export default async function beforeBuild() {
   stageMsixAssets()
   writeMsixExtensions()
-  if (store) stageStoreManifest(path.join(import.meta.dirname, '..'), process.env.HERMES_PAYLOAD_TAG)
-  else if (process.env.HERMES_PAYLOAD_TAG) {
-    stageReleaseManifest(path.join(import.meta.dirname, '..'), process.env.HERMES_PAYLOAD_TAG)
+  if (store) stageStoreManifest(path.join(import.meta.dirname, '..'), process.env.A2ASSISTANT_PAYLOAD_TAG)
+  else if (process.env.A2ASSISTANT_PAYLOAD_TAG) {
+    stageReleaseManifest(path.join(import.meta.dirname, '..'), process.env.A2ASSISTANT_PAYLOAD_TAG)
   }
 
   return false
@@ -85,7 +85,7 @@ function writeMsixExtensions() {
   const output = path.join('build', 'msix-extensions.xml')
   const file = path.join(desktop, output)
   const manifest = path.join(desktop, 'build', 'agent-payload', 'manifest.json')
-  const launchers = ['bundled', 'store'].includes(process.env.HERMES_DESKTOP_VARIANT || '')
+  const launchers = ['bundled', 'store'].includes(process.env.A2ASSISTANT_DESKTOP_VARIANT || '')
     ? JSON.parse(fs.readFileSync(manifest, 'utf8')).launchers : []
   if (!Array.isArray(launchers)) throw new Error('Bundled payload has no declared launchers')
   const nonstable = appNamePascal !== artifactNamePascal

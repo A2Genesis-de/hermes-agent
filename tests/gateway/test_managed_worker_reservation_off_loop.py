@@ -44,7 +44,7 @@ def test_reservation_and_loss_writes_never_block_the_loop(tmp_path, monkeypatch,
     from hermes_state import SessionDB
     from hermes_state_runtime import begin_runtime_epoch, claim_session_input
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')
     runner = SimpleNamespace(_draining=False, _cached_agent_for=lambda route: None,

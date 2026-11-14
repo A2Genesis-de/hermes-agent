@@ -100,7 +100,7 @@ class TestInactivityJanitorMultiplex:
             get_hermes_home, reset_hermes_home_override, set_hermes_home_override,
         )
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.delenv("BROWSER_USE_API_KEY", raising=False)
         monkeypatch.delenv("BROWSER_CDP_URL", raising=False)
         p1 = tmp_path / "profiles" / "p1"
@@ -178,7 +178,7 @@ class TestAtexitStopSwallowsInterrupt:
 
 class TestAtexitLifecycleUnimportable:
     def test_hook_stays_silent_when_lifecycle_import_fails(self, monkeypatch):
-        """Mid-`hermes update` the on-disk tree can be half-new, so the atexit hook's import of
+        """Mid-`a2assistant update` the on-disk tree can be half-new, so the atexit hook's import of
         the lifecycle module raises; the hook must stay silent (#112437)."""
         monkeypatch.setitem(sys.modules, "tools.browser_session_lifecycle", None)  # import -> ImportError
         bs._atexit_cleanup()  # must not raise

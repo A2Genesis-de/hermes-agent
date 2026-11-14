@@ -1,4 +1,4 @@
-"""Custom / Ollama-style chat-completions endpoints through REAL ``hermes -z`` processes.
+"""Custom / Ollama-style chat-completions endpoints through REAL ``a2assistant -z`` processes.
 
 * Ollama's chat renderer refuses a payload with no ``user`` message (HTTP 500 ``no user
   query found in messages``). The fake enforces that rule on every main request while

@@ -47,7 +47,7 @@ class _Handler(http.server.BaseHTTPRequestHandler):
 
 @pytest.fixture
 def listener(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir()
     _Handler.hits = []
     httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), _Handler)
@@ -94,19 +94,19 @@ def test_remote_fetch_sites_refuse_internal_targets_before_connect(site, listene
     suffix = "/manifest.json" if "manifest" in site else "/img.png"
 
     # Direct loopback target: refused up front, listener never sees a connection.
-    monkeypatch.delenv("HERMES_ALLOW_PRIVATE_URLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_ALLOW_PRIVATE_URLS", raising=False)
     url_safety._reset_allow_private_cache()
     assert _run(site, base + suffix, monkeypatch, tmp_path) is None
     assert hits == []
 
     # Safe-looking first hop that 302s to the metadata endpoint: the hop is re-validated
     # (metadata stays blocked even when private URLs are allowed), so nothing is cached.
-    monkeypatch.setenv("HERMES_ALLOW_PRIVATE_URLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_ALLOW_PRIVATE_URLS", "1")
     url_safety._reset_allow_private_cache()
     try:
         assert _run(site, base + "/to-metadata" + suffix, monkeypatch, tmp_path) is None
     finally:
-        monkeypatch.delenv("HERMES_ALLOW_PRIVATE_URLS", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_ALLOW_PRIVATE_URLS", raising=False)
         url_safety._reset_allow_private_cache()
     assert hits == ["/to-metadata" + suffix]
     assert not list(Path(tmp_path / ".hermes").rglob("*.png")), "no body may be cached"

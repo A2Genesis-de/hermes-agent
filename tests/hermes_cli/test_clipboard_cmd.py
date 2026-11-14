@@ -1,4 +1,4 @@
-"""``hermes clipboard image --json``: the reply shapes and exit codes clients script against.
+"""``a2assistant clipboard image --json``: the reply shapes and exit codes clients script against.
 
 The real clipboard is never read: ``save_clipboard_image`` is replaced by a fake, or the real
 extractor runs against a stub ``xclip`` on PATH; the tool lookup is pointed at an executable that

@@ -1,8 +1,8 @@
 """Deleted named profiles must stay gone until explicitly recreated.
 
 A live serve/logging process can mkdir ``profiles/<name>/logs`` after
-``hermes profile delete`` removes the tree. That empty shell then
-reappears in ``hermes profile list`` and Desktop Bot Mode. These tests
+``a2assistant profile delete`` removes the tree. That empty shell then
+reappears in ``a2assistant profile list`` and Desktop Bot Mode. These tests
 lock the tombstone + no-mkdir contract without depending on Desktop.
 """
 
@@ -39,7 +39,7 @@ def profile_env(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     default_home = tmp_path / ".hermes"
     default_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     return tmp_path
 
 
@@ -65,12 +65,12 @@ class TestDeletedProfileTombstone:
         assert not profile_dir.exists()
         assert "worker" not in _named_homes(profile_env)
 
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_dir))
         with pytest.raises(FileNotFoundError, match="Named profile home does not exist"):
             setup_logging(hermes_home=profile_dir, force=True)
 
         assert not profile_dir.exists()
-        monkeypatch.setenv("HERMES_HOME", str(profile_env / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_env / ".hermes"))
         assert "worker" not in _named_homes(profile_env)
 
     def test_late_reasoning_caps_save_does_not_recreate_deleted_home(self, profile_env):
@@ -138,7 +138,7 @@ class TestDeletedProfileTombstone:
             delete_profile("worker", yes=True)
         profile_dir.mkdir(parents=True)
 
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_dir))
         with pytest.raises(FileNotFoundError, match="Named profile home does not exist"):
             ensure_hermes_home()
         assert not (profile_dir / "sessions").exists()
@@ -198,7 +198,7 @@ class TestDeletedProfileTombstone:
     def test_marker_less_shell_is_not_a_profile(self, profile_env):
         """A ``profiles/<name>`` dir with no identity file (a pre-tombstone ghost shell left by a
         cron ticker, or a stray infrastructure dir) is not listed, served, or seeded with the
-        default install's ``.env`` — that seeding is what legitimised ghosts on ``hermes update``
+        default install's ``.env`` — that seeding is what legitimised ghosts on ``a2assistant update``
         (#95188 path D, #94823, #99392). ``profile create`` may take the name back."""
         default_env = profile_env / ".hermes" / ".env"
         default_env.write_text("OPENAI_API_KEY=sk-real\n", encoding="utf-8")

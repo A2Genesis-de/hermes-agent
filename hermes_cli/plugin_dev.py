@@ -1,4 +1,4 @@
-"""Runtime-backed validation behind ``hermes plugins doctor``: every manifest/import/registration
+"""Runtime-backed validation behind ``a2assistant plugins doctor``: every manifest/import/registration
 check routes through the real runtime contracts instead of a parallel scanner."""
 
 from __future__ import annotations
@@ -61,7 +61,7 @@ def _doctor_runtime(plugin_path: Path):
     """Load one plugin through the real runtime and restore global state afterwards.
 
     Private Doctor machinery, not a plugin test framework. Registration code runs under a temporary
-    HERMES_HOME with outbound socket connects blocked.
+    A2ASSISTANT_HOME with outbound socket connects blocked.
     """
     stack = ExitStack()
     try:
@@ -87,9 +87,9 @@ def _doctor_runtime(plugin_path: Path):
             staged = staging_root / members[0].name
             _stage_copy(members[0], staged)
         stack.enter_context(patch.dict(os.environ, {
-            "HERMES_HOME": str(home),
-            "HERMES_BUNDLED_PLUGINS": str(bundled),
-            "HERMES_ENABLE_PROJECT_PLUGINS": "0",
+            "A2ASSISTANT_HOME": str(home),
+            "A2ASSISTANT_BUNDLED_PLUGINS": str(bundled),
+            "A2ASSISTANT_ENABLE_PROJECT_PLUGINS": "0",
         }, clear=False))
         stack.enter_context(patch.object(socket, "create_connection", _deny_network))
         stack.enter_context(patch.object(socket.socket, "connect", _deny_network))
@@ -385,8 +385,8 @@ def _check_manifest_v2(report: DoctorReport, manifest: Any) -> None:
     if missing:
         report.warning(
             "declared python_dependencies not installed: " + ", ".join(missing)
-            + " — install and enable the plugin with hermes plugins. "
-            "For an enabled plugin, run hermes pm repair, then restart A2Assistant.")
+            + " — install and enable the plugin with a2assistant plugins. "
+            "For an enabled plugin, run a2assistant pm repair, then restart A2Assistant.")
 
     schema = getattr(manifest, "config_schema", {}) or {}
     if schema:

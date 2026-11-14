@@ -75,7 +75,7 @@ def test_a_turn_warning_is_not_overwritten():
 
 
 def test_classic_cli_view_prints_the_restart_notice_for_an_interrupted_turn(capsys):
-    """The attached classic CLI (``hermes chat``) prints the notice on stderr; a completed turn's
+    """The attached classic CLI (``a2assistant chat``) prints the notice on stderr; a completed turn's
     warning stays unprinted there, as before."""
     from hermes_cli.gateway_chat_view import GatewayChatView
 
@@ -183,7 +183,7 @@ def test_managed_worker_turn_settles_with_the_cause_of_the_stop_that_reached_it(
     from tests.gateway.restart_test_helpers import make_restart_runner
     from tests.waiting import async_wait_until
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     runner, _adapter = make_restart_runner()
     runner._restart_requested = True
     db = SessionDB(db_path=tmp_path / 'state.db')
@@ -404,7 +404,7 @@ def _core_closed_turn(tmp_path, monkeypatch, *, principal='person', earlier_fail
     the real AIAgent persists the user row and the real core closer
     (``agent/conversation_loop.py::_close_durable_failed_turn``) writes its failed-turn boundary.
     ``earlier_failed``: a previous turn already ended on a failed-turn boundary before this claim."""
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     from agent.conversation_loop import _close_durable_failed_turn
     from agent.turn_failure_copy import FAILED_TURN_DISPLAY_KIND, FAILED_TURN_NOTICE
     from gateway.session_authority import LiveSession, SessionAuthority
@@ -483,7 +483,7 @@ def test_shutdown_stop_before_the_managed_worker_spawned_carries_its_cause(tmp_p
     from tests.gateway.restart_test_helpers import make_restart_runner
     from tests.waiting import async_wait_until
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     runner, _adapter = make_restart_runner()
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')
@@ -546,7 +546,7 @@ def test_a_stop_during_context_reference_expansion_never_spawns_the_worker(tmp_p
     from hermes_state_runtime import begin_runtime_epoch, claim_session_input
     from tests.gateway.restart_test_helpers import make_restart_runner
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     runner, _adapter = make_restart_runner()
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')

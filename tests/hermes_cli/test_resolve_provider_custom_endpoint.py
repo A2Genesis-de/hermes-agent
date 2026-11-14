@@ -4,7 +4,7 @@ Regression for #108383: ``resolve_provider("auto")`` recognised only registry pr
 ``model.provider``, so the boot inventory (``free_tier_bootstrap``) read a llama.cpp / vLLM /
 ollama install as "nothing configured" and ``setup.status`` reported ``provider_configured:
 False`` — the dashboard's Ink chat parked every new session on "Setup Required" while
-``hermes chat`` (which resolves the runtime directly) worked against the same config.
+``a2assistant chat`` (which resolves the runtime directly) worked against the same config.
 """
 
 from __future__ import annotations
@@ -17,9 +17,9 @@ def isolated_home(tmp_path, monkeypatch):
     home = tmp_path / "hermes"
     home.mkdir()
     (home / ".env").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     for var in ("OPENAI_API_KEY", "OPENROUTER_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_BASE_URL",
-                "OPENROUTER_BASE_URL", "HERMES_INFERENCE_PROVIDER", "NOUS_API_KEY"):
+                "OPENROUTER_BASE_URL", "A2ASSISTANT_INFERENCE_PROVIDER", "NOUS_API_KEY"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setattr("agent.bedrock_adapter.has_aws_credentials", lambda *_a, **_kw: False)
     from hermes_cli import free_tier_bootstrap as fb
@@ -121,7 +121,7 @@ def test_a_provider_configured_after_boot_flips_the_stale_setup_record(isolated_
     """A serve process whose boot inventory found nothing keeps that record for its lifetime;
     ``setup.status`` reads it (``wait_for_record``), so the dashboard chat stayed on "Setup
     Required" after the user configured a provider — from the Models page, a picker key, or
-    ``hermes setup`` in another process. A ``False`` record is reconciled with the config files
+    ``a2assistant setup`` in another process. A ``False`` record is reconciled with the config files
     on read: it flips (+ one ``setup.ready``) once something carries inference, and a blank
     machine stays ``False`` with no broadcast."""
     from hermes_cli import free_tier_bootstrap as fb

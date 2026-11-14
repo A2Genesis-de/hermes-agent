@@ -90,7 +90,7 @@ export function botScreenRoute(bot: RosterRow): PluginProfileRoute | string | nu
 
 /**
  * Does a `display.*` event belong to `bot`'s screen? Two hosts can share the same
- * `~/.hermes` path, so the profile key alone is ambiguous: the event must also have
+ * `~/.a2assistant` path, so the profile key alone is ambiguous: the event must also have
  * arrived on the bot's registry connection (local/legacy events carry no tag).
  */
 export function isEventForBotScreen(bot: RosterRow, event: RpcEvent, profileKey: null | string | undefined): boolean {

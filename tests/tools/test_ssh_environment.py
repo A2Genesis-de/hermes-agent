@@ -15,16 +15,16 @@ from tools.environments import ssh as ssh_env
 # and prints these (the remote-backends CI lane exports them). HERMES_TEST_* rather
 # than the product's TERMINAL_SSH_* so the hermetic conftest, which blanks
 # TERMINAL_SSH_KEY as a credential, cannot strip them before the tests read them.
-_SSH_HOST = os.getenv("HERMES_TEST_SSH_HOST", "")
-_SSH_USER = os.getenv("HERMES_TEST_SSH_USER", "")
-_SSH_PORT = int(os.getenv("HERMES_TEST_SSH_PORT", "22"))
-_SSH_KEY = os.getenv("HERMES_TEST_SSH_KEY", "")
+_SSH_HOST = os.getenv("A2ASSISTANT_TEST_SSH_HOST", "")
+_SSH_USER = os.getenv("A2ASSISTANT_TEST_SSH_USER", "")
+_SSH_PORT = int(os.getenv("A2ASSISTANT_TEST_SSH_PORT", "22"))
+_SSH_KEY = os.getenv("A2ASSISTANT_TEST_SSH_KEY", "")
 
 _has_ssh = bool(_SSH_HOST and _SSH_USER)
 
 requires_ssh = pytest.mark.skipif(
     not _has_ssh,
-    reason="HERMES_TEST_SSH_HOST / HERMES_TEST_SSH_USER not set (scripts/ci/start_test_sshd.sh)",
+    reason="A2ASSISTANT_TEST_SSH_HOST / A2ASSISTANT_TEST_SSH_USER not set (scripts/ci/start_test_sshd.sh)",
 )
 
 
@@ -365,8 +365,8 @@ class TestOneShotSSH:
     def test_state_does_not_persist(self):
         """Exports stay in their own command; cwd still carries (file tools rely on it)."""
         home = _run("pwd")["output"].strip()
-        _run("mkdir -p oneshot && cd oneshot && export HERMES_ONESHOT_TEST=yes")
-        r = _run("echo ${HERMES_ONESHOT_TEST:-unset}; pwd")
+        _run("mkdir -p oneshot && cd oneshot && export A2ASSISTANT_ONESHOT_TEST=yes")
+        r = _run("echo ${A2ASSISTANT_ONESHOT_TEST:-unset}; pwd")
         assert r["output"].split() == ["unset", f"{home}/oneshot"]
 
 
@@ -385,8 +385,8 @@ class TestPersistentSSH:
         assert "hello-persistent" in r["output"]
 
     def test_env_var_persists(self):
-        _run("export HERMES_PERSIST_TEST=works")
-        r = _run("echo $HERMES_PERSIST_TEST")
+        _run("export A2ASSISTANT_PERSIST_TEST=works")
+        r = _run("echo $A2ASSISTANT_PERSIST_TEST")
         assert r["output"].strip() == "works"
 
 
@@ -430,14 +430,14 @@ class TestRealSSHBackend:
 
     def test_passthrough_env_reaches_remote_via_sendenv(self, monkeypatch):
         """#14091 end to end: the name rides SendEnv, the value the ssh client env, and the
-        test sshd's ``AcceptEnv HERMES_RB_*`` hands it to the remote shell."""
+        test sshd's ``AcceptEnv A2ASSISTANT_RB_*`` hands it to the remote shell."""
         from tools import env_passthrough
 
-        monkeypatch.setenv("HERMES_RB_PASS", "through-sendenv")
-        monkeypatch.setenv("HERMES_RB_PRIVATE", "stays-local")
-        env_passthrough.register_env_passthrough(["HERMES_RB_PASS"])
+        monkeypatch.setenv("A2ASSISTANT_RB_PASS", "through-sendenv")
+        monkeypatch.setenv("A2ASSISTANT_RB_PRIVATE", "stays-local")
+        env_passthrough.register_env_passthrough(["A2ASSISTANT_RB_PASS"])
         try:
-            r = _run('echo "p=$HERMES_RB_PASS q=${HERMES_RB_PRIVATE:-unset}"')
+            r = _run('echo "p=$A2ASSISTANT_RB_PASS q=${A2ASSISTANT_RB_PRIVATE:-unset}"')
         finally:
             env_passthrough.clear_env_passthrough()
         assert r["output"].strip() == "p=through-sendenv q=unset"

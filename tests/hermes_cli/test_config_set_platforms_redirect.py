@@ -1,6 +1,6 @@
 """Regression tests for #71047 (Problem A): per-platform display settings.
 
-`hermes config set platforms.<name>.<display_setting> <value>` must write to
+`a2assistant config set platforms.<name>.<display_setting> <value>` must write to
 `display.platforms.<name>.<display_setting>` — the path the gateway actually
 reads (gateway/display_config.py::resolve_display_setting). Writing to the
 top-level `platforms.<name>` block is silently ignored by the runtime, so the
@@ -21,8 +21,8 @@ def _write_config(hermes_home: Path, data: dict) -> Path:
 
 
 def _set(monkeypatch, hermes_home, key, value, force=False):
-    """Isolated call to set_config_value against a temp HERMES_HOME."""
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    """Isolated call to set_config_value against a temp A2ASSISTANT_HOME."""
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     # set_config_value resolves the home live via get_config_path()/get_hermes_home()
     from hermes_cli.config import set_config_value
     set_config_value(key, value, force=force)
@@ -115,7 +115,7 @@ class TestRedirectSiblingSurfaces:
     def test_unset_missing_redirected_leaf_exits_nonzero(self, hermes_home, monkeypatch):
         from hermes_cli.config import unset_config_value
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         with pytest.raises(SystemExit) as exc:
             unset_config_value("platforms.telegram.streaming")
         assert exc.value.code == 1

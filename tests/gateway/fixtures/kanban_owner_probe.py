@@ -60,10 +60,10 @@ class Model(BaseHTTPRequestHandler):
 
 def main():
     root = Path(__file__).resolve().parents[3]
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['A2ASSISTANT_HOME'])
     home.mkdir(parents=True, exist_ok=True)
     Path(os.environ['HOME']).mkdir(parents=True, exist_ok=True)
-    os.environ['HERMES_KANBAN_HOME'] = str(home)
+    os.environ['A2ASSISTANT_KANBAN_HOME'] = str(home)
     peer = ThreadingHTTPServer(('127.0.0.1', 0), Model)
     peer.requests = []
     peer.mode = os.environ.get('KANBAN_PROBE_MODE', 'complete')
@@ -88,7 +88,7 @@ def main():
     from hermes_cli import kanban_db_dispatch as dispatch
     # Pin the installed launcher to this checkout for base/fixed argv comparisons.
     dispatch._resolve_hermes_argv = lambda: [sys.executable, '-m', 'hermes_cli.main']
-    os.environ['HERMES_KANBAN_CRASH_GRACE_SECONDS'] = '0'
+    os.environ['A2ASSISTANT_KANBAN_CRASH_GRACE_SECONDS'] = '0'
     kb.create_board('owned')  # explicit creation; connect() never creates a board (#43243)
     with closing(connect(board='owned')) as conn:
         tid = kb.create_task(conn, title='KANBAN_TASK_SENTINEL', body='Acceptance: finish owned card', assignee='default',

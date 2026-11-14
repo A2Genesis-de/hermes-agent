@@ -1,11 +1,13 @@
-// The Hermes prompt history file (`<HERMES_HOME>/.hermes_history`, the classic CLI's format), with
-// HERMES_HOME read once at import.
+// The Hermes prompt history file (`<A2ASSISTANT_HOME>/.hermes_history`, the classic CLI's format), with
+// A2ASSISTANT_HOME read once at import.
 import { appendFileSync, existsSync, mkdirSync, readFileSync } from 'node:fs'
 import { homedir } from 'node:os'
 import { join } from 'node:path'
 
+import { defaultHome } from './legacy-names.mjs'
+
 const MAX = 1000
-const dir = process.env.HERMES_HOME ?? join(homedir(), '.hermes')
+const dir = defaultHome(homedir())
 const file = join(dir, '.hermes_history')
 
 let cache: string[] | null = null

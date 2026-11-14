@@ -40,7 +40,7 @@ if (-not $artifact) { throw "no uv artifact for $target" }
 $pyPin = $lock.packages.python
 $pyVersion = if ($pyPin) { ($pyPin.version -split '\+')[0] -replace '^(\d+\.\d+).*', '$1' } else { '3.11' }
 
-$store = if ($env:HERMES_RUNTIME_DIR) { $env:HERMES_RUNTIME_DIR } else { Join-Path $HOME '.hermes/tools' }
+$store = if ($env:A2ASSISTANT_RUNTIME_DIR) { $env:A2ASSISTANT_RUNTIME_DIR } else { Join-Path $HOME '.hermes/tools' }
 $entry = Join-Path $store "uv-$($uvPin.version)-$target"
 $uv = Join-Path $entry 'uv.exe'
 
@@ -120,9 +120,9 @@ if (-not (Test-Path $envFile)) {
 }
 
 # ---------------------------------------------------------------------------
-# Seed bundled skills into ~/.hermes/skills/
+# Seed bundled skills into ~/.a2assistant/skills/
 # ---------------------------------------------------------------------------
-$skillsDir = if ($env:HERMES_HOME) { Join-Path $env:HERMES_HOME 'skills' } else { Join-Path $HOME '.hermes/skills' }
+$skillsDir = if ($env:A2ASSISTANT_HOME) { Join-Path $env:A2ASSISTANT_HOME 'skills' } else { Join-Path $HOME '.hermes/skills' }
 New-Item -ItemType Directory -Force -Path $skillsDir | Out-Null
 $sync = Join-Path $repo 'tools/skills_sync.py'
 $venvPy = Join-Path $repo 'venv/Scripts/python.exe'
@@ -143,14 +143,14 @@ Write-Host '  1. Activate the dev environment (venv-style, in THIS session):'
 Write-Host '     .\activate.ps1'
 Write-Host ''
 Write-Host '  2. Run the setup wizard to configure API keys:'
-Write-Host '     hermes setup'
+Write-Host '     a2assistant setup'
 Write-Host ''
 Write-Host '  3. Start chatting:'
 Write-Host '     hermes'
 Write-Host ''
 Write-Host 'Other commands:'
-Write-Host '  hermes pm install     # Re-run the tool + dependency install'
-Write-Host '  hermes status         # Check configuration'
-Write-Host '  hermes doctor         # Diagnose issues'
+Write-Host '  a2assistant pm install     # Re-run the tool + dependency install'
+Write-Host '  a2assistant status         # Check configuration'
+Write-Host '  a2assistant doctor         # Diagnose issues'
 Write-Host '  deactivate            # Undo the activation (restore PATH etc.)'
 Write-Host ''

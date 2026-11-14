@@ -1,7 +1,7 @@
 """Routes only the Webapp uses exist only on the surface that uses them.
 
-One dashboard app serves every surface: the standalone ``hermes dashboard``, the headless
-``hermes serve``, the gateway's own listener for native clients, and the gateway's Webapp. The surface
+One dashboard app serves every surface: the standalone ``a2assistant dashboard``, the headless
+``a2assistant serve``, the gateway's own listener for native clients, and the gateway's Webapp. The surface
 policy (``hermes_cli.web_server_surface``) says which of them serve:
 
 - the browser's file routes, ``/api/chat/file-upload`` and ``/api/files/ticket``, and the cap on chat
@@ -39,7 +39,7 @@ def nothing_acts(monkeypatch):
 
 
 def _owner_client() -> TestClient:
-    """The loopback session token's holder: the standalone dashboard's page, ``hermes serve``'s
+    """The loopback session token's holder: the standalone dashboard's page, ``a2assistant serve``'s
     spawner, or a tab of the loopback Webapp."""
     client = TestClient(web_server.app, raise_server_exceptions=False)
     client.headers[web_server._SESSION_HEADER_NAME] = web_server._SESSION_TOKEN

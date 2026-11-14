@@ -1,7 +1,7 @@
 """Regression tests for #100339: cloned / borrowed single-use Anthropic OAuth
 grants must never fork across profiles.
 
-Real imports, real temp HERMES_HOME root + named profile, real auth.json I/O.
+Real imports, real temp A2ASSISTANT_HOME root + named profile, real auth.json I/O.
 The Anthropic token endpoint is replaced at the ``urllib.request.urlopen``
 boundary with genuine single-use semantics (a refresh token redeems once;
 a second POST returns ``invalid_grant``).
@@ -22,7 +22,7 @@ from hermes_cli.auth_oauth_grants import SINGLE_USE_REFRESH_POOL_PROVIDERS
 
 @pytest.fixture
 def fleet(tmp_path, monkeypatch):
-    """Root HERMES_HOME with an expired-but-refreshable Anthropic pool row."""
+    """Root A2ASSISTANT_HOME with an expired-but-refreshable Anthropic pool row."""
     root = tmp_path / "hermes-root"
     root.mkdir()
     (tmp_path / "fakehome").mkdir()
@@ -31,7 +31,7 @@ def fleet(tmp_path, monkeypatch):
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "fakehome"))
     for var in ("ANTHROPIC_TOKEN", "ANTHROPIC_API_KEY", "CLAUDE_CODE_OAUTH_TOKEN"):
         monkeypatch.delenv(var, raising=False)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     # The pytest seat-belt in the root write-through compares the global path
     # against $HOME/.hermes/auth.json; our root is elsewhere, so writes go.
     import hermes_constants
@@ -94,7 +94,7 @@ def fleet(tmp_path, monkeypatch):
 
     def use(home):
         """Switch the process to *home* (root or a profile dir)."""
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         hermes_constants._default_hermes_root_memo = None  # type: ignore[attr-defined]
         import hermes_cli.auth as auth_mod
         auth_mod._global_auth_store_cache = None
@@ -568,7 +568,7 @@ def test_heal_is_idempotent_and_logs_once(fleet, caplog):
 
 
 def test_heal_never_deletes_the_only_surviving_copy(fleet):
-    """Root lost its grant (user ran `hermes auth remove` at root); the profile's
+    """Root lost its grant (user ran `a2assistant auth remove` at root); the profile's
     copy is the only one left — and an independent second account stays put."""
     from agent.credential_pool import load_pool
 
@@ -719,7 +719,7 @@ def test_heal_leaves_a_different_account_alone(fleet):
 
 
 def test_heal_pkce_singleton_shape_commits_live_pair_to_root_singleton(fleet):
-    """`hermes auth` PKCE shape: root + profile each have .anthropic_oauth.json +
+    """`a2assistant auth` PKCE shape: root + profile each have .anthropic_oauth.json +
     a hermes_pkce-seeded row; the profile's copy is the rotated (live) one."""
     from agent.credential_pool import load_pool
 
@@ -816,7 +816,7 @@ def _shared_profile(fleet, name, *, link=_link_same_file):
 
 
 def test_heal_skips_profile_auth_json_symlinked_to_the_root_store(fleet):
-    """#101356: `ln -s ~/.hermes/auth.json <profile>/auth.json` shares ONE store.
+    """#101356: `ln -s ~/.a2assistant/auth.json <profile>/auth.json` shares ONE store.
     Both sides of the consolidation read the same file, so every row looks like
     a fork of itself — healing would strip the shared grant through the link."""
     from hermes_cli.auth import consume_oauth_heal_notices, heal_forked_single_use_oauth_grants
@@ -889,7 +889,7 @@ def test_heal_leaves_an_aliased_anthropic_singleton_alone(fleet):
 # could safely ignore precisely because it died with the process.
 
 def _new_process(auth_mod):
-    """Simulate a fresh `hermes` invocation: in-memory state gone, disk kept."""
+    """Simulate a fresh `a2assistant` invocation: in-memory state gone, disk kept."""
     auth_mod._oauth_heal_clean_marks.clear()
     auth_mod._global_auth_store_cache = None
 

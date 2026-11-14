@@ -8,7 +8,7 @@ from hermes_cli.runtime_state import recover_publication, runtime_lock
 
 
 def test_invalid_journal_cannot_write_outside_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     repo = tmp_path / "repo"
     outside = tmp_path / "outside" / "config.yaml"
     outside.parent.mkdir()

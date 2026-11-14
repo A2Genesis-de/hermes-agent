@@ -9,7 +9,7 @@ reads or iterate; none mutate the returned dict or any nested structure),
 so they now use load_config_readonly() — the API built for exactly this
 (hermes_cli/config.py docstring; precedent: #74211, #74322).
 
-These tests drive the REAL functions against a temp HERMES_HOME config
+These tests drive the REAL functions against a temp A2ASSISTANT_HOME config
 (AGENTS.md: E2E with real imports), not mocks of the seam under test.
 """
 import pytest
@@ -29,7 +29,7 @@ def config_home(tmp_path, monkeypatch):
         "approvals:\n  mode: manual\n  timeout: 300\n  cron_mode: deny\n"
         "command_allowlist: []\n"
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     hc._LOAD_CONFIG_CACHE.clear()
     yield home
     hc._LOAD_CONFIG_CACHE.clear()

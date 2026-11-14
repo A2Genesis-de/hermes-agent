@@ -168,7 +168,7 @@ def _identity(lockfile: Lockfile, name: str, target: str):
 def lazy_installs_allowed() -> bool:
     """Policy: may pm install things on demand right now?
 
-    HERMES_DISABLE_LAZY_INSTALLS is an internal bridge var set by the
+    A2ASSISTANT_DISABLE_LAZY_INSTALLS is an internal bridge var set by the
     official Docker image and the hermetic test harness. The user-facing
     setting is security.allow_lazy_installs in config.yaml; a config
     system that fails to load counts as ALLOWED only when hermes_cli is
@@ -176,7 +176,7 @@ def lazy_installs_allowed() -> bool:
     """
     import os
 
-    if os.environ.get("HERMES_DISABLE_LAZY_INSTALLS", "").strip().lower() in (
+    if os.environ.get("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "").strip().lower() in (
         "1",
         "true",
         "yes",
@@ -219,7 +219,7 @@ def _refuse_lazy(name: str, what: str) -> InstallError:
     error = InstallError(
         name,
         f"not installed and lazy installs are disabled: {what}",
-        "enable security.allow_lazy_installs or run `hermes pm install`",
+        "enable security.allow_lazy_installs or run `a2assistant pm install`",
     )
     receipt.record_refusal("lazy-install", str(error))
     return error
@@ -260,7 +260,7 @@ def _discard_entry(store: Store, entry_name: str) -> None:
     as broken (#124807). Windows still allows renaming a tree with mapped
     images, so it moves to a `.reclaim-*` name: its slot is free for the next
     publish, no restore ever picks it up, and the next install or
-    `hermes pm gc` deletes it once the hold is gone.
+    `a2assistant pm gc` deletes it once the hold is gone.
     """
     import uuid
 
@@ -274,7 +274,7 @@ def _discard_entry(store: Store, entry_name: str) -> None:
     except OSError:
         LOG.warning("could not remove or set aside %s: %s", entry_name, error)
         return
-    LOG.warning("%s is still in use (%s); set aside for the next install or `hermes pm gc`",
+    LOG.warning("%s is still in use (%s); set aside for the next install or `a2assistant pm gc`",
                 entry_name, error)
 
 
@@ -393,7 +393,7 @@ def _refresh_recorded_env(package, facts, store, entry, previous, target) -> Non
 
 
 def _refresh_found_env(package, location, target, operation) -> None:
-    """:func:`_refresh_recorded_env` for an entry ``ensure`` found installed: `hermes update` skips
+    """:func:`_refresh_recorded_env` for an entry ``ensure`` found installed: `a2assistant update` skips
     installed defaults, so no install would re-record it. Only the writable store is re-recorded, under
     its install lock (a sealed store's facts ship with the artifact)."""
     facts, store = location
@@ -449,7 +449,7 @@ def _install(
     version = lockfile.version(package.name)
     if version is None:
         raise InstallError(
-            package.name, "not in the lockfile", "add it with `hermes pm lock --bump`"
+            package.name, "not in the lockfile", "add it with `a2assistant pm lock --bump`"
         )
 
     reason = package.missing_reason(target)
@@ -482,7 +482,7 @@ def _install(
             raise InstallError(
                 package.name,
                 f"no artifact for {target} in the lockfile",
-                "run `hermes pm lock --bump` for this package",
+                "run `a2assistant pm lock --bump` for this package",
             )
         with store.scratch() as scratch:
             staged = scratch / "tree"
@@ -571,8 +571,8 @@ def ensure(
     download_progress: ProgressFn | None = None,
     _operation: _InstallOperation | None = None,
 ) -> Runner:
-    """``explicit`` marks a deliberate install command (`hermes pm
-    install`, `hermes pm bundle`) — those ARE the remedy the lazy-install
+    """``explicit`` marks a deliberate install command (`a2assistant pm
+    install`, `a2assistant pm bundle`) — those ARE the remedy the lazy-install
     policy names, so the policy does not apply to them.
 
     ``verify`` re-hashes an already-recorded entry and repairs it when the
@@ -705,7 +705,7 @@ def _still_declared(package, recorded: list[str]) -> list[str]:
 
 def _carried(package, recorded: list[str]) -> list[str]:
     """The recorded extras a sync carries forward: still declared and not dropped by the user
-    (`hermes pm install --without NAME`). An explicit request still enables a declined extra."""
+    (`a2assistant pm install --without NAME`). An explicit request still enables a declined extra."""
     from pm.extras import declined_extras
 
     refused = declined_extras(package.project_root())
@@ -777,7 +777,7 @@ def _venv_install_lock(*, patient: bool):
             error = InstallError(
                 "venv",
                 f"another A2Assistant process is installing dependencies (waited {INSTALL_LOCK_TIMEOUT_SECONDS:.0f}s)",
-                "retry in a moment, or run `hermes pm install` to install explicitly",
+                "retry in a moment, or run `a2assistant pm install` to install explicitly",
             )
             receipt.record_refusal("install-busy", str(error))
             raise error
@@ -869,7 +869,7 @@ def _refuse_declined(package, extras: Optional[list[str]], *, explicit: bool) ->
         reasons = declined_reasons(package.project_root())
         why = "; ".join(f"an update left {extra!r} out because {reasons[_extra_key(extra)]}" for extra in dropped
                         if _extra_key(extra) in reasons)
-        raise InstallError("venv", why or f"extras {dropped} were removed with `hermes pm install --without`",
+        raise InstallError("venv", why or f"extras {dropped} were removed with `a2assistant pm install --without`",
                            "run `" + "`, `".join(install_hint(extra) for extra in dropped) + "` to enable them again")
 
 
@@ -878,7 +878,7 @@ def _without_new_declines(package, extras: Optional[list[str]], automatic) -> Op
 
     An automatic entry (configured-platform repair, the main-era venv carry, a container's shipped
     baseline) was chosen before this sync took the lock, from a decline record a concurrent
-    `hermes pm install --without NAME` may since have changed; only the lock-held read counts.
+    `a2assistant pm install --without NAME` may since have changed; only the lock-held read counts.
     """
     if not extras or not automatic:
         return extras
@@ -890,7 +890,7 @@ def _without_new_declines(package, extras: Optional[list[str]], automatic) -> Op
 
 
 def decline_extras(names: list[str]) -> None:
-    """Record ``hermes pm install --without NAME`` for extras, under the dependency lock: an
+    """Record ``a2assistant pm install --without NAME`` for extras, under the dependency lock: an
     in-flight `--extra NAME` sync clears its decline before releasing it, so an unlocked write
     landing mid-sync would be erased."""
     if not names:
@@ -938,8 +938,8 @@ def sync_venv(extras: Optional[list[str]] = None, *, explicit: bool = False,
     the installed state (one ledger); no-op when the stamp already matches.
     ``repair`` restores the recorded dependency graph into a fresh generation,
     bypassing both that shortcut and config discovery. It cannot add features.
-    ``explicit`` marks a deliberate install command (`hermes pm install`,
-    `hermes update`) — those are the remedy the lazy-install policy points
+    ``explicit`` marks a deliberate install command (`a2assistant pm install`,
+    `a2assistant update`) — those are the remedy the lazy-install policy points
     at, so the policy does not apply to them. ``plugins`` names the one
     source of plugin members (see pm.plugin_inputs); None discovers them from config.
     ``evict_incompatible_plugins`` is the update's contract: a discovered plugin that

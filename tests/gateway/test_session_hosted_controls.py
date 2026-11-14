@@ -12,7 +12,7 @@ def test_unknown_discard_is_exact_and_never_requeues(tmp_path, monkeypatch):
     from gateway.session_hosted_service import CanonicalHostedRoomService
     from gateway import hosted_room_driver as tasks
     from gateway.hosted_rooms import create_room, local_authority_gateway_id
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     class Service(CanonicalHostedRoomService):
         pass
     with SessionDB(tmp_path / 'state.db') as db:

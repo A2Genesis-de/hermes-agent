@@ -2,8 +2,8 @@
 
 Two P0 invariants:
 
-* A lifecycle call never acts on a service definition pinning another HERMES_HOME. A probe run with
-  ``HOME=<scratch>`` resolved the bare ``hermes-gateway`` name (its scratch ``.hermes`` looked native),
+* A lifecycle call never acts on a service definition pinning another A2ASSISTANT_HOME. A probe run with
+  ``HOME=<scratch>`` resolved the bare ``a2assistant-gateway`` name (its scratch ``.hermes`` looked native),
   found the ACCOUNT's real unit through the account-anchored unit dir, and ``systemctl --user stop``
   took the production gateway down.
 * ``gateway stop``/``restart`` refuse while the gateway runs live sessions, naming them, unless the
@@ -25,7 +25,7 @@ from hermes_cli import gateway as gw
 
 def _unit(path, home) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(f'[Service]\nEnvironment="HERMES_HOME={home}"\nExecStart=/usr/bin/hermes gateway run\n',
+    path.write_text(f'[Service]\nEnvironment="A2ASSISTANT_HOME={home}"\nExecStart=/usr/bin/hermes gateway run\n',
                     encoding="utf-8")
 
 
@@ -47,20 +47,20 @@ def recorded(monkeypatch):
 
 @pytest.mark.platforms("linux")
 def test_scratch_home_does_not_resolve_the_accounts_bare_gateway_unit(tmp_path, monkeypatch):
-    """The incident's resolution: HOME=<scratch>, HERMES_HOME unset, the account's real bare unit
+    """The incident's resolution: HOME=<scratch>, A2ASSISTANT_HOME unset, the account's real bare unit
     pinning the account home. The scratch home must not name that unit."""
     account, scratch = tmp_path / "account", tmp_path / "scratch"
-    (scratch / ".hermes").mkdir(parents=True)
-    real_unit = account / ".config" / "systemd" / "user" / "hermes-gateway.service"
-    _unit(real_unit, account / ".hermes")
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    (scratch / ".a2assistant").mkdir(parents=True)
+    real_unit = account / ".config" / "systemd" / "user" / "a2assistant-gateway.service"
+    _unit(real_unit, account / ".a2assistant")
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     monkeypatch.delenv("XDG_CONFIG_HOME", raising=False)
     monkeypatch.setenv("HOME", str(scratch))
-    monkeypatch.setenv("HERMES_REAL_HOME", str(account))
+    monkeypatch.setenv("A2ASSISTANT_REAL_HOME", str(account))
     monkeypatch.setattr(os, "geteuid", lambda: 1000)
 
-    assert gw.get_hermes_home() == scratch / ".hermes"
-    assert gw.get_service_name() != "hermes-gateway"
+    assert gw.get_hermes_home() == scratch / ".a2assistant"
+    assert gw.get_service_name() != "a2assistant-gateway"
     assert gw.get_systemd_unit_path() != real_unit
     assert not gw.get_systemd_unit_path().exists()
 
@@ -74,12 +74,12 @@ def test_lifecycle_verb_refuses_a_user_unit_pinning_another_home(tmp_path, monke
     account = tmp_path / "account"
     custom_profile = tmp_path / "custom" / "profiles" / "coder"
     custom_profile.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(custom_profile))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(custom_profile))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(account / ".config"))
     monkeypatch.setattr(os, "geteuid", lambda: 1000)
     unit = gw.get_systemd_unit_path()
-    assert unit.name == "hermes-gateway-coder.service"
-    _unit(unit, account / ".hermes" / "profiles" / "coder")
+    assert unit.name == "a2assistant-gateway-coder.service"
+    _unit(unit, account / ".a2assistant" / "profiles" / "coder")
 
     if verb == "uninstall":
         gw._service_call("systemd", verb, False)
@@ -92,7 +92,7 @@ def test_lifecycle_verb_refuses_a_user_unit_pinning_another_home(tmp_path, monke
     captured = capsys.readouterr()
     assert "Refusing to" in captured.out + captured.err
     assert unit.exists()
-    assert os.environ["HERMES_HOME"] == str(custom_profile)
+    assert os.environ["A2ASSISTANT_HOME"] == str(custom_profile)
 
 
 # ── Invariant 2: stop/restart refuse while sessions are live ─────────────────────────────────────
@@ -129,7 +129,7 @@ def test_stop_refuses_while_sessions_are_live_and_names_them(monkeypatch, record
     assert "2 live session(s)" in out
     assert "chat turn agent:main:telegram:dm:7" in out
     assert "background delegation deleg_ab12cd34" in out
-    assert "hermes gateway stop --yes" in out
+    assert "a2assistant gateway stop --yes" in out
 
     gw._cmd_stop(SimpleNamespace(all=False, system=False, interrupt=True))
     assert stopped == [False]
@@ -161,7 +161,7 @@ def test_stop_all_leaves_another_homes_gateway_process_alone(monkeypatch, record
     """``kill_gateway_processes(all_profiles=True)`` scans every gateway of this account; a scratch-home
     ``stop --all`` must not SIGTERM a gateway running on another Hermes home."""
     from hermes_cli import dashboard_procs
-    own, other = str(gw.get_hermes_home()), str(tmp_path / "account" / ".hermes")
+    own, other = str(gw.get_hermes_home()), str(tmp_path / "account" / ".a2assistant")
     monkeypatch.setattr(gw, "find_gateway_pids", lambda *a, **k: [111, 222])
     monkeypatch.setattr(dashboard_procs, "_hermes_home_for_pid", {111: own, 222: other}.get)
 
@@ -195,18 +195,18 @@ def test_dashboard_stop_refuses_while_sessions_are_live(monkeypatch):
 
 @pytest.mark.platforms("linux")
 def test_sudo_system_stop_checks_the_units_home_not_roots(tmp_path, monkeypatch, recorded, capsys):
-    """``sudo hermes gateway stop --system``: HOME=/root and HERMES_HOME stripped, while the system unit
+    """``sudo a2assistant gateway stop --system``: HOME=/root and A2ASSISTANT_HOME stripped, while the system unit
     runs the invoking user's home. The live-work check must ask the unit's home, without adopting it."""
     import hermes_constants
-    root_home, user_home = tmp_path / "root", tmp_path / "user" / ".hermes"
-    (root_home / ".hermes").mkdir(parents=True)
+    root_home, user_home = tmp_path / "root", tmp_path / "user" / ".a2assistant"
+    (root_home / ".a2assistant").mkdir(parents=True)
     user_home.mkdir(parents=True)
-    _unit(tmp_path / "systemd" / "hermes-gateway.service", user_home)
+    _unit(tmp_path / "systemd" / "a2assistant-gateway.service", user_home)
     monkeypatch.setattr(gw, "_SYSTEM_UNIT_DIR", tmp_path / "systemd")
     monkeypatch.setattr(os, "geteuid", lambda: 0)
     monkeypatch.delenv("SUDO_USER", raising=False)
     monkeypatch.setenv("HOME", str(root_home))
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     monkeypatch.setattr(hermes_constants, "_account_home", lambda: root_home)
     _live_gateway(monkeypatch, None)
     from gateway import control_socket
@@ -222,12 +222,12 @@ def test_sudo_system_stop_checks_the_units_home_not_roots(tmp_path, monkeypatch,
 
     assert exc.value.code == 1 and stopped == [] and recorded == []
     assert "chat turn agent:main:telegram:dm:7" in capsys.readouterr().out
-    assert "HERMES_HOME" not in os.environ  # the check never adopted the unit's home
+    assert "A2ASSISTANT_HOME" not in os.environ  # the check never adopted the unit's home
 
 
 @pytest.mark.parametrize("verb", ["stop", "restart"])
 def test_host_served_profile_refuses_before_unserving_its_live_turns(tmp_path, monkeypatch, capsys, verb):
-    """``hermes -p coder gateway stop|restart`` on a profile the host serves unserves it in the host,
+    """``a2assistant -p coder gateway stop|restart`` on a profile the host serves unserves it in the host,
     which Stops its executing turns: the live-work policy applies first, scoped to that profile."""
     from gateway import control_socket
     from hermes_cli import gateway_profile_lifecycle as gpl
@@ -256,7 +256,7 @@ def test_host_served_profile_refuses_before_unserving_its_live_turns(tmp_path, m
     assert exc.value.code == 1 and requests == []
     assert asked == [(host_home, {"profile": "coder"})]
     assert "1 live session(s)" in out and "agent:coder:telegram:dm:7" in out
-    assert f"hermes -p coder gateway {verb} --yes" in out
+    assert f"a2assistant -p coder gateway {verb} --yes" in out
     assert not (profile_home / "gateway.parked").exists()
 
     command(SimpleNamespace(all=False, system=False, force=False, interrupt=True))

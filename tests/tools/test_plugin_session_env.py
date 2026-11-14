@@ -18,9 +18,9 @@ def resolve(session_id):
 def register(ctx):
     ctx.register_session_env(['PANE', 'WINDOW', 'OPENAI_API_KEY', 'ACME_SANDBOX_TOKEN'], resolve)
     try:
-        ctx.register_session_env('HERMES_SESSION_ID', resolve)
+        ctx.register_session_env('A2ASSISTANT_SESSION_ID', resolve)
     except ValueError:
-        REFUSED.append('HERMES_SESSION_ID')
+        REFUSED.append('A2ASSISTANT_SESSION_ID')
 """
 
 
@@ -35,7 +35,7 @@ def plugin(tmp_path, monkeypatch):
                        (plugin_dir / "__init__.py", _PLUGIN),
                        (home / "config.yaml", "plugins:\n  enabled: [session_env_probe]\n")):
         path.write_text(text, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("PANE", "gateway")
     monkeypatch.setenv("WINDOW", "gateway-win")
     manager = PluginManager()
@@ -80,8 +80,8 @@ def test_a_plugin_cannot_set_core_or_credential_names(plugin, monkeypatch):
     plugin.PANES["a"] = {"PANE": "pane-a", "OPENAI_API_KEY": "sk-from-plugin", "ACME_SANDBOX_TOKEN": "tok"}
     child = _as_session("a", build_subprocess_env)
 
-    assert plugin.REFUSED == ["HERMES_SESSION_ID"]
-    assert (child["PANE"], child["HERMES_SESSION_ID"]) == ("pane-a", "a")
+    assert plugin.REFUSED == ["A2ASSISTANT_SESSION_ID"]
+    assert (child["PANE"], child["A2ASSISTANT_SESSION_ID"]) == ("pane-a", "a")
     assert not {"OPENAI_API_KEY", "ACME_SANDBOX_TOKEN"} & child.keys()
 
 
@@ -144,7 +144,7 @@ def test_a_second_plugin_cannot_take_a_declared_name(tmp_path, monkeypatch, isol
     monkeypatch.setattr(plugins_session_env, "_DECLARED", {})
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: tmp_path / "no-bundled")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(_home(tmp_path / "home", {"aaa_holder": _HOLDER, "zzz_taker": _TAKER},
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(_home(tmp_path / "home", {"aaa_holder": _HOLDER, "zzz_taker": _TAKER},
                                                   isolation)))
     plugins_mod._reset_plugin_managers_for_tests()
     manager = plugins_mod.get_plugin_manager()
@@ -184,7 +184,7 @@ def test_one_plugin_declaring_a_name_twice_keeps_the_later_value(tmp_path, monke
     monkeypatch.setattr(plugins_session_env, "_DECLARED", {})
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: tmp_path / "no-bundled")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(_home(tmp_path / "home", {"twice": _TWICE}, isolation)))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(_home(tmp_path / "home", {"twice": _TWICE}, isolation)))
     plugins_mod._reset_plugin_managers_for_tests()
     manager = plugins_mod.get_plugin_manager()
     try:

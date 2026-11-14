@@ -28,7 +28,7 @@ def _stamp_probe(tmp_path, shell):
     # package so a new sibling import cannot break the fixture.
     shutil.copytree(ROOT / "scripts/releases", repo / "scripts/releases",
                     ignore=shutil.ignore_patterns("__pycache__"))
-    env = dict(os.environ, HOME=str(tmp_path), HERMES_HOME=str(tmp_path / "home"),
+    env = dict(os.environ, HOME=str(tmp_path), A2ASSISTANT_HOME=str(tmp_path / "home"),
                GIT_CONFIG_GLOBAL=str(tmp_path / "gitconfig"), GIT_CONFIG_NOSYSTEM="1")
     (tmp_path / "gitconfig").write_text('[url "file:///staged/serve.git"]\n'
                                       '\tinsteadOf = https://github.com/NousResearch/hermes-agent.git\n',
@@ -57,9 +57,9 @@ def _stamp_probe(tmp_path, shell):
                    capture_output=True, text=True, timeout=30)
     assert json.loads((tmp_path / "contaminated.json").read_text(encoding="utf-8-sig"))["commit"] == new
     overrides = dict(GITHUB_SHA=new, GITHUB_REF="refs/heads/workflow", GITHUB_REF_NAME="workflow",
-                     GITHUB_HEAD_REF="workflow", GITHUB_BASE_REF="main", HERMES_BUILD_COMMIT=new,
-                     HERMES_PAYLOAD_TAG="v1.2.3", HERMES_PAYLOAD_VERSION="1.2.3",
-                     HERMES_DESKTOP_VARIANT="bundled")
+                     GITHUB_HEAD_REF="workflow", GITHUB_BASE_REF="main", A2ASSISTANT_BUILD_COMMIT=new,
+                     A2ASSISTANT_PAYLOAD_TAG="v1.2.3", A2ASSISTANT_PAYLOAD_VERSION="1.2.3",
+                     A2ASSISTANT_DESKTOP_VARIANT="bundled")
     env.update(overrides, ASSETS=str(ASSETS), PROBE_PYTHON=sys.executable,
                PROBE_ROOT=str(repo), PROBE_OUT=str(tmp_path / "stamp.json"),
                PROBE_ENV=str(tmp_path / "child-env.json"))
@@ -84,8 +84,8 @@ if source_build_env "$PROBE_PYTHON" -I -S -c 'raise SystemExit(23)'; then exit 9
 "$PROBE_PYTHON" -I -S -c 'import json, os; print(json.dumps(dict(os.environ)))'
 ''']
     elif shell == "node":
-        env["HERMES_DESKTOP_USER_DATA_DIR"] = str(tmp_path / "user-data")
-        env["HERMES_PYTHON_SRC_ROOT"] = str(repo)
+        env["A2ASSISTANT_DESKTOP_USER_DATA_DIR"] = str(tmp_path / "user-data")
+        env["A2ASSISTANT_PYTHON_SRC_ROOT"] = str(repo)
         command = [shell, "--input-type=module", "-e", '''
 import { pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
@@ -156,7 +156,7 @@ if ($LASTEXITCODE) { exit $LASTEXITCODE }
                                    "https://github.com/NousResearch/hermes-agent.git"], env=child,
                                   cwd=tmp_path, check=True, capture_output=True, text=True, timeout=30)
         assert redirect.stdout.strip() == "file:///staged/serve.git"
-        assert child["HERMES_HOME"] == env["HERMES_HOME"]
+        assert child["A2ASSISTANT_HOME"] == env["A2ASSISTANT_HOME"]
         parent = json.loads(result.stdout.splitlines()[-1])
         assert {key: parent[key] for key in overrides} == overrides
 

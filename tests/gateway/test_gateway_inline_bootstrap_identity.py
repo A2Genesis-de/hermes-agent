@@ -80,7 +80,7 @@ def test_bootstrap_argv_is_identity_only_for_the_process_running_it(join: str) -
 def test_bundled_posix_launcher_bootstrap_is_a_gateway() -> None:
     source = (
         "import os, site, sys; sys.argv[0]='hermes'; "
-        "site.addsitedir(os.environ['HERMES_SITE']); "
+        "site.addsitedir(os.environ['A2ASSISTANT_SITE']); "
         "from hermes_cli.main import main; sys.exit(main())"
     )
     command_line = " ".join([PY, "-P", "-c", source, "gateway", "run", "--replace"])
@@ -157,7 +157,7 @@ def test_live_payload_launched_gateway_is_found_for_its_home(argv, profile, foun
     home = root / "profiles" / profile if profile else root
     home.mkdir(parents=True)
     monkeypatch.setattr(hermes_constants.Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None, raising=False)
     record = {
         "pid": 4242, "kind": "hermes-gateway", "gateway_state": "running", "start_time": 1000,

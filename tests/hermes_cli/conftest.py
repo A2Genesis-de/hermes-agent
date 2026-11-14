@@ -25,7 +25,7 @@ def _suppress_concurrent_hermes_gate(request, monkeypatch):
 
     The Windows update path now refuses to proceed when another
     ``hermes.exe`` is detected (issue #26670). On a developer's Windows
-    machine running the test suite via ``hermes`` itself, this would
+    machine running the test suite via ``a2assistant`` itself, this would
     flag the running agent as a concurrent instance and abort every
     ``cmd_update`` test. Tests that want to exercise the gate explicitly
     re-patch ``_detect_concurrent_hermes_instances`` with their own
@@ -60,7 +60,7 @@ def _suppress_concurrent_hermes_gate(request, monkeypatch):
 def _private_repo_checkout_lock(monkeypatch, tmp_path_factory):
     """``cmd_update`` locks the checkout it runs from: in tests, this repository, whose git
     common dir every parallel test process (and, from a linked worktree, the live install's
-    ``hermes update``) shares. Give each test its own lock file for THIS repo; lock tests on
+    ``a2assistant update``) shares. Give each test its own lock file for THIS repo; lock tests on
     fixture checkouts are unaffected."""
     from pathlib import Path
 
@@ -104,8 +104,8 @@ def _discharge_host_update_obligation():
     """Start and end every ``hermes_cli`` test with NO host update-restart obligation.
 
     The record is host-scoped on purpose (one multiplexer per host), so it lives in the
-    per-OS-USER host state dir — not in the per-test ``HERMES_HOME``. The root conftest pins
-    that dir per test only when the caller supplied no ``HERMES_GATEWAY_LOCK_DIR`` (#118097
+    per-OS-USER host state dir — not in the per-test ``A2ASSISTANT_HOME``. The root conftest pins
+    that dir per test only when the caller supplied no ``A2ASSISTANT_GATEWAY_LOCK_DIR`` (#118097
     keeps the documented override working), so with one set every test in a file shares it and
     a test that arms the obligation makes the next one read a restart it never owed. Clearing
     the record — rather than re-pinning the dir — leaves that override rule untouched.

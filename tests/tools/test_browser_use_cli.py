@@ -425,7 +425,7 @@ class TestOwnTabPreamble:
 
 
 class TestProviderPickerIntegration:
-    """The `hermes tools` Browser Automation picker rows."""
+    """The `a2assistant tools` Browser Automation picker rows."""
 
     def test_picker_row_names_stay_unique(self):
         """The CLI row is named "Browser Use"; the legacy plugin API row must

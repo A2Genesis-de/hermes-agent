@@ -1,4 +1,4 @@
-"""Tests for xAI Grok OAuth — tokens stored in Hermes auth store (~/.hermes/auth.json)."""
+"""Tests for xAI Grok OAuth — tokens stored in Hermes auth store (~/.a2assistant/auth.json)."""
 
 import base64
 import json
@@ -142,7 +142,7 @@ def test_save_and_read_xai_oauth_tokens_roundtrip(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
     (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     _save_xai_oauth_tokens(
         {
@@ -167,7 +167,7 @@ def test_refresh_xai_oauth_tokens_preserves_active_provider(tmp_path, monkeypatc
     hermes_home = tmp_path / "hermes"
     near = _jwt_with_exp(int(time.time()) + 30)
     _setup_hermes_auth(hermes_home, access_token=near, refresh_token="rt-old")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     auth_path = hermes_home / "auth.json"
     raw = json.loads(auth_path.read_text())
@@ -204,7 +204,7 @@ def test_read_xai_oauth_tokens_missing(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
     (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     with pytest.raises(AuthError) as exc:
         _read_xai_oauth_tokens()
@@ -226,7 +226,7 @@ def test_resolve_xai_runtime_credentials_refreshes_expiring_token(tmp_path, monk
         refresh_token="rt-old",
         discovery={"token_endpoint": "https://auth.x.ai/oauth2/token"},
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     new_access = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     called = {"count": 0}
@@ -301,7 +301,7 @@ def test_resolve_credentials_quarantines_dead_tokens_on_terminal_refresh_failure
     """
     hermes_home = tmp_path / "hermes"
     _seed_xai_oauth_state(hermes_home, dict(_STALE_XAI_OAUTH_STATE), active_provider="nous")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     def _terminal_refresh(tokens, **kwargs):
         raise AuthError(
@@ -351,7 +351,7 @@ def test_get_xai_oauth_auth_status_logged_out(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
     (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     status = get_xai_oauth_auth_status()
     assert status["logged_in"] is False
@@ -368,7 +368,7 @@ def test_refresh_xai_oauth_pure_403_marked_tier_denied_not_relogin(monkeypatch):
 
     Regression test for #26847 — xAI's backend has been seen to 403
     standard SuperGrok subscribers despite the in-app subscription
-    being active. Re-running ``hermes model`` won't help in that
+    being active. Re-running ``a2assistant model`` won't help in that
     case, so the AuthError must NOT set ``relogin_required=True``,
     and must carry the dedicated ``xai_oauth_tier_denied`` code so
     ``format_auth_error`` doesn't append the misleading re-auth hint.
@@ -489,8 +489,8 @@ def test_xai_oauth_discovery_validates_endpoints(monkeypatch):
 
 
 def test_credential_pool_seeds_xai_oauth_from_singleton(tmp_path, monkeypatch):
-    """After `hermes model` -> xai-oauth, the singleton holds tokens.  load_pool
-    must surface that as a pool entry so `hermes auth list` reflects truth and
+    """After `a2assistant model` -> xai-oauth, the singleton holds tokens.  load_pool
+    must surface that as a pool entry so `a2assistant auth list` reflects truth and
     refreshes route through the pool consistently with codex.
 
     Device code is the only supported xAI OAuth flow, so the singleton is
@@ -500,7 +500,7 @@ def test_credential_pool_seeds_xai_oauth_from_singleton(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     _setup_hermes_auth(hermes_home, access_token=fresh, refresh_token="rt-1")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     pool = load_pool("xai-oauth")
     assert pool.has_credentials()
@@ -524,7 +524,7 @@ def test_credential_pool_device_code_seed_respects_suppression(tmp_path, monkeyp
         access_token=fresh,
         auth_mode="oauth_device_code",
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     suppress_credential_source("xai-oauth", "device_code")
 
@@ -533,7 +533,7 @@ def test_credential_pool_device_code_seed_respects_suppression(tmp_path, monkeyp
 
 
 def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch):
-    """End-to-end regression: ``hermes auth remove xai-oauth 1`` for a
+    """End-to-end regression: ``a2assistant auth remove xai-oauth 1`` for a
     singleton-seeded entry must clear auth.json providers.xai-oauth AND
     suppress further re-seeding — otherwise the next ``load_pool`` call
     silently resurrects the entry from the still-present singleton, making
@@ -553,7 +553,7 @@ def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch
     hermes_home = tmp_path / "hermes"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     _setup_hermes_auth(hermes_home, access_token=fresh, refresh_token="rt-1")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     # Confirm pre-state: pool sees the seeded entry, auth.json has the singleton.
     pool = load_pool("xai-oauth")
@@ -583,13 +583,13 @@ def test_auth_remove_xai_oauth_clears_singleton_and_sticks(tmp_path, monkeypatch
 
 
 def test_login_xai_oauth_relogin_clears_suppression_and_reseeds(tmp_path, monkeypatch):
-    """remove -> ``hermes model`` re-login (``_login_xai_oauth``) must clear the
+    """remove -> ``a2assistant model`` re-login (``_login_xai_oauth``) must clear the
     ``device_code`` suppression marker so the singleton seed re-creates the
     pool entry.
 
     Pre-fix: ``auth_remove_command`` set ``["device_code"]`` suppression but
-    only ``auth_add_command`` cleared it — the ``hermes model`` re-login path did
-    not. So after remove -> re-login the seed kept skipping and ``hermes auth
+    only ``auth_add_command`` cleared it — the ``a2assistant model`` re-login path did
+    not. So after remove -> re-login the seed kept skipping and ``a2assistant auth
     list`` showed no xAI entry even though the agent still worked via the
     singleton fallback. The fix calls ``unsuppress_credential_source`` on
     explicit interactive login success.
@@ -606,8 +606,8 @@ def test_login_xai_oauth_relogin_clears_suppression_and_reseeds(tmp_path, monkey
     hermes_home = tmp_path / "hermes"
     hermes_home.mkdir(parents=True, exist_ok=True)
     (hermes_home / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.delenv("HERMES_XAI_BASE_URL", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
+    monkeypatch.delenv("A2ASSISTANT_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
 
     # Post-remove state: singleton gone + device_code suppressed, so the
@@ -671,8 +671,8 @@ def test_runtime_provider_uses_pool_entry_for_xai_oauth(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     _setup_hermes_auth(hermes_home, access_token=fresh)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.delenv("HERMES_XAI_BASE_URL", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
+    monkeypatch.delenv("A2ASSISTANT_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
 
     runtime = resolve_runtime_provider(requested="xai-oauth")
@@ -700,7 +700,7 @@ def test_pool_refresh_recovers_when_other_process_already_refreshed(tmp_path, mo
     hermes_home = tmp_path / "hermes"
     in_memory_at = _jwt_with_exp(int(time.time()) + 30)
     _setup_hermes_auth(hermes_home, access_token=in_memory_at, refresh_token="rt-shared")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     pool = load_pool("xai-oauth")
 
@@ -737,7 +737,7 @@ def test_pool_refresh_recovers_when_other_process_already_refreshed(tmp_path, mo
 
 
 def test_pool_manual_entry_does_not_sync_back_to_singleton(tmp_path, monkeypatch):
-    """`hermes auth add xai-oauth` entries (source='manual:xai_pkce') are
+    """`a2assistant auth add xai-oauth` entries (source='manual:xai_pkce') are
     independent credentials and must NOT write to the singleton.  Sync-back
     is restricted to entries seeded from the singleton.  Otherwise adding a
     second pool credential would silently overwrite the user's main login."""
@@ -748,7 +748,7 @@ def test_pool_manual_entry_does_not_sync_back_to_singleton(tmp_path, monkeypatch
     # Singleton has its own tokens (separate login).
     singleton_at = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     _setup_hermes_auth(hermes_home, access_token=singleton_at, refresh_token="rt-singleton")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     manual_at_old = _jwt_with_exp(int(time.time()) + 30)
     manual_at_new = _jwt_with_exp(int(time.time()) + 7200)
@@ -817,8 +817,8 @@ def test_auxiliary_client_routes_xai_oauth_through_responses_api(tmp_path, monke
     hermes_home = tmp_path / "hermes"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     _setup_hermes_auth(hermes_home, access_token=fresh)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.delenv("HERMES_XAI_BASE_URL", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
+    monkeypatch.delenv("A2ASSISTANT_XAI_BASE_URL", raising=False)
     monkeypatch.delenv("XAI_BASE_URL", raising=False)
 
     client, model = resolve_provider_client("xai-oauth", model="grok-4")
@@ -844,7 +844,7 @@ def test_auxiliary_client_xai_oauth_requires_explicit_model(tmp_path, monkeypatc
     hermes_home = tmp_path / "hermes"
     fresh = _jwt_with_exp(int(time.time()) + 2 * 60 * 60)
     _setup_hermes_auth(hermes_home, access_token=fresh)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     client, model = resolve_provider_client("xai-oauth", model=None)
     assert client is None
@@ -861,15 +861,15 @@ def test_pool_sync_back_preserves_active_provider(tmp_path, monkeypatch):
     picking a provider.  ``_save_provider_state`` flips ``active_provider``;
     using it on the sync-back path means every xAI/Codex/Nous refresh in a
     multi-provider setup silently overrides the user's chosen active
-    provider (visible to ``hermes auth status``, ``hermes setup``, and the
-    ``hermes`` no-arg dispatcher).  Pin the ``set_active=False`` contract so
+    provider (visible to ``a2assistant auth status``, ``a2assistant setup``, and the
+    ``a2assistant`` no-arg dispatcher).  Pin the ``set_active=False`` contract so
     no future refactor regresses to the legacy semantic."""
     from agent.credential_pool import load_pool
 
     hermes_home = tmp_path / "hermes"
     near_expiry = _jwt_with_exp(int(time.time()) + 30)
     _setup_hermes_auth(hermes_home, access_token=near_expiry, refresh_token="rt-xai")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     # Simulate a multi-provider user whose actual chosen provider is
     # OpenRouter — xai-oauth tokens exist in the singleton but are NOT

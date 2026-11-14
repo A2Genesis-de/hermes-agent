@@ -45,7 +45,7 @@ test('POSIX backend PATH keeps the inherited PATH first and appends missing sane
 })
 
 test('backend runs the store toolchain even after the login-shell PATH is merged in front of it', async () => {
-  // `hermes desktop` hands Electron a PATH with the PM store first; the
+  // `a2assistant desktop` hands Electron a PATH with the PM store first; the
   // login-shell merge then puts nvm/Homebrew ahead of it in process.env.
   const env: Record<string, string> = {
     PATH: '/Users/u/.hermes/tools/node-26.7.0-darwin-arm64/bin:/Users/u/.hermes/tools/uv-0.12.3-darwin-arm64:/usr/bin:/bin'
@@ -73,12 +73,12 @@ test('backend runs the store toolchain even after the login-shell PATH is merged
   ])
 })
 
-test('HERMES_RUNTIME_DIR names the store; look-alike prefixes are not A2Assistant-owned', () => {
+test('A2ASSISTANT_RUNTIME_DIR names the store; look-alike prefixes are not A2Assistant-owned', () => {
   const store = '/Applications/Hermes.app/Contents/Resources/agent-payload/tools'
 
   const backend = buildDesktopBackendEnv({
     currentEnv: {
-      HERMES_RUNTIME_DIR: store,
+      A2ASSISTANT_RUNTIME_DIR: store,
       PATH: `/opt/homebrew/bin:/Users/u/.hermes/tools-old/bin:${store}/npm-12.0.2-darwin-arm64/bin:/usr/bin`
     },
     platform: 'darwin',
@@ -121,11 +121,11 @@ test('buildDesktopBackendEnv forces PYTHONUTF8 unless the user set it explicitly
 
 test('normalizeHermesHomeRoot expands a literal leading ~ against the home directory, not cwd', () => {
   assert.equal(
-    normalizeHermesHomeRoot('~/.hermes', { pathModule: path.posix, homedir: '/Users/test' }),
+    normalizeHermesHomeRoot('~/.a2assistant', { pathModule: path.posix, homedir: '/Users/test' }),
     '/Users/test/.hermes'
   )
   assert.equal(
-    normalizeHermesHomeRoot('~/.hermes/profiles/oracle', { pathModule: path.posix, homedir: '/Users/test' }),
+    normalizeHermesHomeRoot('~/.a2assistant/profiles/oracle', { pathModule: path.posix, homedir: '/Users/test' }),
     '/Users/test/.hermes'
   )
   assert.equal(
@@ -158,7 +158,7 @@ test('appendUniquePathEntries flattens, dedupes, and preserves first occurrence'
   assert.equal(appendUniquePathEntries(['/a:/b', ['/b', '/c'], '', null], { delimiter: ':' }), '/a:/b:/c')
 })
 
-// `hermes desktop` loads its launch profile's .env/.op.env into os.environ and
+// `a2assistant desktop` loads its launch profile's .env/.op.env into os.environ and
 // hands that env to Electron; these cover what a profile backend inherits (#68367).
 function withHermesRoot(files: Record<string, string>, run: (root: string) => void) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-profile-env-'))
@@ -233,14 +233,14 @@ test('Desktop launched from a named profile keeps that profile out of the defaul
     },
     root => {
       const currentEnv = {
-        HERMES_HOME: path.join(root, 'profiles', 'work'),
+        A2ASSISTANT_HOME: path.join(root, 'profiles', 'work'),
         TLON_SHIP_CODE: 'work-code',
         OP_SERVICE_ACCOUNT_TOKEN: 'work-op',
         OPENAI_API_KEY: 'shell-key'
       }
 
       assert.deepEqual(profileBackendParentEnv({ hermesHome: root, profile: 'default', currentEnv }), {
-        HERMES_HOME: currentEnv.HERMES_HOME,
+        A2ASSISTANT_HOME: currentEnv.A2ASSISTANT_HOME,
         OPENAI_API_KEY: 'shell-key'
       })
       assert.deepEqual(profileBackendParentEnv({ hermesHome: root, profile: 'work', currentEnv }), currentEnv)
@@ -263,7 +263,7 @@ test('Windows matches profile homes and dotenv names case-insensitively', () => 
   }
 
   const currentEnv = {
-    HERMES_HOME: 'c:\\users\\test\\appdata\\local\\HERMES',
+    A2ASSISTANT_HOME: 'c:\\users\\test\\appdata\\local\\HERMES',
     Path: 'C:\\Windows',
     Telegram_Bot_Token: 'root-token'
   }
@@ -272,5 +272,5 @@ test('Windows matches profile homes and dotenv names case-insensitively', () => 
     profileBackendParentEnv({ hermesHome: root, profile, currentEnv, platform: 'win32', fsModule })
 
   assert.deepEqual(scoped('default'), currentEnv)
-  assert.deepEqual(scoped('urbot'), { HERMES_HOME: currentEnv.HERMES_HOME, Path: 'C:\\Windows' })
+  assert.deepEqual(scoped('urbot'), { A2ASSISTANT_HOME: currentEnv.A2ASSISTANT_HOME, Path: 'C:\\Windows' })
 })

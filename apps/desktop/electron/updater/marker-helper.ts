@@ -306,7 +306,7 @@ export async function runMarkerHelper(op: MarkerHelperOp, options: MarkerHelperO
 
   try {
     const result = await (options.spawn ?? defaultSpawn)(command, args, {
-      env: { ...process.env, HERMES_HOME: options.hermesHome },
+      env: { ...process.env, A2ASSISTANT_HOME: options.hermesHome },
       timeout: options.timeoutMs ?? MARKER_HELPER_TIMEOUT_MS,
       windowsHide: true
     })

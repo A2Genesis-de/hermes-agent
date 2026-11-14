@@ -578,7 +578,7 @@ class CLITerminalMixin:
         return bool(getattr(self, "_resize_recovery_pending", False))
 
     def _try_attach_clipboard_image(self) -> bool:
-        """Save a clipboard image to ~/.hermes/images/ and attach it; True if attached."""
+        """Save a clipboard image to ~/.a2assistant/images/ and attach it; True if attached."""
         from cli import datetime
         from hermes_cli.clipboard import save_clipboard_image
         self._image_counter += 1

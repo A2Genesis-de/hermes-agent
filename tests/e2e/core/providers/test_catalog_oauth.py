@@ -1,6 +1,6 @@
 """Real-process E2E: OAuth / device-code providers against a loopback vendor.
 
-Every cell drives the real ``python -m hermes_cli.main`` in a hermetic HOME (fake HOME, HERMES_HOME
+Every cell drives the real ``python -m hermes_cli.main`` in a hermetic HOME (fake HOME, A2ASSISTANT_HOME
 under it, no real credentials) against ``tests.fakes.providers.catalog_oauth.OAuthFake`` — the
 vendor's OAuth authorization server and a bearer-checking inference server on 127.0.0.1. All other
 egress goes through the ``CatalogFake`` sentinel proxy, which refuses and records any non-loopback
@@ -87,15 +87,15 @@ class Home:
         env = {k: v for k, v in os.environ.items()
                if (k in _PASSTHROUGH_ENV or k.startswith("LC_")) and not k.endswith(_SECRET_SUFFIXES)}
         env.update({
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
+            "HOME": str(self.home), "A2ASSISTANT_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1", "NO_COLOR": "1", "TERM": "dumb",
-            "TMPDIR": str(self.home), "HERMES_SHARED_AUTH_DIR": str(self.home / "shared"),
+            "TMPDIR": str(self.home), "A2ASSISTANT_SHARED_AUTH_DIR": str(self.home / "shared"),
             "CODEX_HOME": str(self.home / ".codex"),
             # Child HOME is the fixture home, so its state.db is tmp_path's (guard's documented escape).
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
             # A turn boots the gateway; like every gateway harness, the hermetic run opts out of
             # lazy installs (PM downloads).
-            "HERMES_DISABLE_LAZY_INSTALLS": "1",
+            "A2ASSISTANT_DISABLE_LAZY_INSTALLS": "1",
             **self.sentinel.proxy_env()})
         env.update(extra or {})
         return env
@@ -179,7 +179,7 @@ DEVICE_INTERVAL = 2
 
 @pytest.fixture(scope="module")
 def device_login(tmp_path_factory):
-    """One real ``hermes auth add nous --type oauth`` device-code login against the fake Portal."""
+    """One real ``a2assistant auth add nous --type oauth`` device-code login against the fake Portal."""
     root = tmp_path_factory.mktemp("nous-device")
     with CatalogFake() as sentinel, OAuthFake(device_interval=DEVICE_INTERVAL, poll_script=DEVICE_SCRIPT) as fake:
         home = Home(root, sentinel, "nous", "oauth-e2e/model")

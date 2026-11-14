@@ -630,7 +630,7 @@ def last_unattributed_run(
     *, session_id: str | None, root: str | None, since: str | None = None,
 ) -> Optional[str]:
     """The latest verify-command run in ``root`` whose own exit status could not be read,
-    unless evidence recorded at ``since`` came after it. ``hermes verify`` usually records
+    unless evidence recorded at ``since`` came after it. ``a2assistant verify`` usually records
     from its own process, so this process's memory alone cannot know about that run.
     """
     run = _UNATTRIBUTED_RUNS.get((str(session_id or "default"), str(root)))
@@ -640,10 +640,10 @@ def last_unattributed_run(
 
 
 def record_verify_run(
-    *, root: str | Path, session_id: str | None = None, ok: bool, command: str = "hermes verify",
+    *, root: str | Path, session_id: str | None = None, ok: bool, command: str = "a2assistant verify",
     scope: str = "full", output: str = "",
 ) -> Optional[dict[str, Any]]:
-    """Record a completed ``hermes verify`` run as verification evidence.
+    """Record a completed ``a2assistant verify`` run as verification evidence.
 
     A pass marks the workspace ``passed`` for the verify-on-stop guard like a
     canonical test command would. ``root`` is re-resolved through project facts
@@ -653,7 +653,7 @@ def record_verify_run(
         return None
     resolved = str(Path(root).resolve())
     return _insert_evidence(VerificationEvidence(
-        command=command, canonical_command="hermes verify", kind="verify",
+        command=command, canonical_command="a2assistant verify", kind="verify",
         scope=scope if scope in {"full", "targeted"} else "full",
         status="passed" if ok else "failed", exit_code=0 if ok else 1, cwd=resolved,
         root=str((_project_facts(root) or {}).get("root") or resolved),
@@ -743,7 +743,7 @@ def mark_workspace_edited(
 def _newest_workspace_verify(
     conn: sqlite3.Connection, *, root: str, since: str | None
 ) -> Optional[sqlite3.Row]:
-    """Latest full passing ``hermes verify`` for ``root``, optionally not older than ``since``."""
+    """Latest full passing ``a2assistant verify`` for ``root``, optionally not older than ``since``."""
     if since:
         return conn.execute(
             "SELECT * FROM verification_events"
@@ -764,7 +764,7 @@ def verification_status(*, session_id: str | None, cwd: str | Path | None) -> di
     """Return the best known verification state for a session/workspace.
 
     Evidence recorded before the latest edit is reported as ``stale``. A
-    ``hermes verify`` event for the same ``root`` that is at least as new as
+    ``a2assistant verify`` event for the same ``root`` that is at least as new as
     that edit satisfies the guard even if another session recorded it.
     """
     if not _ledger_enabled():

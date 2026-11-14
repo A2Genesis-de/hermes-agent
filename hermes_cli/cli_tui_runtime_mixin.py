@@ -360,7 +360,7 @@ class CLITuiRuntimeMixin:
         # Pre-import the agent runtime (~1.5s: run_agent + OpenAI SDK) off-thread; the import
         # lock makes an early submit block on the remaining work rather than redo it.
         # Skipped when Termux defers agent startup on purpose.
-        if os.environ.get("HERMES_DEFER_AGENT_STARTUP") != "1":
+        if os.environ.get("A2ASSISTANT_DEFER_AGENT_STARTUP") != "1":
             def _prewarm_agent_runtime() -> None:
                 try:
                     import run_agent
@@ -375,7 +375,7 @@ class CLITuiRuntimeMixin:
             # The redactor snapshots its state at import time so any toggle now won't affect the running
             # process — we just want the operator to see that they're running without the safety net. See
             # #17691.
-            _redact_raw = os.getenv("HERMES_REDACT_SECRETS", "true")
+            _redact_raw = os.getenv("A2ASSISTANT_REDACT_SECRETS", "true")
             if _redact_raw.lower() not in {"1", "true", "yes", "on"}:
                 self._console_print(
                     f"[bold red]{t('cli.tui.redaction_disabled_title')}[/] "

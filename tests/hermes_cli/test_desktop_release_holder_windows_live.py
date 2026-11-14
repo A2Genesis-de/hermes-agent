@@ -87,7 +87,7 @@ def test_a_consent_given_for_another_run_closes_nothing_and_is_used_up(swap_fixt
     """Review N1: a gateway /update (or any swap not started by the consented retry) never closes."""
     desktop_dir, staging, live_root, helper = swap_fixture
     consent, _tree = _consent_for_run(desktop_dir, helper, "desktop-retry-1")
-    monkeypatch.setenv("HERMES_UPDATE_CORRELATION_ID", "gateway-update-7")
+    monkeypatch.setenv("A2ASSISTANT_UPDATE_CORRELATION_ID", "gateway-update-7")
 
     promoted, error = _promote(desktop_dir, staging)
 
@@ -100,7 +100,7 @@ def test_a_consent_given_for_another_run_closes_nothing_and_is_used_up(swap_fixt
 def test_consented_retry_closes_exactly_the_holder_and_promotes(swap_fixture, capsys, monkeypatch):
     desktop_dir, staging, live_root, helper = swap_fixture
     consent, tree = _consent_for_run(desktop_dir, helper, "desktop-retry-1")
-    monkeypatch.setenv("HERMES_UPDATE_CORRELATION_ID", "desktop-retry-1")  # windows.ps1 exports its run id
+    monkeypatch.setenv("A2ASSISTANT_UPDATE_CORRELATION_ID", "desktop-retry-1")  # windows.ps1 exports its run id
 
     promoted, error = _promote(desktop_dir, staging)
 
@@ -130,7 +130,7 @@ def test_a_partial_close_reports_only_the_holder_still_in_the_way(swap_fixture, 
         # What psutil answers for a protected process (elevated, another user's): no program path.
         monkeypatch.setattr(desktop_release_holders, "_exe_or_empty",
                             lambda proc: "" if proc.pid in protected_pids else real_exe(proc))
-        monkeypatch.setenv("HERMES_UPDATE_CORRELATION_ID", "desktop-retry-1")
+        monkeypatch.setenv("A2ASSISTANT_UPDATE_CORRELATION_ID", "desktop-retry-1")
 
         promoted, error = _promote(desktop_dir, staging)
 
@@ -166,7 +166,7 @@ def test_a_program_in_a_sibling_unpacked_folder_is_neither_named_nor_closed(swap
         seen = json.loads(consent.read_text(encoding="utf-8"))
         seen["holders"] += [{"pid": p.pid, "start_time": p.create_time(), "exe": p.exe()} for p in sibling_tree]
         consent.write_text(json.dumps(seen), encoding="utf-8")
-        monkeypatch.setenv("HERMES_UPDATE_CORRELATION_ID", "desktop-retry-1")
+        monkeypatch.setenv("A2ASSISTANT_UPDATE_CORRELATION_ID", "desktop-retry-1")
 
         promoted, error = _promote(desktop_dir, staging)
 

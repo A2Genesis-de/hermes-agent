@@ -4,7 +4,7 @@
 decisions one stable launch-home identity; ``set_multiplex_active(True)`` pins it automatically for
 a multiplexing gateway/dashboard, since neither calls the pin itself. Two contracts around that:
 
-* ``get_process_hermes_home()`` / ``get_hermes_home()`` keep following ``HERMES_HOME`` while the
+* ``get_process_hermes_home()`` / ``get_hermes_home()`` keep following ``A2ASSISTANT_HOME`` while the
   pin holds — a host's env mirror exists so override-less readers see the served profile, and an
   env-only home switch (``profiles._cleanup_gateway_service``) must not resolve to the launch home.
 * Deactivation releases only the pin activation itself created: an embedding host's explicit pin
@@ -31,7 +31,7 @@ def homes(tmp_path, monkeypatch):
     served = tmp_path / "profiles" / "served"
     launch.mkdir()
     served.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(hermes_constants, "_PINNED_PROCESS_HERMES_HOME", None, raising=False)
     return launch, served
 
@@ -39,7 +39,7 @@ def homes(tmp_path, monkeypatch):
 def test_multiplex_activation_pins_the_launch_home_but_env_readers_still_follow_the_env(homes, monkeypatch):
     launch, served = homes
     set_multiplex_active(True)
-    monkeypatch.setenv("HERMES_HOME", str(served))  # the host's per-turn mirror
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(served))  # the host's per-turn mirror
     assert get_routing_process_hermes_home() == launch
     # Only routing DECISIONS are frozen; override-less readers see what the env names.
     assert get_process_hermes_home() == served
@@ -59,7 +59,7 @@ def test_an_explicit_host_pin_survives_a_transient_multiplex_toggle(homes, monke
     flipping the mode True→False in the same process must not drop it."""
     launch, served = homes
     hermes_constants.pin_process_hermes_home(launch)
-    monkeypatch.setenv("HERMES_HOME", str(served))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(served))
     token = set_hermes_home_override(served)
     try:
         set_multiplex_active(True)

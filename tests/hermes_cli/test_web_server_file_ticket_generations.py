@@ -29,8 +29,8 @@ def file_server(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(home))
     monkeypatch.setattr(web_server, "_SESSION_TOKEN", secrets.token_urlsafe(32))
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "127.0.0.1", raising=False)

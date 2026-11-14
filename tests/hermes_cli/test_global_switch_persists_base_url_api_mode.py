@@ -1,7 +1,7 @@
 """Regression tests for #25106: CLI `/model <name> --global` never persisted
 ``model.base_url``/``model.api_mode`` to config.yaml, so a global provider
 switch left the PREVIOUS provider's endpoint/wire-protocol on disk. The next
-`hermes` launch re-read the stale base_url and routed the new model at the
+`a2assistant` launch re-read the stale base_url and routed the new model at the
 old host.
 
 Both ``_handle_model_switch`` (typed ``/model <name>``) and
@@ -22,7 +22,7 @@ from hermes_cli.model_switch import ModelSwitchResult
 
 @pytest.fixture(autouse=True)
 def model_config(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     path = tmp_path / "config.yaml"
     path.write_text(
         "model:\n  default: old-model\n  provider: copilot\n"

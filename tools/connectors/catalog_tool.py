@@ -21,7 +21,7 @@ SEARCH_LIMIT = 10
 
 NOT_HERE = (
     "manage_catalog is available only in the A2Assistant desktop app, where the approval card can be drawn. "
-    "Tell the user to install from a terminal instead: `hermes skills install <id>`."
+    "Tell the user to install from a terminal instead: `a2assistant skills install <id>`."
 )
 
 NOTE = (

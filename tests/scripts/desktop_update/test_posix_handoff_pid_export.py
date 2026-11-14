@@ -1,9 +1,9 @@
 """A later generation of a POSIX Desktop hand-off's update adopts the hand-off's own claim.
 
-``hermes update`` adopts an existing claim only when a live partner is its own pid, the
-``HERMES_UPDATE_HANDOFF_PID`` value, or an ancestor (``update_lock.UpdateLock._is_partner``).
+``a2assistant update`` adopts an existing claim only when a live partner is its own pid, the
+``A2ASSISTANT_UPDATE_HANDOFF_PID`` value, or an ancestor (``update_lock.UpdateLock._is_partner``).
 ``posix.sh`` hands marker line 1 to a custodian before any update work starts; the custodian is a
-sibling of the update, never an ancestor. The first ``hermes update`` is named on the delegate
+sibling of the update, never an ancestor. The first ``a2assistant update`` is named on the delegate
 line, but a later generation (a relaunch or a takeover detached from it) has a new pid, so the
 hand-off pid is its only way to recognise the custodian. Naming the script there made those
 updates refuse their own claim with exit 2 (#134268, #134602).
@@ -39,7 +39,7 @@ if sys.argv[1:2] == ['update'] and '--help' not in sys.argv:  # not the --keep-s
         "ok = lock.acquire()\\n"
         "Path(sys.argv[1]).write_text(json.dumps({'adopted': ok, 'pid': os.getpid(), "
         "'holder': lock.holder.pid if lock.holder else None, "
-        "'told': os.environ.get('HERMES_UPDATE_HANDOFF_PID')}), encoding='utf-8')\\n"
+        "'told': os.environ.get('A2ASSISTANT_UPDATE_HANDOFF_PID')}), encoding='utf-8')\\n"
         "ok and lock.release()\\n")
     env = {k: v for k, v in os.environ.items() if not k.startswith('PYTHON')}
     env['PYTHONPATH'] = os.environ['GEN2_REPO']

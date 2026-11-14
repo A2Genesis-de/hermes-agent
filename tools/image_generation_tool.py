@@ -41,7 +41,7 @@ def _read_configured_image_provider():
 _CONTAINER_HOME_ENVS = {"DockerEnvironment"}
 # No env yet: only deterministic cache roots translate side-effect free (SSH: tilde path; its
 # first sync uploads the cache file).
-_CACHE_BASE_BY_BACKEND = {"docker": "/root/.hermes", "ssh": "~/.hermes"}
+_CACHE_BASE_BY_BACKEND = {"docker": "/root/.hermes", "ssh": "~/.a2assistant"}
 
 
 def _looks_like_absolute_file_path(value: str) -> bool:
@@ -226,8 +226,8 @@ def _dispatch_to_plugin_provider(
     configured = _read_configured_image_provider()
     if configured is None:
         return _provider_error(
-            "Image generation has no backend: set image_gen.provider via `hermes tools` → Image Generation "
-            "(run `hermes plugins list` to see installed backends).", "provider_not_configured")
+            "Image generation has no backend: set image_gen.provider via `a2assistant tools` → Image Generation "
+            "(run `a2assistant plugins list` to see installed backends).", "provider_not_configured")
     try:
         provider = _get_plugin_provider(configured)
     except Exception as exc:
@@ -243,7 +243,7 @@ def _dispatch_to_plugin_provider(
     if provider is None:
         return _provider_error(
             f"image_gen.provider='{configured}' is set but no plugin registered that name. "
-            f"Run `hermes plugins list` to see available image gen backends.", "provider_not_registered")
+            f"Run `a2assistant plugins list` to see available image gen backends.", "provider_not_registered")
     pname = getattr(provider, "name", "?")
     kwargs: dict[str, Any] = {"prompt": prompt, "aspect_ratio": aspect_ratio}
     try:
@@ -260,7 +260,7 @@ def _dispatch_to_plugin_provider(
             return _provider_error(
                 f"Provider '{pname}' does not support image-to-image / editing (its generate() "
                 f"signature is out of date with the image_generate schema). Omit image_url for "
-                f"text-to-image, or pick a backend that supports editing via `hermes tools` → "
+                f"text-to-image, or pick a backend that supports editing via `a2assistant tools` → "
                 f"Image Generation.", "modality_unsupported")
         logger.warning("Image gen provider '%s' raised%s: %s", pname,
                        " TypeError" if is_type_error else "", exc)

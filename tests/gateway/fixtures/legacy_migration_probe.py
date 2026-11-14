@@ -26,7 +26,7 @@ def probe(base, legacy_root, owner_root=None):
         'gateway': {'multiplex_profiles': False}, 'platform_toolsets': {'cli': []},
         'auxiliary': {'title_generation': {'enabled': False}}}))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(legacy_root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(legacy_root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
     def cli(checkout, *args):
         result = subprocess.run([sys.executable, '-m', 'hermes_cli.main', 'chat', *args],

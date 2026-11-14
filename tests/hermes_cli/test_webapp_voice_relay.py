@@ -29,7 +29,7 @@ def voice_config(tmp_path, monkeypatch):
     monkeypatch.setenv("VOICE_TOOLS_OPENAI_KEY", _KEY)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     for name in ("hermes_cli.config", "tools.transcription_tools", "tools.tts_tool",
                  "tools.voice_client_config"):
         if name in sys.modules:

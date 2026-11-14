@@ -26,7 +26,7 @@ def test_leftover_skills_hub_block_is_kept_but_never_acted_on(tmp_path, monkeypa
     home.mkdir()
     leftover = {"provider": "openrouter", "model": "some/model"}
     (home / "config.yaml").write_text(yaml.safe_dump({"auxiliary": {"skills_hub": leftover}}))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     from hermes_cli.config import load_config
     from hermes_cli.web_server_config import _apply_aux_assignment_sync, _stale_aux_pins
 

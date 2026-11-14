@@ -26,7 +26,7 @@ if TYPE_CHECKING:  # annotation-only; the runtime import would be a cycle
     from hermes_cli.auth import ProviderConfig
 logger = logging.getLogger("hermes_cli.auth")
 
-_RELOGIN = "Re-authenticate with `hermes model`."
+_RELOGIN = "Re-authenticate with `a2assistant model`."
 
 
 def _clean(value: Any) -> str:
@@ -79,7 +79,7 @@ def _read_xai_oauth_tokens(*, _lock: bool = True) -> dict[str, Any]:
             state = global_state
     if not state:
         raise _xai_err(
-            "No xAI OAuth credentials stored. Select xAI Grok OAuth (SuperGrok / Premium+) in `hermes model`.",
+            "No xAI OAuth credentials stored. Select xAI Grok OAuth (SuperGrok / Premium+) in `a2assistant model`.",
             "xai_auth_missing", relogin=True,
         )
     tokens = state.get("tokens")
@@ -112,7 +112,9 @@ def _write_through_xai_oauth_to_global_root(state: dict[str, Any]) -> None:
     # in _load_global_auth_store). Uses raw HOME, not Path.home(), which fixtures may monkeypatch.
     real_home_env = os.environ.get("HOME", "") if os.environ.get("PYTEST_CURRENT_TEST") else ""
     if real_home_env:
-        real_root = Path(real_home_env) / ".hermes" / "auth.json"
+        from hermes_constants import default_home_in
+
+        real_root = default_home_in(Path(real_home_env)) / "auth.json"
         try:
             if global_path.resolve(strict=False) == real_root.resolve(strict=False):
                 return
@@ -226,7 +228,7 @@ def _xai_validate_oauth_endpoint(url: str, *, field: str) -> str:
             f"xAI OIDC discovery {field} host {host!r} is not on the xAI origin "
             f"(expected x.ai or a *.x.ai subdomain). Refusing to use a cached "
             f"endpoint that may have been substituted by a MITM during initial "
-            f"discovery; re-authenticate with `hermes model` to re-fetch."
+            f"discovery; re-authenticate with `a2assistant model` to re-fetch."
         ),
     }[problem]
     raise _xai_err(message, "xai_discovery_invalid")
@@ -409,7 +411,7 @@ def _quarantine_xai_oauth_tokens(exc: AuthError) -> None:
 
 def _xai_oauth_inference_base_url() -> str:
     return _xai_validate_inference_base_url(
-        os.getenv("HERMES_XAI_BASE_URL", "").strip().rstrip("/") or os.getenv("XAI_BASE_URL", "").strip().rstrip("/"),
+        os.getenv("A2ASSISTANT_XAI_BASE_URL", "").strip().rstrip("/") or os.getenv("XAI_BASE_URL", "").strip().rstrip("/"),
         fallback=DEFAULT_XAI_OAUTH_BASE_URL,
     )
 
@@ -432,7 +434,7 @@ def resolve_xai_oauth_runtime_credentials(
 
     data = _read_xai_oauth_tokens()
     tokens = dict(data["tokens"])
-    refresh_timeout_seconds = env_float("HERMES_XAI_REFRESH_TIMEOUT_SECONDS", 20)
+    refresh_timeout_seconds = env_float("A2ASSISTANT_XAI_REFRESH_TIMEOUT_SECONDS", 20)
     if _should_refresh(data):
         with _auth_store_lock(timeout_seconds=max(float(AUTH_LOCK_TIMEOUT_SECONDS), refresh_timeout_seconds + 5.0)):
             # Re-read under the lock: a concurrent caller may already have rotated the grant.

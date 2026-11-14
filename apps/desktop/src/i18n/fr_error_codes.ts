@@ -24,6 +24,6 @@ export const frErrorCodes: Partial<ThreadCopy['errorCodes']> = {
     title: 'Impossible de joindre le serveur de modèles local',
     body: 'Le serveur de modèles local ne tourne pas encore : il est peut-être encore en train de démarrer. Réessayez dans un instant, ou passez à un autre modèle.',
     bodyNoRetry:
-      'Le serveur de modèles local est arrêté. Démarrez-le depuis l’application de bureau A2Assistant ou avec `hermes model` dans un terminal, ou passez à un autre modèle.'
+      'Le serveur de modèles local est arrêté. Démarrez-le depuis l’application de bureau A2Assistant ou avec `a2assistant model` dans un terminal, ou passez à un autre modèle.'
   }
 }

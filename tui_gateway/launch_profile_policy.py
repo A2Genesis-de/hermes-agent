@@ -1,5 +1,5 @@
-"""Launch-profile policy for a process that hosts several profile homes (``hermes serve`` /
-``hermes dashboard`` pooling, ``?profile=``, hosted rooms; the multiplexed gateway's own worker).
+"""Launch-profile policy for a process that hosts several profile homes (``a2assistant serve`` /
+``a2assistant dashboard`` pooling, ``?profile=``, hosted rooms; the multiplexed gateway's own worker).
 
 Two facts anchor this module:
 
@@ -56,7 +56,7 @@ def _servable_profile_homes() -> set:
     carrying a real servability marker.
 
     ``named_profile_has_identity`` accepts an EMPTY ``.env``, which is all a crashed
-    ``hermes profile create`` leaves behind — counting it would flip a single-profile host
+    ``a2assistant profile create`` leaves behind — counting it would flip a single-profile host
     fail-closed at its next boot.
     """
     from hermes_constants import named_profile_has_servable_identity
@@ -64,7 +64,7 @@ def _servable_profile_homes() -> set:
 
     homes = {Path(home).resolve() for name, home in profiles_to_serve(multiplex=True, include_standalone=True, include_parked=True)
              if name == "default" or named_profile_has_servable_identity(home)}
-    homes.add(Path(os.environ.get("HERMES_HOME") or Path.home() / ".hermes").resolve())
+    homes.add(Path(os.environ.get("A2ASSISTANT_HOME") or Path.home() / ".hermes").resolve())
     return homes
 
 
@@ -75,7 +75,7 @@ def activate_multi_profile_hosting_eagerly() -> bool:
     home. Everything the host had already done by then (idle-reaper ticks, cron start, adapter
     connects, MCP discovery) ran under single-profile assumptions and is never re-scoped, and the
     launch profile's env had already been mutated by then, so ``capture_launch_env`` froze a
-    polluted snapshot. One ``hermes serve`` / ``hermes gateway run`` per host means the process
+    polluted snapshot. One ``a2assistant serve`` / ``a2assistant gateway run`` per host means the process
     knows at boot whether it can be asked for a second home: decide there, once. Call it as the LAST
     boot step: the frozen snapshot is the only source for launch keys with no ``.env`` to rebuild
     from, so every credential the boot still injects must already be in ``os.environ``.
@@ -185,7 +185,7 @@ def launch_body() -> Iterator[None]:
 
 @contextlib.contextmanager
 def launch_profile_runtime_scope(launch_home: str | Path) -> Iterator[None]:
-    """Bind the launch profile's own runtime scope for one body: HERMES_HOME override naming the
+    """Bind the launch profile's own runtime scope for one body: A2ASSISTANT_HOME override naming the
     launch home, ``launch_secret_scope``, and its terminal policy over the frozen launch
     ``TERMINAL_*`` overlay. For hosts whose launch-profile bodies are not RPC sessions (the
     standalone messaging gateway after a hosted room activated multiplexing, #112878).

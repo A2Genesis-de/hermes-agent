@@ -34,8 +34,8 @@ def prepare(tmp_path, monkeypatch, packages):
     lock.save()
     monkeypatch.setattr(paths, "lockfile_path", lambda: lock.path)
     monkeypatch.setattr(paths, "repo_root", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
 
     def forbidden(*args, **kwargs):
         pytest.fail("lookup-only result reached a mutation or dependency refresh")

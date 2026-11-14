@@ -1,7 +1,7 @@
 """Bundled-payload CLI entry wrapper — the distlib launcher's zip overlay.
 
 scripts/build/launchers.py reads this file, substitutes the four
-HERMES_* placeholders (see the constants below), and hands the result to
+A2ASSISTANT_* placeholders (see the constants below), and hands the result to
 a distlib ScriptMaker as
 the script text. On win32 the minted artifact is a real PE: the distlib
 launcher stub + a shebang whose interpreter is the ``<launcher_dir>``

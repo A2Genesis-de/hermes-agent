@@ -2,7 +2,7 @@
  * Failure class: FIRST RUN on a healthy install.
  *
  * A user who installed Hermes with scripts/install.sh and built the Desktop
- * app with `hermes desktop` opens the app. It must find that install and go
+ * app with `a2assistant desktop` opens the app. It must find that install and go
  * straight to chat — on the first launch and on every later one — and never
  * show the first-run setup chooser or start the bootstrap installer
  * (#123888, #123800: the chooser / installer came back on every launch while
@@ -10,8 +10,8 @@
  * bootstrap marker first: a usable install is recognised off the filesystem.
  *
  * Real entry point: the packaged app the install built, launched with the
- * install's environment and no HERMES_DESKTOP_HERMES_ROOT override, so the app
- * resolves the backend the way it does for a user ($HERMES_HOME/hermes-agent).
+ * install's environment and no A2ASSISTANT_DESKTOP_HERMES_ROOT override, so the app
+ * resolves the backend the way it does for a user ($A2ASSISTANT_HOME/hermes-agent).
  */
 
 import * as fs from 'node:fs'
@@ -120,7 +120,7 @@ test('a healthy local install opens straight to chat on every launch: no setup c
           })
           .toEqual([])
         const stopped = stopInstallGateway(facts)
-        expect(stopped.code, `hermes gateway stop\n${stopped.output}`).toBe(0)
+        expect(stopped.code, `a2assistant gateway stop\n${stopped.output}`).toBe(0)
         await expect
           .poll(() => installProcesses(facts).map(p => `${p.pid} ${p.cmdline.slice(0, 160)}`), {
             timeout: 30_000,

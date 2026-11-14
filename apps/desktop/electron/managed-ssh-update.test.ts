@@ -365,7 +365,7 @@ test.runIf(process.platform !== 'win32').each([0, 23])(
     try {
       await writeFile(
         launcher,
-        `#!${shell}\nprintf '%s\\n' "$@" "$HERMES_HOME" "$HERMES_UPDATE_CORRELATION_ID" "$HERMES_UPDATE_ORIGIN_PROFILE" "$HERMES_UPDATE_ORIGIN_HOME" "$HERMES_UPDATE_OUTPUT_PATH"\nexit ${exitCode}\n`,
+        `#!${shell}\nprintf '%s\\n' "$@" "$A2ASSISTANT_HOME" "$A2ASSISTANT_UPDATE_CORRELATION_ID" "$A2ASSISTANT_UPDATE_ORIGIN_PROFILE" "$A2ASSISTANT_UPDATE_ORIGIN_HOME" "$A2ASSISTANT_UPDATE_OUTPUT_PATH"\nexit ${exitCode}\n`,
         { encoding: 'utf8', mode: 0o700 }
       )
 
@@ -379,7 +379,7 @@ test.runIf(process.platform !== 'win32').each([0, 23])(
         CORRELATION
       )
 
-      const { stdout, stderr } = await exec(command, { shell, env: { ...process.env, HOME: home, HERMES_HOME: home } })
+      const { stdout, stderr } = await exec(command, { shell, env: { ...process.env, HOME: home, A2ASSISTANT_HOME: home } })
       const statusPath: string = path.join(home, `.update_exit_code.${CORRELATION}`)
       const logPath: string = path.join(home, 'logs', `desktop-update-${CORRELATION}.log`)
       let status: string | undefined
@@ -439,9 +439,9 @@ test('Windows managed launcher starts a hidden child and leaves exit 75 to the e
 
   assert.match(wrapper, /update --yes/)
   assert.doesNotMatch(wrapper, /update --yes --gateway/)
-  assert.match(wrapper, /HERMES_UPDATE_WINDOWS_DETACHED/)
-  assert.match(wrapper, /HERMES_UPDATE_TAURI_READY_PATH/)
-  assert.match(wrapper, /HERMES_UPDATE_TAURI_OUTCOME_PATH/)
+  assert.match(wrapper, /A2ASSISTANT_UPDATE_WINDOWS_DETACHED/)
+  assert.match(wrapper, /A2ASSISTANT_UPDATE_TAURI_READY_PATH/)
+  assert.match(wrapper, /A2ASSISTANT_UPDATE_TAURI_OUTCOME_PATH/)
   assert.match(wrapper, /\$rc -ne 75/)
   assert.match(wrapper, /\$handoffAccepted=/)
   assert.match(wrapper, new RegExp(`update_launch_intent\\.${CORRELATION}`))
@@ -601,7 +601,7 @@ test.runIf(process.platform !== 'win32')(
       const detail = managedSshUpdateAllRow({ id: 'home' }, partial).detail || ''
       assert.ok(detail.includes(instruction), detail)
       assert.match(detail, /local_changes/)
-      assert.doesNotMatch(detail, /Re-run `hermes update`/)
+      assert.doesNotMatch(detail, /Re-run `a2assistant update`/)
     } finally {
       await rm(home, { force: true, recursive: true })
     }
@@ -753,7 +753,7 @@ test('terminal status without its durable receipt fails instead of claiming succ
   const target = {
     platform: 'Linux' as const,
     hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.hermes',
+    hermesHome: '~/.a2assistant',
     ssh: { exec: async () => observation({ marker: 'absent', exitCode: 0 }) }
   }
 
@@ -776,7 +776,7 @@ test('live or malformed remote markers fail actionably at bounded update and rec
     const target = {
       platform: 'Linux' as const,
       hermesPath: '~/.local/bin/hermes',
-      hermesHome: '~/.hermes',
+      hermesHome: '~/.a2assistant',
       ssh: { exec: async () => observation({ marker, ...(marker === 'live' ? { markerPid: 44 } : {}) }) }
     }
 
@@ -801,7 +801,7 @@ test('a journaled launch requires correlated terminal proof or an observed live-
   const target = {
     platform: 'Linux' as const,
     hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.hermes',
+    hermesHome: '~/.a2assistant',
     ssh: { exec: async () => observation({ marker: 'absent' }) }
   }
 
@@ -835,7 +835,7 @@ test('remote launch intent fences crash recovery even before the local journal r
   const target = {
     platform: 'Linux' as const,
     hermesPath: '~/.local/bin/hermes',
-    hermesHome: '~/.hermes',
+    hermesHome: '~/.a2assistant',
     ssh: { exec: async () => observation({ marker: 'absent', launchIntent: 'present' }) }
   }
 

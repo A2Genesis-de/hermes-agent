@@ -1,4 +1,4 @@
-"""`hermes config get/set` must recognize keys the runtime reads but DEFAULT_CONFIG leaves unseeded:
+"""`a2assistant config get/set` must recognize keys the runtime reads but DEFAULT_CONFIG leaves unseeded:
 core provider selections (``browser.cloud_provider``, ``<category>.use_gateway``), MoA preset fields
 (``moa.presets.<name>.fanout``), core-owned keys with a known reader (``computer_use.backend``), and keys
 an ACTIVE plugin declares through ``config_keys``.
@@ -21,8 +21,8 @@ def hermes_home(tmp_path):
     home = tmp_path / "hermes"
     home.mkdir()
     (home / ".env").touch()
-    with patch.dict(os.environ, {"HERMES_HOME": str(home)}):
-        os.environ.pop("HERMES_ENABLE_PROJECT_PLUGINS", None)
+    with patch.dict(os.environ, {"A2ASSISTANT_HOME": str(home)}):
+        os.environ.pop("A2ASSISTANT_ENABLE_PROJECT_PLUGINS", None)
         yield home
 
 
@@ -160,7 +160,7 @@ def test_portable_plugin_declares_config_keys_in_its_hermes_extension(hermes_hom
     plugin.mkdir(parents=True)
     (plugin / "plugin.json").write_text(json.dumps({
         "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json", "name": "portwidget",
-        "version": "1.0.0", "extensions": {"com.nousresearch.hermes": {"config_keys": ["display.portwidget"]}},
+        "version": "1.0.0", "extensions": {"de.a2genesis.a2assistant": {"config_keys": ["display.portwidget"]}},
     }))
 
     assert _set_notice("display.portwidget.size", "3", capsys)
@@ -197,5 +197,5 @@ def test_enabled_project_plugin_declares_its_config_keys(hermes_home, tmp_path, 
     monkeypatch.chdir(tmp_path / "proj")
 
     assert _set_notice("display.widget.size", "3", capsys)  # project plugins are opt-in
-    monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "1")
+    monkeypatch.setenv("A2ASSISTANT_ENABLE_PROJECT_PLUGINS", "1")
     assert not _set_notice("display.widget.size", "4", capsys)

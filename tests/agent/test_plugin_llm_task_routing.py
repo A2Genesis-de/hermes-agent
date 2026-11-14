@@ -443,7 +443,7 @@ auxiliary:
 """,
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(config_mod, "_LOAD_CONFIG_CACHE", {})
         monkeypatch.setattr(config_mod, "_RAW_CONFIG_CACHE", {})
 
@@ -527,7 +527,7 @@ auxiliary:
 """,
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(config_mod, "_LOAD_CONFIG_CACHE", {})
         monkeypatch.setattr(config_mod, "_RAW_CONFIG_CACHE", {})
         _set_registry(monkeypatch, [{"key": "classifier", "plugin": "my-plugin"}])
@@ -575,7 +575,7 @@ auxiliary:
 """,
             encoding="utf-8",
         )
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(config_mod, "_LOAD_CONFIG_CACHE", {})
         monkeypatch.setattr(config_mod, "_RAW_CONFIG_CACHE", {})
         _set_registry(monkeypatch, [{"key": "classifier", "plugin": "my-plugin"}])

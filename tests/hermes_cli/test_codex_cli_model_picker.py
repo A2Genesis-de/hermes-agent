@@ -7,7 +7,7 @@ Covers:
 
 Note: auto-import from ~/.codex/auth.json was removed in #12360 — Hermes
 now owns its own openai-codex auth state, and users explicitly adopt
-existing Codex CLI tokens via `hermes auth openai-codex`. The old
+existing Codex CLI tokens via `a2assistant auth openai-codex`. The old
 "Codex CLI shared file" discovery tests were removed with that change.
 """
 
@@ -34,7 +34,7 @@ def hermes_auth_only_env(tmp_path, monkeypatch):
     hermes_home = tmp_path / ".hermes"
     hermes_home.mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     # Point CODEX_HOME to nonexistent dir to prove it's not needed
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
@@ -82,7 +82,7 @@ def claude_code_only_env(tmp_path, monkeypatch):
     hermes_home = tmp_path / ".hermes"
     hermes_home.mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     # No Codex CLI
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
@@ -137,7 +137,7 @@ def test_no_codex_when_no_credentials(tmp_path, monkeypatch):
     hermes_home = tmp_path / ".hermes"
     hermes_home.mkdir()
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv("CODEX_HOME", str(tmp_path / "no_codex"))
 
     (hermes_home / "auth.json").write_text(

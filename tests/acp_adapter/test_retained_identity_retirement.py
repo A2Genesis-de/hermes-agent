@@ -47,7 +47,7 @@ class Wire:
 
 @pytest_asyncio.fixture
 async def owner(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     from gateway import run
     from gateway.config import GatewayConfig
     from gateway.session import SessionStore

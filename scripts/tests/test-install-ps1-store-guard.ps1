@@ -11,7 +11,7 @@
 # the first run populated the folder ("exists and is not a Hermes git
 # checkout"), and `git stash --include-untracked` would sweep the toolchain
 # into the stash. The installer now refuses the combination up front, before
-# any download, unless HERMES_RUNTIME_DIR parks the store elsewhere.
+# any download, unless A2ASSISTANT_RUNTIME_DIR parks the store elsewhere.
 #
 # HOW THIS RUNS THE CODE: by executing install.ps1 as a real subprocess with
 # crafted -HermesHome / -InstallDir arguments. -ShowResolvedPaths is a
@@ -52,18 +52,18 @@ function Invoke-ResolvedPaths {
 
     $psExe = (Get-Process -Id $PID).Path
     $outFile = [System.IO.Path]::GetTempFileName()
-    $savedRuntimeDir = [Environment]::GetEnvironmentVariable('HERMES_RUNTIME_DIR')
-    $savedHermesHome = [Environment]::GetEnvironmentVariable('HERMES_HOME')
+    $savedRuntimeDir = [Environment]::GetEnvironmentVariable('A2ASSISTANT_RUNTIME_DIR')
+    $savedHermesHome = [Environment]::GetEnvironmentVariable('A2ASSISTANT_HOME')
     try {
         if ($null -eq $savedRuntimeDir) {
-            Remove-Item Env:HERMES_RUNTIME_DIR -ErrorAction SilentlyContinue
+            Remove-Item Env:A2ASSISTANT_RUNTIME_DIR -ErrorAction SilentlyContinue
         } else {
-            $env:HERMES_RUNTIME_DIR = $savedRuntimeDir
+            $env:A2ASSISTANT_RUNTIME_DIR = $savedRuntimeDir
         }
         if ($null -eq $savedHermesHome) {
-            Remove-Item Env:HERMES_HOME -ErrorAction SilentlyContinue
+            Remove-Item Env:A2ASSISTANT_HOME -ErrorAction SilentlyContinue
         } else {
-            $env:HERMES_HOME = $savedHermesHome
+            $env:A2ASSISTANT_HOME = $savedHermesHome
         }
         $callArgs = @('-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', $installScript) + $ExtraArgs + @('-ShowResolvedPaths')
         $prevEAP = $ErrorActionPreference
@@ -76,19 +76,19 @@ function Invoke-ResolvedPaths {
         }
         $exitCode = $LASTEXITCODE
         $raw = @(Get-Content -LiteralPath $outFile -ErrorAction SilentlyContinue)
-        $stdout = ($raw | Where-Object { $_ -notlike '`[hermes`]*' }) -join "`n"
-        $stderr = ($raw | Where-Object { $_ -like '`[hermes`]*' -or $_ -match 'HermesHome|install directory|tool store' }) -join "`n"
+        $stdout = ($raw | Where-Object { $_ -notlike '`[a2assistant`]*' }) -join "`n"
+        $stderr = ($raw | Where-Object { $_ -like '`[a2assistant`]*' -or $_ -match 'HermesHome|install directory|tool store' }) -join "`n"
         return @{ ExitCode = $exitCode; Stdout = $stdout; All = ($raw -join "`n") }
     } finally {
         if ($null -eq $savedRuntimeDir) {
-            Remove-Item Env:HERMES_RUNTIME_DIR -ErrorAction SilentlyContinue
+            Remove-Item Env:A2ASSISTANT_RUNTIME_DIR -ErrorAction SilentlyContinue
         } else {
-            $env:HERMES_RUNTIME_DIR = $savedRuntimeDir
+            $env:A2ASSISTANT_RUNTIME_DIR = $savedRuntimeDir
         }
         if ($null -eq $savedHermesHome) {
-            Remove-Item Env:HERMES_HOME -ErrorAction SilentlyContinue
+            Remove-Item Env:A2ASSISTANT_HOME -ErrorAction SilentlyContinue
         } else {
-            $env:HERMES_HOME = $savedHermesHome
+            $env:A2ASSISTANT_HOME = $savedHermesHome
         }
         Remove-Item -LiteralPath $outFile -Force -ErrorAction SilentlyContinue
     }
@@ -121,19 +121,19 @@ try {
         Assert-True ("$($paths.install_dir)" -eq $dir1) 'install_dir echoes the requested -InstallDir'
     }
 
-    # 4. HERMES_RUNTIME_DIR outside the checkout lifts the refusal: the store
+    # 4. A2ASSISTANT_RUNTIME_DIR outside the checkout lifts the refusal: the store
     #    no longer lands inside InstallDir, so the configuration is legitimate.
     $storeElsewhere = Join-Path $base 'store'
-    $saved = $env:HERMES_RUNTIME_DIR
+    $saved = $env:A2ASSISTANT_RUNTIME_DIR
     try {
-        $env:HERMES_RUNTIME_DIR = $storeElsewhere
+        $env:A2ASSISTANT_RUNTIME_DIR = $storeElsewhere
         $r = Invoke-ResolvedPaths @('-HermesHome', $home1, '-InstallDir', $home1)
-        Assert-True ($r.ExitCode -eq 0) "HERMES_RUNTIME_DIR outside lifts the refusal (exit $($r.ExitCode))"
+        Assert-True ($r.ExitCode -eq 0) "A2ASSISTANT_RUNTIME_DIR outside lifts the refusal (exit $($r.ExitCode))"
     } finally {
         if ($null -eq $saved) {
-            Remove-Item Env:HERMES_RUNTIME_DIR -ErrorAction SilentlyContinue
+            Remove-Item Env:A2ASSISTANT_RUNTIME_DIR -ErrorAction SilentlyContinue
         } else {
-            $env:HERMES_RUNTIME_DIR = $saved
+            $env:A2ASSISTANT_RUNTIME_DIR = $saved
         }
     }
 

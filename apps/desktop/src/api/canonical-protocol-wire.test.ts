@@ -39,7 +39,7 @@ test('named canonical prompt listeners receive replay-safe IDs before answering 
 })
 
 test('a legacy (non-canonical) dial strips canonical-only identity keys the serve contract refuses', async () => {
-  // `hermes serve` answers 4000 "out of sync" for an unknown key, which the remote-topology E2E
+  // `a2assistant serve` answers 4000 "out of sync" for an unknown key, which the remote-topology E2E
   // surfaced as a permanent "Session unavailable" on a URL+token connection.
   const wsPackage = 'ws'
   const { WebSocketServer } = await import(wsPackage)

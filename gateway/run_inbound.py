@@ -236,7 +236,7 @@ class GatewayInboundMixin(GatewayInboundHooksMixin, GatewayInboundTranscriptionM
     def _hm_estop_gate(
         self, event: MessageEvent, source: SessionSource, is_internal: bool
     ) -> Optional[str]:
-        """Global emergency-stop (`hermes pause`) notice when this turn must be blocked, else None.
+        """Global emergency-stop (`a2assistant pause`) notice when this turn must be blocked, else None.
         Placed after auth so unauthorized senders can't probe pause state. A synthetic heartbeat that
         slipped past the poller's pause check gets "" (blocked, nothing sent): nobody typed it, and
         settle_heartbeat_attempt leaves its tick due for after resume."""
@@ -483,7 +483,7 @@ class GatewayInboundMixin(GatewayInboundHooksMixin, GatewayInboundTranscriptionM
         wall-clock age. The pending sentinel is never evicted (no get_activity_summary() → idle
         reads inf and would race the async setup path)."""
         from gateway.run import _AGENT_PENDING_SENTINEL, _float_env
-        _raw_stale_timeout = _float_env("HERMES_AGENT_TIMEOUT", 1800)
+        _raw_stale_timeout = _float_env("A2ASSISTANT_AGENT_TIMEOUT", 1800)
         _quick_state = self._peek_session_state(_quick_key)
         _stale_ts = _quick_state.turn.started_ts if _quick_state else 0
         if _quick_state is None or _quick_state.turn.agent is None or not _stale_ts:
@@ -658,11 +658,11 @@ class GatewayInboundMixin(GatewayInboundHooksMixin, GatewayInboundTranscriptionM
     ) -> bool:
         """Queue a Telegram text follow-up that lands within the post-start grace window.
 
-        Invalid or empty ``HERMES_TELEGRAM_FOLLOWUP_GRACE_SECONDS`` falls back to 3.0
+        Invalid or empty ``A2ASSISTANT_TELEGRAM_FOLLOWUP_GRACE_SECONDS`` falls back to 3.0
         via ``_float_env`` — a config typo must not crash the inbound handler.
         """
         from gateway.run import _float_env
-        _grace = _float_env("HERMES_TELEGRAM_FOLLOWUP_GRACE_SECONDS", 3.0)
+        _grace = _float_env("A2ASSISTANT_TELEGRAM_FOLLOWUP_GRACE_SECONDS", 3.0)
         _grace_state = self._peek_session_state(_quick_key)
         _started_at = _grace_state.turn.started_ts if _grace_state else 0
         if not (

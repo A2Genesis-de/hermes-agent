@@ -2,8 +2,8 @@
 // Real desktop + real backend. Isolated identity; no copied credentials.
 // Adds a fixed Vite port and CDP (9344) so the run can be driven and read
 // from outside. When you only want to click through it yourself:
-//   D=$(mktemp -d) && env -u HERMES_SHARED_AUTH_DIR \
-//     HERMES_HOME="$D/home" HERMES_DESKTOP_USER_DATA_DIR="$D/userdata" hermes desktop
+//   D=$(mktemp -d) && env -u A2ASSISTANT_SHARED_AUTH_DIR \
+//     A2ASSISTANT_HOME="$D/home" A2ASSISTANT_DESKTOP_USER_DATA_DIR="$D/userdata" a2assistant desktop
 import { spawn } from 'node:child_process'
 import fs from 'node:fs'
 import { createRequire } from 'node:module'
@@ -19,8 +19,8 @@ const packageDir = name => path.dirname(desktopRequire.resolve(`${name}/package.
 const sandbox = process.argv[2] ? path.resolve(process.argv[2]) : fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-connectors-'))
 const port = 5194
 const url = `http://127.0.0.1:${port}`
-const python = process.env.HERMES_DESKTOP_PYTHON
-if (!python || !fs.existsSync(python)) throw new Error('Set HERMES_DESKTOP_PYTHON to your installed A2Assistant Python executable.')
+const python = process.env.A2ASSISTANT_DESKTOP_PYTHON
+if (!python || !fs.existsSync(python)) throw new Error('Set A2ASSISTANT_DESKTOP_PYTHON to your installed A2Assistant Python executable.')
 if (!fs.existsSync(path.join(desktop, 'dist/electron-main.mjs'))) throw new Error('Run node scripts/bundle-electron-main.mjs --dev first.')
 await new Promise((resolve, reject) => {
   const probe = net.createServer()
@@ -30,11 +30,11 @@ await new Promise((resolve, reject) => {
 for (const dir of ['.hermes/shared', 'electron', 'work']) fs.mkdirSync(path.join(sandbox, dir), { recursive: true })
 const env = Object.fromEntries(['PATH', 'TMPDIR', 'LANG', 'SHELL'].filter(key => process.env[key]).map(key => [key, process.env[key]]))
 Object.assign(env, {
-  HOME: sandbox, HERMES_HOME: path.join(sandbox, '.hermes'), HERMES_SHARED_AUTH_DIR: path.join(sandbox, '.hermes/shared'),
-  HERMES_DESKTOP_USER_DATA_DIR: path.join(sandbox, 'electron'), HERMES_DESKTOP_CWD: path.join(sandbox, 'work'),
-  HERMES_DESKTOP_HERMES_ROOT: root, HERMES_DESKTOP_PYTHON: python,
-  HERMES_DESKTOP_IGNORE_EXISTING: '1', HERMES_DESKTOP_APP_NAME: 'A2Assistant Connector Rehearsal',
-  HERMES_DESKTOP_DEV_SERVER: url, HERMES_DESKTOP_CDP_PORT: '9344'
+  HOME: sandbox, A2ASSISTANT_HOME: path.join(sandbox, '.hermes'), A2ASSISTANT_SHARED_AUTH_DIR: path.join(sandbox, '.hermes/shared'),
+  A2ASSISTANT_DESKTOP_USER_DATA_DIR: path.join(sandbox, 'electron'), A2ASSISTANT_DESKTOP_CWD: path.join(sandbox, 'work'),
+  A2ASSISTANT_DESKTOP_HERMES_ROOT: root, A2ASSISTANT_DESKTOP_PYTHON: python,
+  A2ASSISTANT_DESKTOP_IGNORE_EXISTING: '1', A2ASSISTANT_DESKTOP_APP_NAME: 'A2Assistant Connector Rehearsal',
+  A2ASSISTANT_DESKTOP_DEV_SERVER: url, A2ASSISTANT_DESKTOP_CDP_PORT: '9344'
 })
 const entry = path.join(desktop, 'dist/connector-rehearsal.mjs')
 fs.writeFileSync(entry, `import { app } from 'electron'\napp.setAsDefaultProtocolClient = () => false\napp.setAppPath(${JSON.stringify(desktop)})\nawait import('./electron-main.mjs')\n`)
@@ -54,7 +54,7 @@ try {
   const deadline = Date.now() + 30000
   while (true) {
     if (vite.exitCode !== null) throw new Error('Renderer server exited')
-    try { if ((await fetch(url)).ok) break } catch {}
+    if (await fetch(url).then(response => response.ok, () => false)) break
     if (Date.now() > deadline) throw new Error('Renderer did not become ready')
     await new Promise(resolve => setTimeout(resolve, 250))
   }

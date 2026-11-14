@@ -2,10 +2,10 @@
 the FULL runtime scope of the requested profile (home + secrets + terminal), the launch profile
 included once the process multiplexes.
 
-Regression for the silent cross-profile secret leak class: ``hermes serve`` hosted many profile
+Regression for the silent cross-profile secret leak class: ``a2assistant serve`` hosted many profile
 homes but never called ``set_multiplex_active(True)``, so every unscoped ``get_secret`` read for a
 secondary silently returned the LAUNCH profile's ``os.environ`` value; ``@_profile_scoped`` bound
-only HERMES_HOME. And the launch-profile asymmetry: a default-member hosted-room turn in a
+only A2ASSISTANT_HOME. And the launch-profile asymmetry: a default-member hosted-room turn in a
 ``multiplex_profiles: true`` gateway died at agent build with ``UnscopedSecretError``.
 """
 
@@ -39,22 +39,22 @@ def two_homes(tmp_path, monkeypatch):
     b = root / "profiles" / "b"
     b.mkdir(parents=True)
     (root / ".env").write_text(
-        f"A_ONLY_TOKEN={A_VAL}\nHERMES_API_KEY={A_API_KEY}\nHERMES_BASE_URL={A_BASE_URL}\n"
-        f"HERMES_CODEX_BASE_URL={A_CODEX_URL}\n",
+        f"A_ONLY_TOKEN={A_VAL}\nA2ASSISTANT_API_KEY={A_API_KEY}\nA2ASSISTANT_BASE_URL={A_BASE_URL}\n"
+        f"A2ASSISTANT_CODEX_BASE_URL={A_CODEX_URL}\n",
         encoding="utf-8")
     (b / ".env").write_text(
-        f"B_ONLY_TOKEN={B_VAL}\nHERMES_API_KEY={B_API_KEY}\nHERMES_BASE_URL={B_BASE_URL}\n"
-        f"HERMES_CODEX_BASE_URL={B_CODEX_URL}\n",
+        f"B_ONLY_TOKEN={B_VAL}\nA2ASSISTANT_API_KEY={B_API_KEY}\nA2ASSISTANT_BASE_URL={B_BASE_URL}\n"
+        f"A2ASSISTANT_CODEX_BASE_URL={B_CODEX_URL}\n",
         encoding="utf-8")
     for home in (root, b):
         (home / "config.yaml").write_text(
             "probe:\n  a_ref: ${A_ONLY_TOKEN}\n  b_ref: ${B_ONLY_TOKEN}\n  env_ref: ${INJECTED_TOKEN}\n",
             encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("A_ONLY_TOKEN", A_VAL)  # the launch process loaded its own .env
-    monkeypatch.setenv("HERMES_API_KEY", A_API_KEY)
-    monkeypatch.setenv("HERMES_BASE_URL", A_BASE_URL)
-    monkeypatch.setenv("HERMES_CODEX_BASE_URL", A_CODEX_URL)
+    monkeypatch.setenv("A2ASSISTANT_API_KEY", A_API_KEY)
+    monkeypatch.setenv("A2ASSISTANT_BASE_URL", A_BASE_URL)
+    monkeypatch.setenv("A2ASSISTANT_CODEX_BASE_URL", A_CODEX_URL)
     monkeypatch.setenv("INJECTED_TOKEN", ENV_VAL)  # systemd / op run credential injection
     monkeypatch.setattr(server, "_hermes_home", root)
     monkeypatch.setattr(server, "_served_profile_homes", set())
@@ -117,7 +117,7 @@ def test_rpc_scope_reaches_llm_oneshot_and_model_options(two_homes, monkeypatch)
     seen = {}
 
     def fake_oneshot(**kwargs):
-        seen["oneshot"] = (Path(os.environ.get("HERMES_HOME", "")), get_secret("B_ONLY_TOKEN"), get_secret("A_ONLY_TOKEN"))
+        seen["oneshot"] = (Path(os.environ.get("A2ASSISTANT_HOME", "")), get_secret("B_ONLY_TOKEN"), get_secret("A_ONLY_TOKEN"))
         from hermes_constants import get_hermes_home
         seen["oneshot_home"] = Path(get_hermes_home())
         return "t"
@@ -218,7 +218,7 @@ def test_live_review_binds_runtime_scope_under_multiplex(two_homes, monkeypatch)
             Path(get_hermes_home()),
             get_secret("A_ONLY_TOKEN"),
             get_secret("B_ONLY_TOKEN"),
-            get_secret("HERMES_CODEX_BASE_URL"),
+            get_secret("A2ASSISTANT_CODEX_BASE_URL"),
         ))
         return {"status": "dispatched", "delegation_id": "deleg_x"}
 
@@ -253,7 +253,7 @@ def test_live_review_binds_runtime_scope_under_multiplex(two_homes, monkeypatch)
     invoke(None)
     _probe("b")
     with pytest.raises(UnscopedSecretError):
-        get_secret("HERMES_CODEX_BASE_URL")
+        get_secret("A2ASSISTANT_CODEX_BASE_URL")
     invoke(b)
     invoke(None)
 
@@ -262,7 +262,7 @@ def test_live_review_binds_runtime_scope_under_multiplex(two_homes, monkeypatch)
         (b, None, B_VAL, B_CODEX_URL),
         (root, A_VAL, None, A_CODEX_URL),
     ]
-    assert os.environ["HERMES_CODEX_BASE_URL"] == A_CODEX_URL
+    assert os.environ["A2ASSISTANT_CODEX_BASE_URL"] == A_CODEX_URL
 
 
 def test_model_switch_mirror_binds_runtime_scope_under_multiplex(two_homes, monkeypatch):
@@ -282,7 +282,7 @@ def test_model_switch_mirror_binds_runtime_scope_under_multiplex(two_homes, monk
             Path(get_hermes_home()),
             get_secret("A_ONLY_TOKEN"),
             get_secret("B_ONLY_TOKEN"),
-            get_secret("HERMES_API_KEY"),
+            get_secret("A2ASSISTANT_API_KEY"),
         ))
         return {"warning": ""}
 
@@ -308,7 +308,7 @@ def test_model_switch_mirror_binds_runtime_scope_under_multiplex(two_homes, monk
     assert invoke(None) == ""  # no warning — the switch resolved its credential
     _probe("b")  # activate multiplexing and freeze the launch profile's own secret scope
     with pytest.raises(UnscopedSecretError):
-        get_secret("HERMES_API_KEY")
+        get_secret("A2ASSISTANT_API_KEY")
     assert invoke(b) == ""
     assert invoke(None) == ""
 
@@ -317,7 +317,7 @@ def test_model_switch_mirror_binds_runtime_scope_under_multiplex(two_homes, monk
         (b, None, B_VAL, B_API_KEY),
         (root, A_VAL, None, A_API_KEY),
     ]
-    assert os.environ["HERMES_API_KEY"] == A_API_KEY
+    assert os.environ["A2ASSISTANT_API_KEY"] == A_API_KEY
     assert "B_ONLY_TOKEN" not in os.environ
 
 

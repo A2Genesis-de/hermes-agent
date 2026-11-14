@@ -23,14 +23,14 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 @pytest.mark.parametrize("prefix", [[], ["-p", "default"], ["--profile=default"]])
 def test_bootstrap_and_pm_cli_work_without_site_packages(tmp_path, prefix):
-    env = {**os.environ, "HERMES_HOME": str(tmp_path / "home"), "PYTHONPATH": str(REPO_ROOT)}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(tmp_path / "home"), "PYTHONPATH": str(REPO_ROOT)}
     result = subprocess.run(
         [sys.executable, "-S", "-m", "hermes_cli.main", *prefix, "pm", "repair", "--help"],
         cwd=tmp_path, env=env, capture_output=True, text=True, timeout=60,
         check=False,
     )
     assert result.returncode == 0, result.stderr
-    assert "hermes pm repair" in result.stdout
+    assert "a2assistant pm repair" in result.stdout
 
 
 @pytest.mark.parametrize("marker_name", [".update-incomplete", ".lazy-refresh-incomplete"])
@@ -67,7 +67,7 @@ def test_failed_repair_keeps_marker_and_stops_at_retry_limit(tmp_path, monkeypat
     assert len(calls) == before
     output = capsys.readouterr()
     assert output.out == ""
-    assert "hermes pm repair" in output.err
+    assert "a2assistant pm repair" in output.err
 
 
 def test_recovery_obeys_live_owner_and_single_flight(tmp_path, monkeypatch):

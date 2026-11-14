@@ -65,7 +65,7 @@ def abandoned_screen(tmp_path):
         (stubs / name).chmod(0o755)
     home = tmp_path / "home"
     home.mkdir()
-    env = {**os.environ, "HERMES_HOME": str(home), "PATH": f"{stubs}{os.pathsep}{os.environ['PATH']}"}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home), "PATH": f"{stubs}{os.pathsep}{os.environ['PATH']}"}
     env.pop("PYTHONPATH", None)
     groups: list[int] = []
 
@@ -95,7 +95,7 @@ def test_an_abandoned_screen_stops_itself_after_the_idle_window(abandoned_screen
 
 
 def test_a_screen_started_before_an_update_still_stops_itself(abandoned_screen, tmp_path):
-    """The screen outlives ``hermes update``, which can drop the starter's interpreter and collect the dependency
+    """The screen outlives ``a2assistant update``, which can drop the starter's interpreter and collect the dependency
     generation its PYTHONPATH named: a check pinned to either failed with ModuleNotFoundError and was retried in
     300 s, forever. The launcher runs the install's stable command (on a store install the ``hermes
     --run-module`` launcher, which loads the current generation at every run) with its own pid appended."""

@@ -19,8 +19,8 @@ from fastapi.testclient import TestClient
 
 @pytest.fixture()
 def client(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", "clamp-test-token")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", "clamp-test-token")
     from hermes_cli import web_server
     import hermes_state
 

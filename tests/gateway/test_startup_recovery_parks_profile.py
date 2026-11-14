@@ -98,7 +98,7 @@ def test_a_secondary_whose_retirement_times_out_keeps_its_lock_but_is_never_star
         assert beta in all_authorities(runner), "shutdown must still settle the retained authority"
 
         # Adapter startup and the adapter-level served status (the real runner methods).
-        monkeypatch.setenv("HERMES_HOME", str(launch))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
         started, published = [], {}
         host = object.__new__(GatewayRunner)
         host.config, host.adapters, host._profile_adapters = runner.config, {}, {}

@@ -27,8 +27,8 @@ from agent.acp_client import ACPClient
 
 _warned = False
 _PLACEHOLDER = "copilot-acp"
-_COMMAND_ENV_VARS = ("HERMES_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH")
-_ARGS_ENV_VAR = "HERMES_COPILOT_ACP_ARGS"
+_COMMAND_ENV_VARS = ("A2ASSISTANT_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH")
+_ARGS_ENV_VAR = "A2ASSISTANT_COPILOT_ACP_ARGS"
 # Stderr fingerprint of the deprecated `gh copilot` extension: BOTH the product name AND a deprecation
 # marker (the new `@github/copilot` CLI legitimately mentions "copilot-cli").
 _GH_EXTENSION_REQUIRED = ("gh-copilot",)
@@ -38,9 +38,9 @@ _GH_EXTENSION_ERROR = (
     "spawned is the deprecated `gh copilot` extension.\n\n"
     "Install the new CLI:\n  npm install -g @github/copilot\n  # then verify with: copilot --help\n\n"
     "If `copilot` already resolves to the new CLI but you still see this,\npoint A2Assistant at it explicitly:\n"
-    "  export HERMES_COPILOT_ACP_COMMAND=/path/to/new/copilot\n\n"
+    "  export A2ASSISTANT_COPILOT_ACP_COMMAND=/path/to/new/copilot\n\n"
     "Alternative: use the `copilot` provider (no ACP, hits the Copilot API\ndirectly with a Copilot subscription "
-    "token) via `hermes setup`.\n\nOriginal error:\n"
+    "token) via `a2assistant setup`.\n\nOriginal error:\n"
 )
 
 
@@ -63,10 +63,10 @@ class _DeprecatedCopilotACPClient(ACPClient):
     marker_base_url = "acp://copilot"
     placeholder_model = _PLACEHOLDER
     label = "Copilot ACP"
-    missing_command_hint = "Install GitHub Copilot CLI or set HERMES_COPILOT_ACP_COMMAND/COPILOT_CLI_PATH."
+    missing_command_hint = "Install GitHub Copilot CLI or set A2ASSISTANT_COPILOT_ACP_COMMAND/COPILOT_CLI_PATH."
     unsupported_transport_hint = (
         "Either install a CLI that ships with --acp support (e.g. `@github/copilot` late 2025+), or set "
-        "HERMES_COPILOT_ACP_COMMAND / HERMES_COPILOT_ACP_ARGS to a working pair.")
+        "A2ASSISTANT_COPILOT_ACP_COMMAND / A2ASSISTANT_COPILOT_ACP_ARGS to a working pair.")
 
     def model_entry_disabled(self, entry: dict[str, Any]) -> bool:
         return _copilot_disabled(entry)

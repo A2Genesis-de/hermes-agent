@@ -2,7 +2,7 @@
  * Minimal OpenAI-compatible mock inference server for E2E tests and the
  * dev:mock dev flow.
  *
- * Implements just enough of the /v1/* surface for `hermes serve` to resolve a
+ * Implements just enough of the /v1/* surface for `a2assistant serve` to resolve a
  * provider, list models, and stream a canned chat completion back to the
  * desktop app — without any real LLM.
  *
@@ -1437,7 +1437,7 @@ interface DevSandbox {
   cleanup: () => void
 }
 
-/** Create an isolated HERMES_HOME + Electron user-data dir in the OS temp dir. */
+/** Create an isolated A2ASSISTANT_HOME + Electron user-data dir in the OS temp dir. */
 function createDevSandbox(): DevSandbox {
   const root = fs.mkdtempSync(nodePath.join(os.tmpdir(), `hermes-dev-mock-${Date.now()}`))
   const hermesHome = nodePath.join(root, 'hermes-home')
@@ -1486,17 +1486,17 @@ async function runDevLaunch(): Promise<void> {
   const sandbox = createDevSandbox()
   writeMockProviderConfig(sandbox.hermesHome, mock.url)
   writeEnvFile(sandbox.hermesHome)
-  console.log(`  HERMES_HOME: ${sandbox.hermesHome}`)
+  console.log(`  A2ASSISTANT_HOME: ${sandbox.hermesHome}`)
 
   const electronBin = resolveElectronBinary([desktopRoot, repoRoot])
 
   const env: Record<string, string> = {
     ...process.env,
-    HERMES_HOME: sandbox.hermesHome,
-    HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
-    HERMES_DESKTOP_IGNORE_EXISTING: '1',
-    HERMES_DESKTOP_HERMES_ROOT: repoRoot,
-    HERMES_DESKTOP_APP_NAME: `HermesDevMock-${Date.now()}`,
+    A2ASSISTANT_HOME: sandbox.hermesHome,
+    A2ASSISTANT_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
+    A2ASSISTANT_DESKTOP_IGNORE_EXISTING: '1',
+    A2ASSISTANT_DESKTOP_HERMES_ROOT: repoRoot,
+    A2ASSISTANT_DESKTOP_APP_NAME: `HermesDevMock-${Date.now()}`,
   }
 
   console.log('Launching Electron...')

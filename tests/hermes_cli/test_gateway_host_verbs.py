@@ -61,7 +61,7 @@ def _write_record(pid: int, home: Path, profiles: tuple[str, ...]) -> None:
 @pytest.fixture
 def host_owner(tmp_path, monkeypatch):
     """A REAL live process published as the host gateway, answering identify for three profiles."""
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     home = tmp_path / "root"
     # A live owner holds the host lock for its lifetime; a record without that flock is a corpse.
@@ -105,7 +105,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
     """With no live owner, `-p X gateway start --all` must start the host root, never X's gateway.
 
     Skipping the generic named-profile guard alone is insufficient on Windows: the Windows backend
-    derives its Scheduled Task name, launcher HERMES_HOME and detached child from the active home.
+    derives its Scheduled Task name, launcher A2ASSISTANT_HOME and detached child from the active home.
     """
     import hermes_constants
 
@@ -116,7 +116,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
     (root / "config.yaml").write_text("{}\n", encoding="utf-8")
     (named / "config.yaml").write_text("{}\n", encoding="utf-8")
 
-    monkeypatch.setenv("HERMES_HOME", str(named))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(named))
     hermes_constants._default_hermes_root_memo = None
     monkeypatch.setattr(
         gw, "_guard_named_profile_under_multiplexer",
@@ -132,7 +132,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
         calls.append((
             step,
             Path(hermes_constants.get_hermes_home()),
-            os.environ.get("HERMES_HOME"),
+            os.environ.get("A2ASSISTANT_HOME"),
         ))
 
     def _kill(**kwargs):
@@ -162,7 +162,7 @@ def test_named_profile_start_all_starts_the_default_host_service(monkeypatch, tm
     ]
     # The CLI's named-profile scope is restored after the host-scoped operation.
     assert hermes_constants.get_hermes_home() == named
-    assert os.environ["HERMES_HOME"] == str(named)
+    assert os.environ["A2ASSISTANT_HOME"] == str(named)
 
 
 def test_named_profile_restart_all_with_host_down_restarts_the_default_root(monkeypatch, tmp_path):
@@ -189,7 +189,7 @@ def test_named_profile_restart_all_with_host_down_restarts_the_default_root(monk
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "leinad-telegram")
     monkeypatch.setenv("OPENAI_API_KEY", "leinad-openai")
 
-    monkeypatch.setenv("HERMES_HOME", str(named))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(named))
     hermes_constants._default_hermes_root_memo = None
     monkeypatch.setattr(gw, "_host_multiplexer_for_all_verb", lambda: None)
     monkeypatch.setattr(gw, "_stop_installed_service", lambda system: False)
@@ -213,7 +213,7 @@ def test_named_profile_restart_all_with_host_down_restarts_the_default_root(monk
     assert cmd[-3:] == ["gateway", "run", "--replace"]
     assert cmd[-5:-3] == ["--profile", "default"] and "leinad" not in cmd
     env = kwargs["env"]
-    assert Path(env["HERMES_HOME"]) == root
+    assert Path(env["A2ASSISTANT_HOME"]) == root
     assert env.get("DISCORD_BOT_TOKEN") == "root-discord"
     assert "TELEGRAM_BOT_TOKEN" not in env and "OPENAI_API_KEY" not in env, \
         "the host child inherited the named profile's credentials"

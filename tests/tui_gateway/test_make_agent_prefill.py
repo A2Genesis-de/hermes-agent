@@ -1,6 +1,6 @@
 """Desktop/TUI agents honor ``prefill_messages_file`` from the active profile.
 
-Regression for #60456: ``tui_gateway.server._make_agent`` (the Desktop / ``hermes serve`` agent
+Regression for #60456: ``tui_gateway.server._make_agent`` (the Desktop / ``a2assistant serve`` agent
 factory) never passed ``prefill_messages``, so a configured prefill file only worked in the
 classic CLI and the messaging gateway.
 """
@@ -39,7 +39,7 @@ def _built_prefill(monkeypatch, home):
 
 
 def test_make_agent_injects_the_active_profiles_prefill(monkeypatch, tmp_path):
-    monkeypatch.delenv("HERMES_PREFILL_MESSAGES_FILE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_PREFILL_MESSAGES_FILE", raising=False)
     monkeypatch.setattr(server, "_resolve_agent_model_runtime", lambda *_a: ("test-model", {}))
     monkeypatch.setattr(server, "_load_enabled_toolsets", lambda *_a, **_kw: None)
     monkeypatch.setattr(server, "_get_db", lambda: None)

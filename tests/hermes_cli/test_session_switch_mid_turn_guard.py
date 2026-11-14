@@ -29,7 +29,7 @@ class _Agent:
 
 @pytest.fixture
 def cli(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from hermes_state import SessionDB
 
     db = SessionDB(db_path=tmp_path / "state.db")

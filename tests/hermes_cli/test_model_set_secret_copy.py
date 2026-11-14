@@ -24,7 +24,7 @@ SECRET = "sk-SUPERSECRET-e2e-12345"
 def isolated_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("MY_SECRET_KEY", SECRET)
     # Config caches are keyed per-path, but reload the config module state so
     # nothing from a previous test's HERMES_HOME bleeds in.

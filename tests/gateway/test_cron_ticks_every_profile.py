@@ -44,7 +44,7 @@ def isolated_profiles(tmp_path, monkeypatch):
     (hermes_home / "profiles" / "secondary" / "config.yaml").write_text("{}\n")
     monkeypatch.setenv("HOME", str(fake_home))
     monkeypatch.setenv("USERPROFILE", str(fake_home))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     from hermes_cli import profiles as profiles_mod
 
     assert str(profiles_mod._get_profiles_root()).startswith(str(tmp_path))

@@ -1,7 +1,7 @@
-"""Lane-private harness for the dashboard (``hermes dashboard``) E2E suite.
+"""Lane-private harness for the dashboard (``a2assistant dashboard``) E2E suite.
 
 Every scenario drives the REAL web server as a child process: ``python -m hermes_cli.main dashboard
---no-open --skip-build --port 0`` with HOME=<tmp>/home and HERMES_HOME=<tmp>/home/.hermes (profiles
+--no-open --skip-build --port 0`` with HOME=<tmp>/home and A2ASSISTANT_HOME=<tmp>/home/.hermes (profiles
 resolve under $HOME, never the real install), every credential env var stripped, the LLM vendor
 replaced by ``tests.fakes.fake_llm_provider.FakeLLMServer``. The client side speaks only what the SPA
 speaks: it reads the session token out of the served ``index.html`` (the browser's bootstrap), sends
@@ -39,10 +39,10 @@ TOKEN_HEADER = "X-Hermes-Session-Token"
 PROVIDER_KEY_ENV = "DASH_PROVIDER_KEY"  # same NAME in every profile's .env, distinct VALUE
 
 _STRIP_SUFFIXES = ("_API_KEY", "_TOKEN", "_BASE_URL", "_SECRET", "_ACCESS_KEY", "_KEY_ID", "_KEY")
-_STRIP_PREFIXES = ("HERMES_", "OPENAI", "ANTHROPIC", "OPENROUTER", "AWS_", "AZURE_", "GOOGLE_", "GEMINI",
+_STRIP_PREFIXES = ("A2ASSISTANT_", "OPENAI", "ANTHROPIC", "OPENROUTER", "AWS_", "AZURE_", "GOOGLE_", "GEMINI",
                    "PYTEST_", "NOUS_", "XAI_", "LLM_", "CUSTOM_", "TERMINAL_", "DASH_")
 _TOKEN_RE = re.compile(r'__HERMES_SESSION_TOKEN__\s*=\s*"([^"]+)"')
-_READY_RE = re.compile(r"HERMES_DASHBOARD_READY port=(\d+)")
+_READY_RE = re.compile(r"A2ASSISTANT_DASHBOARD_READY port=(\d+)")
 
 
 def real_user_home() -> Path:
@@ -68,7 +68,7 @@ def free_port() -> int:
 
 
 def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, str]:
-    """Child env: fake HOME (profile-root anchor) + HERMES_HOME under it, nothing credential-shaped."""
+    """Child env: fake HOME (profile-root anchor) + A2ASSISTANT_HOME under it, nothing credential-shaped."""
     home = home.resolve()
     assert home != real_user_home() and not str(home).startswith(str(real_user_home() / ".hermes" / "profiles")), home
     env = {k: v for k, v in os.environ.items()
@@ -79,7 +79,7 @@ def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, s
         env.pop(var, None)
     env.update(
         HOME=str(home),
-        HERMES_HOME=str(home / ".hermes"),
+        A2ASSISTANT_HOME=str(home / ".hermes"),
         XDG_STATE_HOME=str(home / ".local" / "state"),
         PYTHONPATH=str(REPO_ROOT),
         NO_COLOR="1",
@@ -87,8 +87,8 @@ def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, s
         no_proxy="127.0.0.1,localhost",
         # The live-DB guard treats $HOME/.hermes/state.db of a pytest descendant as production;
         # this HOME is the test's own tmp dir (asserted above).
-        HERMES_STATE_DB_GUARD_BYPASS="1",
-        HERMES_DISABLE_LAZY_INSTALLS="1",
+        A2ASSISTANT_STATE_DB_GUARD_BYPASS="1",
+        A2ASSISTANT_DISABLE_LAZY_INSTALLS="1",
     )
     env.update(extra or {})
     return env
@@ -174,7 +174,7 @@ class Sandbox:
             if (home / "gateway.pid").exists():
                 with contextlib.suppress(Exception):
                     subprocess.run([sys.executable, "-m", "hermes_cli.main", "gateway", "stop"],
-                                   env=self.env({"HERMES_HOME": str(home)}), cwd=str(self.home),
+                                   env=self.env({"A2ASSISTANT_HOME": str(home)}), cwd=str(self.home),
                                    capture_output=True, timeout=60, check=False)
 
 
@@ -252,14 +252,14 @@ def kill_group(proc: subprocess.Popen, sig: int | None = None) -> None:
 
 
 class Dashboard:
-    """``hermes dashboard`` bound to 127.0.0.1:<ephemeral>, token scraped from index.html."""
+    """``a2assistant dashboard`` bound to 127.0.0.1:<ephemeral>, token scraped from index.html."""
 
     def __init__(self, sb: Sandbox, log_path: Path, extra_env: dict[str, str] | None = None,
                  argv: tuple[str, ...] = ()) -> None:
         self.sb = sb
         self.log_path = log_path
         self._log = open(log_path, "a", encoding="utf-8")
-        env = sb.env({"HERMES_WEB_DIST": str(sb.root / "web_dist"), **(extra_env or {})})
+        env = sb.env({"A2ASSISTANT_WEB_DIST": str(sb.root / "web_dist"), **(extra_env or {})})
         self.proc = subprocess.Popen(
             [sys.executable, "-m", "hermes_cli.main", "dashboard", "--no-open", "--skip-build",
              "--host", "127.0.0.1", "--port", "0", *argv],
@@ -278,8 +278,8 @@ class Dashboard:
                     port_box.append(int(m.group(1)))
         threading.Thread(target=pump, daemon=True, name="dash-stdout").start()
         self.port = poll(lambda: port_box[0] if port_box else (self.proc.poll() is not None and -1), 120,
-                         "hermes dashboard to report its port")
-        assert self.port > 0, f"hermes dashboard exited rc={self.proc.returncode}:\n{self.log_tail()}"
+                         "a2assistant dashboard to report its port")
+        assert self.port > 0, f"a2assistant dashboard exited rc={self.proc.returncode}:\n{self.log_tail()}"
         self.base = f"http://127.0.0.1:{self.port}"
         self.http = httpx.Client(base_url=self.base, timeout=60.0, trust_env=False)
         index = self.http.get("/")
@@ -345,7 +345,7 @@ def db_rows(db: Path, sql: str, args: tuple = ()) -> list[tuple]:
 
 def run_py(sb: Sandbox, code: str, *args: str, hermes_home: Path | None = None,
            timeout: float = 120.0) -> subprocess.CompletedProcess:
-    extra = {"HERMES_HOME": str(hermes_home)} if hermes_home else None
+    extra = {"A2ASSISTANT_HOME": str(hermes_home)} if hermes_home else None
     return subprocess.run([sys.executable, "-c", code, *args], env=sb.env(extra), cwd=str(sb.home),
                           capture_output=True, text=True, timeout=timeout, stdin=subprocess.DEVNULL, check=False)
 

@@ -128,7 +128,7 @@ def test_stale_unopenable_gateway_lock_is_replaced_on_boot(tmp_path, monkeypatch
     from gateway.status import acquire_gateway_runtime_lock, release_gateway_runtime_lock
     home = tmp_path / 'home'
     home.mkdir(mode=0o700)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     lock = home / 'gateway.lock'
     lock.write_text('{"pid": 1}', encoding='utf-8')
     lock.chmod(mode)

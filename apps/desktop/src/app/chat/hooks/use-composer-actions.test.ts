@@ -7,10 +7,10 @@ import { $connection } from '@/store/session'
 import { droppedFileInlineRefs } from '../composer/inline-refs'
 
 import {
+  A2ASSISTANT_PATHS_MIME,
   attachmentPreviewDataUrl,
   type DroppedFile,
   extractDroppedFiles,
-  HERMES_PATHS_MIME,
   partitionDroppedFiles,
   resolveImageAttachmentPreview,
   stageDroppedFilePath,
@@ -161,7 +161,7 @@ function stubTransfer(
   })
 
   return {
-    getData: (mime: string) => (mime === HERMES_PATHS_MIME ? internalRaw : mime === 'text/uri-list' ? uriList : ''),
+    getData: (mime: string) => (mime === A2ASSISTANT_PATHS_MIME ? internalRaw : mime === 'text/uri-list' ? uriList : ''),
     files: {
       length: files.length,
       item: (i: number) => files[i] ?? null

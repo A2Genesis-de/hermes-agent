@@ -44,11 +44,11 @@ def generate(tmp_path_factory):
             out = root / str(next(sequence))
             # The runtime interpreter renders with its own packages: foreign
             # interpreter paths must not leak in, and nothing may be installed.
-            env = {**os.environ, "HERMES_HOME": str(root / "home"),
-                   "HERMES_RUNTIME_DIR": str(root / "tools"),
-                   "HERMES_PAYLOAD_TAG": tag, "HERMES_BUILD_COMMIT": commit,
-                   "HERMES_PYTHON": str(python), "PYTHONPATH": str(root / "foreign-site"),
-                   "PYTHONHOME": str(root / "foreign-python"), "HERMES_DISABLE_LAZY_INSTALLS": "1"}
+            env = {**os.environ, "A2ASSISTANT_HOME": str(root / "home"),
+                   "A2ASSISTANT_RUNTIME_DIR": str(root / "tools"),
+                   "A2ASSISTANT_PAYLOAD_TAG": tag, "A2ASSISTANT_BUILD_COMMIT": commit,
+                   "A2ASSISTANT_PYTHON": str(python), "PYTHONPATH": str(root / "foreign-site"),
+                   "PYTHONHOME": str(root / "foreign-python"), "A2ASSISTANT_DISABLE_LAZY_INSTALLS": "1"}
             command = [node, str(ROOT / "scripts/generate-icons.mjs"),
                        "--source", str(source), "--out", str(out)]
             result = subprocess.run(command, env=env, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=180, check=False)

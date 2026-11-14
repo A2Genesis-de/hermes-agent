@@ -1,7 +1,7 @@
-"""User-facing message contracts for `hermes skills/plugins/mcp/cron/doctor` failure paths.
+"""User-facing message contracts for `a2assistant skills/plugins/mcp/cron/doctor` failure paths.
 
 Every failure line must say what happened and name an existing command to type next; none may
-lead with a raw exception, a status literal, or a hardcoded ``~/.hermes`` path (UX message audit,
+lead with a raw exception, a status literal, or a hardcoded ``~/.a2assistant`` path (UX message audit,
 findings cli-08/20/21/23/26/34, tools-runtime-13/14/20/27).
 """
 
@@ -27,9 +27,9 @@ def test_plugin_clone_failure_leads_with_next_steps_and_escapes_git_output():
 
 def test_advisory_remediation_uses_active_hermes_home(monkeypatch, tmp_path):
     from hermes_cli import security_advisories as sa
-    monkeypatch.setattr(sa, "display_hermes_home", lambda: "~/.hermes/profiles/work")
+    monkeypatch.setattr(sa, "display_hermes_home", lambda: "~/.a2assistant/profiles/work")
     hit = SimpleNamespace(advisory=sa.ADVISORIES[0], package="mistralai", installed_version="2.4.6")
     text = "\n".join(sa.full_remediation_text(hit))
-    assert "~/.hermes/profiles/work/.env" in text
+    assert "~/.a2assistant/profiles/work/.env" in text
     assert "{hermes_home}" not in text
     assert not re.search(r"~/\.hermes/\.env", text)

@@ -9,7 +9,10 @@
 
 import path from 'node:path'
 
-/** A HERMES_HOME rooted inside a `profiles/` directory names the profile's
+import { defaultHomeIn } from '../../shared/src/node/legacy-names.mjs'
+import { LEGACY_HOME_DIR_NAME } from '../../shared/src/product-names.mjs'
+
+/** A A2ASSISTANT_HOME rooted inside a `profiles/` directory names the profile's
  * parent (the home), not the profile directory itself. */
 function normalizeHermesHomeRoot(hermesHome, pathModule) {
   if (!hermesHome) {
@@ -23,31 +26,31 @@ function normalizeHermesHomeRoot(hermesHome, pathModule) {
   return resolved
 }
 
-export function platformDefaultHermesHome(home, env = process.env, platform = process.platform) {
-  const suffix = env.HERMES_DATA_DIR_SUFFIX || ''
+export function platformDefaultHermesHome(home, env = process.env, platform = process.platform, inspect = undefined) {
+  const suffix = env.A2ASSISTANT_DATA_DIR_SUFFIX || ''
   if (platform === 'win32') {
     const base = (env.LOCALAPPDATA || '').trim() || path.win32.join(home, 'AppData', 'Local')
-    return path.win32.join(base, 'hermes') + suffix
+    return defaultHomeIn(base, { windows: true, suffix, inspect })
   }
-  return path.posix.join(home, '.hermes') + suffix
+  return defaultHomeIn(home, { suffix, inspect })
 }
 
 export function resolveDesktopUserData(defaultPath, env = process.env) {
-  return env.HERMES_DESKTOP_USER_DATA_DIR
-    ? path.resolve(env.HERMES_DESKTOP_USER_DATA_DIR)
-    : defaultPath + (env.HERMES_DATA_DIR_SUFFIX || '')
+  return env.A2ASSISTANT_DESKTOP_USER_DATA_DIR
+    ? path.resolve(env.A2ASSISTANT_DESKTOP_USER_DATA_DIR)
+    : defaultPath + (env.A2ASSISTANT_DATA_DIR_SUFFIX || '')
 }
 
 export function resolveDesktopHermesHome({ home, env = process.env, platform = process.platform, directoryExists = () => false, readWindowsHome = () => null }) {
   const paths = platform === 'win32' ? path.win32 : path.posix
-  if (env.HERMES_HOME) {
-    return normalizeHermesHomeRoot(env.HERMES_HOME, paths)
+  if (env.A2ASSISTANT_HOME) {
+    return normalizeHermesHomeRoot(env.A2ASSISTANT_HOME, paths)
   }
   // Fresh-install rehearsals must not touch the real Hermes home.
-  if (env.HERMES_DESKTOP_USER_DATA_DIR) {
-    return paths.join(paths.resolve(env.HERMES_DESKTOP_USER_DATA_DIR), 'hermes-home')
+  if (env.A2ASSISTANT_DESKTOP_USER_DATA_DIR) {
+    return paths.join(paths.resolve(env.A2ASSISTANT_DESKTOP_USER_DATA_DIR), 'hermes-home')
   }
-  if (platform === 'win32' && env.HERMES_HOME === undefined) {
+  if (platform === 'win32' && env.A2ASSISTANT_HOME === undefined) {
     // Explorer can miss setx changes. An explicit empty value opts out of that fallback.
     const registryHome = readWindowsHome()
     if (registryHome) {
@@ -56,8 +59,8 @@ export function resolveDesktopHermesHome({ home, env = process.env, platform = p
   }
   const defaultHome = platformDefaultHermesHome(home, env, platform)
   // Keep the legacy migration for ordinary installs, not isolated suffix runs.
-  if (platform === 'win32' && !env.HERMES_DATA_DIR_SUFFIX) {
-    const legacy = paths.join(home, '.hermes')
+  if (platform === 'win32' && !env.A2ASSISTANT_DATA_DIR_SUFFIX) {
+    const legacy = paths.join(home, LEGACY_HOME_DIR_NAME)
     if (!directoryExists(defaultHome) && directoryExists(legacy)) {
       return legacy
     }

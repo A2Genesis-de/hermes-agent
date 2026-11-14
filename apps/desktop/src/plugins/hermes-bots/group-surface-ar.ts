@@ -156,7 +156,7 @@ export const GROUP_SURFACE_AR = {
     attentionFallback: "يحتاج إلى انتباه",
     attentionProviderAuth: "سجّل الدخول مجددًا لهذا الملف الشخصي",
     attentionQuota: "نفدت الحصة أو الرصيد",
-    attentionMissingConfig: "لم يُضبط المزوّد — نفّذ hermes model",
+    attentionMissingConfig: "لم يُضبط المزوّد — نفّذ a2assistant model",
     attentionBlocked: "الروبوت محظور — راجع آخر رسالة له",
     editMenu: "تعديل…",
     duplicate: "إنشاء نسخة",

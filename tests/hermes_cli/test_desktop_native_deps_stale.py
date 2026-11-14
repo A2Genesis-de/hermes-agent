@@ -1,6 +1,6 @@
 """A matching source stamp must not hide a packaged app whose node-pty has no native binary.
 
-Regression for #62462: ``hermes desktop`` reported "content stamp matches" and
+Regression for #62462: ``a2assistant desktop`` reported "content stamp matches" and
 launched a package that crashed on ``require('node-pty')``.
 """
 import sys

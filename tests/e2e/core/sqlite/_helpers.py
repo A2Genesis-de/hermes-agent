@@ -39,11 +39,11 @@ from tests.conformance.persistence._harness import REPO_ROOT, kill9_and_reap, wa
 
 ROLES = Path(__file__).with_name("_roles.py")
 DEFAULT_SEED = 20260923
-SEED_ENV = "HERMES_SQLITE_TORTURE_SEED"
+SEED_ENV = "A2ASSISTANT_SQLITE_TORTURE_SEED"
 
 JOURNAL_MODES = ("wal", "delete")
 # Read ONLY by _roles.py in each child: the SQLite version its production version probe reports.
-SQLITE_PIN_ENV = "HERMES_E2E_SQLITE_VERSION_PIN"
+SQLITE_PIN_ENV = "A2ASSISTANT_E2E_SQLITE_VERSION_PIN"
 VULNERABLE_SQLITE = "3.50.4"  # bundled by uv's CPython 3.11.14 (the unit CI job): Hermes runs DELETE there
 # DELETE mode holds an EXCLUSIVE lock for every commit's journal+db fsyncs and has no writer fairness: an unpaced
 # append loop starves every other writer and reader. Gateway/TUI writers are paced by turns in the field.
@@ -72,22 +72,22 @@ def episode_seed(label: str) -> int:
 
 
 def child_env(home: Path, hermes_home: Path) -> dict:
-    """Probe hygiene: private HOME/HERMES_HOME, no provider credentials, repo importable."""
+    """Probe hygiene: private HOME/A2ASSISTANT_HOME, no provider credentials, repo importable."""
     env = {k: v for k, v in os.environ.items() if not k.endswith("_API_KEY")}
     env.update({
         "HOME": str(home),
-        "HERMES_HOME": str(hermes_home),
+        "A2ASSISTANT_HOME": str(hermes_home),
         "PYTHONUNBUFFERED": "1",
         # The child's HERMES_HOME *is* this chamber's private home, which the live-DB guard reads as
         # "the real Hermes root"; HOME/HERMES_HOME above already keep it off the production install.
-        "HERMES_STATE_DB_GUARD_BYPASS": "1",
+        "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
         "PYTHONPATH": os.pathsep.join(p for p in (str(REPO_ROOT), os.environ.get("PYTHONPATH", "")) if p),
     })
     return env
 
 
 class Chamber:
-    """A private HERMES_HOME + state.db plus the processes playing roles against it."""
+    """A private A2ASSISTANT_HOME + state.db plus the processes playing roles against it."""
 
     def __init__(self, root: Path, *, journal: str = "wal"):
         assert journal in JOURNAL_MODES, journal
@@ -137,7 +137,7 @@ class Chamber:
         return proc
 
     def spawn_cli(self, name: str, *argv: str) -> subprocess.Popen:
-        """A real `hermes …` CLI subprocess against this HERMES_HOME (``hermes_cli.main`` run as ``__main__``
+        """A real `hermes …` CLI subprocess against this A2ASSISTANT_HOME (``hermes_cli.main`` run as ``__main__``
         by ``_roles.py cli`` so the journal-mode seam applies to it too)."""
         stderr = open(self.work / f"{name}.stderr", "wb")
         payload = {"workdir": str(self.work), "name": name, "argv": list(argv)}

@@ -69,7 +69,7 @@ def _prompt(url):
 
 @pytest.mark.asyncio
 async def test_unacked_remote_image_retry_reuses_the_first_staging(tmp_path, monkeypatch, host):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     _allow_loopback(monkeypatch, True)
     agent = GatewayACPAgent()
     agent._gateway = _LosesFirstAck(agent)
@@ -87,7 +87,7 @@ async def test_unacked_remote_image_retry_reuses_the_first_staging(tmp_path, mon
 
 @pytest.mark.asyncio
 async def test_stop_during_a_remote_image_download_submits_nothing(tmp_path, monkeypatch, host):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     _allow_loopback(monkeypatch, True)
     host['gate'] = threading.Event()
     agent = GatewayACPAgent()

@@ -16,7 +16,7 @@ import { readSourceUpdate, type SourceUpdate } from './checkout-source'
 
 const execute: typeof execFile.__promisify__ = promisify(execFile)
 const repository: string = path.resolve(import.meta.dirname, '../../../..')
-const python: string = process.env.HERMES_PYTHON || 'python3'
+const python: string = process.env.A2ASSISTANT_PYTHON || 'python3'
 
 function buildId(channel: 'stable' | 'canary'): string {
   return (channel === 'stable' ? 'a' : 'b').repeat(32)
@@ -287,7 +287,7 @@ it('carries each install channel from Python publication checks into the source 
       path.join(root, 'transport.py'),
       `import sys, os
 sys.path.append(${JSON.stringify(repository)})
-assert not os.environ.get('HERMES_RUNTIME_DIR')
+assert not os.environ.get('A2ASSISTANT_RUNTIME_DIR')
 import urllib.request
 from urllib.parse import urlsplit
 # source_check.py runs this on import, and is imported twice (the CLI entry, then the module
@@ -318,19 +318,19 @@ if not getattr(urllib.request, '_hermes_loopback', False):
     install()
 `
     )
-    vi.stubEnv('HERMES_MANAGED', '')
-    vi.stubEnv('HERMES_RUNTIME_DIR', path.join(temporary, 'wrong-runtime'))
+    vi.stubEnv('A2ASSISTANT_MANAGED', '')
+    vi.stubEnv('A2ASSISTANT_RUNTIME_DIR', path.join(temporary, 'wrong-runtime'))
     vi.stubEnv('PYTHONPATH', path.join(temporary, 'wrong-checkout'))
     vi.stubEnv('PYTHONHOME', path.join(temporary, 'wrong-python'))
-    vi.stubEnv('HERMES_INSTALL_ROOT', origin)
+    vi.stubEnv('A2ASSISTANT_INSTALL_ROOT', origin)
 
     const environment: NodeJS.ProcessEnv = {
       ...process.env,
-      HERMES_HOME: home,
-      HERMES_INSTALL_ROOT: root,
+      A2ASSISTANT_HOME: home,
+      A2ASSISTANT_INSTALL_ROOT: root,
       PYTHONPATH: repository,
       PYTHONHOME: '',
-      HERMES_RUNTIME_DIR: ''
+      A2ASSISTANT_RUNTIME_DIR: ''
     }
 
     async function setChannel(channel: 'stable' | 'canary' | 'main', install: string = root): Promise<void> {
@@ -395,9 +395,9 @@ if not getattr(urllib.request, '_hermes_loopback', False):
         spawned.push({ command, args, options })
         // C2: a hand-off has started only once the script takes the Desktop's
         // bridge marker in its own (live, foreign) name — do that here. Line 2
-        // echoes HERMES_UPDATE_STARTED_AT as posix.sh does; a fresh clock read
+        // echoes A2ASSISTANT_UPDATE_STARTED_AT as posix.sh does; a fresh clock read
         // misses the Desktop's stamp whenever the spawn lands in the next second.
-        fs.writeFileSync(markerPath(home), `${process.ppid}\n${options.env?.HERMES_UPDATE_STARTED_AT}\n`)
+        fs.writeFileSync(markerPath(home), `${process.ppid}\n${options.env?.A2ASSISTANT_UPDATE_STARTED_AT}\n`)
 
         return { unref: (): void => {} }
       }
@@ -421,9 +421,9 @@ if not getattr(urllib.request, '_hermes_loopback', False):
         updateAvailable: true
       })
       fs.rmSync(scriptDirectory, { recursive: true, force: true })
-      expect(await strategy.apply()).toMatchObject({ manual: true, command: `hermes update --channel ${channel}` })
+      expect(await strategy.apply()).toMatchObject({ manual: true, command: `a2assistant update --channel ${channel}` })
       deps.resolveUpdaterBinary = (): string => path.join(temporary, 'frozen-updater')
-      expect(await strategy.apply()).toMatchObject({ manual: true, command: `hermes update --channel ${channel}` })
+      expect(await strategy.apply()).toMatchObject({ manual: true, command: `a2assistant update --channel ${channel}` })
       expect(spawned).toHaveLength(0)
       fs.mkdirSync(scriptDirectory, { recursive: true })
       fs.writeFileSync(script, '')
@@ -437,11 +437,11 @@ if not getattr(urllib.request, '_hermes_loopback', False):
       expect(handoff?.args).not.toContain('--branch')
       expect(handoff?.args).not.toContain('-Branch')
       expect(handoff?.command).not.toBe(deps.resolveUpdaterBinary())
-      expect(handoff?.options.env?.HERMES_HOME).toBe(home)
-      expect(handoff?.options.env?.HERMES_INSTALL_ROOT).toBe(root)
+      expect(handoff?.options.env?.A2ASSISTANT_HOME).toBe(home)
+      expect(handoff?.options.env?.A2ASSISTANT_INSTALL_ROOT).toBe(root)
       expect(handoff?.options.env?.PYTHONPATH).toBe('')
       expect(handoff?.options.env?.PYTHONHOME).toBe('')
-      expect(handoff?.options.env?.HERMES_RUNTIME_DIR).toBeUndefined()
+      expect(handoff?.options.env?.A2ASSISTANT_RUNTIME_DIR).toBeUndefined()
       deps.resolveUpdaterBinary = (): null => null
       expect(git(['rev-parse', 'HEAD'], root)).toBe(commits[3])
       git(['checkout', '--detach', sha], root)
@@ -475,7 +475,7 @@ if not getattr(urllib.request, '_hermes_loopback', False):
     )
     fs.rmSync(markerPath(home), { force: true })
     fs.rmSync(scriptDirectory, { recursive: true, force: true })
-    expect(await strategy.apply()).toMatchObject({ manual: true, command: 'hermes update --branch feature/gui' })
+    expect(await strategy.apply()).toMatchObject({ manual: true, command: 'a2assistant update --branch feature/gui' })
     // main IS the git branch: re-resolving it reads no channel record and makes no
     // GitHub or artifact request, so a WAF that 403s the record can't stop the update.
     expect(requests.slice(count)).toEqual([])

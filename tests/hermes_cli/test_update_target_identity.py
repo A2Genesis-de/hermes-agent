@@ -27,8 +27,8 @@ def update_tree(tmp_path, monkeypatch):
     monkeypatch.setenv('GIT_CONFIG_GLOBAL', str(tmp_path / 'git-config'))
     monkeypatch.setenv('GIT_CONFIG_NOSYSTEM', '1')
     monkeypatch.setenv('GIT_ALLOW_PROTOCOL', 'file')
-    monkeypatch.delenv('HERMES_UPDATE_HANDOFF_PID', raising=False)
-    monkeypatch.delenv('HERMES_UPDATE_REEXEC', raising=False)
+    monkeypatch.delenv('A2ASSISTANT_UPDATE_HANDOFF_PID', raising=False)
+    monkeypatch.delenv('A2ASSISTANT_UPDATE_REEXEC', raising=False)
     origin = tmp_path / 'origin'
     origin.mkdir()
     git(origin, 'init', '-q', '-b', 'main')

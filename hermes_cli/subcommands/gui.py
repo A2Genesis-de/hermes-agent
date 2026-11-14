@@ -1,4 +1,4 @@
-"""``hermes gui`` subcommand parser."""
+"""``a2assistant gui`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -23,15 +23,15 @@ def build_gui_parser(subparsers, *, cmd_gui: Callable) -> None:
         help="Enable deterministic desktop boot delays for validating startup UI")
     gui_parser.add_argument(
         "--ignore-existing", action="store_true",
-        help="Skip the installed A2Assistant runtime (~/.hermes/hermes-agent) so no local "
+        help="Skip the installed A2Assistant runtime (~/.a2assistant/app) so no local "
              "backend starts and Desktop offers connect or install instead. --hermes-root "
              "and the bundled runtime still win; a runtime installed during this launch is used.")
     gui_parser.add_argument(
         "--hermes-root",
-        help="Override the A2Assistant source root used by Desktop (sets HERMES_DESKTOP_HERMES_ROOT)")
+        help="Override the A2Assistant source root used by Desktop (sets A2ASSISTANT_DESKTOP_HERMES_ROOT)")
     gui_parser.add_argument(
         "--cwd",
-        help="Initial project directory for Desktop chat sessions (sets HERMES_DESKTOP_CWD)")
+        help="Initial project directory for Desktop chat sessions (sets A2ASSISTANT_DESKTOP_CWD)")
     gui_parser.add_argument(
         "--skip-build", action="store_true",
         help="Skip pnpm install/package and launch the existing unpacked app from apps/desktop/release",

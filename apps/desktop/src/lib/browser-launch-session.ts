@@ -1,6 +1,6 @@
 import { GatewayReauthRequiredError } from '@hermes/shared'
 
-export const WEBAPP_LAUNCH_REQUIRED = 'Run hermes webapp on this computer to sign this browser in.'
+export const WEBAPP_LAUNCH_REQUIRED = 'Run a2assistant webapp on this computer to sign this browser in.'
 
 /**
  * This tab holds no credential the gateway accepts, and only a new launch link signs it in. The

@@ -31,7 +31,7 @@ const snapshotB = { ...snapshotA, session_id: 'b', stored_session_id: 'b', subsc
 
 function mount() {
   const home = mkdtempSync(join(tmpdir(), 'ink-activate-prompts-'))
-  vi.stubEnv('HERMES_HOME', home)
+  vi.stubEnv('A2ASSISTANT_HOME', home)
   resetUiState()
 
   const gw = new GatewayClient()

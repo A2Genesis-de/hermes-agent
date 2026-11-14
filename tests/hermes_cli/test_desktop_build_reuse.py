@@ -1,4 +1,4 @@
-"""``hermes update`` reuses the packaged desktop app across commits that changed no desktop input.
+"""``a2assistant update`` reuses the packaged desktop app across commits that changed no desktop input.
 
 A real git checkout carries the real receipt reader (``scripts/build/freshness.mjs``), the real
 stamp resolver (``apps/desktop/scripts/write-build-stamp.mjs``) and the real reuse probe; only the

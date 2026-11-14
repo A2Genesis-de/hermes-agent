@@ -193,7 +193,7 @@ def test_profile_manager_cannot_replace_launch_home_auth_provider():
 def test_profile_directory_can_be_the_process_launch_home(monkeypatch, tmp_path):
     """A process launched directly into a profile owns dashboard auth."""
     launch_home = tmp_path / "profiles" / "bot"
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
     manager, ctx = _real_ctx()
     provider = _Basic("profile-launch-home")
 

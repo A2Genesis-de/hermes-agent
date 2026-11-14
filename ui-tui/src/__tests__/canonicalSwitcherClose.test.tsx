@@ -27,7 +27,7 @@ const liveRow = { id: 'live', session_id: 'live', title: 'Current conversation',
 
 function detachFixture() {
   const home = mkdtempSync(join(tmpdir(), 'ink-switcher-close-'))
-  vi.stubEnv('HERMES_HOME', home)
+  vi.stubEnv('A2ASSISTANT_HOME', home)
   resetUiState()
   const subscriptions = new Map<string, string>()
   const pending: Array<{ resolve: () => void }> = []

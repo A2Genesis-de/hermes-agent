@@ -132,7 +132,7 @@ async def test_a_secondary_profiles_old_conversation_gets_its_result_after_the_s
     profile = root / 'profiles' / 'fitness'
     profile.mkdir(parents=True)
     (profile / 'config.yaml').write_text('{}\n', encoding='utf-8')
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
     runner = GatewayRunner(GatewayConfig(multiplex_profiles=True))
     launch = await initialize_session_authority(runner, profile_id=str(root), instance_id='owner',

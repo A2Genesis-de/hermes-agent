@@ -324,7 +324,7 @@ class TestPayload:
         fired (#92674): ``profile`` follows the bound home at fire time."""
         from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         profile_home = tmp_path / "profiles" / "b"
         profile_home.mkdir(parents=True)
         token = set_hermes_home_override(profile_home)
@@ -339,8 +339,8 @@ class TestPayload:
     def test_kanban_task_id_is_the_owned_task_only(self, monkeypatch):
         from agent.delegation_context import delegated_child_context
 
-        monkeypatch.setenv("HERMES_KANBAN_TASK", "t_owner")
-        monkeypatch.delenv("HERMES_DELEGATED_CHILD_CONTEXT", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", "t_owner")
+        monkeypatch.delenv("A2ASSISTANT_DELEGATED_CHILD_CONTEXT", raising=False)
         body = outbound_webhooks._serialize_payload("post_tool_call", {}, "did_1")
         assert json.loads(body)["extra"]["kanban_task_id"] == "t_owner"
         with delegated_child_context():
@@ -369,7 +369,7 @@ class TestRegistration:
         assert second == []
 
     def test_safe_mode_skips_registration(self, monkeypatch):
-        monkeypatch.setenv("HERMES_SAFE_MODE", "1")
+        monkeypatch.setenv("A2ASSISTANT_SAFE_MODE", "1")
         cfg = _cfg(
             {"url": "https://example.com/hook", "events": ["on_session_end"]}
         )
@@ -407,7 +407,7 @@ class TestForceReloadHomeScoping:
         cfg = _cfg({"url": _url(http_server), "events": ["on_session_end"]})
         monkeypatch.setattr("hermes_cli.config.load_config", lambda: cfg)
 
-        monkeypatch.setenv("HERMES_HOME", "/tmp/profile-b-webhook")
+        monkeypatch.setenv("A2ASSISTANT_HOME", "/tmp/profile-b-webhook")
         mgr_b = plugins.PluginManager()
         plugins._plugin_manager = mgr_b
         outbound_webhooks.register_from_config(cfg)
@@ -584,7 +584,7 @@ class TestDelivery:
         outbound_webhooks._deliver(delivery)
 
     def test_events_enqueued_at_exit_still_delivered(self, http_server, tmp_path):
-        """A short-lived process (`hermes chat -q`, cron) exits right after
+        """A short-lived process (`a2assistant chat -q`, cron) exits right after
         firing on_session_end.  The delivery worker is a daemon thread, so
         without the atexit flush the final event is silently dropped."""
         import subprocess

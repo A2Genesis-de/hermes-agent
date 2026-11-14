@@ -1,4 +1,4 @@
-"""``hermes gateway restart`` of a manual gateway must not attach to the gateway it just stopped.
+"""``a2assistant gateway restart`` of a manual gateway must not attach to the gateway it just stopped.
 
 The host-gateway probe is memoized for ``HOST_GATEWAY_CACHE_TTL_S``. The restart probes before the
 stop, the stop finishes well inside the TTL, and the in-process ``run_gateway`` then read the memo
@@ -47,7 +47,7 @@ def _write_record(pid: int, home) -> None:
 @pytest.fixture
 def manual_host_gateway(tmp_path, monkeypatch):
     """A REAL live process published as this home's manual host gateway, serving this profile."""
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     home = get_hermes_home()
     child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     # A live owner holds the host lock for its lifetime (run.py claims before it publishes).

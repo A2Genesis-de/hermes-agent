@@ -19,7 +19,7 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from hermes_constants import (
     LOCAL_RUNTIME_ROOT_DIRS, _get_platform_default_hermes_home, get_default_hermes_root, get_hermes_home,
-    display_hermes_home,
+    display_hermes_home, INSTALL_DIR_NAMES,
 )
 from hermes_state_dbfile import RETIRED_GENERATION_DIR_SUFFIX
 from hermes_state_holders import read_only_db_uri
@@ -64,8 +64,8 @@ _QUICK_SNAPSHOTS_DIR = "state-snapshots"
 
 def _snapshot_recovery_hint() -> str:
     """How to restore a state snapshot. There is no `hermes snapshot` subcommand — only the /snapshot
-    slash command inside a `hermes` session (hermes_cli/commands.py)."""
-    return ("To restore a newer snapshot, start `hermes` in a terminal and run `/snapshot list`, then "
+    slash command inside a `a2assistant` session (hermes_cli/commands.py)."""
+    return ("To restore a newer snapshot, start `a2assistant` in a terminal and run `/snapshot list`, then "
             "`/snapshot restore <id>` (CLI only).")
 
 # Directory names to skip (matched against each path component). ``hermes-agent`` only matches at
@@ -75,7 +75,7 @@ def _snapshot_recovery_hint() -> str:
 # Mostly mirrors ``agent.skill_utils.EXCLUDED_SKILL_DIRS``; ``.cache`` is backup-only. ``.archive``
 # is deliberately NOT excluded: the curator's ``skills/.archive/`` holds restorable user skills.
 _EXCLUDED_DIRS = {
-    "hermes-agent",     # the codebase repo — re-clone instead
+    *INSTALL_DIR_NAMES,
     "__pycache__",      # bytecode caches — regenerated on import
     ".git",             # nested git dirs (profiles shouldn't have these, but safety)
     "node_modules",     # js deps — reinstalled on demand
@@ -321,7 +321,7 @@ def _should_exclude(rel_path: Path) -> bool:
     if _in_excluded_root_dir(rel_path):
         return True
     # ``hermes-agent`` only matches at the root level; nested same-named dirs are preserved.
-    if any(p in _EXCLUDED_DIRS and (p != "hermes-agent" or p == parts[0]) for p in parts):
+    if any(p in _EXCLUDED_DIRS and (p not in INSTALL_DIR_NAMES or p == parts[0]) for p in parts):
         return True
     name = rel_path.name
     return name in _EXCLUDED_NAMES or name.startswith(_EXCLUDED_PREFIXES) or name.endswith(_EXCLUDED_SUFFIXES)
@@ -332,14 +332,14 @@ def _iter_backup_files(hermes_root: Path, out_path: Path, skipped_dirs: Optional
 
     The one owner of the walk policy (directory pruning so os.walk never descends a multi-GB
     excluded tree, the root-only ``hermes-agent`` carve-out, root runtime trees, per-file rules),
-    shared by ``hermes backup`` and the pre-update path so they can never drift.
+    shared by ``a2assistant backup`` and the pre-update path so they can never drift.
     """
     for dirpath, dirnames, filenames in os.walk(hermes_root, followlinks=False):
         rel_dir = Path(dirpath).relative_to(hermes_root)
         is_root = rel_dir == Path(".")
         kept = [
             d for d in dirnames
-            if (d not in _EXCLUDED_DIRS or (d == "hermes-agent" and not is_root))
+            if (d not in _EXCLUDED_DIRS or (d in INSTALL_DIR_NAMES and not is_root))
             and not _in_excluded_root_dir(rel_dir / d)]
         if skipped_dirs is not None:
             skipped_dirs.update(str(rel_dir / d) for d in set(dirnames) - set(kept))
@@ -599,7 +599,7 @@ def run_backup(args) -> bool:
     the caller turns False into exit status 1 so a cron/systemd timer never publishes a "successful"
     archive that is missing state.db. Hard failures keep raising ``SystemExit``.
     """
-    require_file_tooling("`hermes backup`")
+    require_file_tooling("`a2assistant backup`")
     hermes_root = get_default_hermes_root()
 
     if not hermes_root.is_dir():
@@ -673,7 +673,7 @@ def _run_backup_locked(args, hermes_root: Path) -> bool:
     if errors:
         _print_capped(f"\n  Archive kept, but {len(errors)} file(s) could not be added:", errors, "  ")
     else:
-        print(f"\nRestore with: hermes import {out_path.name}")
+        print(f"\nRestore with: a2assistant import {out_path.name}")
     # Prune only after a complete archive: a timer hitting the same unreadable file every run must
     # not rotate the last good backups out in favour of incomplete ones.
     keep = getattr(args, "keep", 0)  # 0 / absent: never prune (non-CLI callers)
@@ -709,7 +709,7 @@ def _find_corrupt_members(zf: zipfile.ZipFile, members: list[str]) -> list[str]:
 
 
 def _import_skipped(rel: str) -> bool:
-    """True for a HERMES_HOME-relative member the import deliberately does not restore: runtime
+    """True for a A2ASSISTANT_HOME-relative member the import deliberately does not restore: runtime
     state (``_IMPORT_SKIP_NAMES``), PM-local interpreter/dependency roots, or an archived SQLite
     WAL/SHM/journal. A ``.db`` member is page-restored into the live file, and a sidecar from a
     different image would replay a foreign WAL on next open (older archives may ship these)."""
@@ -726,7 +726,7 @@ def _import_member_rel(member: str, prefix: str) -> tuple[str, bool]:
     """Classify an archive member exactly as the restore does: return ``(rel, skipped)``.
 
     ``_external/`` members are home-relative and never skipped; every other member is
-    HERMES_HOME-relative after stripping the archive ``prefix``. Shared by the integrity
+    A2ASSISTANT_HOME-relative after stripping the archive ``prefix``. Shared by the integrity
     pre-flight and ``_import_members`` so the two cannot disagree on what gets restored."""
     if member.startswith(_EXTERNAL_PREFIX):
         return member[len(_EXTERNAL_PREFIX):], False
@@ -736,7 +736,7 @@ def _import_member_rel(member: str, prefix: str) -> tuple[str, bool]:
 
 def run_import(args) -> Optional[int]:
     """Restore a Hermes backup; return 1 on damaged archives or incomplete restores."""
-    require_file_tooling("`hermes import`")
+    require_file_tooling("`a2assistant import`")
     zip_path = Path(args.zipfile).expanduser().resolve()
 
     if not zip_path.is_file():
@@ -890,19 +890,19 @@ def run_import(args) -> Optional[int]:
                 # hermes_cli.profiles might not be available (fresh install)
                 if any(profiles_dir.iterdir()):
                     print("\n  Profiles detected but aliases could not be created.")
-                    print("  Run: hermes profile list  (after installing hermes)")
+                    print("  Run: a2assistant profile list  (after installing hermes)")
 
         # Guidance
         print()
-        if not (hermes_root / "hermes-agent").is_dir():
+        if not any((hermes_root / name).is_dir() for name in INSTALL_DIR_NAMES):
             print("Note: The hermes-agent codebase was not included in the backup.")
-            print("  If this is a fresh install, run: hermes update")
+            print("  If this is a fresh install, run: a2assistant update")
 
         if restored_profiles:
             gw_profiles = [n for n, _ in restored_profiles]
             print("\nTo re-enable gateway services for profiles:")
             for pname in gw_profiles:
-                print(f"  hermes -p {pname} gateway install")
+                print(f"  a2assistant -p {pname} gateway install")
 
         _revive_gateway_after_import(hermes_root)
 
@@ -1082,7 +1082,7 @@ def _revive_gateway_after_import(hermes_root: Path) -> None:
             (native_default / marker).exists() for marker in ("config.yaml", ".env", "state.db")):
         print("\nRestored into a non-default home; leaving the gateway service alone to avoid clashing "
               f"with the install at {native_default}.\n"
-              "To start a gateway for this home, run:  hermes gateway run")
+              "To start a gateway for this home, run:  a2assistant gateway run")
         return
     try:
         from hermes_cli.gateway import _is_service_running
@@ -1094,7 +1094,7 @@ def _revive_gateway_after_import(hermes_root: Path) -> None:
         # Import boundary: the restore already succeeded; any service failure prints the
         # manual fallback instead of failing the import.
         logger.debug("gateway revive after import failed", exc_info=True)
-        print("\nStart the gateway to activate cron jobs and messaging:\n  hermes gateway run")
+        print("\nStart the gateway to activate cron jobs and messaging:\n  a2assistant gateway run")
 
 
 # --- Quick state snapshots (used by /snapshot slash command and hermes backup --quick) ---
@@ -1184,7 +1184,7 @@ def _prune_incomplete_zips(backup_dir: Path, prefix: str, what: str) -> int:
 
 def _create_prefixed_full_backup(
     hermes_home: Optional[Path], prefix: str, keep: int, what: str, prune_what: str) -> Optional[Path]:
-    """Write ``<HERMES_HOME>/backups/<prefix><timestamp>.zip`` and prune older same-prefix zips.
+    """Write ``<A2ASSISTANT_HOME>/backups/<prefix><timestamp>.zip`` and prune older same-prefix zips.
     Returns the path, or ``None`` if nothing to back up, the write failed, or the archive is
     incomplete (kept as ``<prefix><timestamp>.incomplete.zip``, excluded from retention).
     Never raises."""
@@ -1211,7 +1211,7 @@ def create_pre_update_backup(
     hermes_home: Optional[Path] = None, keep: int = _PRE_UPDATE_DEFAULT_KEEP) -> Optional[Path]:
     """Full zip backup to ``backups/pre-update-<timestamp>.zip``, auto-pruned; ``None`` if nothing
     was found, the backup failed, or it was incomplete (salvage kept as ``*.incomplete.zip``).
-    Never raises — ``hermes update`` continues anyway."""
+    Never raises — ``a2assistant update`` continues anyway."""
     return _create_prefixed_full_backup(hermes_home, _PRE_UPDATE_PREFIX, max(keep, 1), "pre-update", "backup")
 
 
@@ -1219,7 +1219,7 @@ def create_pre_migration_backup(
     hermes_home: Optional[Path] = None, keep: int = _PRE_MIGRATION_DEFAULT_KEEP) -> Optional[Path]:
     """Full zip backup to ``backups/pre-migration-<timestamp>.zip`` before a plugin's agent import
     (``hermes import-agent openclaw``), so its name and signature are API; same dir as update backups
-    so ``hermes import`` finds it. ``None`` if nothing was found, the write failed, or it was
+    so ``a2assistant import`` finds it. ``None`` if nothing was found, the write failed, or it was
     incomplete (salvage kept as ``*.incomplete.zip``). Never raises."""
     return _create_prefixed_full_backup(
         hermes_home, _PRE_MIGRATION_PREFIX, max(keep, 0), "pre-migration", "pre-migration backup")
@@ -1261,10 +1261,10 @@ def _create_quick_snapshot_locked(
         max_file_size: When set, individual files larger than this many bytes
             are skipped (with a printed warning) instead of copied. Used by
             the pre-update safety snapshot so a multi-GB ``state.db`` can
-            never stall ``hermes update`` or silently eat disk — the small
+            never stall ``a2assistant update`` or silently eat disk — the small
             pairing/cron/config files the snapshot exists to protect are
             always captured. ``None`` (default) copies everything, which
-            preserves manual ``/snapshot`` and ``hermes backup --quick``
+            preserves manual ``/snapshot`` and ``a2assistant backup --quick``
             behavior.
 
     Returns:
@@ -1678,7 +1678,7 @@ def restore_cron_jobs_if_emptied(
     snapshot_id: str,
     hermes_home: Optional[Path] = None,
 ) -> Optional[dict[str, Any]]:
-    """Safety net for silent cron-job loss across ``hermes update``.
+    """Safety net for silent cron-job loss across ``a2assistant update``.
 
     Config-version migrations have been observed to leave ``cron/jobs.json``
     valid-but-empty after an update, silently dropping every scheduled job
@@ -1847,7 +1847,7 @@ def restore_config_model_settings_if_rewritten(
     snapshot_id: str,
     hermes_home: Optional[Path] = None,
 ) -> Optional[dict[str, Any]]:
-    """Safety net for silent config.yaml model/MoA loss across ``hermes update``.
+    """Safety net for silent config.yaml model/MoA loss across ``a2assistant update``.
 
     Desktop update/repair cycles have been observed to rewrite user-set
     ``model.provider``/``model.default`` and drop the ``moa:`` section
@@ -2031,7 +2031,7 @@ def prune_quick_snapshots(
 
 
 def run_quick_backup(args) -> None:
-    """CLI entry point for hermes backup --quick."""
+    """CLI entry point for a2assistant backup --quick."""
     label = getattr(args, "label", None)
     snap_id = create_quick_snapshot(label=label)
     if snap_id:

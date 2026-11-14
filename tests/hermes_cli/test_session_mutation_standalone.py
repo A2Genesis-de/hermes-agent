@@ -1,4 +1,4 @@
-"""Standalone ``hermes serve``/``dashboard`` (no gateway authority) keeps session edits.
+"""Standalone ``a2assistant serve``/``dashboard`` (no gateway authority) keeps session edits.
 
 The edit runs the gateway's receipt transaction on the process's single writer under the
 exact owner lock: revision/retry/idle guards hold, an owner discovery cannot reach answers 503
@@ -21,7 +21,7 @@ def _standalone_app(tmp_path, monkeypatch):
     from hermes_cli import web_server
     monkeypatch.setattr(web_server, '_SESSION_TOKEN', 'standalone-token')
     monkeypatch.setattr('hermes_state._default_db_path', lambda: tmp_path / 'state.db')
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     app = FastAPI()
     app.include_router(manage_router)
     return app

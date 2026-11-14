@@ -13,7 +13,7 @@
  * with the last word persisted. Red on base: the bubble was 3-5 words short at
  * the completion in every run; the first chat of a launch stayed short for
  * good (later chats were repaired only by an unrelated transcript re-read
- * ~0.4-0.7 s later). HERMES_E2E_INTERRUPT_RUNS / _OUT drive the N-run A/B.
+ * ~0.4-0.7 s later). A2ASSISTANT_E2E_INTERRUPT_RUNS / _OUT drive the N-run A/B.
  */
 
 import fs from 'node:fs'
@@ -42,7 +42,7 @@ const nonce = Math.random()
 
 const U = (n: number) => `U${n}-${nonce}`
 const A = (n: number) => `A${n}-${nonce}`
-const RUNS = Number(process.env.HERMES_E2E_INTERRUPT_RUNS || 2)
+const RUNS = Number(process.env.A2ASSISTANT_E2E_INTERRUPT_RUNS || 2)
 const WORDS = 400
 const STOP_AFTER = 15
 const word = (i: number) => `w${String(i).padStart(3, '0')}`
@@ -182,7 +182,7 @@ test('Stop mid-stream renders exactly the partial reply the session persisted', 
       })
     }
   } finally {
-    const out = process.env.HERMES_E2E_INTERRUPT_OUT
+    const out = process.env.A2ASSISTANT_E2E_INTERRUPT_OUT
 
     if (out) {
       fs.writeFileSync(out, JSON.stringify(results, null, 2))

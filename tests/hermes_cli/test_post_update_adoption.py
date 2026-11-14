@@ -16,13 +16,13 @@ from hermes_cli.post_update import step_adopt_blessed_checkout
 
 @pytest.fixture
 def blessed_checkout(tmp_path, monkeypatch):
-    """A .git checkout at the blessed $HERMES_HOME/hermes-agent root."""
+    """A .git checkout at the blessed $A2ASSISTANT_HOME/hermes-agent root."""
     home = tmp_path / ".hermes"
     root = home / "hermes-agent"
     root.mkdir(parents=True)
     (root / ".git").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(root))
     return root
 
 
@@ -61,8 +61,8 @@ def test_non_blessed_checkout_untouched(tmp_path, monkeypatch):
     dev = tmp_path / "src" / "hermes-agent"
     dev.mkdir(parents=True)
     (dev / ".git").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(dev))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(dev))
     result = step_adopt_blessed_checkout()
     assert result.get("skipped") == "not-a-blessed-root"
     assert not (dev / "install-stamp.json").exists()
@@ -74,8 +74,8 @@ def test_sealed_tree_untouched(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     root = home / "hermes-agent"
     root.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(root))
     result = step_adopt_blessed_checkout()
     assert result.get("skipped") == "not-a-checkout"
     assert not (root / "install-stamp.json").exists()
@@ -129,8 +129,8 @@ def test_adoption_of_real_checkout_records_full_identity(tmp_path, monkeypatch):
     git("add", "tracked")
     git("commit", "-qm", "release")
     git("tag", "v0.21.4")
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(root))
 
     result = step_adopt_blessed_checkout()
 

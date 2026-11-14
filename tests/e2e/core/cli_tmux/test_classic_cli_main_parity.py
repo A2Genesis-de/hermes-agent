@@ -6,7 +6,7 @@ its MAIN-vs-MAIN self-check was 15/15 identical. With the rewire merged there is
 diff, so each step here asserts what main's capture showed (the pre-rewire baseline) against the
 current checkout, where the gateway daemon runs the agent, tools and session writes.
 
-One real ``hermes`` (``display.interface: cli``) session in a private tmux server, loopback
+One real ``a2assistant`` (``display.interface: cli``) session in a private tmux server, loopback
 ``FakeLLMServer`` keyed on the ``STEPn`` marker in the latest user message (zero spend):
 
 01 startup · 02 markdown · 03a approval modal · 03b approve once → tool reply · 04 read_file ·
@@ -182,7 +182,7 @@ def test_classic_cli_matches_main_baseline_across_fifteen_steps(tmp_path: Path) 
             pane.submit("/quit")
             assert pane.wait_dead(30), f"10a_exit_summary: CLI alive 30 s after /quit:\n{pane.screen()}"
             summary = s.capture("10a_exit_summary", scrollback=True).split("/quit")[-1]
-            s.expect("10a_exit_summary", ["Resume this session with:", "hermes --resume ", f'hermes -c "{TITLE}"',
+            s.expect("10a_exit_summary", ["Resume this session with:", "a2assistant --resume ", f'a2assistant -c "{TITLE}"',
                                           "Session:", f"Title:          {TITLE}", "Duration:", "Messages:"], summary)
 
             pane.launch("-c")

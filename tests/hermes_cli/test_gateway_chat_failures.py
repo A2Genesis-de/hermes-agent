@@ -33,7 +33,7 @@ async def test_explicit_remote_failure_never_ensures_local(monkeypatch):
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime", forbidden)
     with socket.socket() as unavailable:
         unavailable.bind(("127.0.0.1", 0))
-        monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", f"ws://127.0.0.1:{unavailable.getsockname()[1]}/api/ws?token=private-test-value")
+        monkeypatch.setenv("A2ASSISTANT_TUI_GATEWAY_URL", f"ws://127.0.0.1:{unavailable.getsockname()[1]}/api/ws?token=private-test-value")
         with pytest.raises(GatewayClientError, match="no local fallback") as caught:
             async with connect_gateway():
                 raise AssertionError("Unavailable remote unexpectedly connected")
@@ -155,7 +155,7 @@ async def test_textless_oneshot_names_the_failure_on_stderr(capsys):
                            {"stored_session_id": "stored"}, quiet=True)
     view.unattended = True
     assert await asyncio.wait_for(view.run("query", oneshot=True), 2) == 1
-    assert "hermes -z: no final response was produced" in capsys.readouterr().err
+    assert "a2assistant -z: no final response was produced" in capsys.readouterr().err
 
 
 @pytest.mark.asyncio
@@ -210,7 +210,7 @@ async def test_oneshot_refuses_unknown_blocked_session_before_submitting(capsys)
     assert await asyncio.wait_for(GatewayChatView(Peer(), snapshot, quiet=True).run("pong", oneshot=True), 2) == 3
     err = capsys.readouterr().err
     # A one-shot cannot take /discard: it names the command that can, not a line to type.
-    assert "hermes sessions discard stored --yes" in err
+    assert "a2assistant sessions discard stored --yes" in err
     assert not [line for line in err.splitlines() if line.startswith("/discard")], err
 
 

@@ -21,7 +21,7 @@ _SPEC.loader.exec_module(rbt)
 
 @pytest.fixture
 def release_body(monkeypatch):
-    state = {'body': '# Notes\n\n<!-- HERMES_BUILDS_TABLE -->\n\n## Changes\n- x\n', 'edits': []}
+    state = {'body': '# Notes\n\n<!-- A2ASSISTANT_BUILDS_TABLE -->\n\n## Changes\n- x\n', 'edits': []}
 
     def gh(argv, **kwargs):
         if argv[:3] == ['gh', 'release', 'view']:

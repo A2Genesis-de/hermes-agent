@@ -17,7 +17,7 @@ def test_named_profile_launch_with_multiplex_is_a_config_verdict(tmp_path, monke
     from gateway import run_bootstrap
 
     root = _root(tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root / 'profiles' / 'foo'))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root / 'profiles' / 'foo'))
     import hermes_constants
     hermes_constants._default_hermes_root_memo = None
     written = []
@@ -32,7 +32,7 @@ def test_default_profile_launch_may_multiplex(tmp_path, monkeypatch):
     from gateway import run_bootstrap
 
     root = _root(tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     import hermes_constants
     hermes_constants._default_hermes_root_memo = None
     assert run_bootstrap._launch_home_may_multiplex() is True
@@ -40,13 +40,13 @@ def test_default_profile_launch_may_multiplex(tmp_path, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_verdict_precedes_replacing_a_running_gateway(tmp_path, monkeypatch):
-    """``hermes gateway run --replace`` on a named profile with the flag must exit EX_CONFIG while the
+    """``a2assistant gateway run --replace`` on a named profile with the flag must exit EX_CONFIG while the
     healthy gateway it would have replaced keeps running."""
     from gateway import run_bootstrap
     from gateway.config import GatewayConfig
 
     root = _root(tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root / 'profiles' / 'foo'))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root / 'profiles' / 'foo'))
     import hermes_constants
     hermes_constants._default_hermes_root_memo = None
     monkeypatch.setattr('hermes_cli.resource_limits.apply_nofile_soft_limit', lambda: None)

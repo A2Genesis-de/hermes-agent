@@ -276,7 +276,7 @@ export function mintGatewayTicketWithPython(
   endpoint: TicketEndpoint,
   purpose: GatewayTicketPurpose
 ): Promise<string> {
-  const env = { ...process.env, ...backend.env, HERMES_HOME: endpoint.profile_id,
+  const env = { ...process.env, ...backend.env, A2ASSISTANT_HOME: endpoint.profile_id,
     PYTHONIOENCODING: 'utf-8', PYTHONUTF8: '1' }
 
   const key = JSON.stringify([backend.command, cwd, Object.entries(env).sort(([a], [b]) => a.localeCompare(b))])

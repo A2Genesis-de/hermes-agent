@@ -116,7 +116,7 @@ function Invoke-Normalization {
         LOCALAPPDATA = (Join-Parts @($root, 'AppData', 'Local'))
         APPDATA      = (Join-Parts @($root, 'AppData', 'Roaming'))
         USERPROFILE  = $root
-        HERMES_HOME  = ''
+        A2ASSISTANT_HOME  = ''
     }
     foreach ($key in $Environment.Keys) { $env0[$key] = $Environment[$key] }
 
@@ -153,8 +153,8 @@ function Invoke-Normalization {
         }
         $exitCode = $LASTEXITCODE
         $raw = @(Get-Content -LiteralPath $outFile -ErrorAction SilentlyContinue)
-        $stderr = ($raw | Where-Object { $_ -like '`[hermes`]*' }) -join "`n"
-        $stdout = ($raw | Where-Object { $_ -notlike '`[hermes`]*' }) -join "`n"
+        $stderr = ($raw | Where-Object { $_ -like '`[a2assistant`]*' }) -join "`n"
+        $stdout = ($raw | Where-Object { $_ -notlike '`[a2assistant`]*' }) -join "`n"
     } finally {
         foreach ($key in $saved.Keys) {
             if ($null -eq $saved[$key]) {

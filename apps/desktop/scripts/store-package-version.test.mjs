@@ -114,9 +114,9 @@ test('stable candidate identity uses the admitted claim epoch before the final t
 test('commit builds cannot stage a Store manifest', () => {
   const { root, app } = fixture()
   const commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim()
-  vi.stubEnv('HERMES_PAYLOAD_TAG', '')
-  vi.stubEnv('HERMES_BUILD_COMMIT', commit)
-  vi.stubEnv('HERMES_PAYLOAD_VERSION', '0.21.1')
+  vi.stubEnv('A2ASSISTANT_PAYLOAD_TAG', '')
+  vi.stubEnv('A2ASSISTANT_BUILD_COMMIT', commit)
+  vi.stubEnv('A2ASSISTANT_PAYLOAD_VERSION', '0.21.1')
   try {
     expect(() => appIdentity(app)).toThrow('Store packaging requires a stable release tag')
     expect(() => stageStoreManifest(app, '')).toThrow('Store packaging requires a stable release tag')

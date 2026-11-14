@@ -1,7 +1,7 @@
 """Harness for the messaging-adapter contract suite.
 
-``GatewayUnderTest`` runs the REAL ``hermes gateway run`` (``python -m hermes_cli.main gateway run``)
-in a child process on a throwaway HOME/HERMES_HOME, with the real platform adapter plugin loaded and
+``GatewayUnderTest`` runs the REAL ``a2assistant gateway run`` (``python -m hermes_cli.main gateway run``)
+in a child process on a throwaway HOME/A2ASSISTANT_HOME, with the real platform adapter plugin loaded and
 its SDK pointed at a local stand-in platform server (``tests/fakes/platforms``). The model is
 ``tests/fakes/fake_llm_provider.FakeLLMServer`` driven by a ``Director`` that answers per inbound
 token. Nothing on our side of the platform boundary is mocked.
@@ -28,7 +28,7 @@ from tests.fakes.platforms._standin import wait_until
 REPO_ROOT = Path(__file__).resolve().parents[4]
 
 _STRIP_SUFFIXES = ("_API_KEY", "_TOKEN", "_SECRET", "_PASSWORD", "_KEY")
-_STRIP_PREFIXES = ("HERMES_", "TELEGRAM_", "DISCORD_", "SLACK_", "OPENAI_", "ANTHROPIC_", "OPENROUTER_",
+_STRIP_PREFIXES = ("A2ASSISTANT_", "TELEGRAM_", "DISCORD_", "SLACK_", "OPENAI_", "ANTHROPIC_", "OPENROUTER_",
                    "GATEWAY_", "NOUS_")
 _TOKEN_RE = re.compile(r"\[in:([A-Za-z0-9_.-]+)\]")
 
@@ -52,11 +52,11 @@ def hermetic_env(home: Path, extra: Optional[dict[str, str]] = None) -> dict[str
     extra = dict(extra or {})
     shim = extra.pop("PYTHONPATH_PREPEND", "")
     env.update(
-        HOME=str(home), HERMES_HOME=str(home / ".hermes"), XDG_STATE_HOME=str(home / ".local" / "state"),
+        HOME=str(home), A2ASSISTANT_HOME=str(home / ".hermes"), XDG_STATE_HOME=str(home / ".local" / "state"),
         # a stand-in's sitecustomize shim (if any) first, then the checkout under test
         PYTHONPATH=os.pathsep.join(p for p in (shim, str(REPO_ROOT)) if p),
         NO_COLOR="1", TERM="dumb", NO_PROXY="127.0.0.1,localhost", no_proxy="127.0.0.1,localhost",
-        HERMES_STATE_DB_GUARD_BYPASS="1", HERMES_DISABLE_LAZY_INSTALLS="1", TZ="UTC", PYTHONUNBUFFERED="1",
+        A2ASSISTANT_STATE_DB_GUARD_BYPASS="1", A2ASSISTANT_DISABLE_LAZY_INSTALLS="1", TZ="UTC", PYTHONUNBUFFERED="1",
         AWS_EC2_METADATA_DISABLED="true",
     )
     env.update(extra or {})
@@ -101,7 +101,7 @@ class Director:
 
 
 class GatewayUnderTest:
-    """A real ``hermes gateway run`` child on its own fake HOME; SIGTERM stop + restart on the same state."""
+    """A real ``a2assistant gateway run`` child on its own fake HOME; SIGTERM stop + restart on the same state."""
 
     def __init__(self, root: Path, *, llm_base_url: str, config: dict[str, Any], env: dict[str, str],
                  ready: Callable[[], bool]) -> None:

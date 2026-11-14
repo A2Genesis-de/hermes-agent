@@ -82,8 +82,8 @@ def clean_env(monkeypatch):
     """Ensure no real API keys leak into tests."""
     monkeypatch.delenv("VOICE_TOOLS_OPENAI_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    monkeypatch.delenv("HERMES_LOCAL_STT_COMMAND", raising=False)
-    monkeypatch.delenv("HERMES_LOCAL_STT_LANGUAGE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_LOCAL_STT_COMMAND", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_LOCAL_STT_LANGUAGE", raising=False)
 
 
 # ============================================================================
@@ -159,7 +159,7 @@ class TestExplicitProviderRespected:
     def test_explicit_local_uses_local_command_fallback(self, monkeypatch):
         """Local-to-local_command fallback is fine — both are local."""
         monkeypatch.setenv(
-            "HERMES_LOCAL_STT_COMMAND",
+            "A2ASSISTANT_LOCAL_STT_COMMAND",
             "whisper {input_path} --output_dir {output_dir} --language {language}",
         )
         with patch("tools.transcription_tools._HAS_FASTER_WHISPER", False):
@@ -180,7 +180,7 @@ class TestOpenAIClientConfig:
     def test_stt_openai_config_controls_sdk_client(
         self, monkeypatch, tmp_path, sample_wav, openai_config, expected_timeout, expected_retries
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         config_lines = ["stt:", "  openai:"]
         config_lines.extend(f"    {key}: {value}" for key, value in openai_config.items())
         (tmp_path / "config.yaml").write_text("\n".join(config_lines) + "\n", encoding="utf-8")
@@ -199,7 +199,7 @@ class TestOpenAIClientConfig:
 
     def test_null_openai_subsection_is_safe(self, monkeypatch, sample_wav):
         """`stt.openai: null` in YAML yields None; must not raise."""
-        monkeypatch.delenv("HERMES_LOCAL_STT_LANGUAGE", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_LOCAL_STT_LANGUAGE", raising=False)
 
         mock_client = MagicMock()
         mock_client.audio.transcriptions.create.return_value = "hi"
@@ -271,7 +271,7 @@ class TestTranscribeLocalCommand:
         monkeypatch.setenv("OPENAI_API_KEY", "sk-openai")
         monkeypatch.setenv("MY_SAFE_LOCAL_STT", "keep")
         monkeypatch.setenv(
-            "HERMES_LOCAL_STT_COMMAND",
+            "A2ASSISTANT_LOCAL_STT_COMMAND",
             "whisper {input_path} --model {model} --output_dir {output_dir} --language {language}",
         )
 
@@ -318,10 +318,10 @@ class TestTranscribeLocalCommand:
         out_dir.mkdir()
 
         monkeypatch.setenv(
-            "HERMES_LOCAL_STT_COMMAND",
+            "A2ASSISTANT_LOCAL_STT_COMMAND",
             "whisper {input_path} --model {model} --output_dir {output_dir} --language {language}",
         )
-        monkeypatch.setenv("HERMES_LOCAL_STT_LANGUAGE", "en")
+        monkeypatch.setenv("A2ASSISTANT_LOCAL_STT_LANGUAGE", "en")
 
         def fake_tempdir(prefix=None):
             class _TempDir:
@@ -764,7 +764,7 @@ class TestShellSafety:
     def test_auto_detected_template_is_shlex_safe(self, monkeypatch):
         """Auto-detected whisper command should be safely splittable."""
         import shlex
-        monkeypatch.delenv("HERMES_LOCAL_STT_COMMAND", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_LOCAL_STT_COMMAND", raising=False)
         monkeypatch.setattr(
             "tools.transcription_local._find_whisper_binary",
             lambda: "/usr/bin/whisper",
@@ -1121,7 +1121,7 @@ class TestExplicitOpenaiSelectionError:
 
     When ``_resolve_openai_audio_client_config()`` raises its
     selection-specific ValueError (managed openai-audio gateway unavailable,
-    with the ``hermes tools`` remediation for managed-Nous users), the old
+    with the ``a2assistant tools`` remediation for managed-Nous users), the old
     boolean probe flattened it into False — the log said "no API key" and
     the transcription result returned the all-provider install hint,
     pointing operators at unrelated setup instead of their managed route.
@@ -1142,7 +1142,7 @@ class TestExplicitOpenaiSelectionError:
 
     def test_dispatch_returns_selection_specific_error(self, monkeypatch):
         """The final transcription result carries the managed-route error and
-        its hermes tools remediation instead of the all-provider install
+        its a2assistant tools remediation instead of the all-provider install
         hint."""
         self._no_openai_credentials(monkeypatch)
         monkeypatch.setattr(
@@ -1155,7 +1155,7 @@ class TestExplicitOpenaiSelectionError:
              patch("tools.transcription_tools._HAS_FASTER_WHISPER", False), \
              patch(
                  "tools.tool_backend_helpers.nous_tool_gateway_unavailable_message",
-                 lambda what: f"managed route down for {what}; run `hermes tools`",
+                 lambda what: f"managed route down for {what}; run `a2assistant tools`",
              ):
             from tools.transcription_tools import _dispatch_stt_provider
 
@@ -1165,7 +1165,7 @@ class TestExplicitOpenaiSelectionError:
 
         assert result["success"] is False
         assert "managed route down" in result["error"]
-        assert "hermes tools" in result["error"]
+        assert "a2assistant tools" in result["error"]
         assert "No STT provider available" not in result["error"]
 
     def test_auto_detect_none_keeps_generic_hint(self, monkeypatch):

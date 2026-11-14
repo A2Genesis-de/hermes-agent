@@ -25,7 +25,7 @@ import {
 markOnboardingDecided()
 
 const NOT_CONNECTED =
-  'A2Assistant is not connected to any AI provider yet. Run `hermes model` to pick one, or `hermes auth add <provider>`.'
+  'A2Assistant is not connected to any AI provider yet. Run `a2assistant model` to pick one, or `a2assistant auth add <provider>`.'
 
 function baseState(overrides: Partial<DesktopOnboardingState> = {}): DesktopOnboardingState {
   return {
@@ -221,7 +221,7 @@ describe('refreshOnboarding', () => {
       if (method === 'setup.runtime_check') {
         return {
           ok: false,
-          error: 'A2Assistant is not connected to any AI provider yet. Run `hermes model` to pick one.'
+          error: 'A2Assistant is not connected to any AI provider yet. Run `a2assistant model` to pick one.'
         } as never
       }
 
@@ -256,7 +256,7 @@ describe('refreshOnboarding', () => {
     }
 
     expect(await refreshOnboarding(onboardingContext(unconfigured))).toBe(false)
-    expect($desktopOnboarding.get().reason).not.toContain('hermes model')
+    expect($desktopOnboarding.get().reason).not.toContain('a2assistant model')
   })
 
   it('keeps cached providers when onboarding was not re-requested', async () => {

@@ -1,5 +1,5 @@
 """Tests that ``model_catalog.excluded_providers`` hides providers from the
-interactive ``hermes model`` CLI picker.
+interactive ``a2assistant model`` CLI picker.
 
 The CLI picker (``hermes_cli.main.select_provider_and_model``) builds its
 provider menu from ``CANONICAL_PROVIDERS`` via ``group_providers`` — a
@@ -15,17 +15,17 @@ import pytest
 
 @pytest.fixture
 def config_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with a minimal config."""
+    """Isolated A2ASSISTANT_HOME with a minimal config."""
     home = tmp_path / "hermes"
     home.mkdir()
     config_yaml = home / "config.yaml"
     config_yaml.write_text("model: old-model\ncustom_providers: []\n")
     env_file = home / ".env"
     env_file.write_text("")
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_MODEL", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_MODEL", raising=False)
     monkeypatch.delenv("LLM_MODEL", raising=False)
-    monkeypatch.delenv("HERMES_INFERENCE_PROVIDER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INFERENCE_PROVIDER", raising=False)
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     return home
@@ -61,7 +61,7 @@ def _capture_provider_labels(config_home):
 
 def test_cli_picker_hides_excluded_provider(config_home):
     """``excluded_providers: [openrouter]`` must remove the OpenRouter row
-    from the ``hermes model`` provider menu."""
+    from the ``a2assistant model`` provider menu."""
     _write_config(config_home, model_catalog={"excluded_providers": ["openrouter"]})
 
     labels = _capture_provider_labels(config_home)
@@ -173,7 +173,7 @@ def test_unconfigured_rows_exclusion_is_case_insensitive():
 
 def test_unconfigured_rows_hide_excluded_provider_by_alias():
     """Excluding by an *alias* (not the canonical slug) must also drop the
-    canonical skeleton row, matching ``hermes model`` and
+    canonical skeleton row, matching ``a2assistant model`` and
     ``list_authenticated_providers``. Comparing the raw exclusion strings
     against ``entry.slug`` alone would leak the canonical row back in."""
     from hermes_cli.inventory import _append_unconfigured_rows

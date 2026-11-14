@@ -89,7 +89,7 @@ class TestDoctorPlatformHints:
         hint = doctor_platform._sqlite_upgrade_hint()
 
         assert "docker pull nousresearch/hermes-agent:latest" in hint
-        assert "hermes update" not in hint
+        assert "a2assistant update" not in hint
 
 
     def test_sqlite_upgrade_hint_apt_stamp_names_termux_external_update(self):
@@ -100,7 +100,7 @@ class TestDoctorPlatformHints:
         hint = doctor_platform._sqlite_upgrade_hint("apt")
 
         assert "run `pkg upgrade hermes-agent`" in hint
-        assert "hermes update" not in hint
+        assert "a2assistant update" not in hint
 
     def test_sqlite_upgrade_hint_preserves_nix_guidance_as_prose(self):
         from hermes_cli.config import recommended_update_command_for_method
@@ -110,7 +110,7 @@ class TestDoctorPlatformHints:
 
         assert guidance in hint
         assert f"run `{guidance}`" not in hint
-        assert "hermes update" not in hint
+        assert "a2assistant update" not in hint
 
 
 class TestProviderEnvDetection:
@@ -139,7 +139,7 @@ class TestDoctorToolAvailabilitySummary:
     def test_image_gen_without_provider_reports_setup_hint_not_system_dependency(self, monkeypatch):
         """image_gen declares no single env var (FAL / managed Nous / plugin providers); an
         unconfigured backend is a setup problem and must say so, and it counts toward the
-        'run hermes setup' summary like any missing key (#9516)."""
+        'run a2assistant setup' summary like any missing key (#9516)."""
         unavailable = [{"name": "image_gen", "env_vars": [], "tools": ["image_generate"]},
                        {"name": "homeassistant", "env_vars": [], "tools": []}]
         monkeypatch.setattr(doctor_tools, "_enabled_cli_toolsets_for_doctor", lambda: {"image_gen"})
@@ -157,9 +157,9 @@ class TestDoctorToolAvailabilitySummary:
         out = buf.getvalue()
 
         image_line = next(line for line in out.splitlines() if "image_gen" in line)
-        assert "hermes tools" in image_line and "system dependency" not in image_line and "unavailable" in image_line
+        assert "a2assistant tools" in image_line and "system dependency" not in image_line and "unavailable" in image_line
         assert "system dependency not met" in next(line for line in out.splitlines() if "homeassistant" in line)
-        assert any("hermes setup" in issue for issue in f.issues)
+        assert any("a2assistant setup" in issue for issue in f.issues)
 
     def test_web_capability_rows_warn_when_selected_provider_not_ready(self, monkeypatch):
         """#78412: selected firecrawl with is_available=False must warn."""
@@ -205,7 +205,7 @@ class TestDoctorToolAvailabilitySummary:
 
 
 class TestDoctorEnvFileEncoding:
-    """Regression for #18637 (bug 3): `hermes doctor` crashed on Windows
+    """Regression for #18637 (bug 3): `a2assistant doctor` crashed on Windows
     Chinese locale (GBK) because `.env` was read with Path.read_text(encoding="utf-8") which
     defaults to the system locale encoding, not UTF-8."""
 
@@ -226,7 +226,7 @@ class TestDoctorEnvFileEncoding:
             encoding="utf-8",
         )
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", hermes_home)
+        monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", hermes_home)
 
         orig_read_text = pathlib.Path.read_text
 
@@ -268,7 +268,7 @@ class TestDoctorEnvFileEncoding:
         # so the scan still reports a configured endpoint/key.
         env_path.write_bytes(b"OPENAI_API_KEY=sk-test\xff\n")
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", hermes_home)
+        monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", hermes_home)
 
         fake_model_tools = types.SimpleNamespace(
             check_tool_availability=lambda *a, **kw: (_ for _ in ()).throw(SystemExit(0)),
@@ -284,7 +284,7 @@ class TestDoctorToolAvailabilityOverrides:
 
 
     def test_marks_kanban_available_only_when_missing_worker_env_gate(self, monkeypatch):
-        monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
 
         available, unavailable = doctor_tools._apply_doctor_tool_availability_overrides(
             [],
@@ -295,7 +295,7 @@ class TestDoctorToolAvailabilityOverrides:
         assert unavailable == []
 
     def test_leaves_kanban_unavailable_when_worker_env_is_set(self, monkeypatch):
-        monkeypatch.setenv("HERMES_KANBAN_TASK", "probe")
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", "probe")
         kanban_entry = {"name": "kanban", "env_vars": [], "tools": ["kanban_show"]}
 
         available, unavailable = doctor_tools._apply_doctor_tool_availability_overrides(
@@ -333,7 +333,7 @@ class TestDoctorMemoryProviderSection:
     """The ◆ Memory Provider section should respect memory.provider config."""
 
     def _make_hermes_home(self, tmp_path, provider="", memory_config=None):
-        """Create a minimal HERMES_HOME with config.yaml."""
+        """Create a minimal A2ASSISTANT_HOME with config.yaml."""
         home = tmp_path / ".hermes"
         home.mkdir(parents=True, exist_ok=True)
         import hermes_yaml as yaml
@@ -360,7 +360,7 @@ class TestDoctorMemoryProviderSection:
             memories.mkdir()
             (memories / "MEMORY.md").write_text("stale memory", encoding="utf-8")
             (memories / "USER.md").write_text("stale user", encoding="utf-8")
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
         (tmp_path / "project").mkdir(exist_ok=True)
@@ -465,7 +465,7 @@ def test_run_doctor_accepts_named_provider_from_providers_section(monkeypatch, t
         )
     , encoding="utf-8")
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -509,7 +509,7 @@ def test_run_doctor_accepts_stable_key_when_provider_name_differs(
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -551,7 +551,7 @@ def test_run_doctor_accepts_bare_custom_provider(monkeypatch, tmp_path):
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -588,7 +588,7 @@ def test_run_doctor_flags_missing_credentials_for_active_openrouter_provider(mon
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -636,7 +636,7 @@ def test_run_doctor_accepts_hermes_provider_ids_that_catalog_aliases(
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -683,7 +683,7 @@ def test_run_doctor_accepts_vendor_slugs_for_named_custom_provider(monkeypatch, 
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -739,7 +739,7 @@ def test_run_doctor_vendor_slug_policy_for_openai_api_endpoint(
         encoding="utf-8",
     )
 
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", tmp_path / "project")
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     (tmp_path / "project").mkdir(exist_ok=True)
@@ -780,7 +780,7 @@ def _doctor_env_for_browser(monkeypatch, tmp_path):
     project.mkdir(exist_ok=True)
 
     monkeypatch.setenv("PREFIX", "/usr")
-    monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
     monkeypatch.setattr(doctor_mod, "_DHH", str(home))
     monkeypatch.setattr(
@@ -833,7 +833,7 @@ def test_doctor_fix_does_not_claim_success_without_published_binary(monkeypatch,
     out = buf.getvalue()
 
     assert "Chromium not installed" in out
-    assert "hermes pm install chromium" in out
+    assert "a2assistant pm install chromium" in out
 
 
 def test_doctor_fix_reports_pm_install_failure(monkeypatch, tmp_path):
@@ -877,7 +877,7 @@ def test_missing_chromium_is_info_when_config_needs_none(monkeypatch, tmp_path, 
     out = buf.getvalue()
 
     assert "not needed" in out and reason in out
-    assert "hermes pm install chromium" not in out
+    assert "a2assistant pm install chromium" not in out
 
 
 class TestGitHubTokenCheck:
@@ -925,7 +925,7 @@ class TestDoctorXaiOAuthStatus:
         project = tmp_path / "project"
         project.mkdir(exist_ok=True)
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
 
@@ -966,7 +966,7 @@ class TestDoctorXaiOAuthStatus:
         project = tmp_path / "project"
         project.mkdir(exist_ok=True)
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", home)
+        monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", home)
         monkeypatch.setattr(doctor_mod, "PROJECT_ROOT", project)
         monkeypatch.setattr(doctor_mod, "_DHH", str(home))
 
@@ -1005,7 +1005,7 @@ class TestDoctorXaiOAuthStatus:
 
 
 class TestDoctorStaleMaxIterationsDrift:
-    """Regression for #17534: a stale HERMES_MAX_ITERATIONS in .env shadows
+    """Regression for #17534: a stale A2ASSISTANT_MAX_ITERATIONS in .env shadows
     agent.max_turns in config.yaml. The repro symptom is config.yaml saying
     400 while the gateway activity line reads N/90. Doctor must detect the
     drift, and `--fix` must remove the .env ghost (config.yaml wins).
@@ -1028,18 +1028,18 @@ class TestDoctorStaleMaxIterationsDrift:
         )
         env_lines = ["OPENAI_API_KEY=sk-test\n"]
         if ghost is not None:
-            env_lines.append(f"HERMES_MAX_ITERATIONS={ghost}\n")
+            env_lines.append(f"A2ASSISTANT_MAX_ITERATIONS={ghost}\n")
         (hermes_home / ".env").write_text("".join(env_lines), encoding="utf-8")
 
-        monkeypatch.setattr(doctor_mod, "HERMES_HOME", hermes_home)
+        monkeypatch.setattr(doctor_mod, "A2ASSISTANT_HOME", hermes_home)
         monkeypatch.setattr(doctor_mod, "get_hermes_home", lambda: hermes_home)
         # Point the config helpers at the temp home.
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         if os_environ_value is not None:
             # Simulate the gateway bridge having already overridden os.environ.
-            monkeypatch.setenv("HERMES_MAX_ITERATIONS", str(os_environ_value))
+            monkeypatch.setenv("A2ASSISTANT_MAX_ITERATIONS", str(os_environ_value))
         else:
-            monkeypatch.delenv("HERMES_MAX_ITERATIONS", raising=False)
+            monkeypatch.delenv("A2ASSISTANT_MAX_ITERATIONS", raising=False)
 
         # Short-circuit at the Tool Availability stage — the drift check runs
         # well before it in the Configuration Files section.
@@ -1059,19 +1059,19 @@ class TestDoctorStaleMaxIterationsDrift:
             monkeypatch, tmp_path, fix=False, ghost=90, cfg_turns=400,
             os_environ_value=400,  # bridge contaminated os.environ
         )
-        assert "HERMES_MAX_ITERATIONS=90" in out
+        assert "A2ASSISTANT_MAX_ITERATIONS=90" in out
         assert "shadows" in out
         # Warn-only must NOT mutate .env.
-        assert "HERMES_MAX_ITERATIONS=90" in (hermes_home / ".env").read_text(encoding="utf-8")
+        assert "A2ASSISTANT_MAX_ITERATIONS=90" in (hermes_home / ".env").read_text(encoding="utf-8")
 
     def test_fix_removes_ghost(self, monkeypatch, tmp_path):
         out, hermes_home = self._run_config_section(
             monkeypatch, tmp_path, fix=True, ghost=90, cfg_turns=400,
             os_environ_value=400,
         )
-        assert "Removed stale HERMES_MAX_ITERATIONS" in out
+        assert "Removed stale A2ASSISTANT_MAX_ITERATIONS" in out
         env_after = (hermes_home / ".env").read_text(encoding="utf-8")
-        assert "HERMES_MAX_ITERATIONS" not in env_after
+        assert "A2ASSISTANT_MAX_ITERATIONS" not in env_after
         assert "OPENAI_API_KEY=sk-test" in env_after  # other keys preserved
 
 
@@ -1256,32 +1256,32 @@ class TestMacOSTCCGrants:
     def test_warns_on_cdhash_pinned_dr(self, monkeypatch, capsys, tmp_path):
         self._darwin_bundle(
             monkeypatch, tmp_path,
-            'designated => identifier "com.nousresearch.hermes" and cdhash H"97e692f3890f781fa0ad5ad6cb9d769cfaf42628"',
+            'designated => identifier "de.a2genesis.a2assistant" and cdhash H"97e692f3890f781fa0ad5ad6cb9d769cfaf42628"',
         )
         doctor_platform.check_macos_tcc_grants()
         out = capsys.readouterr().out
         assert "TCC grants will reset after every update" in out
-        assert "hermes update" in out
+        assert "a2assistant update" in out
         assert "signing identity is stable" not in out
 
     def test_identifier_dr_is_stable_with_upgrade_hint_and_repair_info(self, monkeypatch, capsys, tmp_path):
-        self._darwin_bundle(monkeypatch, tmp_path, 'designated => identifier "com.nousresearch.hermes"')
+        self._darwin_bundle(monkeypatch, tmp_path, 'designated => identifier "de.a2genesis.a2assistant"')
         doctor_platform.check_macos_tcc_grants()
         out = capsys.readouterr().out
         assert "TCC signing identity is stable" in out
         assert "--setup-tcc-identity" in out
-        assert "tccutil reset ScreenCapture com.nousresearch.hermes" in out
+        assert "tccutil reset ScreenCapture de.a2genesis.a2assistant" in out
 
     def test_certificate_anchored_dr_is_stable_without_upgrade_hint(self, monkeypatch, capsys, tmp_path):
         self._darwin_bundle(
             monkeypatch, tmp_path,
-            'designated => identifier "com.nousresearch.hermes" and certificate root = H"aabbcc"',
+            'designated => identifier "de.a2genesis.a2assistant" and certificate root = H"aabbcc"',
         )
         doctor_platform.check_macos_tcc_grants()
         out = capsys.readouterr().out
         assert "TCC signing identity is stable" in out
         assert "--setup-tcc-identity" not in out
-        assert "tccutil reset ScreenCapture com.nousresearch.hermes" in out
+        assert "tccutil reset ScreenCapture de.a2genesis.a2assistant" in out
 
     @pytest.mark.parametrize("failure", ["none", "empty", "timeout", "no_codesign"])
     def test_unreadable_dr_warns_and_never_claims_stable(self, monkeypatch, capsys, tmp_path, failure):
@@ -1319,7 +1319,7 @@ def test_cron_store_check_reports_writability_and_low_space(
     from cron import store_health
 
     (tmp_path / "cron").mkdir()
-    monkeypatch.setattr(doctor, "HERMES_HOME", tmp_path)
+    monkeypatch.setattr(doctor, "A2ASSISTANT_HOME", tmp_path)
     monkeypatch.setattr(store_health, "probe_store", lambda _d: probe_error)
     monkeypatch.setattr(store_health.shutil, "disk_usage", lambda _d: SimpleNamespace(free=free))
     if hasattr(os, "geteuid"):  # rows run as the user they name, whoever runs the suite
@@ -1338,7 +1338,7 @@ def test_profile_alias_status_follows_the_wrapper_the_profile_really_has(monkeyp
     from hermes_cli import profiles
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     monkeypatch.setattr(gm, "duplicate_credential_findings", list)
     for name in ("dev", "ops", "work", "old"):
@@ -1346,7 +1346,7 @@ def test_profile_alias_status_follows_the_wrapper_the_profile_really_has(monkeyp
         (tmp_path / ".hermes" / "profiles" / name / "config.yaml").write_text("model: m\n", encoding="utf-8")
     profiles.create_wrapper_script("dev")
     profiles.create_wrapper_script("w", target="work")
-    (tmp_path / ".local" / "bin" / "old").write_text('#!/bin/sh\nexec hermes -p old "$@"\n', encoding="utf-8")
+    (tmp_path / ".local" / "bin" / "old").write_text('#!/bin/sh\nexec a2assistant -p old "$@"\n', encoding="utf-8")
     for foreign in ("ops.bat", "old.bat"):  # same-named non-Hermes commands
         (tmp_path / ".local" / "bin" / foreign).write_text("@echo off\r\nnotepad %*\r\n", encoding="utf-8")
 

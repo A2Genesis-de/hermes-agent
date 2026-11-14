@@ -391,7 +391,7 @@ class TestSyncBackSizeCap:
         mgr = _make_manager(tmp_path, file_mapping=[(host_file, "/root/.hermes/skill.md")],
                             bulk_download_fn=_make_download_fn(files))
 
-        monkeypatch.setenv("HERMES_SYNC_BACK_MAX_BYTES", "1")  # the first cut's env var: must be ignored
+        monkeypatch.setenv("A2ASSISTANT_SYNC_BACK_MAX_BYTES", "1")  # the first cut's env var: must be ignored
         monkeypatch.setattr("hermes_cli.config.load_config",
                             lambda: {"terminal": {"sync_back_max_bytes": 1}})
         mgr.sync_back(hermes_home=tmp_path / ".hermes")

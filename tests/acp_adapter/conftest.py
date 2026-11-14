@@ -71,10 +71,10 @@ def daemon(tmp_path, model_peer, request):
         config.setdefault(key, {}).update(value)
     (home / "config.yaml").write_text(json.dumps(config))
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home),
                PYTHONPATH=str(root), PYTHONUNBUFFERED="1",
                OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=model_url,
-               HERMES_ACP_SKIP_CONFIGURED_MCP="1")
+               A2ASSISTANT_ACP_SKIP_CONFIGURED_MCP="1")
     command = [sys.executable, "-m", "gateway.run"]
     if getattr(request, 'param', None) == 'proposed-acp-descriptor':
         # API-owner handoff only: execution/create/policy stay unmodified. This

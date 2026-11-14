@@ -1,6 +1,6 @@
 """Turn leases for plugin side questions (``agent/side_question_lease.py``, ``ctx.side_question``).
 
-Plugins load through real discovery from a temp ``HERMES_HOME``. The lease rules (issued only
+Plugins load through real discovery from a temp ``A2ASSISTANT_HOME``. The lease rules (issued only
 for a consented plugin, one attempt per turn shared across plugins, expiry, invalid once the
 next turn starts, prompt cap) are checked against a recorded executor; the last test runs a real
 turn end to end and lets a plugin's ``post_llm_call`` hook redeem its token.
@@ -26,7 +26,7 @@ CAP = "llm.side_question"
 
 
 def _install_plugin(name: str, *, declares: bool, hook_body: str = "pass") -> None:
-    plugin_dir = Path(os.environ["HERMES_HOME"]) / "plugins" / name
+    plugin_dir = Path(os.environ["A2ASSISTANT_HOME"]) / "plugins" / name
     plugin_dir.mkdir(parents=True)
     manifest = {"name": name, **({"capabilities": [CAP]} if declares else {})}
     (plugin_dir / "plugin.yaml").write_text(yaml.safe_dump(manifest), encoding="utf-8")
@@ -42,7 +42,7 @@ def _install_plugin(name: str, *, declares: bool, hook_body: str = "pass") -> No
 
 def _load(enabled: list[str], granted: list[str]) -> plugins_mod.PluginManager:
     entries = {name: {"granted_capabilities": [CAP]} for name in granted}
-    (Path(os.environ["HERMES_HOME"]) / "config.yaml").write_text(
+    (Path(os.environ["A2ASSISTANT_HOME"]) / "config.yaml").write_text(
         yaml.safe_dump({"plugins": {"enabled": enabled, "entries": entries}}), encoding="utf-8")
     plugins_mod._plugin_manager = plugins_mod.PluginManager()
     plugins_mod.discover_plugins(force=True)
@@ -242,7 +242,7 @@ def test_timeout_is_clamped(executor, consented, given, used):
 def test_post_llm_call_hook_redeems_its_token_end_to_end(monkeypatch):
     from run_agent import AIAgent
 
-    answers = Path(os.environ["HERMES_HOME"]) / "side_answers.json"
+    answers = Path(os.environ["A2ASSISTANT_HOME"]) / "side_answers.json"
     _install_plugin("next-prompt", declares=True, hook_body=(
         "answer = ctx.side_question(kwargs['side_question_token'], 'Suggest the next prompt.')\n"
         f"        pathlib.Path({str(answers)!r}).write_text(json.dumps(answer))"
@@ -281,8 +281,8 @@ def _observed_turn_with_side_question(monkeypatch, side_reply) -> list[dict]:
     request event; ``side_reply`` is what the provider returns to the side request."""
     from run_agent import AIAgent
 
-    events = Path(os.environ["HERMES_HOME"]) / "events.jsonl"
-    plugin_dir = Path(os.environ["HERMES_HOME"]) / "plugins" / "observer"
+    events = Path(os.environ["A2ASSISTANT_HOME"]) / "events.jsonl"
+    plugin_dir = Path(os.environ["A2ASSISTANT_HOME"]) / "plugins" / "observer"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text(
         yaml.safe_dump({"name": "observer", "capabilities": [CAP]}), encoding="utf-8")

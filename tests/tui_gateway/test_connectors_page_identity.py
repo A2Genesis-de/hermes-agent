@@ -4,7 +4,7 @@ Contracts, for a user with no Nous identity (the fake account service in
 ``tests.hermes_cli.anon_portal``, Hermes' real RPC handlers and CLI):
 - opening the page (list, catalog, accounts) creates no identity; the catalog comes from the Portal's
   public route, asked once and without a bearer, and rules are refused rather than invented
-- ``hermes connectors list`` and the agent's ``manage_connections`` status each create exactly one
+- ``a2assistant connectors list`` and the agent's ``manage_connections`` status each create exactly one
   identity and make the gateway list call, as before
 - the first connect creates one identity, arms the connector sign-in offer, and the page then reads
   the signed-in routes; a connect by link that a later status read sees connected arms it too, and

@@ -47,7 +47,7 @@ def _make_real_session(tmp_path, monkeypatch, *, source, session_id):
 
     hermes_home = tmp_path / "hermes_home"
     hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     db_path = hermes_home / "state.db"
     db = SessionDB(db_path=db_path)
     db.create_session(session_id, source=source)

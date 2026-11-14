@@ -8,7 +8,7 @@ EXCLUSIVE lock and an in-flight BEGIN IMMEDIATE's RESERVED lock:
 
 Hermes used to byte-probe live databases in several places (kanban's
 post-commit page-count check, the zeroed-state.db detector run on every
-SessionDB construction, backup header verification). Under `hermes sessions
+SessionDB construction, backup header verification). Under `a2assistant sessions
 optimize` this let an external process write into a database while VACUUM was
 rewriting it, producing "database disk image is malformed".
 
@@ -272,7 +272,7 @@ def test_probe_and_connect_do_not_race(tmp_path, clean_registry, monkeypatch):
 
 def test_session_db_read_only_is_tracked(tmp_path, clean_registry, monkeypatch):
     """End-to-end: a real read-only SessionDB blocks byte-probes."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from hermes_state import SessionDB
 
     db_path = tmp_path / "state.db"
@@ -303,7 +303,7 @@ def test_repair_connections_are_tracked_for_byte_probe_safety(tmp_path, clean_re
     (``howtocorrupt`` §2.2), letting an external writer commit into the database
     the repair still believed it owned.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from hermes_state import SessionDB
     from hermes_state_repair import _connect_repair_durable, _repair_conn
 

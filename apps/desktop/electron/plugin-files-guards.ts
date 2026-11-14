@@ -122,7 +122,7 @@ export async function realRoots(roots: string[]): Promise<string[]> {
 
 /**
  * A WSL share path that is Hermes data or not the distro's own files: the
- * distro root, `/home`, a home dir and `/root` each hold a `~/.hermes`, and
+ * distro root, `/home`, a home dir and `/root` each hold a `~/.a2assistant`, and
  * anything under a `.hermes` segment is one (Windows Desktop cannot know which
  * WSL user runs the gateway, so every WSL home counts); `/proc`, `/sys`,
  * `/dev` and `/run` are the distro's kernel views, and `/mnt` reaches the

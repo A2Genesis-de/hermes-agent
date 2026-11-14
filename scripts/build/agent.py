@@ -120,12 +120,12 @@ def assemble(inputs: AgentInputs, out: Path) -> dict:
         for command in commands.values():
             if not Path(command).is_file():
                 raise FileNotFoundError(f"prepared command missing: {command}")
-        env = {**inputs.env, "HERMES_PYTHON": str(inputs.python), "HERMES_INSTALL_ROOT": str(repo)}
+        env = {**inputs.env, "A2ASSISTANT_PYTHON": str(inputs.python), "A2ASSISTANT_INSTALL_ROOT": str(repo)}
         links = {RESOURCE_ENV[name]: (path, repo / name) for name, path in inputs.resources.items()}
         for name, path in inputs.frontends.items():
-            key, destination = {"tui": ("HERMES_TUI_DIR", out / "ui-tui"),
-                                "web": ("HERMES_WEB_DIST", repo / "web_dist"),
-                                "webapp": ("HERMES_WEBAPP_DIST", repo / "webapp_dist")}[name]
+            key, destination = {"tui": ("A2ASSISTANT_TUI_DIR", out / "ui-tui"),
+                                "web": ("A2ASSISTANT_WEB_DIST", repo / "web_dist"),
+                                "webapp": ("A2ASSISTANT_WEBAPP_DIST", repo / "webapp_dist")}[name]
             links[key] = (path, destination)
         for key, (source, destination) in links.items():
             destination.unlink(missing_ok=True)

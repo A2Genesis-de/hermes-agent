@@ -401,7 +401,7 @@ describe('caps and shapes', () => {
 
 describe('protected roots', () => {
   it('an op inside a granted folder never reaches a protected root nested under it', async () => {
-    // A grant made before HERMES_HOME moved inside it must not become a door into the new home.
+    // A grant made before A2ASSISTANT_HOME moved inside it must not become a door into the new home.
     const id = await grantVault()
     const nestedHome = path.join(vault, 'hermes')
     fs.mkdirSync(nestedHome)

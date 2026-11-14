@@ -1,4 +1,4 @@
-"""``hermes webapp`` opens the browser-hosted Desktop that the gateway serves.
+"""``a2assistant webapp`` opens the browser-hosted Desktop that the gateway serves.
 
 It builds the Webapp bundle when stale, starts the gateway that serves the current profile (the default
 gateway for a profile it serves, else the profile's own), asks that gateway for a one-use launch link
@@ -61,13 +61,13 @@ def world(monkeypatch, tmp_path):
                         raising=False)
     monkeypatch.setattr("time.sleep", lambda seconds: calls.setdefault("slept", []).append(seconds))
     root = _home(tmp_path / "root", "webapp:\n  enabled: true\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     return {"calls": calls, "answers": answers, "root": root, "tmp": tmp_path, "monkeypatch": monkeypatch,
             "states": states}
 
 
 def _use_home(world, home):
-    world["monkeypatch"].setenv("HERMES_HOME", str(home))
+    world["monkeypatch"].setenv("A2ASSISTANT_HOME", str(home))
 
 
 def test_the_webapp_opens_from_a_one_use_link_its_gateway_mints(world, capsys):
@@ -118,7 +118,7 @@ def test_a_gateway_started_before_the_webapp_was_turned_on_asks_for_a_restart(wo
     world["answers"]["webapp-status"] = {"ok": True, "result": {"state": "off", "url": None, "reason": None}}
     assert launcher.cmd_webapp(_args()) == 1
     out = capsys.readouterr().out
-    assert "hermes gateway restart" in out
+    assert "a2assistant gateway restart" in out
     assert world["calls"]["opened"] == []
 
 
@@ -131,14 +131,14 @@ def test_a_webapp_the_gateway_could_not_serve_reports_why_and_how_to_retry(world
                                                                "reason": reason}}
     assert launcher.cmd_webapp(_args()) == 1
     out = capsys.readouterr().out
-    assert reason in out and "hermes gateway restart" in out
+    assert reason in out and "a2assistant gateway restart" in out
     assert launcher.cmd_webapp(_args(status=True)) == 0
     out = capsys.readouterr().out
-    assert reason in out and "hermes gateway restart" in out
+    assert reason in out and "a2assistant gateway restart" in out
 
 
 def test_a_launch_refused_for_a_stale_bundle_asks_for_a_build_not_a_restart(world, capsys):
-    """A bundle that is missing or that hermes update could not rebuild is served as soon as it is
+    """A bundle that is missing or that a2assistant update could not rebuild is served as soon as it is
     built, and a restart keeps the stale mark: the refusal says to build it and never sends the user
     to restart the gateway, as --status already does."""
     from gateway.webapp_listener import NOT_REBUILT
@@ -147,7 +147,7 @@ def test_a_launch_refused_for_a_stale_bundle_asks_for_a_build_not_a_restart(worl
                                                                "reason": NOT_REBUILT}}
     assert launcher.cmd_webapp(_args(skip_build=True)) == 1
     out = capsys.readouterr().out
-    assert "Run hermes webapp to rebuild it." in out and launcher.RESTART_COMMAND not in out
+    assert "Run a2assistant webapp to rebuild it." in out and launcher.RESTART_COMMAND not in out
 
 
 SERVING = {"ok": True, "result": {"state": "serving", "url": "http://127.0.0.1:9120", "reason": None}}
@@ -155,7 +155,7 @@ SERVING = {"ok": True, "result": {"state": "serving", "url": "http://127.0.0.1:9
 
 def test_a_webapp_turned_off_in_config_but_still_served_says_a_restart_stops_it(world, capsys):
     """The gateway reads webapp: only when it starts. After the config turns the Webapp off, the running
-    gateway still serves it (on the LAN for a wildcard host) until it restarts: hermes webapp says so,
+    gateway still serves it (on the LAN for a wildcard host) until it restarts: a2assistant webapp says so,
     instead of "The Webapp is off", and opens nothing."""
     (world["root"] / "config.yaml").write_text("webapp:\n  enabled: false\n  host: 0.0.0.0\n", encoding="utf-8")
     world["answers"]["webapp-status"] = SERVING
@@ -249,7 +249,7 @@ def test_status_with_no_gateway_running_and_the_webapp_off_says_how_to_turn_it_o
     assert launcher.cmd_webapp(_args(status=True)) == 1
     out = capsys.readouterr().out
     assert "webapp.enabled: true" in out and str(world["root"] / "config.yaml") in out
-    assert "Run hermes webapp" not in out
+    assert "Run a2assistant webapp" not in out
 
 
 def test_sign_out_replaces_the_browser_credential_on_the_running_gateway(world, capsys):
@@ -382,7 +382,7 @@ def test_a_home_whose_gateway_never_ran_reads_as_having_none(tmp_path):
 @pytest.mark.parametrize("deleted", ["removed", "tombstoned"])
 @pytest.mark.parametrize("action", [{"sign_out": True}, {"status": True}, {}])
 def test_a_hermes_home_at_a_deleted_profile_is_refused_like_its_profile_flag(world, capsys, deleted, action):
-    """``HERMES_HOME`` naming a deleted profile is refused exactly as ``-p <name>`` is, so signing
+    """``A2ASSISTANT_HOME`` naming a deleted profile is refused exactly as ``-p <name>`` is, so signing
     out never replaces the default gateway's credential instead."""
     from gateway.webapp_listener import TOKEN_PATH, browser_session_token
     from hermes_constants import mark_named_profile_deleted
@@ -395,7 +395,7 @@ def test_a_hermes_home_at_a_deleted_profile_is_refused_like_its_profile_flag(wor
     _use_home(world, gone)
     assert launcher.cmd_webapp(_args(**action)) == 1
     refused = capsys.readouterr()
-    assert "Error: Profile 'gone' does not exist. Create it with: hermes profile create gone" in refused.err
+    assert "Error: Profile 'gone' does not exist. Create it with: a2assistant profile create gone" in refused.err
     assert "Signed out" not in refused.out
     assert (world["calls"]["control"], world["calls"]["ensure"], world["calls"]["build"]) == ([], [], 0)
     assert (world["root"] / TOKEN_PATH).read_text().strip() == before
@@ -446,7 +446,7 @@ def test_a_webapp_opened_over_plain_http_on_the_lan_says_what_the_browser_loses(
 
 
 def test_status_of_a_webapp_browsers_open_over_plain_http_on_the_lan_says_what_the_browser_loses(world, capsys):
-    """The gateway reports its loopback dial origin; browsers open webapp.public_url, as hermes webapp
+    """The gateway reports its loopback dial origin; browsers open webapp.public_url, as a2assistant webapp
     does. --status warns about that address."""
     _home(world["root"], "webapp:\n  enabled: true\n  host: 0.0.0.0\n  public_url: http://192.168.1.20:9120\n")
     assert launcher.cmd_webapp(_args(status=True)) == 0

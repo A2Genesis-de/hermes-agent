@@ -137,7 +137,7 @@ memory:
 ''')
     env = {'PATH': os.environ.get('PATH', ''), 'HOME': str(home / 'user'), 'LANG': 'C.UTF-8'}
     (home / 'user').mkdir()
-    env.update(HERMES_HOME=str(home), HERMES_DASHBOARD_SESSION_TOKEN='lease-probe',
+    env.update(A2ASSISTANT_HOME=str(home), A2ASSISTANT_DASHBOARD_SESSION_TOKEN='lease-probe',
                PYTHONPATH=str(repo), OPENAI_API_KEY='probe-key')
     processes = []
     logs = []

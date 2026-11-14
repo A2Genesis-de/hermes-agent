@@ -1,7 +1,7 @@
 """Dashboard chat workspace picker: ``GET /api/chat/workspaces`` + ``/api/pty?cwd=``.
 
 A fresh dashboard chat can be aimed at a host directory (the same projects/repos the
-Desktop sidebar lists); the pick reaches the TUI as ``HERMES_CWD``/``HERMES_TUI_CWD`` and a
+Desktop sidebar lists); the pick reaches the TUI as ``A2ASSISTANT_CWD``/``A2ASSISTANT_TUI_CWD`` and a
 dead path fails closed instead of silently landing in the dashboard's launch dir.
 """
 
@@ -58,7 +58,7 @@ def test_workspaces_lists_projects_and_discovered_repos(client, tmp_path):
 
 
 def test_resolve_chat_cwd_fails_closed_and_reaches_the_tui_env(monkeypatch, tmp_path):
-    """A picked directory becomes HERMES_CWD + HERMES_TUI_CWD on the PTY child; a missing one is a
+    """A picked directory becomes A2ASSISTANT_CWD + A2ASSISTANT_TUI_CWD on the PTY child; a missing one is a
     400 (never the launch-dir fallback); unset means no override."""
     import hermes_cli.main_tui_launch as tui_launch
 
@@ -73,8 +73,8 @@ def test_resolve_chat_cwd_fails_closed_and_reaches_the_tui_env(monkeypatch, tmp_
 
     picked = chat_workspaces.resolve_chat_cwd(str(tmp_path))
     _argv, _cwd, env = web_server_chat._resolve_chat_argv(workspace_cwd=picked)
-    assert env["HERMES_CWD"] == str(tmp_path)
-    assert env["HERMES_TUI_CWD"] == str(tmp_path)
+    assert env["A2ASSISTANT_CWD"] == str(tmp_path)
+    assert env["A2ASSISTANT_TUI_CWD"] == str(tmp_path)
 
     _argv, _cwd, env = web_server_chat._resolve_chat_argv()
-    assert "HERMES_TUI_CWD" not in env
+    assert "A2ASSISTANT_TUI_CWD" not in env

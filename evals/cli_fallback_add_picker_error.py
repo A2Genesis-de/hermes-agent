@@ -1,4 +1,4 @@
-"""Drive the real ``hermes fallback add`` under a Linux PTY into an ordinary picker error.
+"""Drive the real ``a2assistant fallback add`` under a Linux PTY into an ordinary picker error.
 
 Run from the checkout with the project Python. No provider requests are sent: the picker
 target is a saved custom provider with ``discover_models: false``. The auth store is made
@@ -57,7 +57,7 @@ def run(root: Path, output: Path) -> dict:
         shim = Path(home) / "shim" / "curses"
         shim.mkdir(parents=True)
         (shim / "__init__.py").write_text("raise ImportError('curses disabled for PTY harness')\n")
-        env = {"PATH": os.environ["PATH"], "HOME": home, "HERMES_HOME": str(hh),
+        env = {"PATH": os.environ["PATH"], "HOME": home, "A2ASSISTANT_HOME": str(hh),
                "PYTHONPATH": f"{shim.parent}{os.pathsep}{root}", "PYTHONUNBUFFERED": "1",
                "TERM": "dumb", "LANG": "C.UTF-8"}
         master, slave = pty.openpty()

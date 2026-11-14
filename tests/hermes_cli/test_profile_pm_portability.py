@@ -12,7 +12,7 @@ def transfer_home(tmp_path, monkeypatch):
     home = tmp_path / "source-home"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     from hermes_cli import backup, gateway, profiles
 
@@ -81,7 +81,7 @@ def test_transfers_preserve_user_files_without_porting_pm_state(
 
     target_home = tmp_path / "target-home"
     target_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(target_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(target_home))
     if route == "backup":
         run_import(Namespace(zipfile=str(archive), force=True))
         restored = target_home

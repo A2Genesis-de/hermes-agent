@@ -1,4 +1,4 @@
-"""MCP Server Management CLI — ``hermes mcp`` subcommand."""
+"""MCP Server Management CLI — ``a2assistant mcp`` subcommand."""
 
 import asyncio
 import contextlib
@@ -394,7 +394,7 @@ def _resolve_mcp_server_config(config: dict) -> dict:
     Mirrors ``_load_mcp_config()`` in ``tools/mcp_tool.py``; without it the discovery probe sent
     literal placeholders in header templates and auth-requiring servers returned 401.
 
-    Mirrors ``_load_mcp_config()`` in ``tools/mcp_tool.py``: load ``~/.hermes/.env`` into ``os.environ`` and
+    Mirrors ``_load_mcp_config()`` in ``tools/mcp_tool.py``: load ``~/.a2assistant/.env`` into ``os.environ`` and
     recursively interpolate any ``${VAR}`` placeholders. The CLI builds header templates like
     ``Authorization: Bearer ${MCP_X_API_KEY}`` but the probe path never resolved them, so the discovery
     probe sent the literal placeholder and auth-requiring servers (e.g. n8n) returned 401 — while runtime
@@ -643,9 +643,9 @@ def cmd_mcp_add(args):
     if not url and not command:
         _error("Must specify --url <endpoint>, --command <cmd>, or --preset <name>")
         _info("Examples:")
-        _info('  hermes mcp add ink --url "https://mcp.ml.ink/mcp"')
-        _info('  hermes mcp add github --command npx --args @modelcontextprotocol/server-github')
-        _info('  hermes mcp add myserver --preset mypreset')
+        _info('  a2assistant mcp add ink --url "https://mcp.ml.ink/mcp"')
+        _info('  a2assistant mcp add github --command npx --args @modelcontextprotocol/server-github')
+        _info('  a2assistant mcp add myserver --preset mypreset')
         return
 
     # Overwriting an existing server is a re-add, not an install; cancels are not recorded either.
@@ -694,7 +694,7 @@ def cmd_mcp_add(args):
             saved = _save_mcp_server(name, server_config)
             if saved:
                 _success(f"Saved '{name}' to config (disabled)")
-                _info("Fix the issue, then: hermes mcp test " + name)
+                _info("Fix the issue, then: a2assistant mcp test " + name)
         _record(saved, probe_failure_class(exc))
         return
 
@@ -749,8 +749,8 @@ def cmd_mcp_list(args=None):
         _info("No MCP servers configured.")
         print()
         _info("Add one with:")
-        _info('  hermes mcp add <name> --url <endpoint>')
-        _info('  hermes mcp add <name> --command <cmd> --args <args...>')
+        _info('  a2assistant mcp add <name> --url <endpoint>')
+        _info('  a2assistant mcp add <name> --command <cmd> --args <args...>')
         print()
         return
 
@@ -824,13 +824,13 @@ def _probe_failure_next_step(name: str, exc: BaseException) -> str:
     from tools.mcp_tool_node_abi import NodeAbiMismatchError
     root = _unwrap_exception_group(exc)
     if _is_auth_error(root) or getattr(getattr(root, "response", None), "status_code", None) in (401, 403):
-        return f"The server rejected the sign-in. Run: hermes mcp login {name}"
+        return f"The server rejected the sign-in. Run: a2assistant mcp login {name}"
     if isinstance(root, NodeAbiMismatchError):
-        return f"After rebuilding it under A2Assistant's Node as above, run: hermes mcp test {name}"
+        return f"After rebuilding it under A2Assistant's Node as above, run: a2assistant mcp test {name}"
     if "missing executable" in _format_connect_error(exc):
         return (f"Install that command, or set mcp_servers.{name}.command in {display_hermes_home()}/config.yaml "
                 "to its full path.")
-    return f"Check the server is running and the URL/command in its config, then run: hermes mcp test {name}"
+    return f"Check the server is running and the URL/command in its config, then run: a2assistant mcp test {name}"
 
 
 def cmd_mcp_test(args):
@@ -892,7 +892,7 @@ def _reauth_oauth_server(name: str, server_config: dict, *, flow: str | None = N
         return False
     if server_config.get("auth") != "oauth":
         _error(f"Server '{name}' is not configured for OAuth (auth={server_config.get('auth')})")
-        _info("Use `hermes mcp remove` + `hermes mcp add` to reconfigure auth.")
+        _info("Use `a2assistant mcp remove` + `a2assistant mcp add` to reconfigure auth.")
         return False
 
     oauth_cfg = server_config.get("oauth") or {}
@@ -952,7 +952,7 @@ def _reauth_oauth_server(name: str, server_config: dict, *, flow: str | None = N
             ):
                 print(color(f"    {line}", Colors.DIM))
             print()
-            _info("Then re-run `hermes mcp login " + name + "`.")
+            _info("Then re-run `a2assistant mcp login " + name + "`.")
             return False
         if tools:
             _success(f"Authenticated — {len(tools)} tool(s) available")
@@ -1004,7 +1004,7 @@ def cmd_mcp_reauth(args):
         return
     if not name:
         _error("Specify a server name, or use --all to re-auth every OAuth server.")
-        _info("Usage: hermes mcp reauth <name>   |   hermes mcp reauth --all")
+        _info("Usage: a2assistant mcp reauth <name>   |   a2assistant mcp reauth --all")
         return
     cfg = _lookup_server(name, servers)
     if cfg is not None:
@@ -1048,7 +1048,7 @@ def cmd_mcp_configure(args):
     """Reconfigure which tools are enabled for an existing MCP server."""
     import sys as _sys
     if not _sys.stdin.isatty():
-        print("Error: 'hermes mcp configure' requires an interactive terminal.", file=_sys.stderr)
+        print("Error: 'a2assistant mcp configure' requires an interactive terminal.", file=_sys.stderr)
         _sys.exit(1)
     name = args.name
     cfg = _lookup_server(name, _get_mcp_servers(), "Available")
@@ -1121,23 +1121,23 @@ def cmd_mcp_configure(args):
 
 
 _MCP_USAGE = (
-    "hermes mcp                                    Open the catalog picker (default)",
-    "hermes mcp catalog                            List Nous-approved MCPs",
-    "hermes mcp install <name>                     Install a catalog MCP",
-    "hermes mcp add <name> --url <endpoint>        Add a custom MCP server",
-    "hermes mcp add <name> --command <cmd>         Add a stdio server",
-    "hermes mcp add <name> --preset <preset>       Add from a known preset",
-    "hermes mcp remove <name>                      Remove a server",
-    "hermes mcp list                               List configured servers",
-    "hermes mcp test <name>                        Test connection",
-    "hermes mcp configure <name>                   Toggle tools",
-    "hermes mcp login <name>                       Re-authenticate OAuth",
-    "hermes mcp reauth <name> | --all              Re-auth one or all OAuth servers",
+    "a2assistant mcp                                    Open the catalog picker (default)",
+    "a2assistant mcp catalog                            List Nous-approved MCPs",
+    "a2assistant mcp install <name>                     Install a catalog MCP",
+    "a2assistant mcp add <name> --url <endpoint>        Add a custom MCP server",
+    "a2assistant mcp add <name> --command <cmd>         Add a stdio server",
+    "a2assistant mcp add <name> --preset <preset>       Add from a known preset",
+    "a2assistant mcp remove <name>                      Remove a server",
+    "a2assistant mcp list                               List configured servers",
+    "a2assistant mcp test <name>                        Test connection",
+    "a2assistant mcp configure <name>                   Toggle tools",
+    "a2assistant mcp login <name>                       Re-authenticate OAuth",
+    "a2assistant mcp reauth <name> | --all              Re-auth one or all OAuth servers",
 )
 
 
 def mcp_command(args):
-    """Main dispatcher for ``hermes mcp`` subcommands."""
+    """Main dispatcher for ``a2assistant mcp`` subcommands."""
     action = getattr(args, "mcp_action", None)
     if action in ("picker", "catalog", "install"):
         # Catalog subcommands live in mcp_picker / mcp_catalog; import lazily to keep this module cheap.

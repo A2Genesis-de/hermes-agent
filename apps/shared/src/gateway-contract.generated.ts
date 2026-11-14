@@ -719,7 +719,7 @@ export interface SharedMetricsSlashCommandParams {
 export interface SharedMetricsSlashCommandResult {
   ok: boolean
 }
-/** ``elapsed_ms`` = the client's own launch (TUI process start / Desktop app start) to ready (TUI gateway ready / Desktop backend attached), measured once per launch by the client. The client names its surface because a Desktop may attach to a URL/cloud backend where ``HERMES_DESKTOP`` is unset; without it the backend falls back to its own client detection. ``launch_id`` is an opaque per-launch token the backend latches on (never recorded), so a reconnect re-sending the same launch counts once while a new launch counts again. */
+/** ``elapsed_ms`` = the client's own launch (TUI process start / Desktop app start) to ready (TUI gateway ready / Desktop backend attached), measured once per launch by the client. The client names its surface because a Desktop may attach to a URL/cloud backend where ``A2ASSISTANT_DESKTOP`` is unset; without it the backend falls back to its own client detection. ``launch_id`` is an opaque per-launch token the backend latches on (never recorded), so a reconnect re-sending the same launch counts once while a new launch counts again. */
 export interface SharedMetricsStartupLatencyParams {
   profile?: string | null
   elapsed_ms: number
@@ -729,7 +729,7 @@ export interface SharedMetricsStartupLatencyParams {
 export interface SharedMetricsStartupLatencyResult {
   ok: boolean
 }
-/** One Desktop PACKAGED self-update (electron-updater / App Installer / Store). Source-checkout hand-offs run ``hermes update`` and are counted from its receipt, never here. Raw words; the backend buckets them: ``outcome`` success|failed|noop|refused, ``failed_stage`` download|verify|apply|restart, ``mechanism`` the updater strategy kind, ``duration_ms`` wall time, ``from_commit_date`` the updated-from build's commit time (epoch seconds) when known. */
+/** One Desktop PACKAGED self-update (electron-updater / App Installer / Store). Source-checkout hand-offs run ``a2assistant update`` and are counted from its receipt, never here. Raw words; the backend buckets them: ``outcome`` success|failed|noop|refused, ``failed_stage`` download|verify|apply|restart, ``mechanism`` the updater strategy kind, ``duration_ms`` wall time, ``from_commit_date`` the updated-from build's commit time (epoch seconds) when known. */
 export interface SharedMetricsUpdateRunParams {
   profile?: string | null
   outcome: string
@@ -4704,7 +4704,7 @@ export interface SessionMutateResult {
   revision?: number | null
   [key: string]: unknown
 }
-/** Exactly one of ``filters`` (``SessionDB.prune_sessions`` keyword filters, as ``hermes sessions prune`` builds them) or ``never_active_days`` (``--never-active``). */
+/** Exactly one of ``filters`` (``SessionDB.prune_sessions`` keyword filters, as ``a2assistant sessions prune`` builds them) or ``never_active_days`` (``--never-active``). */
 export interface SessionPruneParams {
   filters?: Record<string, unknown> | null
   never_active_days?: number | null
@@ -6507,7 +6507,7 @@ export interface RpcMethods {
   'prompt.btw': { params: SideAgentParams; result: TaskIdResult }
   /** Send a user turn to a live session; busy sessions queue / steer / redirect instead of refusing. */
   'prompt.submit': { params: PromptSubmitParams; result: PromptSubmitResult }
-  /** Re-read ~/.hermes/.env (CLI /reload parity); built agents keep their pool until /new. */
+  /** Re-read ~/.a2assistant/.env (CLI /reload parity); built agents keep their pool until /new. */
   'reload.env': { params: ReloadEnvParams; result: ReloadEnvResult }
   /** Tear down and rediscover MCP servers for every live session (prompt cache is invalidated). */
   'reload.mcp': { params: ReloadMcpParams; result: ReloadMcpResult }
@@ -6569,7 +6569,7 @@ export interface RpcMethods {
   'session.redirect': { params: SessionCorrectionParams; result: SessionCorrectionResult }
   /** Attach to a stored session: reuse it if live here, else lazy / deferred / cold / eager rebuild. */
   'session.resume': { params: SessionResumeParams; result: SessionResumeResult }
-  /** Export the transcript to ~/.hermes/sessions/saved (classic /save). */
+  /** Export the transcript to ~/.a2assistant/sessions/saved (classic /save). */
   'session.save': { params: SessionSaveParams; result: SessionSaveResult }
   /** Set/clear hidden (out of the default list, still resumable by its owner) on a session + lineage. */
   'session.set_hidden': { params: SessionSetHiddenParams; result: SessionSetHiddenResult }
@@ -7027,7 +7027,7 @@ export interface CanonicalRpcMethods {
   'session.list': { params: CanonicalListParams; result: CanonicalListResult }
   /** Revision-fenced, retry-idempotent session edit (rename, archive, sidebar, branch, delete, rewind, reset, model, reasoning, workspace, edit_policy, compress, import). */
   'session.mutate': { params: SessionMutateParams; result: SessionMutateResult }
-  /** Local operator only: the owner deletes the ended sessions `hermes sessions prune` selected, skipping busy sessions and retained reset owners. */
+  /** Local operator only: the owner deletes the ended sessions `a2assistant sessions prune` selected, skipping busy sessions and retained reset owners. */
   'session.prune': { params: SessionPruneParams; result: SessionPruneResult }
   'session.redirect': { params: CanonicalCorrectionParams; result: CanonicalCorrectionResult }
   'session.resume': { params: CanonicalResumeParams; result: CanonicalSnapshot }
@@ -7194,7 +7194,7 @@ export interface BackendGatewayEventMap {
   'display.install.log': DisplayInstallLogPayload
   /** The takeover lease changed hands; every client repaints. */
   'display.lease': DisplayLeasePayload
-  /** This profile's screen started or stopped (also for transitions made outside hermes serve). */
+  /** This profile's screen started or stopped (also for transitions made outside a2assistant serve). */
   'display.status': DisplayStatusPayload
   /** A session-level failure outside a turn (agent init, model switch, compression, resume). */
   error: ErrorPayload

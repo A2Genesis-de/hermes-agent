@@ -10,7 +10,7 @@ def test_launch_ticket_overrides_foreign_ambient_scope(tmp_path, monkeypatch):
     from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
     home = tmp_path / '.hermes'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
     monkeypatch.setenv('SCOPE_SENTINEL', 'launch')
     beta = home / 'profiles' / 'beta'

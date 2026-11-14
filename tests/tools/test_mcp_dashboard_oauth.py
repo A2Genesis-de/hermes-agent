@@ -171,7 +171,7 @@ def test_empty_exception_text_stays_diagnosable():
 def test_failed_reauth_rollback_preserves_newer_oauth_state(tmp_path, monkeypatch):
     from tools.mcp_oauth import HermesTokenStorage
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     storage = HermesTokenStorage("reports")
     storage._tokens_path().parent.mkdir(parents=True)
     storage._tokens_path().write_text("OLD", encoding="utf-8")
@@ -202,7 +202,7 @@ def test_preregistered_pinned_redirect_port_keeps_loopback_listener_under_dashbo
         force_interactive_oauth,
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     with socket.socket() as probe:
         probe.bind(("127.0.0.1", 0))
         port = probe.getsockname()[1]
@@ -238,7 +238,7 @@ def test_server_task_does_not_park_on_an_ended_dashboard_flow(
     With the flow re-minted, the ladder fails (if at all) only for the ordinary reason — nobody
     completed the consent screen — and the handle is live and completable again.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     from tools import mcp_tool
     from tools.mcp_dashboard_oauth import dashboard_oauth_flow

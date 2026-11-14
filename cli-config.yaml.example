@@ -1,11 +1,11 @@
 # Hermes Agent CLI Configuration
-# Copy settings from this example into ~/.hermes/config.yaml, or use
-# `hermes config set <section.key> <value>` to update the active profile.
+# Copy settings from this example into ~/.a2assistant/config.yaml, or use
+# `a2assistant config set <section.key> <value>` to update the active profile.
 # This file configures CLI behavior; only documented secret environment
 # variables in .env take precedence over their corresponding settings.
 
 # Schema version of this file. The installers copy it to seed config.yaml, and
-# `hermes update` uses it to know which one-time migrations the file already
+# `a2assistant update` uses it to know which one-time migrations the file already
 # has. Hermes manages it: do not copy it into another config.
 _config_version: 53
 
@@ -40,7 +40,7 @@ database:
 # hard limit and never lowers an already higher soft limit. Set to 0, false, or
 # null to disable the adjustment. Default: 4096.
 #
-# malloc_arena_max caps glibc malloc arenas in the gateway / `hermes serve`
+# malloc_arena_max caps glibc malloc arenas in the gateway / `a2assistant serve`
 # process (Linux/glibc only; child commands keep glibc's default). An explicit
 # MALLOC_ARENA_MAX (exported or in .env) wins. 0, false, or null = glibc default
 # (8 per CPU core). Default: 4.
@@ -83,10 +83,10 @@ model:
   # Inference provider selection:
   #   "auto"         - Auto-detect from credentials (default)
   #   "openrouter"   - OpenRouter (requires: OPENROUTER_API_KEY or OPENAI_API_KEY)
-  #   "nous"         - Nous Portal OAuth (requires: hermes auth add nous)
+  #   "nous"         - Nous Portal OAuth (requires: a2assistant auth add nous)
   #   "nous-api"     - Nous Portal API key (requires: NOUS_API_KEY)
   #   "anthropic"    - Direct Anthropic API (requires: ANTHROPIC_API_KEY)
-  #   "openai-codex" - OpenAI Codex (requires: hermes auth)
+  #   "openai-codex" - OpenAI Codex (requires: a2assistant auth)
   #   "openai-api"   - OpenAI API (requires: OPENAI_API_KEY)
   #   "lmstudio"     - LM Studio local server (optional: LM_API_KEY, defaults to http://127.0.0.1:1234/v1)
   #
@@ -265,11 +265,11 @@ model:
 # client rebuilds during credential rotation.  For OpenAI-wire chat
 # completions (streaming and non-streaming) the configured value is also
 # used as the per-request ``timeout=`` kwarg so it wins over the legacy
-# HERMES_API_TIMEOUT env var (which still applies when no config is set).
+# A2ASSISTANT_API_TIMEOUT env var (which still applies when no config is set).
 # ``stale_timeout_seconds`` controls the non-streaming stale-call detector and
-# wins over the legacy HERMES_API_CALL_STALE_TIMEOUT env var. Leaving these
-# unset keeps the legacy defaults (HERMES_API_TIMEOUT=1800s,
-# HERMES_API_CALL_STALE_TIMEOUT=90s, native Anthropic 900s). The
+# wins over the legacy A2ASSISTANT_API_CALL_STALE_TIMEOUT env var. Leaving these
+# unset keeps the legacy defaults (A2ASSISTANT_API_TIMEOUT=1800s,
+# A2ASSISTANT_API_CALL_STALE_TIMEOUT=90s, native Anthropic 900s). The
 # implicit non-stream stale detector is auto-disabled for local endpoints
 # and can scale upward for very large contexts.
 #
@@ -297,7 +297,7 @@ model:
 # =============================================================================
 # One place to override Hermes's internal operation deadlines (seconds).
 # Keys are dotted paths resolved by agent/deadline.py:resolve_timeout().
-# Precedence: this section > legacy HERMES_* env var (back-compat) > built-in
+# Precedence: this section > legacy A2ASSISTANT_* env var (back-compat) > built-in
 # default. 0 or a negative value disables the bound (unbounded); very large
 # values are clamped to a platform-safe maximum automatically.
 #
@@ -306,7 +306,7 @@ model:
 # timeouts:
 #   tools:
 #     concurrent_batch: 420   # Deadline for a parallel tool-call batch
-#                             # (legacy env: HERMES_CONCURRENT_TOOL_TIMEOUT_S)
+#                             # (legacy env: A2ASSISTANT_CONCURRENT_TOOL_TIMEOUT_S)
 #     sequential_call: 420    # Deadline for one sequentially-executed tool call.
 #                             # Defaults to concurrent_batch's value so the two
 #                             # executor paths stay in sync; human waits
@@ -378,9 +378,9 @@ model:
 # worktree_sync: true   # Default — branch from the fetched remote tip
 # worktree_sync: false  # Branch from local HEAD (offline / pinned base)
 
-# Stale worktree sweep (startup of `hermes -w` + every 6h from the cron ticker, over
+# Stale worktree sweep (startup of `a2assistant -w` + every 6h from the cron ticker, over
 # every repo Hermes created a worktree in). Idle dirty/unpushed trees are archived to
-# refs/hermes/archive/<tree> and removed; `hermes worktree restore <name>` brings one back.
+# refs/hermes/archive/<tree> and removed; `a2assistant worktree restore <name>` brings one back.
 # worktrees:
 #   archive_dirty: true          # false = never remove dirty/unpushed trees (old behaviour)
 #   archive_max_file_mb: 50      # untracked files above this are not archived; their tree is kept
@@ -408,7 +408,7 @@ kanban:
 # Commands run directly on your machine in the current directory
 # -----------------------------------------------------------------------------
 # Working directory behavior:
-#   - CLI (`hermes` command): Uses "." (current directory where you run hermes)
+#   - CLI (`a2assistant` command): Uses "." (current directory where you run hermes)
 #   - Gateway/messaging/cron: Uses terminal.cwd here; legacy .env cwd values are deprecated
 cron:
   catch_up_missed: true  # False skips past-grace recurring misses after planned downtime.
@@ -420,16 +420,16 @@ terminal:
   # font_family: "MesloLGS NF"  # Also accepts a CSS stack; blank uses bundled JetBrains Mono.
   timeout: 180
   # HOME policy for tool subprocesses:
-  #   auto    - default: host uses your real HOME; containers use HERMES_HOME/home
+  #   auto    - default: host uses your real HOME; containers use A2ASSISTANT_HOME/home
   #   real    - force your real OS-user HOME
-  #   profile - force HERMES_HOME/home for strict per-profile CLI config isolation
+  #   profile - force A2ASSISTANT_HOME/home for strict per-profile CLI config isolation
   home_mode: "auto"
   docker_mount_cwd_to_workspace: false  # SECURITY: off by default. Opt in to mount the launch cwd into Docker /workspace.
   lifetime_seconds: 300
   # Two process_manage wait/poll calls in a row with no new output on a running background process
   # turn on notify_on_complete for it and tell the agent to stop checking; false = poll as before.
   process_wait_auto_notify: true
-  # A `hermes` / `hermes --tui` session's local tools (terminal, background processes, execute_code)
+  # A `a2assistant` / `a2assistant --tui` session's local tools (terminal, background processes, execute_code)
   # start with the launching shell's toolchain: PATH, an activated venv and CONDA_* / NODE_* / NVM_* /
   # PYENV_* (plus GOPATH, GOROOT, CARGO_HOME, RUSTUP_HOME, JAVA_HOME), for that session only, when
   # the client runs on the gateway's host (a remote client's session keeps the gateway's toolchain).
@@ -437,7 +437,7 @@ terminal:
   # CONDA_PREFIX themselves are unset there; execute_code sees them.
   # A toolchain name the client did not export is unset for its session's tools (PATH excepted).
   # List more non-secret names here (default: none); names execute_code treats as credentials (…TOKEN,
-  # …KEY, …SECRET, …PASSWORD, …AUTH, …DSN, …WEBHOOK, …CREDS, …BEARER, …COOKIE) and HERMES_* names
+  # …KEY, …SECRET, …PASSWORD, …AUTH, …DSN, …WEBHOOK, …CREDS, …BEARER, …COOKIE) and A2ASSISTANT_* names
   # are never sent: pass secrets with `env_passthrough` instead.
   client_env_passthrough: []  # e.g. ["GEM_HOME", "POETRY_HOME"]
   # sudo_password: "hunter2"  # Optional: pipe a sudo password via sudo -S. SECURITY WARNING: plaintext.
@@ -476,7 +476,7 @@ terminal:
 #   # chosen docker_image expects to start as root.
 #   docker_run_as_host_user: true
 #   # Optional: explicitly forward selected env vars into Docker.
-#   # These values come from your current shell first, then ~/.hermes/.env.
+#   # These values come from your current shell first, then ~/.a2assistant/.env.
 #   # Warning: anything forwarded here is visible to commands run in the container.
 #   docker_forward_env:
 #     - "GITHUB_TOKEN"
@@ -492,7 +492,7 @@ terminal:
 # OPTION 4: Singularity/Apptainer container (the official `singularity` plugin)
 # Commands run in a Singularity container (common in HPC environments)
 # Great for: HPC clusters, shared compute environments
-# Install it first: hermes plugins install singularity
+# Install it first: a2assistant plugins install singularity
 # -----------------------------------------------------------------------------
 # terminal:
 #   backend: "singularity"
@@ -565,7 +565,7 @@ terminal:
 #   # Language servers only load code a project ships (its .venv interpreter,
 #   # node_modules TypeScript, svelte.config.js, cargo/Gradle/mix build files)
 #   # in the git worktree of the directory you launched Hermes in or opened
-#   # the session in (hermes -w, a Desktop project, terminal.cwd), or under a
+#   # the session in (a2assistant -w, a Desktop project, terminal.cwd), or under a
 #   # directory listed here. In other checkouts, such as a repository the agent
 #   # cloned, only servers that run no project code start (pinned to
 #   # Hermes-side tools) and the npx tsc / rustfmt lint fallbacks are skipped.
@@ -581,7 +581,7 @@ browser:
   inactivity_timeout: 120
 
   # Local Chromium for browser_exec. Empty executable_path = pm's chromium
-  # (`hermes pm install chromium`), the Docker image's build, or a system
+  # (`a2assistant pm install chromium`), the Docker image's build, or a system
   # chromium where pm builds none (Termux). user_data_dir keeps one persistent
   # profile for every local session (empty = a throwaway profile per session).
   # executable_path: ""
@@ -816,7 +816,7 @@ compression:
 # Tool-result budget (optional)
 # =============================================================================
 # Controls when a large tool result is spilled to disk (full output saved to
-# $HERMES_HOME/cache/spillover, preview + path kept in context). MCP tool
+# $A2ASSISTANT_HOME/cache/spillover, preview + path kept in context). MCP tool
 # results (tools named mcp_*) spill at a tighter 50,000-char threshold than
 # the generic 100K default: MCP servers routinely return un-paginated 20-50K
 # payloads that bloat context and slow every subsequent turn. Nothing is
@@ -858,8 +858,8 @@ prompt_caching:
 # Provider options:
 #   "auto"       - Best available: OpenRouter → Nous Portal → main endpoint (default)
 #   "openrouter" - Force OpenRouter (requires OPENROUTER_API_KEY)
-#   "nous"       - Force Nous Portal (requires: hermes auth add nous)
-#   "codex"       - Force Codex OAuth (requires: hermes model → Codex).
+#   "nous"       - Force Nous Portal (requires: a2assistant auth add nous)
+#   "codex"       - Force Codex OAuth (requires: a2assistant model → Codex).
 #                  Uses gpt-5.3-codex which supports vision.
 #   "main"       - Use your custom endpoint (OPENAI_BASE_URL + OPENAI_API_KEY).
 #                  Works with OpenAI API, local models, or any OpenAI-compatible
@@ -1034,7 +1034,7 @@ hosted_rooms:
 # =============================================================================
 # Session Storage Retention (state.db)
 # =============================================================================
-# ~/.hermes/state.db keeps every session, message, and tool call, plus the
+# ~/.a2assistant/state.db keeps every session, message, and tool call, plus the
 # FTS5 search indexes. Auto-pruning is OFF by default; when enabled, at
 # CLI/gateway/cron startup (at most once per min_interval_hours) Hermes deletes
 # ENDED sessions whose last activity is older than retention_days. While
@@ -1082,7 +1082,7 @@ hosted_rooms:
 # gateway:
 #   room_link_url: "https://hermes.example.net"
 #
-# The equivalent environment override is HERMES_ROOM_LINK_URL. After changing
+# The equivalent environment override is A2ASSISTANT_ROOM_LINK_URL. After changing
 # it, restart the gateway and reopen New Group Chat > Advanced; Hermes will
 # re-check the selected gateways automatically.
 
@@ -1091,7 +1091,7 @@ hosted_rooms:
 # gateway restart (update, crash, systemd) leaves those rows permanently
 # "active". On every gateway boot — stdio TUI *and* the desktop/dashboard
 # WS sidecar — tui/desktop/subagent rows whose start time AND newest
-# message are both older than the session TTL (HERMES_TUI_SESSION_TTL_S,
+# message are both older than the session TTL (A2ASSISTANT_TUI_SESSION_TTL_S,
 # default 6h) are closed with end_reason "startup_orphan_reap".
 # Messaging-platform sessions (Telegram, Discord, ...) are never touched;
 # live in-memory sessions are excluded; swept sessions stay resumable.
@@ -1161,9 +1161,9 @@ skills:
   creation_nudge_interval: 15
 
   # External skill directories — share skills across tools/agents without
-  # copying them into ~/.hermes/skills/.  Each path is expanded (~ and ${VAR})
+  # copying them into ~/.a2assistant/skills/.  Each path is expanded (~ and ${VAR})
   # and resolved to an absolute path.  External dirs are read-only: skill
-  # creation always writes to ~/.hermes/skills/.  Local skills take precedence
+  # creation always writes to ~/.a2assistant/skills/.  Local skills take precedence
   # when names collide.
   # external_dirs:
   #   - ~/.agents/skills
@@ -1204,7 +1204,7 @@ agent:
   # sanitiser silently repairs empty non-final turns on the wire copy; after
   # this many heal passes within a 10-minute session window Hermes logs one
   # ERROR (with session id + heal pattern) and sends a ONE-TIME out-of-band
-  # notice to the user suggesting /debug share or `hermes doctor`. The notice
+  # notice to the user suggesting /debug share or `a2assistant doctor`. The notice
   # goes through the status channel only — conversation context and prompt
   # caching are untouched. Set 0 to disable escalation (per-window WARNINGs
   # still fire). Default 3.
@@ -1247,7 +1247,7 @@ agent:
   # Excluded from the wait: wedged runs, and cron runs already handed to a
   # worker in its own restart-safe systemd scope (they outlive the restart).
   # The default (30 min) is a safety valve for wedged agents, not a target
-  # latency; raise it for long unattended turns. Env: HERMES_RESTART_AFTER_TURN_TIMEOUT.
+  # latency; raise it for long unattended turns. Env: A2ASSISTANT_RESTART_AFTER_TURN_TIMEOUT.
   # restart_after_turn_timeout: 1800
 
   # Upper bound (seconds) a submitted prompt waits for the deferred agent
@@ -1280,7 +1280,7 @@ agent:
   # coding surfaces (CLI, TUI, desktop) and programmatic callers, off on
   # conversational messaging surfaces (Telegram, Discord, etc.) where the
   # verification summary would reach a human as chat noise. The
-  # HERMES_VERIFY_ON_STOP env var (1/0) takes precedence.
+  # A2ASSISTANT_VERIFY_ON_STOP env var (1/0) takes precedence.
   # verify_on_stop: false
 
   # Standing operator instructions for the coding posture (when Hermes is in a
@@ -1320,7 +1320,7 @@ agent:
   #      provider prefix optional). First match wins.
   # Value: reasoning effort level (same options as reasoning_effort, dict form included)
   # Override the global reasoning_effort for that specific model.
-  # NOTE: no `hermes config set` support for this key -- edit YAML directly.
+  # NOTE: no `a2assistant config set` support for this key -- edit YAML directly.
   # reasoning_overrides:
   #   "openrouter/anthropic/claude-opus-4.5": "xhigh"
   #   "openai/gpt-5": "low"
@@ -1377,7 +1377,7 @@ gateway:
 # Toolsets
 # =============================================================================
 # Control which tools the agent has access to.
-# Use `hermes tools` to interactively enable/disable tools per platform.
+# Use `a2assistant tools` to interactively enable/disable tools per platform.
 
 # =============================================================================
 # Platform Toolsets (per-platform tool configuration)
@@ -1459,8 +1459,8 @@ platform_toolsets:
 # ─────────────────────────────────────────────────────────────────────────────
 # Available toolsets (use these names in platform_toolsets or the toolsets list)
 #
-# Run `hermes chat --list-toolsets` to see all toolsets and their tools.
-# Run `hermes chat --list-tools` to see every individual tool with descriptions.
+# Run `a2assistant chat --list-toolsets` to see all toolsets and their tools.
+# Run `a2assistant chat --list-tools` to see every individual tool with descriptions.
 # ─────────────────────────────────────────────────────────────────────────────
 #
 # INDIVIDUAL TOOLSETS (compose your own):
@@ -1508,9 +1508,9 @@ platform_toolsets:
 
 # NOTE: The top-level "toolsets" key is deprecated and ignored.
 # Tool configuration is managed per-platform via platform_toolsets above.
-# Use `hermes tools` to configure interactively, or edit platform_toolsets directly.
+# Use `a2assistant tools` to configure interactively, or edit platform_toolsets directly.
 #
-# CLI override: hermes chat --toolsets terminal,web,file
+# CLI override: a2assistant chat --toolsets terminal,web,file
 
 # =============================================================================
 # MCP (Model Context Protocol) Servers
@@ -1585,7 +1585,7 @@ platform_toolsets:
 # =============================================================================
 # Text-to-Speech
 # =============================================================================
-# TTS defaults to the OpenAI-compatible provider unless changed in ~/.hermes/config.yaml.
+# TTS defaults to the OpenAI-compatible provider unless changed in ~/.a2assistant/config.yaml.
 # Point it at any OpenAI-compatible speech server with tts.openai.base_url.
 #
 # tts:
@@ -1651,7 +1651,7 @@ stt:
     # no_speech_prob_threshold: 0.6  # drop a segment only if no_speech_prob > this...
     # logprob_threshold: -1.0       # ...AND avg_logprob < this (both must hit — quiet real speech survives)
     # unload_after_idle_seconds: 0  # 0=never unload (default); e.g. 300 releases the model after 5min idle (frees VRAM on GPU; next voice message reloads it)
-  language: "en"               # Global hint; a nonempty provider language wins. Blank falls back to HERMES_LOCAL_STT_LANGUAGE, then auto-detect.
+  language: "en"               # Global hint; a nonempty provider language wins. Blank falls back to A2ASSISTANT_LOCAL_STT_LANGUAGE, then auto-detect.
   openai:
     model: "whisper-1"         # whisper-1 | gpt-4o-mini-transcribe | gpt-4o-transcribe | gpt-transcribe
     language: ""               # blank = inherit stt.language; set "en", "es", "fr", etc. to force
@@ -1742,7 +1742,7 @@ delegation:
                                               # else the parent's route. model_map / profile_routes come from the
                                               # advanced-delegation plugin; a backend that is missing, disabled or
                                               # unavailable fails closed (tool error naming it; /delegation default or
-                                              # `hermes config set delegation.backend default` restores the default).
+                                              # `a2assistant config set delegation.backend default` restores the default).
   # backends:                                 # Each plugin backend's own settings, keyed by its backend name.
   #   model_map:                              # backend: model_map (advanced-delegation)
   #     options:
@@ -1800,7 +1800,7 @@ display:
   #   new:     Show a tool indicator only when the tool changes (skip repeats)
   #   all:     Show every tool call with a short preview (default)
   #   verbose: Full args, results, and debug logs (same as /verbose)
-  #   log:     Silent in chat; append every tool call to ~/.hermes/logs/tool_calls.log (gateway only)
+  #   log:     Silent in chat; append every tool call to ~/.a2assistant/logs/tool_calls.log (gateway only)
   # Toggle at runtime with /verbose in the CLI
   # Independent of show_reasoning: hiding reasoning never hides tool rows.
   # Answer-only (just the final response) is show_reasoning: false plus
@@ -1945,7 +1945,7 @@ display:
   #   sisyphus       — Earthy stone-and-moss theme
   #   charizard      — Fiery orange dragon theme
   #
-  # Custom skins: drop a YAML file in ~/.hermes/skins/<name>.yaml
+  # Custom skins: drop a YAML file in ~/.a2assistant/skins/<name>.yaml
   # Schema (all fields optional, missing values inherit from default):
   #
   #   name: my-theme
@@ -2032,8 +2032,8 @@ display:
 #   on_session_finalize, on_session_reset, subagent_stop
 #
 # First-use consent: each (event, command) pair prompts once on a TTY, then
-# is persisted to ~/.hermes/shell-hooks-allowlist.json.  Non-interactive
-# runs (gateway, cron) need --accept-hooks, HERMES_ACCEPT_HOOKS=1, or the
+# is persisted to ~/.a2assistant/shell-hooks-allowlist.json.  Non-interactive
+# runs (gateway, cron) need --accept-hooks, A2ASSISTANT_ACCEPT_HOOKS=1, or the
 # hooks_auto_accept key below.
 #
 # See website/docs/user-guide/features/hooks.md for the full JSON wire
@@ -2042,15 +2042,15 @@ display:
 # hooks:
 #   pre_tool_call:
 #     - matcher: "terminal"
-#       command: "~/.hermes/agent-hooks/block-rm-rf.sh"
+#       command: "~/.a2assistant/agent-hooks/block-rm-rf.sh"
 #       timeout: 10
 #   post_tool_call:
 #     - matcher: "write_file|patch"
-#       command: "~/.hermes/agent-hooks/auto-format.sh"
+#       command: "~/.a2assistant/agent-hooks/auto-format.sh"
 #   pre_llm_call:
-#     - command: "~/.hermes/agent-hooks/inject-cwd-context.sh"
+#     - command: "~/.a2assistant/agent-hooks/inject-cwd-context.sh"
 #   subagent_stop:
-#     - command: "~/.hermes/agent-hooks/log-orchestration.sh"
+#     - command: "~/.a2assistant/agent-hooks/log-orchestration.sh"
 #
 # hooks_auto_accept: false
 
@@ -2060,7 +2060,7 @@ display:
 # =============================================================================
 # Shared metrics are disabled by default. When enabled, Hermes writes only
 # allowlisted aggregate counters and immutable JSON
-# packages under $HERMES_HOME/telemetry/shared_metrics.
+# packages under $A2ASSISTANT_HOME/telemetry/shared_metrics.
 # Packages include a random profile-scoped ID that stays stable until this
 # directory is deleted. It is not derived from hardware, account, or host data.
 # Successfully exported local history is retained for 30 days; pending deltas
@@ -2080,12 +2080,12 @@ auth:
   # no usable login of its own. Their refresh tokens are single-use, so two programs on one login
   # can log each other out; set false to make Hermes use only its own logins.
   adopt_external_logins: true
-  # How `hermes auth add openai-codex` / `hermes model` sign in to OpenAI Codex.
+  # How `a2assistant auth add openai-codex` / `a2assistant model` sign in to OpenAI Codex.
   #   device_code (default) — open a URL and enter a code.
   #   browser — authorization-code + PKCE on http://localhost:1455/auth/callback (the redirect
   #             OpenAI registered for the Codex client) for organizations that disable the
   #             device-code grant; falls back to device code when that port is busy.
-  # `hermes auth add openai-codex --browser` opts in for a single login without changing this.
+  # `a2assistant auth add openai-codex --browser` opts in for a single login without changing this.
   codex_login_flow: device_code
 
 
@@ -2093,13 +2093,13 @@ auth:
 # Update Behavior
 # =============================================================================
 updates:
-  # Disable passive CLI/banner update checks with `hermes config set updates.check false`.
-  # Explicit `hermes update --check` and `hermes update` remain available.
+  # Disable passive CLI/banner update checks with `a2assistant config set updates.check false`.
+  # Explicit `a2assistant update --check` and `a2assistant update` remain available.
   check: true
-  # Backup taken before every `hermes update`:
+  # Backup taken before every `a2assistant update`:
   #   quick - snapshot of small critical state (pairing, cron jobs, config.yaml,
   #           .env, auth.json, profile databases) in state-snapshots/ (default)
-  #   full  - quick plus a zip of HERMES_HOME in backups/; slow on large homes
+  #   full  - quick plus a zip of A2ASSISTANT_HOME in backups/; slow on large homes
   #   off   - no backup
   # pre_update_backup: quick
 
@@ -2118,10 +2118,10 @@ updates:
 # =============================================================================
 # Web Dashboard
 # =============================================================================
-# Settings for `hermes dashboard --host <non-loopback>` deployments. Each can
+# Settings for `a2assistant dashboard --host <non-loopback>` deployments. Each can
 # be overridden by an environment variable (env wins when non-empty):
 #
-#   dashboard.public_url        <-  HERMES_DASHBOARD_PUBLIC_URL
+#   dashboard.public_url        <-  A2ASSISTANT_DASHBOARD_PUBLIC_URL
 #
 # dashboard:
 #
@@ -2159,10 +2159,10 @@ updates:
 # with your own identity provider.
 # Each setting can be overridden by an environment variable:
 #
-#   dashboard.oauth.self_hosted.issuer         <-  HERMES_DASHBOARD_OIDC_ISSUER
-#   dashboard.oauth.self_hosted.client_id      <-  HERMES_DASHBOARD_OIDC_CLIENT_ID
-#   dashboard.oauth.self_hosted.scopes         <-  HERMES_DASHBOARD_OIDC_SCOPES
-#   dashboard.oauth.self_hosted.client_secret  <-  HERMES_DASHBOARD_OIDC_CLIENT_SECRET
+#   dashboard.oauth.self_hosted.issuer         <-  A2ASSISTANT_DASHBOARD_OIDC_ISSUER
+#   dashboard.oauth.self_hosted.client_id      <-  A2ASSISTANT_DASHBOARD_OIDC_CLIENT_ID
+#   dashboard.oauth.self_hosted.scopes         <-  A2ASSISTANT_DASHBOARD_OIDC_SCOPES
+#   dashboard.oauth.self_hosted.client_secret  <-  A2ASSISTANT_DASHBOARD_OIDC_CLIENT_SECRET
 #
 # dashboard:
 #   oauth:
@@ -2179,15 +2179,15 @@ updates:
 #       # IDP's discovery doc) IN ADDITION to PKCE. Leave unset for a public
 #       # (PKCE-only) client — the common case.
 #       #
-#       # This is a CREDENTIAL: prefer setting HERMES_DASHBOARD_OIDC_CLIENT_SECRET
-#       # in ~/.hermes/.env over putting it here in config.yaml.
+#       # This is a CREDENTIAL: prefer setting A2ASSISTANT_DASHBOARD_OIDC_CLIENT_SECRET
+#       # in ~/.a2assistant/.env over putting it here in config.yaml.
 #       #   client_secret: ""
 
 # =============================================================================
 # External secret sources
 # =============================================================================
 # Pull provider credentials from external secret managers at process startup
-# instead of storing them in ~/.hermes/.env. Only the manager's bootstrap
+# instead of storing them in ~/.a2assistant/.env. Only the manager's bootstrap
 # credential (e.g. BWS_ACCESS_TOKEN / OP_SERVICE_ACCOUNT_TOKEN) lives in .env
 # (or your shell / desktop session); everything else rotates centrally.
 # Failures never block startup — Hermes warns once and continues with
@@ -2217,7 +2217,7 @@ updates:
 #       enabled: false
 #       max_stale_seconds: 0               # 0 disables stale fallback
 #     override_existing: true              # BSM values win over existing env
-#     auto_install: true                   # lazy-download bws into ~/.hermes/bin
+#     auto_install: true                   # lazy-download bws into ~/.a2assistant/bin
 #
 #   # ---- 1Password (op CLI) -------------------------------------------------
 #   onepassword:

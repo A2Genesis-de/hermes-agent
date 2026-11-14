@@ -97,7 +97,7 @@ class TestDefaultVerifyAfterAnInstallRotation:
 
         from hermes_cli.auth import _resolve_verify
 
-        for var in ("HERMES_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE"):
+        for var in ("A2ASSISTANT_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE"):
             monkeypatch.delenv(var, raising=False)
         from tests.agent.test_ssl_verify import _rotated_certifi
 
@@ -187,7 +187,7 @@ def test_resolve_nous_runtime_credentials_prefers_invoke_jwt_and_mirrors(
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     creds = auth_mod.resolve_nous_runtime_credentials()
 
@@ -251,7 +251,7 @@ def test_resolve_nous_runtime_credentials_invoke_jwt_is_idempotent(
     auth_path.write_text(json.dumps(auth_store, indent=2))
     before_content = auth_path.read_text()
     before_mtime = auth_path.stat().st_mtime_ns
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     def _unexpected_shared_write(*args, **kwargs):
         raise AssertionError("unchanged invoke JWT resolution should not sync shared store")
@@ -304,7 +304,7 @@ def test_resolve_nous_runtime_credentials_reauths_when_invoke_scope_missing(
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     with pytest.raises(AuthError) as exc:
         auth_mod.resolve_nous_runtime_credentials()
@@ -337,7 +337,7 @@ def test_nous_inference_auth_logs_do_not_include_secret_values(
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     def _fake_refresh_access_token(*, client, portal_base_url, client_id, refresh_token):
         del client, portal_base_url, client_id, refresh_token
@@ -382,7 +382,7 @@ def test_get_nous_auth_status_checks_credential_pool(tmp_path, monkeypatch):
     (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     # Seed the credential pool with a Nous entry
     from agent.credential_pool import PooledCredential, load_pool
@@ -419,7 +419,7 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
     (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     status = get_nous_auth_status()
     assert status["logged_in"] is False
@@ -431,7 +431,7 @@ def test_get_nous_auth_status_empty_returns_not_logged_in(tmp_path, monkeypatch)
 
 
 class TestLoginNousSkipKeepsCurrent:
-    """When a user runs `hermes model` → Nous Portal → Skip (keep current) after
+    """When a user runs `a2assistant model` → Nous Portal → Skip (keep current) after
     a successful OAuth login, the prior provider and model MUST be preserved.
 
     Regression: previously, _update_config_for_provider was called
@@ -444,7 +444,7 @@ class TestLoginNousSkipKeepsCurrent:
         import hermes_yaml as yaml
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config_path = hermes_home / "config.yaml"
         config_path.write_text(yaml.safe_dump({
@@ -573,7 +573,7 @@ class TestLoginNousSkipKeepsCurrent:
 
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         config_path = hermes_home / "config.yaml"
         config_path.write_text(yaml.safe_dump({"model": {}}, sort_keys=False))
@@ -642,7 +642,7 @@ def test_persist_nous_credentials_idempotent_no_duplicate_pool_entries(tmp_path,
     (hermes_home / "auth.json").write_text(json.dumps({
         "version": 1, "providers": {},
     }))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     first = _full_state_fixture()
     persist_nous_credentials(first)
@@ -801,7 +801,7 @@ def test_runtime_refresh_503_preserves_nous_oauth_credentials(
         expires_at=_future_iso(3600),
         expires_in=3600,
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     class _FakeResponse:
         def __init__(self):
@@ -884,7 +884,7 @@ def test_refresh_token_exchange_sends_refresh_token_header():
 
 @pytest.fixture
 def shared_store_env(tmp_path, monkeypatch):
-    """Redirect HERMES_SHARED_AUTH_DIR to a tmp_path.
+    """Redirect A2ASSISTANT_SHARED_AUTH_DIR to a tmp_path.
 
     Required for every test that exercises the shared Nous store — the
     in-auth.py seat belt refuses to touch the real user's shared store
@@ -892,19 +892,19 @@ def shared_store_env(tmp_path, monkeypatch):
     of corrupting real state.
     """
     shared_dir = tmp_path / "shared"
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(shared_dir))
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(shared_dir))
     return shared_dir
 
 def test_shared_store_seat_belt_refuses_real_home_under_pytest(monkeypatch):
-    """Without HERMES_SHARED_AUTH_DIR override, the seat belt must trip.
+    """Without A2ASSISTANT_SHARED_AUTH_DIR override, the seat belt must trip.
 
     Mirrors the existing ``_auth_file_path`` seat belt: forgetting to
     redirect this store in a test must fail loudly instead of silently
-    writing to the user's real ``~/.hermes/shared/`` across CI runs.
+    writing to the user's real ``~/.a2assistant/shared/`` across CI runs.
     """
     from hermes_cli.auth import _nous_shared_store_path
 
-    monkeypatch.delenv("HERMES_SHARED_AUTH_DIR", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SHARED_AUTH_DIR", raising=False)
 
     with pytest.raises(RuntimeError, match="shared Nous auth store"):
         _nous_shared_store_path()
@@ -943,7 +943,7 @@ def test_persist_nous_credentials_mirrors_to_shared_store(
     tmp_path, monkeypatch, shared_store_env,
 ):
     """persist_nous_credentials must populate BOTH per-profile auth.json
-    AND the shared store, so a future profile's `hermes auth add nous
+    AND the shared store, so a future profile's `a2assistant auth add nous
     --type oauth` can one-tap import instead of redoing device-code.
     """
     from hermes_cli.auth import (
@@ -957,7 +957,7 @@ def test_persist_nous_credentials_mirrors_to_shared_store(
     (hermes_home / "auth.json").write_text(
         json.dumps({"version": 1, "providers": {}})
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     persist_nous_credentials(_full_state_fixture())
 
@@ -1014,7 +1014,7 @@ class TestStalePortalBaseUrlMigration:
     def test_migrates_stale_portal_url_on_load(self, tmp_path, monkeypatch):
         from hermes_cli.auth import _load_auth_store, DEFAULT_NOUS_PORTAL_URL
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         auth_file = tmp_path / "auth.json"
         auth_file.write_text(json.dumps({
             "version": 1,
@@ -1040,7 +1040,7 @@ class TestStalePortalBaseUrlMigration:
         from hermes_cli import auth_nous
 
         hermes_home = tmp_path / "hermes"
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         _setup_nous_auth(
             hermes_home,
             access_token=_invoke_jwt(seconds=-60),

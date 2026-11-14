@@ -24,7 +24,7 @@ def test_auto_decompose_tick_reads_launch_profile_secrets_under_multiplex(monkey
     import hermes_cli
 
     (tmp_path / ".env").write_text("ANTHROPIC_API_KEY=launch-profile-key\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(kwd, "_board_slugs", lambda kb: ["default"])
 
     seen = {}
@@ -57,8 +57,8 @@ def test_auto_decompose_board_pin_stays_inside_the_tick(monkeypatch, tmp_path):
     import hermes_cli
     from hermes_cli import kanban_db as kb
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.delenv("HERMES_KANBAN_BOARD", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_BOARD", raising=False)
     kb.create_board("work")
     kb.create_board("clientb")
     kb.set_current_board("work")

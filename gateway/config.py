@@ -72,7 +72,7 @@ def _env_on_all_adapters_down_override() -> str | None:
 
     ``None`` when unset, blank, or unrecognized so the caller keeps the config.yaml value
     (env > config > default). Launchers without a supervising service manager (the desktop app
-    spawns ``hermes serve`` directly) set ``stay_alive``: a failure exit there only severs the
+    spawns ``a2assistant serve`` directly) set ``stay_alive``: a failure exit there only severs the
     UI's websocket connections and drops in-flight assistant messages (#118080).
     """
     raw = os.getenv("GATEWAY_ON_ALL_ADAPTERS_DOWN")
@@ -767,7 +767,7 @@ class GatewayConfig:
 
 
 def load_gateway_config() -> GatewayConfig:
-    """Load gateway configuration. Priority: env > ~/.hermes/config.yaml > legacy gateway.json > defaults."""
+    """Load gateway configuration. Priority: env > ~/.a2assistant/config.yaml > legacy gateway.json > defaults."""
     from gateway import config_loader
 
     _home = get_hermes_home()

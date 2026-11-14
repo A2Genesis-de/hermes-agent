@@ -1,7 +1,7 @@
 """Network drop mid-turn on the gateway's session WebSocket: the turn finishes, the client comes back.
 
 Refs #145171 (EP-2). Contract: closing a client removes a viewer; it never stops accepted work.
-A real ``hermes gateway run`` in a hermetic home, a loopback model that holds each turn open until
+A real ``a2assistant gateway run`` in a hermetic home, a loopback model that holds each turn open until
 the test releases it (so "mid-turn" is deterministic), and a client on the gateway's ticketed
 ``/api/ws`` that loses its connection with no WebSocket close frame (a FIN, then an RST).
 ``sessions.orphan_end_grace_s`` is 1 s, so the owner's "last viewer vanished" close fires while the
@@ -249,7 +249,7 @@ def scenario(tmp_path_factory: pytest.TempPathFactory):
                 "XDG_CACHE_HOME", "XDG_RUNTIME_DIR", "DBUS_SESSION_BUS_ADDRESS"):
         env.pop(key, None)
     # Host rendezvous stays inside the tmp root: the developer's live gateway is never seen.
-    env.update(HERMES_GATEWAY_LOCK_DIR=str(root / "locks"), HERMES_GATEWAY_MAX_STARTS="0")
+    env.update(A2ASSISTANT_GATEWAY_LOCK_DIR=str(root / "locks"), A2ASSISTANT_GATEWAY_MAX_STARTS="0")
     out, viewers, facts = open(log, "wb"), [], {}
     gateway = subprocess.Popen([python_exe(), "-m", "hermes_cli.main", "gateway", "run", "--quiet"],
                                cwd=str(home), env=env, stdin=subprocess.DEVNULL, stdout=out,

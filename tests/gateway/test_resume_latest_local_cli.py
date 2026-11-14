@@ -23,7 +23,7 @@ def _owner(home, monkeypatch):
     import hermes_state_runtime as rt
     home.mkdir(parents=True, exist_ok=True)
     (home / 'config.yaml').write_text(json.dumps({'model': {'default': 'm'}}))
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     monkeypatch.setattr(run, '_hermes_home', home)
     store = SessionStore(home / 'sessions', GatewayConfig())
     db = store._db

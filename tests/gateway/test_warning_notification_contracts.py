@@ -92,7 +92,7 @@ def test_bad_config_containers_do_not_abort_startup_warning(tmp_path, monkeypatc
     from gateway import run
 
     (tmp_path / "config.yaml").write_text(yaml_text)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(run, "_hermes_home", tmp_path)
     gateway = object.__new__(GatewayRunner)
     gateway._session_db_init_error = "database is locked"

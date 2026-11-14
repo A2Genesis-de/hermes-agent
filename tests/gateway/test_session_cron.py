@@ -14,7 +14,7 @@ def test_cron_admission_uses_job_model_and_exact_retry(tmp_path, monkeypatch):
     from hermes_state import SessionDB
     from hermes_state_runtime import begin_runtime_epoch, RuntimeStoreError
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(jobs, 'get_job', lambda jid: {'id': jid, 'prompt': 'original', 'model': 'per-job-model'})
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {}, 'platform_toolsets': {'cli': []}})
     db = SessionDB(tmp_path / 'state.db')
@@ -56,7 +56,7 @@ async def test_cron_cancel_between_claim_and_execution_registration_stops_the_jo
     from hermes_state import SessionDB
     from hermes_state_runtime import admit_session_input, begin_runtime_epoch, claim_session_input
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'state.db')
     db.create_session('s', source='cron')
     authority = SessionAuthority(SimpleNamespace(_draining=False), profile_id='p', instance_id='test', db=db,
@@ -103,7 +103,7 @@ async def test_owner_execution_binds_the_scheduler_cron_identity_inside_run_job(
     from hermes_state import SessionDB
     from hermes_state_runtime import admit_session_input, begin_runtime_epoch, claim_session_input
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     execution = create_execution('job', source='builtin', scheduled_instant='2026-10-08T09:00:00')
     record = mark_execution_running(execution['id'])
     db = SessionDB(tmp_path / 'state.db')
@@ -150,7 +150,7 @@ def test_draining_owner_still_answers_status_and_cancel_of_admitted_cron_work(tm
     from hermes_state_runtime import (RuntimeStoreError, begin_runtime_epoch, claim_session_input,
                                       settle_session_input)
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(jobs, 'get_job', lambda jid: {'id': jid, 'prompt': 'p', 'model': 'm'})
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {}, 'platform_toolsets': {'cli': []}})
     db = SessionDB(tmp_path / 'state.db')

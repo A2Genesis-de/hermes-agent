@@ -2,7 +2,7 @@
 
 A Windows ZIP update drops workspace node_modules (pnpm's links do not survive the
 copy). If the reinstall then fails, apps/desktop/dist and its freshness receipt are
-still current, and `hermes desktop --source` would skip the build and fail to launch
+still current, and `a2assistant desktop --source` would skip the build and fail to launch
 the missing runtime instead of relinking it.
 """
 from hermes_cli import main_desktop, source_build

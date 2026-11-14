@@ -1,7 +1,7 @@
 """browser_exec outside a served profile: the harness daemon socket must bind under a deep HOME.
 
 browser-harness binds ``<home>/.config/browser-harness/runtime/bu-<BU_NAME>.sock`` unless
-``BH_RUNTIME_DIR`` says otherwise. A container's profile home (``$HERMES_HOME/home``) or a long
+``BH_RUNTIME_DIR`` says otherwise. A container's profile home (``$A2ASSISTANT_HOME/home``) or a long
 account home overflowed sun_path and every call died with ``AF_UNIX path too long``.
 """
 import json

@@ -44,7 +44,7 @@ _cached: dict[str, str] = {}
 
 
 def _default_home() -> str:
-    """Ambient process HERMES_HOME (env, else the platform default) as a string."""
+    """Ambient process A2ASSISTANT_HOME (env, else the platform default) as a string."""
     from hermes_constants import get_process_hermes_home
     return str(get_process_hermes_home())
 
@@ -62,7 +62,7 @@ def _swallow(fn, default):
 
 
 def _hermes_root(home: Path) -> Path:
-    """Root ~/.hermes for both the default profile and named profiles."""
+    """Root ~/.a2assistant for both the default profile and named profiles."""
     return home.parent.parent if home.parent.name == "profiles" else home
 
 
@@ -155,7 +155,7 @@ def _bullet(handle: str, *parts: str) -> str:
 
 def _profile_role(profile_dir: Path) -> str:
     """Teammate role line: Bot Mode title — profile description; tells a teammate
-    WHO to message for a job. A friendly ``display_name`` (``hermes profile rename``) that
+    WHO to message for a job. A friendly ``display_name`` (``a2assistant profile rename``) that
     differs from both the folder id and the title leads the line, so an untagged
     "talk to Scribe" maps to the folder handle without a disk search (#100671).
     Single-line, ≤160 chars, "" when nothing. Never raises."""
@@ -183,7 +183,7 @@ def _friendly_names(profile_dir: Path) -> tuple[str, str]:
 
 def _display_name(name: str, profile_dir: Path, names: Collection[str]) -> str:
     """Human-facing sender name, in the Desktop's ``botFriendlyNames`` order: Bot Mode title,
-    then profile.yaml ``display_name`` (``hermes profile rename``), else the @handle — the
+    then profile.yaml ``display_name`` (``a2assistant profile rename``), else the @handle — the
     renamed primary signs as ``Maia (@hermes)``, not ``hermes (@hermes)`` (#89720)."""
     return next((n for n in _friendly_names(profile_dir) if n), None) or _handle(name, names)
 
@@ -220,7 +220,7 @@ def local_alias_map(root: Path) -> dict[str, set[str]]:
 
 
 def _peers(root: Path) -> list[str]:
-    """Registered peer gateway names (``hermes peer``) from config.yaml, read
+    """Registered peer gateway names (``a2assistant peer``) from config.yaml, read
     directly (no config-loader import; the section is absent on most installs). Never raises."""
     def _names() -> list[str]:
         from hermes_cli.config_backend import read_config_doc_readonly
@@ -280,7 +280,7 @@ def _peer_paragraph(root: Path) -> str:
         "\n\nTeammates on OTHER machines: this install also has peer gateways "
         f"registered ({listed}). Message an agent on a peer the same way — "
         'message_agent with target "<peer>/<agent-name>" (or "<peer>" alone '
-        "for the peer's main agent). Run `hermes peer list` for the live "
+        "for the peer's main agent). Run `a2assistant peer list` for the live "
         "peer list."
     )
 
@@ -336,7 +336,7 @@ def _build_section(home: Path) -> str:
 
 def get_bot_mode_protocol_section(home: str | os.PathLike | None = None, *, force_refresh: bool = False) -> str:
     """Cached probe entry point — one filesystem pass per (process, home). ``home`` should be
-    the AGENT'S OWN resolved home (session-db derived), not ambient HERMES_HOME — build threads
+    the AGENT'S OWN resolved home (session-db derived), not ambient A2ASSISTANT_HOME — build threads
     can lose the ContextVar override and the env var would then name the wrong profile."""
     resolved = str(_resolve_home(home))
     with _lock:

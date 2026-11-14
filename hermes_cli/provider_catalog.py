@@ -1,6 +1,6 @@
 """Unified provider catalog — one source of truth for the provider universe.
 
-The provider list shown by ``hermes model`` (CLI/TUI) and the desktop Settings → Providers tabs
+The provider list shown by ``a2assistant model`` (CLI/TUI) and the desktop Settings → Providers tabs
 (Accounts + API keys) **must be the same set**; providers added after those lists were written
 silently went missing from the GUI. ``auth_type`` / ``api_key_env_vars`` / ``base_url_env_var``
 come from :data:`hermes_cli.auth.PROVIDER_REGISTRY` (credential truth); ``display_name`` /
@@ -62,7 +62,7 @@ def _safe_import(module: str, attr: str, default):
 
 
 def provider_catalog() -> list[ProviderDescriptor]:
-    """One descriptor per provider in the ``hermes model`` universe (:data:`CANONICAL_PROVIDERS`,
+    """One descriptor per provider in the ``a2assistant model`` universe (:data:`CANONICAL_PROVIDERS`,
     auto-extended by provider plugins). Auth/env from ``PROVIDER_REGISTRY``; display metadata from
     ``ProviderProfile`` with canonical/env fallbacks so profile-less providers still resolve."""
     from hermes_cli.models_catalog_static import listed_canonical_providers
@@ -70,7 +70,7 @@ def provider_catalog() -> list[ProviderDescriptor]:
     OPTIONAL_ENV_VARS = _safe_import("hermes_cli.config", "OPTIONAL_ENV_VARS", {})
     # Overlays carry auth_type for providers with no registry/profile entry — notably the ``moa``
     # virtual provider (auth_type "virtual"), which has no credential and no network endpoint.
-    HERMES_OVERLAYS = _safe_import("hermes_cli.providers", "HERMES_OVERLAYS", {})
+    HERMES_OVERLAYS = _safe_import("hermes_cli.providers", "A2ASSISTANT_OVERLAYS", {})
     try:
         from providers import list_providers
         profiles = {p.name: p for p in list_providers()}

@@ -1,4 +1,4 @@
-"""``hermes prompt-size`` subcommand parser."""
+"""``a2assistant prompt-size`` subcommand parser."""
 
 from __future__ import annotations
 

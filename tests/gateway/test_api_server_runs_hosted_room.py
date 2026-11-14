@@ -121,9 +121,9 @@ class TestHostedRoomRuns:
     async def test_invitation_uses_validated_app_managed_local_catalog(
         self, auth_adapter, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_DESKTOP", "1")
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
         monkeypatch.setenv(
-            "HERMES_ROOM_LINK_URL", "https://peer.example.test/hermes"
+            "A2ASSISTANT_ROOM_LINK_URL", "https://peer.example.test/hermes"
         )
         app = _create_runs_app(auth_adapter)
         async with TestClient(TestServer(app)) as cli:

@@ -1,5 +1,5 @@
 """Configuration management for Hermes Agent: config.yaml / .env loading, saving,
-validation, migration, and the ``hermes config`` command."""
+validation, migration, and the ``a2assistant config`` command."""
 
 # Stale-module bridge — must run before ANY import below can bind a root-level symbol.
 # A pre-handoff updater purges only package prefixes after the pull, so a root module
@@ -43,7 +43,7 @@ from hermes_constants import (
     _chown_to_hermes_uid, _container_or_chmod_skipped, _resolve_hermes_uid_gid,
     apply_secure_dir_policy, get_managed_system)
 # Re-export from hermes_constants — canonical definition lives there.
-from hermes_constants import get_hermes_home, get_process_hermes_home
+from hermes_constants import adopt_legacy_env, adopted_env_name, get_hermes_home, get_process_hermes_home
 from utils import atomic_replace, fast_safe_load, file_cache_version, file_signature, mkstemp_beside
 from hermes_cli.config_issues import ConfigIssue, _issue
 from hermes_cli.config_backend import (
@@ -123,22 +123,22 @@ _ENV_VAR_NAME_DENYLIST: frozenset[str] = frozenset({
     # Shell init files / interactive hooks — sourced before or during execution
     "BASH_ENV", "ENV", "ZDOTDIR", "PROMPT_COMMAND", "VIMINIT", "EXINIT",
     # Hermes runtime location
-    "HERMES_HOME", "HERMES_PROFILE", "HERMES_CONFIG", "HERMES_ENV",
-    "HERMES_CONFIG_PATH", "HERMES_ENV_PATH",
+    "A2ASSISTANT_HOME", "A2ASSISTANT_PROFILE", "A2ASSISTANT_CONFIG", "A2ASSISTANT_ENV",
+    "A2ASSISTANT_CONFIG_PATH", "A2ASSISTANT_ENV_PATH",
     # MCP catalog trust root; package-manager wrappers may still set it in the process env.
-    "HERMES_OPTIONAL_MCPS",
+    "A2ASSISTANT_OPTIONAL_MCPS",
     # Security policy / approval-routing context — set via their dedicated controls only.
-    "HERMES_YOLO_MODE", "HERMES_ACCEPT_HOOKS", "HERMES_REDACT_SECRETS",
-    "HERMES_INTERACTIVE", "HERMES_EXEC_ASK", "HERMES_GATEWAY_SESSION",
-    "HERMES_CRON_SESSION", "HERMES_SINGLE_QUERY_SESSION",
-    "HERMES_SESSION_KEY", "HERMES_SESSION_PLATFORM"})
+    "A2ASSISTANT_YOLO_MODE", "A2ASSISTANT_ACCEPT_HOOKS", "A2ASSISTANT_REDACT_SECRETS",
+    "A2ASSISTANT_INTERACTIVE", "A2ASSISTANT_EXEC_ASK", "A2ASSISTANT_GATEWAY_SESSION",
+    "A2ASSISTANT_CRON_SESSION", "A2ASSISTANT_SINGLE_QUERY_SESSION",
+    "A2ASSISTANT_SESSION_KEY", "A2ASSISTANT_SESSION_PLATFORM"})
 
 
 def _env_var_policy_name(key: str, *, is_windows: Optional[bool] = None) -> str:
     """Name used for env policy comparisons: Windows env names are case-insensitive, POSIX not.
     The override keeps both semantics testable on any host."""
     windows = _IS_WINDOWS if is_windows is None else is_windows
-    return key.upper() if windows else key
+    return adopted_env_name(key.upper() if windows else key)
 
 
 def validate_env_var_name_for_write(key: str) -> None:
@@ -152,8 +152,8 @@ def validate_env_var_name_for_write(key: str) -> None:
         raise ValueError(
             f"Environment variable {key!r} is on the writer denylist. "
             "Names that influence subprocess execution (LD_PRELOAD, PYTHONPATH, PATH, EDITOR, ...) "
-            "or A2Assistant runtime location and security policy (HERMES_HOME, HERMES_YOLO_MODE, ...) "
-            "cannot be persisted via the env writer. If you really need this, edit ~/.hermes/.env "
+            "or A2Assistant runtime location and security policy (A2ASSISTANT_HOME, A2ASSISTANT_YOLO_MODE, ...) "
+            "cannot be persisted via the env writer. If you really need this, edit ~/.a2assistant/.env "
             "directly.")
 
 
@@ -192,9 +192,9 @@ _EXTRA_ENV_KEYS = frozenset({
     # Deprecated (replaced by display.tool_progress) but STILL READ by the gateway as a
     # back-compat fallback. The boolean HERMES_TOOL_PROGRESS variant is unsupported (its only
     # consumer, the v3->4 migration, is below the v12 support floor); doctor flags it as ignored.
-    "HERMES_TOOL_PROGRESS_MODE",
+    "A2ASSISTANT_TOOL_PROGRESS_MODE",
     # ACP (Agent Client Protocol) keys — profile-isolable so profiles can use different backends.
-    "HERMES_ACP_AUTH_METHOD", "HERMES_ACP_AUTO_APPROVE"}) | _left_core_profile_env()  # moved providers' env
+    "A2ASSISTANT_ACP_AUTH_METHOD", "A2ASSISTANT_ACP_AUTO_APPROVE"}) | _left_core_profile_env()  # moved providers' env
 
 
 # ---- Managed mode (NixOS declarative config) ----
@@ -240,10 +240,10 @@ def _install_method_stamp(path: Path) -> Optional[str]:
 def detect_install_method(project_root: Optional[Path] = None) -> str:
     """Detect how Hermes was installed: apt/docker/nix/nixos/home-manager/git/unknown.
     Order: code-scoped ``<install tree>/.install_method`` stamp (authoritative) -> legacy
-    ``$HERMES_HOME/.install_method`` -> managed marker -> /nix/store path -> .git dir -> unknown.
-    The stamp lives next to the code because HERMES_HOME is shared data: a container and a host
+    ``$A2ASSISTANT_HOME/.install_method`` -> managed marker -> /nix/store path -> .git dir -> unknown.
+    The stamp lives next to the code because A2ASSISTANT_HOME is shared data: a container and a host
     install can bind-mount the same home, so a home-scoped ``docker`` stamp would make the host
-    ``hermes update`` refuse to run. A legacy ``docker`` value is therefore ignored unless we are
+    ``a2assistant update`` refuse to run. A legacy ``docker`` value is therefore ignored unless we are
     really inside a container, and being in a container alone never implies 'docker'.
 
     Source installers clone a git checkout and publish ``install-stamp.json``;
@@ -311,7 +311,7 @@ def recommended_update_command_for_method(method: str) -> str:
     """Return the update command or guidance for a given install method."""
     if is_nix_install_method(method):
         return _NIX_UPDATE_MSG
-    return _UPDATE_COMMAND_BY_METHOD.get(method, "hermes update")
+    return _UPDATE_COMMAND_BY_METHOD.get(method, "a2assistant update")
 
 
 def recommended_update_command() -> str:
@@ -326,7 +326,7 @@ def recommended_update_command() -> str:
 # forks. The published image excludes ``.git``, so the git update path can never succeed there
 # and the generic "reinstall via install.sh" fallback would install a NEW host-side Hermes.
 _DOCKER_UPDATE_MESSAGE = """\
-✗ ``hermes update`` doesn't apply inside the Docker container.
+✗ ``a2assistant update`` doesn't apply inside the Docker container.
 
 A2Assistant runs as a published image (nousresearch/hermes-agent), not a
 git checkout — the container has no working tree to pull into.  Update by
@@ -348,7 +348,7 @@ Notes:
   • On a ``-desktop`` tag (the one carrying Bot Screen)?  Keep the suffix:
     the unsuffixed image has no Xvnc/Xfce and no sudo to add them, so
     pulling it stops the bots' screens from starting.
-  • Your config and session history live under ``$HERMES_HOME`` (``/opt/data``
+  • Your config and session history live under ``$A2ASSISTANT_HOME`` (``/opt/data``
     in the container, typically bind-mounted from the host) and persist
     across image upgrades — re-pulling doesn't lose any state.
   • Running a fork?  Build your own image with this repo's ``Dockerfile``
@@ -356,7 +356,7 @@ Notes:
 
 
 def format_docker_update_message() -> str:
-    """Return the user-facing message for ``hermes update`` inside Docker."""
+    """Return the user-facing message for ``a2assistant update`` inside Docker."""
     return _DOCKER_UPDATE_MESSAGE
 
 
@@ -374,12 +374,12 @@ def managed_error(action: str = "modify configuration"):
 
 
 def get_container_exec_info() -> Optional[dict]:
-    """Read container mode metadata from HERMES_HOME/.container-mode.
+    """Read container mode metadata from A2ASSISTANT_HOME/.container-mode.
     Written by the NixOS activation script when container.enable = true; tells the host CLI to
     exec into the container instead of running locally. None when container mode is off, when
-    already inside the container, or when HERMES_DEV=1 is set. Only FileNotFoundError is
+    already inside the container, or when A2ASSISTANT_DEV=1 is set. Only FileNotFoundError is
     swallowed; other errors (permissions, malformed data) propagate."""
-    if os.environ.get("HERMES_DEV") == "1":
+    if os.environ.get("A2ASSISTANT_DEV") == "1":
         return None
 
     from hermes_constants import is_container
@@ -416,8 +416,8 @@ def require_parseable_user_config(*, ignore_user_config: bool = False) -> None:
     Interactive surfaces keep ``load_config()``'s recovery behavior so the operator can repair
     the file; a one-shot run has no such chance, and defaults there could silently pick a hosted
     provider and spend against ``.env`` credentials. Missing/empty files stay valid first-run
-    states; ``--ignore-user-config`` / HERMES_IGNORE_USER_CONFIG=1 remain authoritative."""
-    if ignore_user_config or os.environ.get("HERMES_IGNORE_USER_CONFIG") == "1":
+    states; ``--ignore-user-config`` / A2ASSISTANT_IGNORE_USER_CONFIG=1 remain authoritative."""
+    if ignore_user_config or os.environ.get("A2ASSISTANT_IGNORE_USER_CONFIG") == "1":
         return
 
     config_path = get_config_path()
@@ -437,8 +437,8 @@ def require_parseable_user_config(*, ignore_user_config: bool = False) -> None:
     where = _yaml_error_location(parse_error)
     message = (
         f"A2Assistant stopped because your settings file ({config_path}) has a formatting error"
-        f"{f' at {where}' if where else ''}. Fix it with `hermes config edit` and check with "
-        "`hermes config check`, or add --ignore-user-config to run once with default settings.")
+        f"{f' at {where}' if where else ''}. Fix it with `a2assistant config edit` and check with "
+        "`a2assistant config check`, or add --ignore-user-config to run once with default settings.")
     if backup_path is not None:
         message += f" A copy of the broken file is at {backup_path}."
     message += f" Details: {_yaml_error_details(parse_error)}"
@@ -457,12 +457,12 @@ def get_project_root() -> Path:
 
 
 def _secure_dir(path):
-    """chmod a directory owner-only (0700) and apply HERMES_UID/GID ownership. No-op when managed;
-    in a container only an explicit HERMES_HOME_MODE is applied. HERMES_HOME_MODE (e.g. 0701)
-    overrides the mode so a web server can traverse HERMES_HOME to a served subdirectory without
+    """chmod a directory owner-only (0700) and apply A2ASSISTANT_UID/GID ownership. No-op when managed;
+    in a container only an explicit A2ASSISTANT_HOME_MODE is applied. A2ASSISTANT_HOME_MODE (e.g. 0701)
+    overrides the mode so a web server can traverse A2ASSISTANT_HOME to a served subdirectory without
     directory listings.
 
-    Also applies ``HERMES_UID``/``HERMES_GID``-based ownership when those env vars are set (#34107 — Docker
+    Also applies ``A2ASSISTANT_UID``/``A2ASSISTANT_GID``-based ownership when those env vars are set (#34107 — Docker
     deployments need this so profile subdirs created at runtime by kanban workers don't land as root:root
     and block subsequent uid-mapped workers).
 
@@ -488,7 +488,7 @@ def seed_config_file(config_path: Path, template: Optional[Path] = None) -> bool
     """Create a missing config.yaml the way the installers do: copy cli-config.yaml.example (the display keys
     there are commented out), else write stripped DEFAULT_CONFIG. Never DEFAULT_CONFIG verbatim -- the gateway
     merges no defaults, so every written display key becomes a global that beats each platform's own default
-    (#121230). Shared by ``hermes config edit`` and ``hermes doctor --fix`` so the seeders cannot drift.
+    (#121230). Shared by ``a2assistant config edit`` and ``a2assistant doctor --fix`` so the seeders cannot drift.
     Returns True when the template was copied (the fallback, like save_config, writes get_config_path())."""
     template = template or get_project_root() / "cli-config.yaml.example"
     config_path.parent.mkdir(parents=True, exist_ok=True)
@@ -543,7 +543,7 @@ _HERMES_HOME_SUBDIRS = (
 
 
 def ensure_hermes_home():
-    """Ensure the ~/.hermes directory skeleton exists with secure permissions.
+    """Ensure the ~/.a2assistant directory skeleton exists with secure permissions.
     Memoized per home path: this runs on EVERY ``load_config()`` and the ~14 mkdir/chmod syscalls
     made repeated loads the dominant cost of hot read paths."""
     home = get_hermes_home()
@@ -619,7 +619,7 @@ def _split_key_path(key: str) -> list[str]:
     """Split a dotted config-key path, honoring backslash-escaped dots (``a\\.b`` -> ``a.b``).
     Backslashes before any other character are preserved verbatim.
 
-    ``hermes config set`` uses ``.`` as the nesting separator, so a key that itself contains a literal dot
+    ``a2assistant config set`` uses ``.`` as the nesting separator, so a key that itself contains a literal dot
     (e.g. provider names like ``qwen3.5-397b-wafer``) was silently split into bogus nested segments
     (#84064).
     """
@@ -843,7 +843,7 @@ _ENV_CONFIG_KEYS = frozenset({
 
 
 def _is_env_config_key(key: str) -> bool:
-    """Return whether `hermes config set` routes this credential-shaped key to .env through the
+    """Return whether `a2assistant config set` routes this credential-shaped key to .env through the
     provider credential lifecycle. Non-secret env settings (``*_HOME_CHANNEL``, ``*_ALLOWED_USERS``)
     are ``config_env_routing.is_env_setting_key`` and take the plain ``.env`` path."""
     if "." in key:
@@ -1077,7 +1077,7 @@ def print_config_warnings(config: Optional[dict[str, Any]] = None) -> None:
     for ci in issues:
         marker = "\033[31m✗\033[0m" if ci.severity == "error" else "\033[33m⚠\033[0m"
         lines.append(f"  {marker} {ci.message}")
-    lines.append("  \033[2mRun 'hermes doctor' for fix suggestions.\033[0m")
+    lines.append("  \033[2mRun 'a2assistant doctor' for fix suggestions.\033[0m")
     sys.stderr.write("\n".join(lines) + "\n\n")
 
 
@@ -1174,7 +1174,7 @@ def migrate_config(interactive: bool = True, quiet: bool = False) -> dict[str, A
         msg = support_floor_message()
         results["warnings"].append(msg)
         # stderr so it is visible even on quiet startup paths.
-        sys.stderr.write(f"⚠ hermes config: {msg}\n")
+        sys.stderr.write(f"⚠ a2assistant config: {msg}\n")
         if not quiet:
             print(f"  ⚠ {msg}")
     else:
@@ -1271,7 +1271,7 @@ def _offer_list(heading: str, items: list[str], question: str) -> bool:
         print(f"    • {item}")
     print()
     if not _ask_yes_no(question):
-        print("  Set later with: hermes config set <key> <value>")
+        print("  Set later with: a2assistant config set <key> <value>")
         return False
     print()
     return True
@@ -1416,7 +1416,7 @@ def _env_expand_match(m: re.Match) -> str:
         return val
     if inner.startswith("env:"):
         logger.warning(
-            "Config ref %r: %s is not set (check ~/.hermes/.env); "
+            "Config ref %r: %s is not set (check ~/.a2assistant/.env); "
             "keeping the literal placeholder", raw, name)
     return raw
 
@@ -1584,7 +1584,7 @@ def _normalize_root_model_keys(config: dict[str, Any]) -> dict[str, Any]:
     sees a nested dict, and the id is canonicalized to ``default``.
 
     Also aliases ``api_base`` → ``base_url`` (issue #8919). ``api_base`` is the intuitive name OpenAI-SDK /
-    LiteLLM users reach for, and ``hermes config set`` blindly accepts any dotted key — so
+    LiteLLM users reach for, and ``a2assistant config set`` blindly accepts any dotted key — so
     ``model.api_base`` got written, confirmed, and then silently ignored by the runtime resolver (which
     reads only ``model.base_url``), causing requests to fall back to OpenRouter. We migrate the alias to the
     canonical key (fallback-only — never override an explicit ``base_url``) and drop the alias so it can't
@@ -1593,7 +1593,7 @@ def _normalize_root_model_keys(config: dict[str, Any]) -> dict[str, Any]:
     ~14 other readers select the chat model via ``model.default``; ``model.model`` was already aliased
     inline at some sites but ``model.name`` was not, so a custom-provider config like ``model: {name: <id>,
     provider: <custom>}`` resolved to an empty model and the API request went out with ``model=`` (HTTP 400
-    from OpenAI-compatible backends) — while display paths (``hermes status``/``dump``) read ``name`` and
+    from OpenAI-compatible backends) — while display paths (``a2assistant status``/``dump``) read ``name`` and
     *showed* the model, making the failure silent. Normalizing here (the single load/save chokepoint) means
     every reader, present and future, sees a populated ``default`` and the stale alias is migrated out of
     config.yaml on the next save. Precedence: ``default`` > ``model`` > ``name`` (never overrides an
@@ -2289,8 +2289,8 @@ _FALLBACK_COMMENT = """
 #
 # Supported providers:
 #   openrouter   (OPENROUTER_API_KEY)  — routes to any model
-#   openai-codex (OAuth — hermes auth) — OpenAI Codex
-#   nous         (OAuth — hermes auth) — Nous Portal
+#   openai-codex (OAuth — a2assistant auth) — OpenAI Codex
+#   nous         (OAuth — a2assistant auth) — Nous Portal
 #   anthropic    (ANTHROPIC_API_KEY)   — Anthropic
 #   lmstudio     (LM_API_KEY, optional) — LM Studio
 #
@@ -2331,7 +2331,7 @@ def _commented_sections_for_save(normalized: dict[str, Any]) -> Optional[str]:
 def save_config(
     config: dict[str, Any], *, strip_defaults: bool = True,
     preserve_keys: Optional[set[tuple[str, ...]]] = None, merge_existing: bool = False):
-    """Save configuration to ~/.hermes/config.yaml.
+    """Save configuration to ~/.a2assistant/config.yaml.
     Schema defaults are not written unless the user explicitly set them (the path exists in the
     raw config before normalisation), so config.yaml is never contaminated with defaults that
     would hide future default changes. ``merge_existing`` deep-merges the on-disk raw config
@@ -2377,7 +2377,7 @@ def save_config(
 
 
 def load_env() -> dict[str, str]:
-    """Load ~/.hermes/.env as a dict. Memoised inside ``load_env_file`` (``get_env_value()`` runs
+    """Load ~/.a2assistant/.env as a dict. Memoised inside ``load_env_file`` (``get_env_value()`` runs
     hundreds of times per interactive menu render). Each assignment's value is opaque data for
     boundary discovery."""
     # A frozen-policy worker never opens the profile's files; its secrets arrive
@@ -2387,7 +2387,7 @@ def load_env() -> dict[str, str]:
     from agent.secret_scope import load_env_file  # the one .env tokenizer; also installs profile scopes
 
     env = load_env_file(get_env_path())
-    _note_policy("note_env_policy", env.get("HERMES_REDACT_SECRETS"))
+    _note_policy("note_env_policy", env.get("A2ASSISTANT_REDACT_SECRETS"))
     return env
 
 
@@ -2433,7 +2433,7 @@ def _sanitize_env_lines(lines: list) -> list:
 
 
 def sanitize_env_file() -> int:
-    """Rewrite ~/.hermes/.env with normalized line formatting; returns the number of changed lines."""
+    """Rewrite ~/.a2assistant/.env with normalized line formatting; returns the number of changed lines."""
     env_path = get_env_path()
     if not env_path.exists():
         return 0
@@ -2651,7 +2651,7 @@ def _managed_source(filename: str):
 
 
 def save_env_value(key: str, value: str):
-    """Save or update a value in ~/.hermes/.env (also matching ``export KEY=`` lines, so a save
+    """Save or update a value in ~/.a2assistant/.env (also matching ``export KEY=`` lines, so a save
     never appends a second line that a later delete would resurrect)."""
     if _env_write_blocked(key, "set"):
         return
@@ -2681,14 +2681,14 @@ def save_env_value(key: str, value: str):
 def custom_endpoint_key_env(identity: str) -> str:
     """Env var name holding a custom endpoint's API key.
     ``identity`` is the endpoint's own id (Desktop endpoint id, or ``host:port`` for CLI setup),
-    so two endpoints on one host get separate slots. The fixed ``HERMES_CUSTOM_`` prefix keeps the
+    so two endpoints on one host get separate slots. The fixed ``A2ASSISTANT_CUSTOM_`` prefix keeps the
     name POSIX-valid when the slug starts with a digit (``save_env_value`` rejects those)."""
     slug = re.sub(r"[^A-Z0-9]+", "_", str(identity or "").upper()).strip("_")
-    return f"HERMES_CUSTOM_{slug}_API_KEY" if slug else "HERMES_CUSTOM_API_KEY"
+    return f"A2ASSISTANT_CUSTOM_{slug}_API_KEY" if slug else "A2ASSISTANT_CUSTOM_API_KEY"
 
 
 def remove_env_value(key: str) -> bool:
-    """Remove a key from ~/.hermes/.env and os.environ; True if it was found and removed."""
+    """Remove a key from ~/.a2assistant/.env and os.environ; True if it was found and removed."""
     if _env_write_blocked(key, "remove"):
         return False
     if not _ENV_VAR_NAME_RE.match(key):
@@ -2745,10 +2745,10 @@ def save_env_value_secure(key: str, value: str) -> dict[str, Any]:
 
 
 def reload_env() -> int:
-    """Re-read ~/.hermes/.env into os.environ; returns count of vars changed. Removes deleted vars only when
+    """Re-read ~/.a2assistant/.env into os.environ; returns count of vars changed. Removes deleted vars only when
     known to Hermes (OPTIONAL_ENV_VARS and _EXTRA_ENV_KEYS), and none while the .env exists but is unreadable."""
     from hermes_cli.env_loader import dotenv_unreadable
-    env_vars = load_env()
+    env_vars = adopt_legacy_env(load_env())
     count = 0
     for key, value in env_vars.items():
         if os.environ.get(key) != value:
@@ -2774,7 +2774,7 @@ def _scoped_environ_get(key: str) -> Optional[str]:
 
 
 def get_env_value(key: str) -> Optional[str]:
-    """Get a value from ``os.environ`` (scope-aware) or ``~/.hermes/.env``.
+    """Get a value from ``os.environ`` (scope-aware) or ``~/.a2assistant/.env``.
 
     The ``os.environ`` read routes through ``agent.secret_scope.get_secret`` so that, under an active
     profile scope (multiplexed gateway turn), this is scope-checked rather than leaking another profile's
@@ -2789,7 +2789,7 @@ def get_env_value(key: str) -> Optional[str]:
 
 
 def get_env_value_prefer_dotenv(key: str) -> Optional[str]:
-    """Resolve a Hermes-managed credential preferring ``~/.hermes/.env`` over ``os.environ``, so a
+    """Resolve a Hermes-managed credential preferring ``~/.a2assistant/.env`` over ``os.environ``, so a
     deliberate .env edit beats a stale value inherited from the parent shell.
 
     An unresolved ``op://`` reference left in .env yields to the already-resolved value from the
@@ -2864,8 +2864,8 @@ def edit_config():
     if not supports_file_tooling():
         # Exits 1 (unlike the managed refusal above, which every managed_error caller shares):
         # a script must not read this refusal as a successful edit.
-        _exit_invalid("`hermes config edit` opens the local config file, and this config backend has none. "
-                      "Use `hermes config set <key> <value>` instead.")
+        _exit_invalid("`a2assistant config edit` opens the local config file, and this config backend has none. "
+                      "Use `a2assistant config set <key> <value>` instead.")
     config_path = get_config_path()
     if not config_path.exists():  # config-reader: ok — file tooling, gated on supports_file_tooling()
         seed_config_file(config_path)
@@ -3075,7 +3075,7 @@ _SCALAR_WORDS = {
 
 
 def _coerce_config_set_value(key: str, value: str) -> Any:
-    """Auto-coerce a ``hermes config set`` string to bool/None/int/float/list/dict.
+    """Auto-coerce a ``a2assistant config set`` string to bool/None/int/float/list/dict.
     String-typed settings (per ``DEFAULT_CONFIG``) are preserved verbatim so enum members such as
     ``approvals.mode="off"`` never become booleans. List/mapping literals are parsed so
     isinstance-gated readers see real structures; the trigger is conservative.
@@ -3164,7 +3164,7 @@ def _refuse_container_type_mismatch(key: str, value: Any, user_config: dict[str,
     literal = "[item, ...]" if expected == "list" else "{key: value}"
     _exit_invalid(
         f"✗ Cannot set '{key}': it must be a {expected}, got a {got} — nothing was written.\n"
-        f"  Pass a YAML/JSON literal, e.g.:\n    hermes config set {key} '{literal}'\n"
+        f"  Pass a YAML/JSON literal, e.g.:\n    a2assistant config set {key} '{literal}'\n"
         "  or edit config.yaml directly.")
 
 
@@ -3175,7 +3175,7 @@ def _redirect_platform_display_key(key: str) -> tuple[str, Optional[str]]:
     Only known display settings (``OVERRIDEABLE_KEYS``) are redirected. Returns ``(key, note)``;
     the gateway import is guarded so the CLI works where the gateway package is unavailable.
 
-    Before #71047 a write such as ``hermes config set platforms.telegram.streaming false`` landed on a key
+    Before #71047 a write such as ``a2assistant config set platforms.telegram.streaming false`` landed on a key
     the gateway never reads: ``config get`` echoed the new value back while the runtime kept the old
     ``display.platforms`` one — a silent no-op that looks like a duplicated key to the user.
 
@@ -3371,7 +3371,7 @@ def set_config_value(key: str, value: str, force: bool = False):
             _route_notice = color(
                 f"⚠ model.base_url ({user_config['model'].get('base_url')}) was set under {_old_provider} and "
                 f"still applies to {value} — requests go there. If it is not {value}'s endpoint: "
-                "`hermes config unset model.base_url` (and model.api_mode).", Colors.YELLOW)
+                "`a2assistant config unset model.base_url` (and model.api_mode).", Colors.YELLOW)
     # api_base -> base_url alias at set-time too (mirrors _normalize_root_model_keys).
     if key.strip().lower() in ("model.api_base", "api_base"):
         # Normalize the api_base → base_url alias at set-time too (issue #8919), so a fresh `hermes config
@@ -3540,17 +3540,17 @@ def _run_write_command(fn, *args) -> None:
         _exit_invalid(f"✗ {exc}")
 
 
-_USAGE_GET = ("Usage: hermes config get <key> [--json] [--raw]", [
-    "hermes config get model", "hermes config get terminal.backend",
-    "hermes config get skills.config --json"], None)
-_USAGE_SET = ("Usage: hermes config set [--force] <key> <value>", [
-    "hermes config set model anthropic/claude-sonnet-4", "hermes config set terminal.backend docker",
-    "hermes config set OPENROUTER_API_KEY sk-or-..."], [
+_USAGE_GET = ("Usage: a2assistant config get <key> [--json] [--raw]", [
+    "a2assistant config get model", "a2assistant config get terminal.backend",
+    "a2assistant config get skills.config --json"], None)
+_USAGE_SET = ("Usage: a2assistant config set [--force] <key> <value>", [
+    "a2assistant config set model anthropic/claude-sonnet-4", "a2assistant config set terminal.backend docker",
+    "a2assistant config set OPENROUTER_API_KEY sk-or-..."], [
     "", "  --force: skip the unknown-key notice for unrecognized keys,",
     "           and allow a scalar to replace a whole mapping section"])
-_USAGE_UNSET = ("Usage: hermes config unset <key>", [
-    "hermes config unset model", "hermes config unset terminal.backend",
-    "hermes config unset OPENROUTER_API_KEY"], None)
+_USAGE_UNSET = ("Usage: a2assistant config unset <key>", [
+    "a2assistant config unset model", "a2assistant config unset terminal.backend",
+    "a2assistant config unset OPENROUTER_API_KEY"], None)
 
 
 def _cmd_config_get(args):
@@ -3650,7 +3650,7 @@ def _cmd_config_check(args):
     if missing_config:
         print()
         print(color(f"  {len(missing_config)} new config option(s) available", Colors.YELLOW))
-        print("    Run 'hermes config migrate' to add them")
+        print("    Run 'a2assistant config migrate' to add them")
 
     from hermes_cli.config_check_diagnostics import config_check_diagnostics
 
@@ -3682,15 +3682,15 @@ _CONFIG_SUBCOMMANDS = {
     "check": _cmd_config_check}
 
 _CONFIG_USAGE = """Available commands:
-  hermes config           Show current configuration
-  hermes config edit      Open config in editor
-  hermes config get <key>          Print a resolved config value
-  hermes config set <key> <value>   Set a config value
-  hermes config unset <key>        Remove a config value
-  hermes config check     Check for missing, outdated, or inactive config
-  hermes config migrate   Update config with new options
-  hermes config path      Show config file path
-  hermes config env-path  Show .env file path"""
+  a2assistant config           Show current configuration
+  a2assistant config edit      Open config in editor
+  a2assistant config get <key>          Print a resolved config value
+  a2assistant config set <key> <value>   Set a config value
+  a2assistant config unset <key>        Remove a config value
+  a2assistant config check     Check for missing, outdated, or inactive config
+  a2assistant config migrate   Update config with new options
+  a2assistant config path      Show config file path
+  a2assistant config env-path  Show .env file path"""
 
 
 def config_command(args):
@@ -3863,7 +3863,7 @@ def platform_manifest_secret_scan(home: Optional[Path] = None) -> tuple[frozense
 
 def _inject_platform_plugin_env_vars() -> frozenset[str] | None:
     """Populate OPTIONAL_ENV_VARS from platform plugin manifests (bundled AND user-installed) so
-    third-party platforms are configurable in the ``hermes config`` /
+    third-party platforms are configurable in the ``a2assistant config`` /
     Desktop Gateway form without the core knowing they exist. Failures are swallowed so a
     malformed plugin.yaml can't break CLI import. Returns the bundled manifests' secret names, or
     None when a bundled manifest could not be read (the policy then re-reads strictly).

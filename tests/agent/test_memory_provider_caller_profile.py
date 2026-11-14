@@ -146,7 +146,7 @@ def _assert_generic_refusal(result, caplog, *homes):
     """The model/chat sees a generic refusal pointing at a log every host writes (errors.log; gateway.log
     too on a gateway); the log keeps the check's code and the homes."""
     error = result.get("error", "")
-    assert "refused" in error and "hermes logs errors" in error, result
+    assert "refused" in error and "a2assistant logs errors" in error, result
     assert _REFUSAL_CODE not in error and not any(str(home) in error for home in homes), result
     logged = "\n".join(r.getMessage() for r in caplog.records if r.name == "agent.memory_caller_scope")
     assert _REFUSAL_CODE in logged, logged
@@ -185,7 +185,7 @@ def test_multiplexed_call_without_a_caller_scope_is_refused_even_for_the_process
     # The manager serves the process's own (launch) profile, but on a multiplexed process a call that
     # names no profile is not proof it came from that profile's turn.
     alpha_home, _ = homes
-    monkeypatch.setenv("HERMES_HOME", str(alpha_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(alpha_home))
     alpha = _agent(alpha_home, "agent:alpha:api_server:dm:1")
     for dispatch in (_sequential, _concurrent):
         token = set_hermes_home_override(None)
@@ -332,7 +332,7 @@ def test_lifecycle_hooks_from_another_profiles_scope_are_refused(homes, caplog):
 
 def test_multiplexed_lifecycle_hooks_without_a_caller_scope_are_refused(homes, multiplexed, monkeypatch, caplog):
     alpha_home, _ = homes
-    monkeypatch.setenv("HERMES_HOME", str(alpha_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(alpha_home))
     alpha = _manager(alpha_home)
     for hook in _HOOKS.values():
         hook(alpha)
@@ -360,7 +360,7 @@ def test_tool_calls_reuse_what_initialize_bound(homes, monkeypatch):
 def test_refused_checkpoint_compression_fails_closed(homes):
     alpha_home, beta_home = homes
     alpha = _manager(alpha_home)
-    with _Scope(beta_home), pytest.raises(RuntimeError, match="hermes logs errors"):
+    with _Scope(beta_home), pytest.raises(RuntimeError, match="a2assistant logs errors"):
         alpha.on_pre_compress([{"role": "user", "content": "x"}], require_checkpoint=True)
 
 

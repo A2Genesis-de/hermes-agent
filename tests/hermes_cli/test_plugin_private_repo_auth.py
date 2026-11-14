@@ -197,7 +197,7 @@ def test_anonymous_attempt_fails_fast_under_inherited_askpass(tmp_path, monkeypa
         # Plain-http local remote: stand in for the https credential lookup so the fallback's
         # second attempt is observable without a TLS fixture.
         monkeypatch.setattr(git_credentials, "with_git_auth",
-                            lambda env, u: {**env, "HERMES_TEST_AUTH_ATTACHED": "1"})
+                            lambda env, u: {**env, "A2ASSISTANT_TEST_AUTH_ATTACHED": "1"})
         attempts: list[dict] = []
         real_run = subprocess.run
         monkeypatch.setattr(git_credentials.subprocess, "run",

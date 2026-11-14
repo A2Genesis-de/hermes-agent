@@ -17,7 +17,7 @@ from acp_adapter.gateway_server import GatewayACPAgent
     ],
 )
 async def test_picker_identity_reaches_prepared_mutation(model_id, expected, tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         'custom_providers:\n  - name: fixture\n    base_url: http://127.0.0.1:9/v1\n',
         encoding="utf-8",

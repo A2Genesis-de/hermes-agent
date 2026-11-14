@@ -20,7 +20,7 @@ def _fresh(monkeypatch, tmp_path):
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     import hermes_cli.memory_provider_migration as mpm
     monkeypatch.setattr(mpm, "catalog_source", lambda name: name)
 
@@ -75,7 +75,7 @@ def test_process_env_backend_counts_only_for_the_launch_home(tmp_path, monkeypat
     launch = _home(tmp_path)
     secondary = tmp_path / "profiles" / "work"
     secondary.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("TERMINAL_ENV", "singularity")  # the launch process's backend (systemd unit, export)
     assert lcm.singularity_in_use(launch) is False
     assert lcm.singularity_in_use(launch, process_env=True) is True
@@ -125,13 +125,13 @@ def test_the_backend_name_is_free_for_the_plugin(monkeypatch):
 
 
 def test_without_the_plugin_the_backend_error_names_the_install_command(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(_home(tmp_path)))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(_home(tmp_path)))
     from tools import terminal_tool_backends as backends
     assert backends._check_plugin_requirements({"env_type": "singularity"}) is False
     reason = backends.terminal_backend_unavailable_reason()
     assert "moved out of core into the 'singularity' plugin" in reason
-    assert "hermes plugins install singularity" in reason
-    with pytest.raises(ValueError, match="hermes plugins install singularity"):
+    assert "a2assistant plugins install singularity" in reason
+    with pytest.raises(ValueError, match="a2assistant plugins install singularity"):
         backends._create_environment("singularity", image="", cwd="/root", timeout=10)
     assert lcm.terminal_backend_install_hint("acmebox") == ""
 
@@ -142,7 +142,7 @@ def test_config_unset_removes_the_env_copy_core_used_to_write(tmp_path, monkeypa
     # or the old image comes back instead of the default.
     home = _home(tmp_path, env="TERMINAL_SINGULARITY_IMAGE=docker://old:1\n",
                  config="terminal:\n  backend: singularity\n  singularity_image: docker://old:1\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     from hermes_cli.config import unset_config_value
     unset_config_value("terminal.singularity_image")
     assert "singularity_image" not in (home / "config.yaml").read_text(encoding="utf-8")
@@ -153,7 +153,7 @@ def test_config_set_and_get_still_recognize_the_image_key(tmp_path, monkeypatch,
     # The plugin reads terminal.singularity_image and its setup text says `hermes config set
     # terminal.singularity_image <image>`; leaving DEFAULT_CONFIG must not make it an unknown key.
     home = _home(tmp_path, config="terminal:\n  backend: singularity\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     from hermes_cli.config import get_config_value, set_config_value
     set_config_value("terminal.singularity_image", "docker://python:3.12")
     get_config_value("terminal.singularity_image")

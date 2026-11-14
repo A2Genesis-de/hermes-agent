@@ -26,7 +26,7 @@ function sourceProbeGit(userData, realGit, stagedUrl, platform = process.platfor
 
 function prepareSourceBranchEnvironment(root, expectedSha, realGit, capturedEnv, launchEnv) {
   if (!realGit || !path.isAbsolute(realGit) || !fs.existsSync(realGit)) {
-    throw new Error('source app-update requires HERMES_E2E_REAL_GIT for staged main')
+    throw new Error('source app-update requires A2ASSISTANT_E2E_REAL_GIT for staged main')
   }
   const install = path.resolve(root)
   const staged = childProcess.execFileSync(realGit, ['-C', install, 'remote', 'get-url', 'origin'], {
@@ -39,10 +39,10 @@ function prepareSourceBranchEnvironment(root, expectedSha, realGit, capturedEnv,
   if (advertised !== expectedSha) {
     throw new Error(`staged Git main ${advertised} does not match expected ${expectedSha}`)
   }
-  launchEnv.HERMES_E2E_SOURCE_ROOT = install
-  launchEnv.HERMES_E2E_SOURCE_URL = staged
-  launchEnv.HERMES_E2E_SOURCE_REAL_GIT = realGit
-  launchEnv.HERMES_E2E_SOURCE_GIT = sourceProbeGit(launchEnv.HERMES_DESKTOP_USER_DATA_DIR, realGit, staged)
+  launchEnv.A2ASSISTANT_E2E_SOURCE_ROOT = install
+  launchEnv.A2ASSISTANT_E2E_SOURCE_URL = staged
+  launchEnv.A2ASSISTANT_E2E_SOURCE_REAL_GIT = realGit
+  launchEnv.A2ASSISTANT_E2E_SOURCE_GIT = sourceProbeGit(launchEnv.A2ASSISTANT_DESKTOP_USER_DATA_DIR, realGit, staged)
   launchEnv.NODE_OPTIONS = `--require=${JSON.stringify(__filename)}`
   if (process.platform !== 'win32') {
     // Packaged Electron ignores NODE_OPTIONS=--require. Select the branch at
@@ -73,7 +73,7 @@ check_root() {
   return 1
 }
 if [ "$1" = '--run-module' ] && [ "$2" = 'hermes_cli.source_check' ] && check_root "$@"; then
-  exec ${quote(original)} "$@" --git ${quote(launchEnv.HERMES_E2E_SOURCE_GIT)} --branch main
+  exec ${quote(original)} "$@" --git ${quote(launchEnv.A2ASSISTANT_E2E_SOURCE_GIT)} --branch main
 fi
 exec ${quote(original)} "$@"
 `, { mode: 0o700 })
@@ -119,10 +119,10 @@ function branchProbeArgs(args, root, realGit) {
   return [...selected, '--branch', 'main']
 }
 
-if (process.env.HERMES_E2E_SOURCE_ROOT && process.env.HERMES_E2E_SOURCE_GIT) {
+if (process.env.A2ASSISTANT_E2E_SOURCE_ROOT && process.env.A2ASSISTANT_E2E_SOURCE_GIT) {
   const original = childProcess.execFile
   const select = args => {
-    const selected = branchProbeArgs(args, process.env.HERMES_E2E_SOURCE_ROOT, process.env.HERMES_E2E_SOURCE_GIT)
+    const selected = branchProbeArgs(args, process.env.A2ASSISTANT_E2E_SOURCE_ROOT, process.env.A2ASSISTANT_E2E_SOURCE_GIT)
     if (selected !== args) process.stderr.write('[source-branch-probe] checking staged Git main explicitly\n')
     return selected
   }
@@ -147,19 +147,19 @@ if (process.env.HERMES_E2E_SOURCE_ROOT && process.env.HERMES_E2E_SOURCE_GIT) {
   // v2026.9.21 does its source check in Electron: remote get-url selects
   // GitHub's public REST API unless its real Git process sees staged origin.
   // Redirect only the legacy check's two Git reads, not arbitrary subprocesses.
-  if (process.env.HERMES_E2E_SOURCE_URL) {
+  if (process.env.A2ASSISTANT_E2E_SOURCE_URL) {
     const spawn = childProcess.spawn
-    const staged = process.env.HERMES_E2E_SOURCE_URL
+    const staged = process.env.A2ASSISTANT_E2E_SOURCE_URL
     childProcess.spawn = function (file, args, options) {
       const actual = args?.[0] === '-c' && args[1] === 'windows.appendAtomically=false' ? args.slice(2) : args
       if (/^git(?:\.exe)?$/i.test(path.basename(file)) &&
-          path.resolve(options?.cwd || '') === process.env.HERMES_E2E_SOURCE_ROOT &&
+          path.resolve(options?.cwd || '') === process.env.A2ASSISTANT_E2E_SOURCE_ROOT &&
           (actual?.join(' ') === 'remote get-url origin' ||
             (actual?.[0] === 'ls-remote' && actual[1] === 'origin' && actual[2] === 'refs/heads/main'))) {
         process.stderr.write('[source-branch-probe] historical Desktop checking staged Git origin\n')
         // The driver shadows git with a fork-detection shim that always
         // reports the official URL for remote get-url, even with -c flags.
-        return spawn.call(this, process.env.HERMES_E2E_SOURCE_REAL_GIT, [
+        return spawn.call(this, process.env.A2ASSISTANT_E2E_SOURCE_REAL_GIT, [
           '-c', `url.${staged}.insteadOf=https://github.com/NousResearch/hermes-agent.git`,
           '-c', `url.${staged}.insteadOf=git@github.com:NousResearch/hermes-agent.git`,
           ...args,

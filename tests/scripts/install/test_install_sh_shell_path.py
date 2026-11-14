@@ -53,7 +53,7 @@ fi
 
 def _wire(home: Path, runs: int = 1) -> None:
     env = {k: v for k, v in os.environ.items() if k not in ("CI", "GITHUB_ACTIONS")}
-    env.update(HOME=str(home), HERMES_HOME=str(home / "hermes"), SHELL="/bin/bash",
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home / "hermes"), SHELL="/bin/bash",
                NO_COLOR="1", TERM="dumb", CI="true")
     script = f"source {shlex.quote(INSTALL_SH.as_posix())} --manifest\n" + "wire_shell_path\n" * runs
     result = subprocess.run(["bash", "-c", script], env=env, stdin=subprocess.DEVNULL,

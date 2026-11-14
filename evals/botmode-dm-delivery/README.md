@@ -1,6 +1,6 @@
 # Native Bot Mode delivery probe
 
-Real Electron, production Python backend and tool execution, disposable HOME/HERMES_HOME,
+Real Electron, production Python backend and tool execution, disposable HOME/A2ASSISTANT_HOME,
 loopback scripted inference (no paid model). Linux seat fixture; run from repository root:
 
 ```sh
@@ -10,7 +10,7 @@ git apply evals/botmode-dm-delivery/mock-trigger.patch
 (cd apps/desktop && pnpm run build)
 (cd apps/desktop && DISPLAY=:0 XAUTHORITY=/run/user/1000/xauth_cnpsqU \
   XDG_RUNTIME_DIR=/run/user/1000 VIRTUAL_ENV="$VIRTUAL_ENV" \
-  HERMES_DESKTOP_CDP_PORT=off pnpm exec playwright test e2e/probe-dm-delivery.spec.ts --reporter=list)
+  A2ASSISTANT_DESKTOP_CDP_PORT=off pnpm exec playwright test e2e/probe-dm-delivery.spec.ts --reporter=list)
 git apply -R evals/botmode-dm-delivery/mock-trigger.patch
 rm apps/desktop/e2e/probe-dm-delivery.spec.ts
 ```
@@ -61,7 +61,7 @@ Prior `/tmp/botmode-dm-recovery*` evidence remains untouched.
 
 ## Per-record delivery exception isolation
 
-Retired with the deferred `hermes chat` pending lane (`cron/bot_chat_delivery.py`): cron
+Retired with the deferred `a2assistant chat` pending lane (`cron/bot_chat_delivery.py`): cron
 output now reaches Bot Chat through the gateway authority door (`gateway/session_bot.py`),
 which records a per-target receipt on the job and creates the Bot Chat when missing, so a
 per-record file-scan exception has no counterpart. The regression case lives in

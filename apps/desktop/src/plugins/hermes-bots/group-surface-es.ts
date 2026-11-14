@@ -156,7 +156,7 @@ export const GROUP_SURFACE_ES = {
     attentionFallback: "Necesita atención",
     attentionProviderAuth: "Vuelve a iniciar sesión con este perfil",
     attentionQuota: "Cuota o saldo agotado",
-    attentionMissingConfig: "Proveedor sin configurar — ejecuta hermes model",
+    attentionMissingConfig: "Proveedor sin configurar — ejecuta a2assistant model",
     attentionBlocked: "Bot bloqueado — consulta su último mensaje",
     editMenu: "Editar…",
     duplicate: "Duplicar",

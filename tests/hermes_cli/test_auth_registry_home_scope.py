@@ -41,7 +41,7 @@ def homes(tmp_path, monkeypatch):
     _plugin(b, "acme-scope", "https://b.invalid/v1", ("ACME_SCOPE_B_KEY",), ())
     _plugin(b, "zeta-scope", "https://z.invalid/v1", ("ZETA_SCOPE_KEY",), ("acs",))
     c.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(c))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(c))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)

@@ -34,7 +34,7 @@ def _load(tmp_path, monkeypatch, entries: list[dict]):
     (hermes_home / "auth.json").write_text(
         json.dumps({"version": 1, "credential_pool": {"openai-codex": entries}})
     )
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     from agent.credential_pool import load_pool
 
     return load_pool("openai-codex")

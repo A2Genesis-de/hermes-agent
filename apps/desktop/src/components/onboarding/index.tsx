@@ -106,7 +106,7 @@ const API_KEY_OPTIONS: ApiKeyOption[] = [
 ]
 
 // Build the FULL API-key provider catalog from the backend model options so the
-// onboarding / Providers key form lists every `api_key` provider `hermes model`
+// onboarding / Providers key form lists every `api_key` provider `a2assistant model`
 // knows about — not just the hand-curated five. Curated entries keep their
 // richer copy + placeholders and float to the top (recommended defaults); every
 // other api_key provider is appended with a generic "paste {KEY}" affordance.
@@ -571,7 +571,7 @@ export const FEATURED_ID = 'nous'
 // (it failed or came back empty, which drops the picker onto the key form).
 // Starting sign-in only needs the id; the backend's start reply decides the flow.
 const NOUS_FALLBACK: OAuthProvider = {
-  cli_command: 'hermes auth add nous',
+  cli_command: 'a2assistant auth add nous',
   docs_url: 'https://portal.nousresearch.com',
   flow: 'device_code',
   id: FEATURED_ID,

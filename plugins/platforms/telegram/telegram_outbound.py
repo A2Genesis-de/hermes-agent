@@ -1,5 +1,5 @@
 """Telegram outbound send policy shared by the gateway adapter and the standalone sender
-(``hermes send``, the ``send_message`` tool, standalone cron delivery): the push-notification
+(``a2assistant send``, the ``send_message`` tool, standalone cron delivery): the push-notification
 mode and the visually-empty guard, so both lanes make the same decision for the same text."""
 
 from __future__ import annotations
@@ -25,9 +25,9 @@ def is_visually_empty(text: str | None) -> bool:
 
 
 def resolve_notifications_mode() -> str:
-    """``all`` or ``important``: ``HERMES_TELEGRAM_NOTIFICATIONS``, else the active profile's
+    """``all`` or ``important``: ``A2ASSISTANT_TELEGRAM_NOTIFICATIONS``, else the active profile's
     ``display.platforms.telegram.notifications``; unknown values warn and use ``important``."""
-    mode = os.getenv("HERMES_TELEGRAM_NOTIFICATIONS", "").strip().lower()
+    mode = os.getenv("A2ASSISTANT_TELEGRAM_NOTIFICATIONS", "").strip().lower()
     if not mode:
         from hermes_cli.config import cfg_get, load_config_readonly
         raw = cfg_get(load_config_readonly(), "display", "platforms", "telegram", "notifications")

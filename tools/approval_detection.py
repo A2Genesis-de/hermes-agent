@@ -21,12 +21,12 @@ logger = logging.getLogger("tools.approval")
 # import-time path snapshot (stale once HERMES_HOME is set after import) lives in the patterns.
 _SSH_SENSITIVE_PATH = r'(?:~|\$home|\$\{home\})/\.ssh(?:/|$)'
 _HERMES_ENV_PATH = (
-    r'(?:~\/\.hermes/|(?:\$home|\$\{home\})/\.hermes/|(?:\$hermes_home|\$\{hermes_home\})/)' r'\.env\b'
+    r'(?:~\/\.(?:hermes|a2assistant)/|(?:\$home|\$\{home\})/\.(?:hermes|a2assistant)/|(?:\$(?:hermes|a2assistant)_home|\$\{(?:hermes|a2assistant)_home\})/)' r'\.env\b'
 )
 # ~/.hermes/config.yaml IS the security policy (approvals.mode, yolo, allowlist) and the config cache is mtime-keyed,
 # so a write takes effect mid-session. Terminal-side coverage (sed -i, tee, >, cp) pairs the file_tools deny.
 _HERMES_CONFIG_PATH = (
-    r'(?:~\/\.hermes/|(?:\$home|\$\{home\})/\.hermes/|(?:\$hermes_home|\$\{hermes_home\})/)' r'config\.yaml\b'
+    r'(?:~\/\.(?:hermes|a2assistant)/|(?:\$home|\$\{home\})/\.(?:hermes|a2assistant)/|(?:\$(?:hermes|a2assistant)_home|\$\{(?:hermes|a2assistant)_home\})/)' r'config\.yaml\b'
 )
 _PROJECT_ENV_PATH = r'(?:(?:/|\.{1,2}/)?(?:[^\s/"\'`]+/)*\.env(?:\.[^/\s"\'`]+)*)'
 _PROJECT_CONFIG_PATH = r'(?:(?:/|\.{1,2}/)?(?:[^\s/"\'`]+/)*config\.yaml)'
@@ -491,7 +491,7 @@ DANGEROUS_PATTERNS = [
     (r'\bsc(?:\.exe)?\s+(?:stop|delete)\b', "stop/delete service (sc)"),
     # Windows-form credential paths; the POSIX ~/.ssh patterns never match drive-letter or backslash spellings.
     (r'\busers[\\/][^\\/\s]+[\\/]\.ssh\b', "access to SSH keys (Windows path)"),
-    (r'\bappdata[\\/](?:local|roaming)[\\/]hermes[^\n]*\.env\b', "access to A2Assistant secrets (Windows path)"),
+    (r'\bappdata[\\/](?:local|roaming)[\\/](?:hermes|a2assistant)[^\n]*\.env\b', "access to A2Assistant secrets (Windows path)"),
     # ── end of Windows tier
     (r'\bchmod\s+(-[^\s]*\s+)*(777|666|o\+[rwx]*w|a\+[rwx]*w)\b', "world/other-writable permissions"),
     (r'\bchmod\s+--recursive\b.*(777|666|o\+[rwx]*w|a\+[rwx]*w)', "recursive world/other-writable (long flag)"),
@@ -584,8 +584,8 @@ DANGEROUS_PATTERNS = [
      "dynamic shell word may expand to arbitrary program execution flag"),
     # Gateway lifecycle: stopping/restarting the gateway kills all running agents. Global flags
     # between `hermes` and `gateway` (`hermes -p ade gateway restart`) are allowed so a profile flag can't slip past.
-    (r'\bhermes\s+' + _GLOBAL_FLAGS + r'gateway\s+(stop|restart)\b', "stop/restart hermes gateway (kills running agents)"),
-    (r'\bhermes\s+update\b', "hermes update (restarts gateway, kills running agents)"),
+    (r'\b(?:hermes|a2assistant)\s+' + _GLOBAL_FLAGS + r'gateway\s+(stop|restart)\b', "stop/restart a2assistant gateway (kills running agents)"),
+    (r'\b(?:hermes|a2assistant)\s+update\b', "a2assistant update (restarts gateway, kills running agents)"),
     # Docker/Podman daemon redirect — global flags or env that point the CLI at a DIFFERENT (often remote) daemon:
     # `docker -H ssh://prod stop app` looks local but operates on remote infra, so any redirect requires approval
     # regardless of subcommand. The flag must be in global position (before the subcommand) and -H/--host/--context
@@ -603,10 +603,10 @@ DANGEROUS_PATTERNS = [
     (r'\bdocker(?:-compose|\s+compose)\s+' + _CONTAINER_GLOBAL_FLAGS + r'(restart|stop|kill|down)\b', "docker compose restart/stop/kill/down (container lifecycle)"),
     (r'\bdocker\s+' + _CONTAINER_GLOBAL_FLAGS + r'(restart|stop|kill)\b', "docker restart/stop/kill (container lifecycle)"),
     # Gateway protection: never start gateway outside systemd management
-    (r'gateway\s+run\b.*(&\s*$|&\s*;|\bdisown\b|\bsetsid\b)', "start gateway outside systemd (use 'systemctl --user restart hermes-gateway')"),
-    (r'\bnohup\b.*gateway\s+run\b', "start gateway outside systemd (use 'systemctl --user restart hermes-gateway')"),
+    (r'gateway\s+run\b.*(&\s*$|&\s*;|\bdisown\b|\bsetsid\b)', "start gateway outside systemd (use 'systemctl --user restart a2assistant-gateway')"),
+    (r'\bnohup\b.*gateway\s+run\b', "start gateway outside systemd (use 'systemctl --user restart a2assistant-gateway')"),
     # Self-termination protection: prevent agent from killing its own process
-    (r'\b(pkill|killall)\b.*\b(hermes|gateway|cli\.py)\b', "kill hermes/gateway process (self-termination)"),
+    (r'\b(pkill|killall)\b.*\b(hermes|a2assistant|gateway|cli\.py)\b', "kill hermes/gateway process (self-termination)"),
     # Self-termination via kill + $(pgrep/pidof): the substitution is opaque to the name-based
     # pattern above, so catch the structural form.
     (r'\bkill\b.*\$\(\s*(pgrep|pidof)\b', "kill process via pgrep/pidof expansion (self-termination)"),
@@ -617,7 +617,7 @@ DANGEROUS_PATTERNS = [
     # with zero approval. Erring broad is correct for an approval gate: an extra prompt is cheap.
     # Anchor whole-input lookaheads: re.search otherwise rescans every suffix of
     # long non-matching commands, holding the GIL and starving Gateway threads.
-    (r'\A(?=[\s\S]*\blaunchctl\s+(?:stop|kickstart|bootout|unload|kill|disable|remove)\b)(?=[\s\S]*\b(?:hermes|ai\.hermes)\b)', "stop/restart hermes launchd service (kills running agents)"),
+    (r'\A(?=[\s\S]*\blaunchctl\s+(?:stop|kickstart|bootout|unload|kill|disable|remove)\b)(?=[\s\S]*\b(?:hermes|a2assistant|ai\.hermes)\b)', "stop/restart hermes launchd service (kills running agents)"),
     (rf'\b(cp|mv|install)\b.*\s{_SYSTEM_CONFIG_PATH}', "copy/move file into system config path"),
     (rf'\b(cp|mv|install)\b.*\s["\']?{_PROJECT_SENSITIVE_WRITE_TARGET}["\']?{_COMMAND_TAIL}', "overwrite project env/config file"),
     # cp/mv/install OVERWRITING a credential/SSH/shell-rc/Hermes file (key implant, login-time
@@ -828,7 +828,7 @@ def _rewrite_resolved_user_home(command: str) -> str:
 
 
 def _rewrite_resolved_hermes_home(command: str) -> str:
-    """Resolved HERMES_HOME (and its realpath) -> ``~/.hermes/`` so the _HERMES_CONFIG_PATH /
+    """Resolved A2ASSISTANT_HOME (and its realpath) -> ``~/.a2assistant/`` so the _HERMES_CONFIG_PATH /
     _HERMES_ENV_PATH rules match Docker/gateway deployments that spell the absolute path."""
     try:
         from hermes_constants import get_hermes_home
@@ -836,7 +836,7 @@ def _rewrite_resolved_hermes_home(command: str) -> str:
         paths = [str(home), str(home.resolve(strict=False))]
     except Exception:
         return command
-    return _fold_home_prefixes(command, paths, "~/.hermes")
+    return _fold_home_prefixes(command, paths, "~/.a2assistant")
 
 
 _PARAM_REPLACEMENT_RE = re.compile(r"\$\{[^}/\s]+/[^}/]*/(?P<replacement>[^}]*)\}")
@@ -933,7 +933,7 @@ _BASH_SHORT_OPTION_LETTERS = frozenset("ilrsDcabefhkmnptuvxBCEHPTOo")
 _MAX_DETECTION_COMMAND_CHARS, _MAX_SEPARATOR_FREE_COMMAND_CHARS, _MAX_DETECTION_SEGMENTS = 128_000, 4_096, 25_000
 _PARSER_LIMIT_DESCRIPTION = "command parser limit exceeded"
 _MALFORMED_EXEC_DESCRIPTION = "command parser limit or malformed executable payload"
-_GATEWAY_LIFECYCLE_SPLICE_DESCRIPTION = "stop/restart hermes gateway via shell-spliced verb (kills running agents)"
+_GATEWAY_LIFECYCLE_SPLICE_DESCRIPTION = "stop/restart a2assistant gateway via shell-spliced verb (kills running agents)"
 
 
 def _command_parser_limit_exceeded(command: str) -> bool:
@@ -1767,8 +1767,8 @@ def _is_shell_token_spliced_gateway_lifecycle(command: str) -> bool:
     Backslash splicing (``kick\\start``) is undone by normalization, but quote splicing is not:
     ``_deobfuscate_shell_word_for_detection`` is deliberately scoped to command-position words
     (widening it would let quoted prose like ``git commit -m "rm -rf /"`` match), and the spliced
-    verb is an ARGUMENT, so ``launchctl kick"start" -k gui/501/ai.hermes.gateway`` auto-approved.
-    Delegates to ``cron.lifecycle_guard`` (shlex-tokenized, anchored on a hermes-gateway
+    verb is an ARGUMENT, so ``launchctl kick"start" -k gui/501/de.a2genesis.a2assistant.gateway`` auto-approved.
+    Delegates to ``cron.lifecycle_guard`` (shlex-tokenized, anchored on a a2assistant-gateway
     identifier). Runs last so an ordinary pattern match keeps its more specific reason; this layer
     only prompts — the non-bypassable block still lives in ``cron.lifecycle_guard``.
 

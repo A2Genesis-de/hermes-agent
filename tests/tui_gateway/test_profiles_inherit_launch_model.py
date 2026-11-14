@@ -30,7 +30,7 @@ def test_inherit_launch_model_carries_a_custom_provider_gateway(
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("FAKE_GW_TOKEN", "gw-FAKE-111")
     endpoint = {
         "name": "my-gateway",
@@ -101,7 +101,7 @@ def test_inherit_launch_model_pins_a_bare_custom_endpoint(monkeypatch, tmp_path,
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     for var in ("CUSTOM_BASE_URL", "OPENAI_BASE_URL"):
         monkeypatch.delenv(var, raising=False)
     monkeypatch.setenv("LAB_URL", "http://127.0.0.1:11434/v1")
@@ -135,7 +135,7 @@ def test_inherit_launch_model_preserves_explicit_profile_selection(
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     atomic_config_write(
         home / "config.yaml", {"model": {"provider": "nous", "default": "launch-model"}}
     )

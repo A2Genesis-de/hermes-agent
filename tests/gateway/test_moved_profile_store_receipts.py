@@ -3,7 +3,7 @@
 A profile id is the owning home's absolute path and it is stamped into every local creation receipt
 and history binding. A ``state.db`` copied to another machine (a Hermes Cloud migration) or a moved
 home then held rows naming the old path, and ``owned_receipt`` refused each one with
-``profile_mismatch``: the Bot Chat refused every ``hermes peer dm`` / ``peer run`` and none of those
+``profile_mismatch``: the Bot Chat refused every ``a2assistant peer dm`` / ``peer run`` and none of those
 chats resumed.
 """
 import json

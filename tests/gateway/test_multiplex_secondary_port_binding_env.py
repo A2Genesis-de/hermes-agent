@@ -16,7 +16,7 @@ def multiplex_root(tmp_path, monkeypatch):
     (root / "config.yaml").write_text("model: {default: x}\n")
     (root / "profiles" / "coder" / "config.yaml").write_text("model: {default: x}\n")
     (root / "profiles" / "coder" / ".env").write_text("API_SERVER_KEY=abcdefghijklmnopqrstuvwxyz123456\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.delenv("API_SERVER_KEY", raising=False)
     import hermes_constants
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
@@ -71,7 +71,7 @@ def test_named_gateway_is_never_the_default_profile_process(tmp_path, cmdline, m
     import hermes_cli.gateway as gw
     from gateway.status import _command_line_belongs_to_profile
     assert _command_line_belongs_to_profile(cmdline, tmp_path) is False
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(gw, "_iter_proc_cmdlines", lambda exclude: iter([(424242, cmdline)]))
     monkeypatch.setattr(gw, "_get_ancestor_pids", set)
     monkeypatch.setattr(gw, "is_windows", lambda: False)
@@ -82,20 +82,20 @@ def test_named_gateway_is_never_the_default_profile_process(tmp_path, cmdline, m
 @pytest.mark.parametrize(
     ("cmdline", "expected"),
     [
-        ("HERMES_HOME={home}2 hermes gateway run", []),        # longer sibling home
-        ("HERMES_HOME={home}/ hermes gateway run", [424242]),  # trailing-separator spelling
-        ("HERMES_HOME={home} hermes gateway run", [424242]),   # exact home
+        ("A2ASSISTANT_HOME={home}2 a2assistant gateway run", []),        # longer sibling home
+        ("A2ASSISTANT_HOME={home}/ a2assistant gateway run", [424242]),  # trailing-separator spelling
+        ("A2ASSISTANT_HOME={home} a2assistant gateway run", [424242]),   # exact home
     ],
 )
 def test_scan_gateway_pids_claims_own_home_spellings_not_the_sibling(
     tmp_path, cmdline, expected, monkeypatch
 ):
-    """``_scan_gateway_pids`` drives the mirrored HERMES_HOME predicate: the process-table
+    """``_scan_gateway_pids`` drives the mirrored A2ASSISTANT_HOME predicate: the process-table
     fallback must not sweep a longer sibling home's live gateway, while the supervisor
-    trailing-separator spelling (``HERMES_HOME=/root/.hermes/``) is still its own home."""
+    trailing-separator spelling (``A2ASSISTANT_HOME=/root/.hermes/``) is still its own home."""
     import hermes_cli.gateway as gw
     import hermes_cli.gateway_migrate_guards as guards
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     rendered = cmdline.format(home=tmp_path)
     monkeypatch.setattr(gw, "_iter_proc_cmdlines", lambda exclude: iter([(424242, rendered)]))
     # The fake pid is ours; the other-users filter would otherwise stat whatever process really holds it.

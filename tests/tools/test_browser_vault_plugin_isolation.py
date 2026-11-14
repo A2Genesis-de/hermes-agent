@@ -2,7 +2,7 @@
 
 A password-manager plugin (``ctx.register_login_backend``) shares the ``browser_vault`` tool with the
 built-in Hermes vault, 1Password and Bitwarden. These tests load real plugins from a temp
-``HERMES_HOME`` through the plugin manager and drive the real tool through the tool registry; only the
+``A2ASSISTANT_HOME`` through the plugin manager and drive the real tool through the tool registry; only the
 browser's CDP boundary (page origin, input inspection, the secret eval) is faked. Every rule is one test:
 
 1. a plugin backend only ever sees handles in its own ``<name>:`` namespace;
@@ -142,14 +142,14 @@ def _write_config(home, plugins, vault):
 
 @pytest.fixture
 def vault_home(tmp_path, monkeypatch):
-    """Temp HERMES_HOME with one real local-vault login; yields a loader for plugins written into it."""
+    """Temp A2ASSISTANT_HOME with one real local-vault login; yields a loader for plugins written into it."""
     from agent.vault_store import get_vault_store
     from hermes_cli.plugins import PluginManager
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     token = set_hermes_home_override(home)
     managers = []
     local = get_vault_store().add_item("login", "Local", {"identifier_type": "email", "identifier": "me@example.com",

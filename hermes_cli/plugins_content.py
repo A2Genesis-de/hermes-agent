@@ -35,7 +35,7 @@ def register_skill(
 ) -> PluginRegistration:
     """Register a read-only skill resolvable as ``'<plugin_name>:<name>'`` via ``skill_view()``,
     listed by ``skills_list`` and in the system prompt's ``<available_skills>`` while the plugin
-    is enabled. Not copied into ``~/.hermes/skills/``. Raises ``ValueError`` (``':'``/invalid
+    is enabled. Not copied into ``~/.a2assistant/skills/``. Raises ``ValueError`` (``':'``/invalid
     chars) or ``FileNotFoundError``."""
     from agent.skill_utils import _NAMESPACE_RE
     from hermes_cli.plugins_manifest import _portable_slug

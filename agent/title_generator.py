@@ -652,7 +652,7 @@ def auto_title_session(
     """Generate and store the model title (daemon-thread target); skips sessions already carrying an
     ``llm``/``user`` title (a ``derived`` one is expected — upgrading it is the point). Never lets an
     exception escape (the threading excepthook would spray a traceback into the terminal); the canonical
-    trigger is the post-``hermes update`` window where lazy imports read NEW source against OLD modules."""
+    trigger is the post-``a2assistant update`` window where lazy imports read NEW source against OLD modules."""
     try:
         if not session_db or not session_id or _has_upgraded_title(session_db, session_id):
             return
@@ -713,7 +713,7 @@ def _session_is_untitled(session_db, session_id: str) -> bool:
 def _kanban_task_title() -> Optional[str]:
     """Kanban worker: the card's title, or ``Kanban task <id>`` when the board can't be read; None elsewhere
     (including delegate_task children of the worker, which inherit the env var but are not the card)."""
-    task_id = (os.environ.get("HERMES_KANBAN_TASK") or "").strip()
+    task_id = (os.environ.get("A2ASSISTANT_KANBAN_TASK") or "").strip()
     if not task_id or not is_dispatcher_owned_worker_context():
         return None
     try:

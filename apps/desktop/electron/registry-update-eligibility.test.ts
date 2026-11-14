@@ -1,5 +1,5 @@
 /**
- * "Update all instances" never runs `hermes update` against a Hermes Cloud
+ * "Update all instances" never runs `a2assistant update` against a Hermes Cloud
  * agent, however it was saved: as a Cloud connection or as a plain URL remote.
  */
 

@@ -34,6 +34,8 @@ RED='\033[0;31m'
 NC='\033[0m'
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=scripts/_activation.sh
+. "$SCRIPT_DIR/scripts/_activation.sh"
 cd "$SCRIPT_DIR"
 
 # Prevent uv from discovering config files (uv.toml, pyproject.toml) from the
@@ -106,7 +108,7 @@ uv_version="$(pin version)"
 py_version="$(pin version python | cut -d+ -f1 | cut -d. -f1,2)"
 [ -n "$uv_version" ] || { echo -e "${RED}✗${NC} no uv pin in pm/lock.json" >&2; exit 1; }
 
-store="${HERMES_RUNTIME_DIR:-$HOME/.hermes/tools}"
+store="${A2ASSISTANT_RUNTIME_DIR:-$(a2assistant_home)/tools}"
 entry="$store/uv-$uv_version-$target"
 uv="$entry/uv"; [ "$os" = win32 ] && uv="$entry/uv.exe"
 
@@ -215,7 +217,7 @@ echo -e "${CYAN}→${NC} Setting up hermes command..."
 # Reuse the bootstrap interpreter only to run the shared launcher writer.
 bin_dir="$HOME/.local/bin"
 if [ "$os" = win32 ]; then
-    bin_dir="$(cygpath -am "${HERMES_HOME:-${LOCALAPPDATA:-$HOME/AppData/Local}/hermes}/bin")"
+    bin_dir="$(cygpath -am "${A2ASSISTANT_HOME:-${LOCALAPPDATA:-$HOME/AppData/Local}/hermes}/bin")"
 fi
 if ! "$boot_py" -I -X utf8 hermes_cli/_launchers.py "$bin_dir"; then
     echo -e "${RED}✗${NC} launcher publication failed" >&2
@@ -262,20 +264,20 @@ if [ "$os" != win32 ]; then
 fi
 
 # ============================================================================
-# Seed bundled skills into ~/.hermes/skills/
+# Seed bundled skills into ~/.a2assistant/skills/
 # ============================================================================
 
-HERMES_SKILLS_DIR="${HERMES_HOME:-$HOME/.hermes}/skills"
-mkdir -p "$HERMES_SKILLS_DIR"
+A2ASSISTANT_SKILLS_DIR="$(a2assistant_home)/skills"
+mkdir -p "$A2ASSISTANT_SKILLS_DIR"
 
 echo ""
-echo "Syncing bundled skills to ~/.hermes/skills/ ..."
+echo "Syncing bundled skills to ~/.a2assistant/skills/ ..."
 if "$boot_py" -m tools.skills_sync 2>/dev/null; then
     echo -e "${GREEN}✓${NC} Skills synced"
 else
     # Fallback: copy if sync script fails (missing deps, etc.)
     if [ -d "$SCRIPT_DIR/skills" ]; then
-        cp -rn "$SCRIPT_DIR/skills/"* "$HERMES_SKILLS_DIR/" 2>/dev/null || true
+        cp -rn "$SCRIPT_DIR/skills/"* "$A2ASSISTANT_SKILLS_DIR/" 2>/dev/null || true
         echo -e "${GREEN}✓${NC} Skills copied"
     fi
 fi
@@ -293,14 +295,14 @@ echo "  1. Activate the dev environment (venv-style, in THIS shell):"
 echo "     source ./activate"
 echo ""
 echo "  2. Run the setup wizard to configure API keys:"
-echo "     hermes setup"
+echo "     a2assistant setup"
 echo ""
 echo "  3. Start chatting:"
 echo "     hermes"
 echo ""
 echo "Other commands:"
-echo "  hermes pm install     # Re-run the tool + dependency install"
-echo "  hermes status         # Check configuration"
-echo "  hermes doctor         # Diagnose issues"
+echo "  a2assistant pm install     # Re-run the tool + dependency install"
+echo "  a2assistant status         # Check configuration"
+echo "  a2assistant doctor         # Diagnose issues"
 echo "  deactivate            # Undo the activation (restore PATH etc.)"
 echo ""

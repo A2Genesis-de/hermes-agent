@@ -17,7 +17,7 @@ async def test_legacy_history_adoption_is_native_owned_atomic_and_retryable(tmp_
     from hermes_state_local import local_receipt
     from hermes_state_runtime import RuntimeStoreError
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     # A code folder under focus: the row's saved cwd must not adopt it into the coding posture.
     (tmp_path / 'pyproject.toml').write_text('[project]\nname = "old"\n')
     config = {'platform_toolsets': {'cli': []}, 'agent': {'coding_context': 'focus'}}
@@ -103,7 +103,7 @@ async def test_legacy_adoption_refuses_live_owner_and_foreign_profile_without_wr
     from hermes_cli.active_sessions import try_acquire_active_session, release_active_session
     from hermes_state_runtime import RuntimeStoreError
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     db = store._db
@@ -142,7 +142,7 @@ async def test_legacy_adoption_refuses_live_owner_and_foreign_profile_without_wr
 @pytest.mark.asyncio
 async def test_upgraded_oneshot_and_tool_history_resumes_by_id_and_title_but_stays_out_of_pickers(tmp_path, monkeypatch):
     """main's `chat -q` stored ``oneshot`` rows (``--source tool`` stored ``tool``) and printed
-    `hermes --resume <id>` for each. After the upgrade, the native owner adopts them by id and by
+    `a2assistant --resume <id>` for each. After the upgrade, the native owner adopts them by id and by
     title like ``cli`` history, and they keep their label so human pickers still hide them."""
     from gateway import run
     from gateway.config import GatewayConfig
@@ -150,7 +150,7 @@ async def test_upgraded_oneshot_and_tool_history_resumes_by_id_and_title_but_sta
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     db = store._db
@@ -182,7 +182,7 @@ async def test_upgraded_oneshot_and_tool_history_resumes_by_id_and_title_but_sta
 async def test_upgraded_desktop_history_resumes_by_id(tmp_path, monkeypatch):
     """main's Desktop stored its chats with ``source='desktop'``. After the upgrade the native owner
     adopts them by id like ``gui`` history, including the ones stamped with the signed-in Nous
-    account. A served remote backend's login stamp (``hermes serve`` basic auth) adopts for that same
+    account. A served remote backend's login stamp (``a2assistant serve`` basic auth) adopts for that same
     login only. Any other identity still needs its own authority."""
     from gateway import run
     from gateway.config import GatewayConfig
@@ -190,7 +190,7 @@ async def test_upgraded_desktop_history_resumes_by_id(tmp_path, monkeypatch):
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'gui': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     db = store._db

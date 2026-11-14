@@ -42,7 +42,7 @@ export function linuxCrashDiagnostics(
 
 /** The side effects the plan needs, injected so the failure paths are provable. */
 export interface CrashDiagnosticsHost {
-  /** Create the logs directory. May throw (read-only or invalid HERMES_HOME). */
+  /** Create the logs directory. May throw (read-only or invalid A2ASSISTANT_HOME). */
   ensureLogsDir(dir: string): void
   /** Bound the Chromium log before Chromium appends to it (APPEND_TO_OLD_LOG_FILE). */
   reclaimChromiumLog(file: string): void
@@ -51,7 +51,7 @@ export interface CrashDiagnosticsHost {
 }
 
 // Diagnostics are optional; startup is not. Every step is best-effort, because
-// a read-only or invalid HERMES_HOME/logs must degrade to "no crash log", never
+// a read-only or invalid A2ASSISTANT_HOME/logs must degrade to "no crash log", never
 // to a desktop that dies before app readiness. The existing desktop log path
 // swallows the same failures for the same reason.
 export function enableLinuxCrashDiagnostics(

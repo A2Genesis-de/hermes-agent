@@ -1,4 +1,4 @@
-"""N8: quitting ``hermes --tui -w`` removes a clean worktree (and its branch), as ``main`` did
+"""N8: quitting ``a2assistant --tui -w`` removes a clean worktree (and its branch), as ``main`` did
 before #106742; a dirty one, or one the gateway still has queued/started work in, is kept."""
 import json
 import sqlite3
@@ -34,7 +34,7 @@ def test_tui_worktree_quit_removes_only_a_clean_idle_tree(tmp_path, monkeypatch,
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
-    monkeypatch.setenv('HERMES_PYTHON', sys.executable)
+    monkeypatch.setenv('A2ASSISTANT_PYTHON', sys.executable)
     wt_info = _setup_worktree(str(repo), sync_base=False, retain_db=get_hermes_home() / 'state.db')
     monkeypatch.setattr(main_tui_launch, '_setup_tui_worktree', lambda: wt_info)
     monkeypatch.setattr(main_tui_launch, '_make_tui_argv', lambda *_: (['node'], Path('.')))
@@ -43,7 +43,7 @@ def test_tui_worktree_quit_removes_only_a_clean_idle_tree(tmp_path, monkeypatch,
     def ink(_argv, cwd=None, env=None):
         db_path = get_hermes_home() / 'state.db'
         db = SessionDB(db_path=db_path)
-        db.create_session('tui-wt', 'tui', cwd=env['HERMES_TUI_CWD'])
+        db.create_session('tui-wt', 'tui', cwd=env['A2ASSISTANT_TUI_CWD'])
         if case != 'clean':
             db.append_message('tui-wt', 'user', 'hello')
         if case != 'pending_turn':
@@ -60,8 +60,8 @@ def test_tui_worktree_quit_removes_only_a_clean_idle_tree(tmp_path, monkeypatch,
             conn.commit()
             conn.close()
         if case == 'dirty':
-            (Path(env['HERMES_TUI_CWD']) / 'work.txt').write_text('uncommitted')
-        Path(env['HERMES_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
+            (Path(env['A2ASSISTANT_TUI_CWD']) / 'work.txt').write_text('uncommitted')
+        Path(env['A2ASSISTANT_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
         return 0
 
     monkeypatch.setattr(main_tui_launch.subprocess, 'call', ink)
@@ -80,7 +80,7 @@ def test_tui_worktree_quit_removes_only_a_clean_idle_tree(tmp_path, monkeypatch,
 
 
 def _quit_with(tmp_path, monkeypatch, prepare):
-    """Run ``hermes --tui -w`` whose Ink session ``prepare(db, cwd)`` shapes, then quit; the tree."""
+    """Run ``a2assistant --tui -w`` whose Ink session ``prepare(db, cwd)`` shapes, then quit; the tree."""
     from hermes_cli import main_tui_launch
     from hermes_cli.worktree_ops import _setup_worktree
     from hermes_constants import get_hermes_home
@@ -88,7 +88,7 @@ def _quit_with(tmp_path, monkeypatch, prepare):
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
-    monkeypatch.setenv('HERMES_PYTHON', sys.executable)
+    monkeypatch.setenv('A2ASSISTANT_PYTHON', sys.executable)
     wt_info = _setup_worktree(str(repo), sync_base=False, retain_db=get_hermes_home() / 'state.db')
     monkeypatch.setattr(main_tui_launch, '_setup_tui_worktree', lambda: wt_info)
     monkeypatch.setattr(main_tui_launch, '_make_tui_argv', lambda *_: (['node'], Path('.')))
@@ -96,11 +96,11 @@ def _quit_with(tmp_path, monkeypatch, prepare):
 
     def ink(_argv, cwd=None, env=None):
         db = SessionDB(db_path=get_hermes_home() / 'state.db')
-        db.create_session('tui-wt', 'tui', cwd=env['HERMES_TUI_CWD'])
+        db.create_session('tui-wt', 'tui', cwd=env['A2ASSISTANT_TUI_CWD'])
         db.append_message('tui-wt', 'user', 'every 10m: run the tests')
-        prepare(db, env['HERMES_TUI_CWD'])
+        prepare(db, env['A2ASSISTANT_TUI_CWD'])
         db.close()
-        Path(env['HERMES_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
+        Path(env['A2ASSISTANT_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
         return 0
 
     monkeypatch.setattr(main_tui_launch.subprocess, 'call', ink)

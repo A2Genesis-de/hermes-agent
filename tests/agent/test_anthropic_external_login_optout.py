@@ -3,7 +3,7 @@
 Claude Code's OAuth refresh token is single-use: once Hermes borrows and refreshes it, Hermes and
 Claude Code hold one token family and whichever refreshes first logs the other out. With the opt-out
 set, Hermes must neither read nor refresh ``~/.claude/.credentials.json``, must drop the pool row an
-earlier adopting process persisted, and must say so in ``hermes auth list``.
+earlier adopting process persisted, and must say so in ``a2assistant auth list``.
 """
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def test_opt_out_never_reads_or_refreshes_claude_code_login(tmp_path, monkeypatc
     hermes_home.mkdir()
     claude_dir.mkdir()
     (hermes_home / ".env").write_text("")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(claude_dir))
     monkeypatch.setattr(credential_sources, "_notice_logged", False, raising=False)
     cred_file = claude_dir / ".credentials.json"

@@ -1237,7 +1237,7 @@ export function mergeMultiSourceRoster(
  *  registered sources) — prefer it when present. The primary profile's
  *  callable alias is 'hermes' — the mention middleware resolves it back to
  *  'default' — so the word 'default' never surfaces in the UI, unless a real
- *  `hermes` profile on the same source holds that handle (`claimDefaultHandles`). */
+ *  `a2assistant` profile on the same source holds that handle (`claimDefaultHandles`). */
 export function botHandle(name: string, bot?: Partial<RosterRow> | null): string {
   if (bot?.handle && bot.handle !== name && !(bot.hermesHandleTaken && bot.handle === 'hermes')) {
     return bot.handle
@@ -1253,7 +1253,7 @@ function claimableRowHandle(bot: Partial<RosterRow>): string {
   return bot.handle && !(bot.hermesHandleTaken && bot.handle === 'hermes') ? String(bot.handle).toLowerCase() : ''
 }
 
-/** Mark each default row whose source also lists a real `hermes` profile, so
+/** Mark each default row whose source also lists a real `a2assistant` profile, so
  *  that profile keeps @hermes and the roster never shows two (the backend's
  *  `tools/bot_mode_probe._handle` applies the same rule). Rows group by
  *  connection; rows without one are the active source. */
@@ -1270,7 +1270,7 @@ export function claimDefaultHandles<T extends Partial<RosterRow>>(rows: T[]): T[
 }
 
 /** Taggable @-forms derived from a bot's friendly names — the core profile
- *  display name (`hermes profile rename`) and the Bot Mode title. Free text
+ *  display name (`a2assistant profile rename`) and the Bot Mode title. Free text
  *  reduces to the mention charset two ways: slugified ("Research Buddy" →
  *  research-buddy, the form autocomplete inserts) and collapsed
  *  (researchbuddy). Reserved tokens are dropped so a bot renamed "Hermes"

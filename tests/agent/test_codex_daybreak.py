@@ -113,7 +113,7 @@ def _owner_policies(home, monkeypatch):
     from dataclasses import replace
     from gateway import run as gateway_run
     from gateway import session_policy
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(gateway_run, "_hermes_home", home)  # frozen at import by an earlier test
     policies = {label: session_policy.build_policy({"source": label}, {}, private_secrets={})
                 for label in ("gui", "cli", "tui", "oneshot", "tool", "acp")}
@@ -135,7 +135,7 @@ def _load(platform, chat_id="gui", check="_load_daybreak"):
 
 
 def test_gateway_reads_the_profile_switch_each_turn(tmp_path, monkeypatch):
-    """The owner's chat turns (Desktop, TUI, ``hermes chat``: ``Platform.LOCAL``) run in the gateway, which copies
+    """The owner's chat turns (Desktop, TUI, ``a2assistant chat``: ``Platform.LOCAL``) run in the gateway, which copies
     the switch onto the turn's agent from the profile's config.yaml, so a flip reaches the next turn of a running chat."""
     from gateway.config import Platform
     home = tmp_path / ".hermes"

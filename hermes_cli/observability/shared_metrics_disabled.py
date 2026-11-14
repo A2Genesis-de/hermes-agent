@@ -7,7 +7,7 @@ booleans. Names are public only when shipped (toolset key, bundled/catalog skill
 plugin, ``DEFAULT_CONFIG`` key path; never a value); anything else reads ``custom``. The store counts
 each (kind, name, event) at most once per day.
 
-The surface is the entry point that is running: ``set_process_surface`` from the ``hermes`` command
+The surface is the entry point that is running: ``set_process_surface`` from the ``a2assistant`` command
 dispatch (``tools`` / ``config`` / ``skills`` / ``plugins`` / chat slash commands / the web server) and
 the TUI gateway. A process with no surface (setup wizard, updates) records nothing, nor does a write
 Hermes makes itself inside a surfaced process (migrations, under :func:`hermes_applied_write`): those
@@ -43,7 +43,7 @@ _hermes_write: ContextVar[bool] = ContextVar("hermes_feature_disabled_hermes_wri
 
 
 def set_process_surface(command: Any) -> None:
-    """Called once by the ``hermes`` dispatch (``command`` is the subcommand, None for chat) or the
+    """Called once by the ``a2assistant`` dispatch (``command`` is the subcommand, None for chat) or the
     TUI gateway (``"tui_gateway"``). Unknown commands clear it."""
     global _process_surface
     _process_surface = "tui_gateway" if command == "tui_gateway" else _COMMAND_SURFACES.get(command)
@@ -267,7 +267,7 @@ def record_config_saved(old_raw: Any, new_config: Any) -> None:
 
 
 def recording_raw_config_write(config_path: Any, user_config: Any, write) -> None:
-    """``hermes config set/unset`` write the raw file directly (not via ``save_config``): diff the file
+    """``a2assistant config set/unset`` write the raw file directly (not via ``save_config``): diff the file
     they replace against what they write. The write itself runs unguarded, so its errors are the caller's."""
     before = None
     if _process_surface is not None:

@@ -1,4 +1,4 @@
-"""External-tool checks for hermes doctor: terminal backends, git/rg, Node + Chromium, pnpm/npm audit, tool availability.
+"""External-tool checks for a2assistant doctor: terminal backends, git/rg, Node + Chromium, pnpm/npm audit, tool availability.
 Split out of ``hermes_cli/doctor.py``, which re-exports every name so ``hermes_cli.doctor.<name>`` keeps resolving (and monkeypatching)."""
 
 from __future__ import annotations
@@ -91,13 +91,13 @@ _TERMUX_INSTALL_ALL_FALLBACK_NOTES = (
 def _is_kanban_worker_env_gate(item: dict) -> bool:
     """Return True when Kanban is unavailable only because this is not a worker process."""
     tools = item.get("tools") or []
-    return (item.get("name") == "kanban" and not os.environ.get("HERMES_KANBAN_TASK")
+    return (item.get("name") == "kanban" and not os.environ.get("A2ASSISTANT_KANBAN_TASK")
             and bool(tools) and all(str(tool).startswith("kanban_") for tool in tools))
 
 
 def _doctor_tool_availability_detail(toolset: str) -> str:
     """Optional explanatory suffix for toolsets whose doctor status needs context."""
-    if toolset == "kanban" and not os.environ.get("HERMES_KANBAN_TASK"):
+    if toolset == "kanban" and not os.environ.get("A2ASSISTANT_KANBAN_TASK"):
         return "(runtime-gated; loaded only for dispatcher-spawned workers)"
     return ""
 
@@ -157,7 +157,7 @@ def _enabled_cli_toolsets_for_doctor() -> set[str] | None:
 # `requires_env`, so the generic branch would call a missing credential a "system dependency".
 # Name the real fix instead (#9516).
 _TOOLSET_SETUP_HINTS: dict[str, str] = {
-    "image_gen": "(image generation unavailable — check the provider selection and its key or SDK with 'hermes tools')",
+    "image_gen": "(image generation unavailable — check the provider selection and its key or SDK with 'a2assistant tools')",
 }
 
 
@@ -190,7 +190,7 @@ def _check_docker_backend(terminal_env: str, running_in_container: bool, issues:
     if terminal_env == "docker":
         if not docker_exe:
             _fail_and_issue("Docker or Podman not installed", "(needed for the 'docker' terminal backend)",
-                            "Install Docker or Podman, or run `hermes setup terminal` to switch backend.", issues)
+                            "Install Docker or Podman, or run `a2assistant setup terminal` to switch backend.", issues)
         else:
             runtime = docker_runtime_name(docker_exe)
             hint = docker_runtime_start_hint(docker_exe)
@@ -202,7 +202,7 @@ def _check_docker_backend(terminal_env: str, running_in_container: bool, issues:
             _require(_run_ok([docker_exe, "version"], timeout=10),
                      (runtime, "(daemon running)" if runtime == "Docker" else "(reachable)"),
                      (unreachable, "(needed for the 'docker' terminal backend)"),
-                     f"{hint[0].upper()}{hint[1:]}, or run `hermes setup terminal` to switch backend.", issues)
+                     f"{hint[0].upper()}{hint[1:]}, or run `a2assistant setup terminal` to switch backend.", issues)
     elif docker_exe:
         check_ok(docker_runtime_name(docker_exe), "(optional)")
     elif _is_termux():
@@ -215,7 +215,7 @@ def _check_ssh_backend(issues: list[str]) -> None:
     ssh_host = os.getenv("TERMINAL_SSH_HOST")
     if not ssh_host:
         return _fail_and_issue("SSH host not configured", "(needed for the 'ssh' terminal backend)",
-                               "run `hermes setup terminal` and enter the SSH host and user.", issues)
+                               "run `a2assistant setup terminal` and enter the SSH host and user.", issues)
     ssh_user, ssh_port, ssh_key = (os.getenv(f"TERMINAL_SSH_{k}") for k in ("USER", "PORT", "KEY"))
     cmd = ["ssh", "-o", "ConnectTimeout=5", "-o", "BatchMode=yes"]
     if ssh_port:
@@ -326,7 +326,7 @@ def _check_lightpanda() -> None:
         used, reason = False, f"status check failed: {e}"
     if not used:
         check_warn("browser.engine=lightpanda is shadowed", f"({reason})")
-        check_info("Fix: pick Lightpanda in `hermes tools` → Browser Automation, or set browser.engine: auto")
+        check_info("Fix: pick Lightpanda in `a2assistant tools` → Browser Automation, or set browser.engine: auto")
     elif not check_bool(find_lightpanda_binary(), ("Lightpanda", f"({reason})"),
                         ("Lightpanda selected but binary not found", "(browser tools will fail until it is installed)")):
         check_info(LIGHTPANDA_INSTALL_HINT)
@@ -341,7 +341,7 @@ def _check_node_and_browser(should_fix: bool, f: Finding) -> None:
     elif _is_termux():
         check_info("Node.js not found (optional; install on Termux with: pkg install nodejs)")
     else:
-        check_warn("Node.js not found", "(optional; run: hermes pm install node)")
+        check_warn("Node.js not found", "(optional; run: a2assistant pm install node)")
     _check_chromium(should_fix)
     _check_lightpanda()
 
@@ -354,7 +354,7 @@ def _audit_one(tool: str, cwd, label: str, audit_extra: list[str], manual_issues
     """Run one `pnpm audit --json` / `npm audit --json` and report; any failure is silently skipped.
 
     Every row here audits a tree whose versions come from a COMMITTED lockfile
-    (the frozen install every `hermes update` runs reifies exactly that state),
+    (the frozen install every `a2assistant update` runs reifies exactly that state),
     so a local `audit --fix` never persists — the next update's deterministic
     install restores the pinned (vulnerable) versions and the finding reappears.
     The durable remedy in every case is a lockfile bump on main (update
@@ -382,7 +382,7 @@ def _audit_one(tool: str, cwd, label: str, audit_extra: list[str], manual_issues
             check_ok(f"{label} deps", "(no known vulnerabilities)")
         elif critical > 0 or high > 0:
             remedy = ("fix is an upstream lockfile bump — a local manual fix does not persist"
-                      " (the next `hermes update` reinstalls from the committed lockfile)")
+                      " (the next `a2assistant update` reinstalls from the committed lockfile)")
             check_warn(f"{label} deps", f"({critical} critical, {high} high, {moderate} moderate — {remedy})")
             if workspace_scoped:
                 check_info("  ^ workspace audit includes runtime and build dependencies")
@@ -453,7 +453,7 @@ def _check_tool_availability(should_fix: bool, f: Finding) -> None:
     # disabled toolsets may warn above but must not pollute it.
     api_disabled = _missing_api_key_toolsets_for_summary(unavailable)
     if api_disabled or any(status != "ok" for status, _, _ in web_rows):
-        f.issues.append("Run 'hermes setup' to configure missing API keys for full tool access")
+        f.issues.append("Run 'a2assistant setup' to configure missing API keys for full tool access")
     _warn_partially_stripped_toolsets(f)
 
 

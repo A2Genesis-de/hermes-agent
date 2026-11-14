@@ -1,7 +1,7 @@
 """Invariant: a profile's OWN ``sessions:`` config governs its store's auto-archive.
 
 ``_maybe_auto_archive_for_profile`` sweeps an arbitrary profile's store, but the config it
-read came from a zero-arg ``load_config()`` — i.e. the PROCESS HERMES_HOME. On a host serving
+read came from a zero-arg ``load_config()`` — i.e. the PROCESS A2ASSISTANT_HOME. On a host serving
 several profiles, the launch profile's ``auto_archive`` / ``auto_archive_days`` silently
 decided every other profile's retention.
 
@@ -44,7 +44,7 @@ def two_profile_homes(tmp_path, monkeypatch):
     db.close()
 
     # Process home is the LAUNCH profile's.
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home_a))
     monkeypatch.setattr(
         wss, "_session_db_path_for_profile",
         lambda profile: (home_b if profile == "b" else home_a) / "state.db")

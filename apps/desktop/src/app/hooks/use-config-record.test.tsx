@@ -9,7 +9,7 @@ import { queryClient } from '@/lib/query-client'
 import { $connection } from '@/store/session'
 
 import {
-  HERMES_CONFIG_KEY,
+  A2ASSISTANT_CONFIG_KEY,
   hermesConfigCacheWriter,
   setHermesConfigCache,
   useHermesConfigRecord
@@ -48,7 +48,7 @@ it('updates the write origin when a refetch replaces the displayed record', asyn
   await waitFor(() => expect(result.current.data).toBe(first))
   expect(result.current.writeScope).toEqual({ connectionId: 'connection-a', profile: 'worker' })
 
-  await queryClient.invalidateQueries({ queryKey: HERMES_CONFIG_KEY })
+  await queryClient.invalidateQueries({ queryKey: A2ASSISTANT_CONFIG_KEY })
 
   await waitFor(() => expect(result.current.data).toEqual(second))
   await waitFor(() => expect(result.current.writeScope).toEqual({ connectionId: 'connection-b', profile: 'worker' }))
@@ -90,7 +90,7 @@ it('does not share one config record across two gateways', async () => {
   })
   await waitFor(() => expect(result.current.data).toEqual(devbox))
 
-  const cached = queryClient.getQueriesData({ queryKey: HERMES_CONFIG_KEY }).map(([, data]) => data)
+  const cached = queryClient.getQueriesData({ queryKey: A2ASSISTANT_CONFIG_KEY }).map(([, data]) => data)
 
   expect(cached).toContainEqual(laptop)
   expect(cached).toContainEqual(devbox)
@@ -112,7 +112,7 @@ it('a settings cache write after switching gateways does not replace the other g
   setHermesConfigCache(devbox)
   writer({ agent: { model: 'devbox-model' } })
 
-  const cached = queryClient.getQueriesData({ queryKey: HERMES_CONFIG_KEY }).map(([, data]) => data)
+  const cached = queryClient.getQueriesData({ queryKey: A2ASSISTANT_CONFIG_KEY }).map(([, data]) => data)
 
   expect(cached).toContainEqual(laptop)
   expect(cached).toContainEqual(devbox)

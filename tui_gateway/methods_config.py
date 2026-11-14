@@ -42,7 +42,7 @@ _profile_scoped = _registry.profile_scoped
 #   keeps running in the background; the in-flight entry is cleared when it
 #   settles, so the next poll starts a fresh probe and never reads a stale one.
 _readiness_pool = concurrent.futures.ThreadPoolExecutor(
-    max_workers=max(2, min(4, env_int("HERMES_TUI_RPC_POOL_WORKERS", 8))),
+    max_workers=max(2, min(4, env_int("A2ASSISTANT_TUI_RPC_POOL_WORKERS", 8))),
     thread_name_prefix="tui-readiness")
 atexit.register(lambda: _readiness_pool.shutdown(wait=False, cancel_futures=True))
 _readiness_lock = threading.Lock()
@@ -353,7 +353,7 @@ def _readiness_share(rid, key, run_probe, wait_seconds):
 
 def _readiness_check(rid, params, probe, *, probe_key, wait_seconds):
     """Shared shell of setup.status / setup.runtime_check. ``probe(profile, scoped)`` runs inside the
-    optional ``profile`` param's HERMES_HOME + ``.env`` secret scope (ContextVars: concurrent checks
+    optional ``profile`` param's A2ASSISTANT_HOME + ``.env`` secret scope (ContextVars: concurrent checks
     stay isolated); ``scoped`` is the ``{"profile": ...}`` payload stamp (``{}`` for the launch
     profile). An unknown profile answers ``ok=False`` (never a JSON-RPC error, never a quiet answer
     for the launch profile instead). ``probe_key`` + the profile single-flight the probe, and
@@ -388,7 +388,7 @@ def _(rid, params: dict) -> dict:
     the call blocks up to ``SETUP_READY_WAIT_SECONDS`` for it, so a client's first poll lands after
     the free-tier identity exists (or has been refused) rather than racing the mint. A record that
     says ``False`` is reconciled with the config files first (``reconcile_record``): a provider
-    added after boot — the Models page, a picker key, ``hermes setup`` from a shell — flips it
+    added after boot — the Models page, a picker key, ``a2assistant setup`` from a shell — flips it
     without a restart. If the record
     is still missing after the wait, or a named profile is asked about, today's live probe answers.
     The record's fields ride along additively (``ready``, ``free_tier_account``, ``free_tier_route``,

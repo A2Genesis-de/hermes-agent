@@ -123,7 +123,7 @@ def _conn_uses_path(
 def _sibling_board_db_files(conn: sqlite3.Connection) -> list[Path]:
     """Every other board's ``kanban.db``. Raises ``OSError`` when the set is unknown.
 
-    ``kanban_db_path`` follows ``HERMES_KANBAN_DB`` and would collapse every
+    ``kanban_db_path`` follows ``A2ASSISTANT_KANBAN_DB`` and would collapse every
     slug onto the pinned file, so the scan uses the on-disk layout: the
     default board at ``<home>/kanban.db`` and named boards at
     ``<home>/kanban/boards/<slug>/kanban.db``.
@@ -291,7 +291,7 @@ def _managed_scratch_path_info(p: Path) -> tuple[bool, Optional[str]]:
                 board,
             ))
 
-    override = os.environ.get("HERMES_KANBAN_WORKSPACES_ROOT", "").strip()
+    override = os.environ.get("A2ASSISTANT_KANBAN_WORKSPACES_ROOT", "").strip()
     if override:
         override_root = Path(override).expanduser()
         with contextlib.suppress(OSError):
@@ -345,7 +345,7 @@ def _scratch_workspace(conn: sqlite3.Connection, task_id: str) -> Optional[Path]
 
 def _is_managed_scratch_path(p: Path) -> bool:
     """True iff *p* is a STRICT descendant of a kanban-managed ``workspaces/``
-    root (``HERMES_KANBAN_WORKSPACES_ROOT``, ``<kanban_home>/kanban/workspaces``,
+    root (``A2ASSISTANT_KANBAN_WORKSPACES_ROOT``, ``<kanban_home>/kanban/workspaces``,
     or ``<kanban_home>/kanban/boards/<slug>/workspaces``). A path equal to a
     root is not managed (deleting it would wipe every task's scratch dir);
     ``<kanban_home>/kanban``, ``.../logs`` and ``.../boards/<slug>`` hold

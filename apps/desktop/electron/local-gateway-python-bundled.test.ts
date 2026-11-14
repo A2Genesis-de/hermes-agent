@@ -16,7 +16,7 @@ test.skipIf(process.platform === 'win32')('a bundled payload mints tickets with 
   const home = await shortSocketTmpDir('gw-bundled-')
   const resources = await shortSocketTmpDir('gw-bundled-res-')
   const repo = path.resolve('../..')
-  const python = process.env.HERMES_TEST_PYTHON || 'python3'
+  const python = process.env.A2ASSISTANT_TEST_PYTHON || 'python3'
   const root = path.join(resources, 'agent-payload')
   await fs.mkdir(path.join(root, 'bin'), { recursive: true })
   await fs.mkdir(path.join(root, 'tools', 'python', 'bin'), { recursive: true })
@@ -42,7 +42,7 @@ test.skipIf(process.platform === 'win32')('a bundled payload mints tickets with 
   // The shape resolveHermesBackend() returns for a bundled payload (main.ts).
   const backend = {
     kind: 'python', command: payload.shim, shell: false, root: payload.repoDir,
-    env: { PYTHONPATH: '', PYTHONHOME: '', HERMES_RUNTIME_DIR: payload.toolsDir }, ...payloadTicketRuntime(payload)
+    env: { PYTHONPATH: '', PYTHONHOME: '', A2ASSISTANT_RUNTIME_DIR: payload.toolsDir }, ...payloadTicketRuntime(payload)
   }
 
   const server = net.createServer(socket => socket.once('data', () => {

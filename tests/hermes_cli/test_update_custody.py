@@ -69,7 +69,7 @@ def test_every_updater_git_runner_forbids_detached_children(repo):
 # Records whether the checkout lock file is among this process's open fds, then hands over.
 _RECORDER = textwrap.dedent("""\
     #!/bin/sh
-    lock="$HERMES_TEST_LOCK"; out="$HERMES_TEST_OUT"
+    lock="$A2ASSISTANT_TEST_LOCK"; out="$A2ASSISTANT_TEST_OUT"
     held=no
     for fd in /proc/$$/fd/*; do
       [ "$(readlink "$fd")" = "$lock" ] && held=yes
@@ -96,12 +96,12 @@ def test_lock_fd_reaches_local_mutators_only(repo, tmp_path, monkeypatch):
     lock = ul.UpdateLock(path=tmp_path / "marker", install_root=repo)
     assert lock.acquire()
     try:
-        monkeypatch.setenv("HERMES_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(repo)))
-        monkeypatch.setenv("HERMES_TEST_OUT", str(out_fetch))
+        monkeypatch.setenv("A2ASSISTANT_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(repo)))
+        monkeypatch.setenv("A2ASSISTANT_TEST_OUT", str(out_fetch))
         fetched = update_cmd._git_run(["git"], ["fetch", f"--upload-pack={recorder} git-upload-pack", "origin"],
                                       cwd=repo, network=True)
         assert fetched.returncode == 0, fetched.stderr
-        monkeypatch.setenv("HERMES_TEST_OUT", str(out_stash))
+        monkeypatch.setenv("A2ASSISTANT_TEST_OUT", str(out_stash))
         (repo / "f.txt").write_text("two\n", encoding="utf-8")
         stashed = update_cmd._git_run(["git"], ["stash", "push", "-m", "custody"], cwd=repo)
         assert stashed.returncode == 0, stashed.stderr
@@ -226,7 +226,7 @@ def test_a_refused_build_join_is_logged_and_noted_in_the_receipt(tmp_path, monke
 
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     report = tmp_path / "report.txt"
     note = f"{update_custody._CUSTODY_UNAVAILABLE} (could not join the update job: 5); the command was not run"
     report.write_text(note, encoding="utf-8")
@@ -247,7 +247,7 @@ def test_a_refused_build_join_is_logged_and_noted_in_the_receipt(tmp_path, monke
 
 def test_a_swallowed_refusal_is_what_the_update_reports(tmp_path, monkeypatch, capsys):
     """R8 m2: readers swallow an OSError (``_git_stdout``, ``_capture_head_sha``), so a refused
-    child used to end ``hermes update`` as whatever error followed downstream. The refusal is
+    child used to end ``a2assistant update`` as whatever error followed downstream. The refusal is
     receipted and kept for the run, and the command's failure path prints it, actionably."""
     import contextlib
     from types import SimpleNamespace
@@ -257,7 +257,7 @@ def test_a_swallowed_refusal_is_what_the_update_reports(tmp_path, monkeypatch, c
 
     monkeypatch.setattr(update_custody, "_RUN", {"ran": False, "refused": None})
     monkeypatch.setattr(update_owning_install, "retarget_to_owning_install", lambda root: None)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     (tmp_path / "checkout").mkdir()
     monkeypatch.setattr(main, "PROJECT_ROOT", tmp_path / "checkout")
     monkeypatch.setattr(main, "_update_preflight_handled", lambda args: False)
@@ -276,8 +276,8 @@ def test_a_swallowed_refusal_is_what_the_update_reports(tmp_path, monkeypatch, c
         main.cmd_update(SimpleNamespace(gateway=False))
     assert stop.value.code == 1
     out = capsys.readouterr().out
-    assert "`hermes update` stopped: Windows would not put `git` in this update's process job" in out, out
-    assert "Nothing was changed" in out and "Run `hermes update` again from a regular terminal" in out, out
+    assert "`a2assistant update` stopped: Windows would not put `git` in this update's process job" in out, out
+    assert "Nothing was changed" in out and "Run `a2assistant update` again from a regular terminal" in out, out
     payload = ur.read_latest_receipt()
     steps = [s for s in payload["steps"] if s["name"] == "update_custody"]
     assert steps and steps[0]["ok"] is False and "rev-parse" in steps[0]["detail"], payload["steps"]
@@ -308,8 +308,8 @@ def test_a_partial_clone_move_never_fetches_under_the_lock_fd(repo, tmp_path, mo
     missing = [o for o in _git(clone, "rev-list", "--objects", "--missing=print", "origin/main").split() if o[0] == "?"]
     assert missing, "fixture: the new blob must be missing locally"
     out = tmp_path / "upload-pack.out"
-    monkeypatch.setenv("HERMES_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(clone)))
-    monkeypatch.setenv("HERMES_TEST_OUT", str(out))
+    monkeypatch.setenv("A2ASSISTANT_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(clone)))
+    monkeypatch.setenv("A2ASSISTANT_TEST_OUT", str(out))
 
     from hermes_cli.update_custody import run_git
 
@@ -338,8 +338,8 @@ def test_run_git_hands_the_lock_fd_to_local_mutators_only(repo, tmp_path, monkey
     git.write_text(_RECORDER.replace('exec "$@"', 'exec git "$@"'), encoding="utf-8")
     git.chmod(0o755)
     out = tmp_path / "git.out"
-    monkeypatch.setenv("HERMES_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(repo)))
-    monkeypatch.setenv("HERMES_TEST_OUT", str(out))
+    monkeypatch.setenv("A2ASSISTANT_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(repo)))
+    monkeypatch.setenv("A2ASSISTANT_TEST_OUT", str(out))
     lock = ul.UpdateLock(path=tmp_path / "marker", install_root=repo)
     assert lock.acquire()
     try:
@@ -397,8 +397,8 @@ def test_no_build_descendant_outlives_the_build_call(repo, tmp_path, monkeypatch
     late = tmp_path / "late"
     writer = f"import os, time; os.closerange(3, 4096); time.sleep(2); __import__('pathlib').Path({str(late)!r}).touch()"
     node = _held_lock_recorder(tmp_path, "node", f"{sys.executable} -c \"{writer}\" >/dev/null 2>&1 &\nexit 1")
-    monkeypatch.setenv("HERMES_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(repo)))
-    monkeypatch.setenv("HERMES_TEST_OUT", str(tmp_path / "node.out"))
+    monkeypatch.setenv("A2ASSISTANT_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(repo)))
+    monkeypatch.setenv("A2ASSISTANT_TEST_OUT", str(tmp_path / "node.out"))
     lock = ul.UpdateLock(path=tmp_path / "marker", install_root=repo)
     assert lock.acquire()
     try:
@@ -543,7 +543,7 @@ def test_a_ctrl_c_keeps_custody_until_a_detached_writer_is_gone(repo, tmp_path, 
     caller = textwrap.dedent(f"""
         import os, sys
         sys.path.insert(0, {str(REPO_ROOT)!r})
-        os.environ["HERMES_VERBOSE"] = {verbose!r}
+        os.environ["A2ASSISTANT_VERBOSE"] = {verbose!r}
         from pathlib import Path
         from hermes_cli import update_lock as ul
         from hermes_cli.source_build import run_in_custody
@@ -612,8 +612,8 @@ def test_the_desktop_build_runs_in_checkout_custody(repo, tmp_path, monkeypatch)
 
     pnpm = _held_lock_recorder(tmp_path, "pnpm", "exit 0")
     out = tmp_path / "pnpm.out"
-    monkeypatch.setenv("HERMES_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(repo)))
-    monkeypatch.setenv("HERMES_TEST_OUT", str(out))
+    monkeypatch.setenv("A2ASSISTANT_TEST_LOCK", os.path.realpath(ul.checkout_lock_path(repo)))
+    monkeypatch.setenv("A2ASSISTANT_TEST_OUT", str(out))
     desktop = repo / "apps" / "desktop"
     desktop.mkdir(parents=True)
     lock = ul.UpdateLock(path=tmp_path / "marker", install_root=repo)

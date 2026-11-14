@@ -21,7 +21,7 @@ async def test_codex_held_partial_final_reaches_chat_only_rewritten(error, monke
     from gateway.session import SessionSource
     from gateway.platforms.event import MessageEvent, MessageType
 
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['A2ASSISTANT_HOME'])
     redactor_home(home, 'http://127.0.0.1:9/v1', hold=True)
     plugins._reset_plugin_managers_for_tests()
     def run_turn(self, user_input, **kwargs):

@@ -1,4 +1,4 @@
-"""Tests for `hermes fallback` — chain reading, add/remove/clear, legacy migration."""
+"""Tests for `a2assistant fallback` — chain reading, add/remove/clear, legacy migration."""
 from __future__ import annotations
 
 import types
@@ -16,7 +16,7 @@ import hermes_yaml as yaml
 def isolated_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir(exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return tmp_path
 
 def _write_config(home: Path, data: dict) -> None:

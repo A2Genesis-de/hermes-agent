@@ -128,7 +128,7 @@ def live_key(env_name: str) -> str:
 
 
 def model_override(case: LiveCase) -> str | None:
-    return os.environ.get("HERMES_LIVE_MODEL_" + case.id.upper().replace("-", "_")) or None
+    return os.environ.get("A2ASSISTANT_LIVE_MODEL_" + case.id.upper().replace("-", "_")) or None
 
 
 # HTTP wire recorder -----------------------------------------------------------
@@ -373,7 +373,7 @@ def usage_line(case: LiveCase, model: str, agent: Any, wire: WireLog) -> dict:
 
 def emit_usage(line: dict) -> None:
     print("LIVE-USAGE " + json.dumps(line, sort_keys=True), flush=True)
-    target = os.environ.get("HERMES_LIVE_USAGE_FILE")
+    target = os.environ.get("A2ASSISTANT_LIVE_USAGE_FILE")
     if target:
         with open(target, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(line, sort_keys=True) + "\n")

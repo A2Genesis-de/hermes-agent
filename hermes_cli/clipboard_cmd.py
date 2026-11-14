@@ -1,4 +1,4 @@
-"""``hermes clipboard image``: the clipboard image extractor as a device-local command.
+"""``a2assistant clipboard image``: the clipboard image extractor as a device-local command.
 
 Runs ``hermes_cli.clipboard.save_clipboard_image`` (the extractor the CLI and Ink use) and reports
 the outcome. It reads this machine's clipboard only: no gateway, no session store, no profile
@@ -69,7 +69,7 @@ def extract_clipboard_image(dest: Path) -> tuple[int, dict]:
 
 
 def cmd_clipboard(args) -> int:
-    """``hermes clipboard image --out PATH [--json]``."""
+    """``a2assistant clipboard image --out PATH [--json]``."""
     code, reply = extract_clipboard_image(Path(args.out))
     if args.json:
         print(json.dumps(reply))

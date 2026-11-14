@@ -58,7 +58,7 @@ def test_historical_payload_maps_to_takeover_request_schema(tmp_path, desktop, r
     # payload lands beside the receipts in the ROOT home, which is HERMES_HOME here).
     (root / "hermes_constants.py").write_text(
         "import os\nfrom pathlib import Path\n"
-        "def get_hermes_home():\n    return Path(os.environ['HERMES_HOME'])\n"
+        "def get_hermes_home():\n    return Path(os.environ['A2ASSISTANT_HOME'])\n"
         "get_default_hermes_root = get_hermes_home\n", encoding="utf-8",
     )
     program = root / "historical.py"
@@ -70,8 +70,8 @@ def test_historical_payload_maps_to_takeover_request_schema(tmp_path, desktop, r
         "raise SystemExit(code)\n", encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(('HERMES_', 'PYTHON', 'UV_'))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(('A2ASSISTANT_', 'PYTHON', 'UV_'))}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home))
     result = subprocess.run([sys.executable, "-B", str(program)], env=env,
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
@@ -82,7 +82,7 @@ def test_historical_payload_maps_to_takeover_request_schema(tmp_path, desktop, r
 
 @pytest.mark.live_system_guard_bypass
 def test_shipped_post_swap_argv_enters_takeover_before_current_cli(tmp_path):
-    """The 2026.9.21 updater starts HEAD as ``hermes update <flags> --post-swap FILE``.
+    """The 2026.9.21 updater starts HEAD as ``a2assistant update <flags> --post-swap FILE``.
 
     That command must reach the historical takeover before current launch preparation or
     argparse: both belong to the replacement updater and may require dependencies the old
@@ -122,8 +122,8 @@ def test_shipped_post_swap_argv_enters_takeover_before_current_cli(tmp_path):
     }
     handoff.write_text(json.dumps(payload), encoding="utf-8")
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(("A2ASSISTANT_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home))
     result = subprocess.run(
         [sys.executable, "-B", "-m", "hermes_cli.main", "update", "--yes",
          "--no-gateway-restart", "--branch", "main", "--post-swap", str(handoff)],
@@ -159,7 +159,7 @@ def test_takeover_waits_propagates_status_and_never_reenters_old_code(tmp_path, 
         "assert request['pre_update_snapshot_id'] == 'preserve-snapshot'\n"
         "assert request['gateway_mode'] == True\n"
         "assert request['pre_update_version'] == 'old-version'\n"
-        "assert request['home'] == os.environ['HERMES_HOME']\n"
+        "assert request['home'] == os.environ['A2ASSISTANT_HOME']\n"
         "with Path(request['home'], 'runs').open('a') as stream: stream.write('child\\n')\n"
         f"Path(sys.argv[2]).write_text(json.dumps({{'resume_handled': True}}), encoding={encoding!r})\n"
         f"raise SystemExit({status})\n", encoding="utf-8",
@@ -179,15 +179,15 @@ def test_takeover_waits_propagates_status_and_never_reenters_old_code(tmp_path, 
         "def cleanup():\n"
         "    assert not _windows_gateway_resume['resume_needed']\n"
         "    assert 'old_only' in sys.modules\n"
-        "    Path(os.environ['HERMES_HOME'], 'cleanup').write_text('ran')\n"
+        "    Path(os.environ['A2ASSISTANT_HOME'], 'cleanup').write_text('ran')\n"
         "atexit.register(cleanup)\n"
         "try:\n    stop_for_relaunch()\n"
         "finally:\n    stop_for_relaunch()\n"
         "raise AssertionError('old updater resumed')\n", encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(('HERMES_', 'PYTHON', 'UV_'))}
-    env.update(HOME=str(home), HERMES_HOME=str(home), PYTHONPATH="/not/the/new/source")
+           if not key.startswith(('A2ASSISTANT_', 'PYTHON', 'UV_'))}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home), PYTHONPATH="/not/the/new/source")
     if stdio:
         env["PYTHONIOENCODING"] = stdio
     result = subprocess.run([sys.executable, "-B", str(program)], env=env,
@@ -195,7 +195,7 @@ def test_takeover_waits_propagates_status_and_never_reenters_old_code(tmp_path, 
     assert result.returncode == status, result.stdout + result.stderr
     assert (home / "runs").read_text() == "child\n"
     assert (home / "cleanup").read_text() == "ran"
-    assert "run `hermes` again" not in result.stderr
+    assert "run `a2assistant` again" not in result.stderr
 
 
 # Only the copied shim and JSON probe run; this temp checkout has no real updater.
@@ -236,8 +236,8 @@ def test_only_known_early_updater_restarts_with_original_arguments(tmp_path, pos
         "raise AssertionError('old updater resumed')\n", encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(("A2ASSISTANT_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home))
     result = subprocess.run([sys.executable, "-B", *argv], env=env,
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stdout + result.stderr
@@ -283,14 +283,14 @@ def test_atexit_recovers_only_stopped_serves_after_cached_update(tmp_path, ackno
         "        _relaunch_stopped_serves(token)\n"
         "        if not token['pending']:\n            _relaunch_stopped_serves(token)\n"
         "    finally:\n"
-        "        Path(os.environ['HERMES_HOME'], 'token.json').write_text(json.dumps(token))\n"
+        "        Path(os.environ['A2ASSISTANT_HOME'], 'token.json').write_text(json.dumps(token))\n"
         "atexit.register(cleanup)\n"
         "stop_for_relaunch()\n"
         "raise AssertionError('old updater resumed')\n", encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(("A2ASSISTANT_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home))
     result = subprocess.run([sys.executable, "-B", str(program)], env=env,
                             capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 7, result.stdout + result.stderr
@@ -341,12 +341,12 @@ def test_serve_resume_child_reuses_respawn_without_updater_or_supervisors(tmp_pa
         "try:\n    runpy.run_path(sys.argv[0], run_name='__main__')\n"
         "finally:\n"
         "    assert not any(name in sys.modules for name in ('hermes_cli.update_cmd', 'hermes_cli.update_receipt', 'hermes_cli.main'))\n"
-        "    Path(os.environ['HERMES_HOME'], 'commands.json').write_text(json.dumps(calls))\n",
+        "    Path(os.environ['A2ASSISTANT_HOME'], 'commands.json').write_text(json.dumps(calls))\n",
         encoding="utf-8",
     )
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home))
+           if not key.startswith(("A2ASSISTANT_", "PYTHON", "UV_"))}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home))
     result = subprocess.run([sys.executable, "-I", "-B", "-X", "utf8", str(program)],
                             env=env, capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == int(spawn_fails or discarded), result.stdout + result.stderr
@@ -366,8 +366,8 @@ def test_serve_resume_child_leaves_token_unhandled_when_imports_fail(tmp_path):
     context.write_text(json.dumps({"root": str(tmp_path), "home": str(tmp_path),
                                   "stopped_serves": {"pending": True, "entries": []}}))
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "UV_"))}
-    env.update(HOME=str(tmp_path), HERMES_HOME=str(tmp_path))
+           if not key.startswith(("A2ASSISTANT_", "PYTHON", "UV_"))}
+    env.update(HOME=str(tmp_path), A2ASSISTANT_HOME=str(tmp_path))
     # -S and an empty checkout make application imports genuinely unavailable;
     # this is not a mocked exception or a path into the real update machinery.
     result = subprocess.run(
@@ -535,7 +535,7 @@ def test_takeover_arms_the_host_record_without_application_dependencies(tmp_path
          "assert importlib.util.find_spec('ruamel') is None, 'precondition: no app dependencies'\n"
          "from hermes_cli._update_takeover import _arm_fleet_obligation\n"
          f"_arm_fleet_obligation(Path({str(root)!r}))\n"],
-        env={**os.environ, "HERMES_GATEWAY_LOCK_DIR": str(lock_dir), "HERMES_HOME": str(home)},
+        env={**os.environ, "A2ASSISTANT_GATEWAY_LOCK_DIR": str(lock_dir), "A2ASSISTANT_HOME": str(home)},
         stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8", timeout=60,
         check=False,
     )
@@ -622,8 +622,8 @@ def test_a_takeover_debt_another_profile_cannot_see_is_never_silent(tmp_path, mo
         (home / "config.yaml").write_text("{}\n", encoding="utf-8")
     lock_dir = tmp_path / "gateway-locks"
     lock_dir.mkdir()
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(lock_dir))
-    monkeypatch.setenv("HERMES_HOME", str(homes["coder"]))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(lock_dir))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(homes["coder"]))
     monkeypatch.setattr(_update_takeover, "_head_sha", lambda _root: "a" * 40)
     lock_dir.chmod(0o500)
     try:
@@ -632,7 +632,7 @@ def test_a_takeover_debt_another_profile_cannot_see_is_never_silent(tmp_path, mo
         lock_dir.chmod(0o700)
 
     assert (homes["coder"] / "fleet_restart_pending").is_file()
-    assert "hermes gateway restart" in capsys.readouterr().err
+    assert "a2assistant gateway restart" in capsys.readouterr().err
 
 
 def test_a_historical_updater_arms_the_host_record_under_the_current_mutex(tmp_path, monkeypatch):
@@ -642,7 +642,7 @@ def test_a_historical_updater_arms_the_host_record_under_the_current_mutex(tmp_p
     from hermes_cli import update_lock
     from hermes_cli.update_host_obligation import read_host_obligation, write_host_obligation
 
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
     monkeypatch.delattr(update_lock, "marker_mutex")  # N-1's in-memory update_lock had no such name
     assert write_host_obligation(expected_sha="a" * 40)
     assert read_host_obligation()["expected_sha"] == "a" * 40

@@ -1,6 +1,6 @@
 """A new or rerun install of the official repository lands on the latest stable release.
 
-`hermes update` already follows stable for an official checkout that never chose a channel;
+`a2assistant update` already follows stable for an official checkout that never chose a channel;
 the installer has to put a fresh install there too, or new users start on main's tip. The
 official URL is redirected to a local origin and `curl` answers the release lookup.
 """

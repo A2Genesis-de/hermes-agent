@@ -11,8 +11,8 @@
  *     installStamp,        // INSTALL_STAMP from main.ts (may be null in dev)
  *     activeRoot,          // ACTIVE_HERMES_ROOT
  *     sourceRepoRoot,      // SOURCE_REPO_ROOT (for dev install.ps1 lookup)
- *     hermesHome,          // HERMES_HOME
- *     logRoot,             // HERMES_HOME/logs
+ *     hermesHome,          // A2ASSISTANT_HOME
+ *     logRoot,             // A2ASSISTANT_HOME/logs
  *     emit: ev => {...}    // event sink (sender.send or similar)
  *   })
  *
@@ -431,7 +431,7 @@ function cleanInstallerLogLine(raw: string): string {
 // when it is new enough), so store dirs already on PATH stay ahead of the
 // login-shell entries shell-path.ts merged in front of them.
 function installerEnv(hermesHome) {
-  const env = { ...process.env, HERMES_HOME: hermesHome || process.env.HERMES_HOME || '' }
+  const env = { ...process.env, A2ASSISTANT_HOME: hermesHome || process.env.A2ASSISTANT_HOME || '' }
   const key = pathEnvKey(env)
 
   env[key] = storeFirstPath(env[key] || '', { currentEnv: env })
@@ -449,7 +449,7 @@ function spawnPowerShell(scriptPath, args, { emit, stageName, abortSignal, herme
       fullArgs,
       hiddenWindowsChildOptions({
         stdio: ['ignore', 'pipe', 'pipe'],
-        // Pass HERMES_HOME through so install.ps1 respects the caller's
+        // Pass A2ASSISTANT_HOME through so install.ps1 respects the caller's
         // choice rather than re-computing the default.
         env: installerEnv(hermesHome)
       })

@@ -7,7 +7,7 @@ text, SOUL text, terminal cwd and a cron prompt. Each tenant also owns its own l
 WHO sent it. The invariant shared by every scenario is ``leaks(...) == []``: no tenant's canary may
 appear in another tenant's provider request, tool-subprocess env snapshot, or on-disk file.
 
-Hermes runs for real in child processes with HOME=<tmp>/home and HERMES_HOME=<tmp>/home/.hermes
+Hermes runs for real in child processes with HOME=<tmp>/home and A2ASSISTANT_HOME=<tmp>/home/.hermes
 (profiles resolve under $HOME, never the real install), every credential env var stripped.
 """
 
@@ -43,7 +43,7 @@ class LaunchProfileBleed(AssertionError):
 
 
 _STRIP_SUFFIXES = ("_API_KEY", "_TOKEN", "_BASE_URL", "_SECRET", "_ACCESS_KEY", "_KEY_ID", "_KEY")
-_STRIP_PREFIXES = ("HERMES_", "OPENAI", "ANTHROPIC", "OPENROUTER", "AWS_", "AZURE_", "GOOGLE_", "GEMINI",
+_STRIP_PREFIXES = ("A2ASSISTANT_", "OPENAI", "ANTHROPIC", "OPENROUTER", "AWS_", "AZURE_", "GOOGLE_", "GEMINI",
                    "PYTEST_", "NOUS_", "XAI_", "LLM_", "CUSTOM_", "TERMINAL_", "TENANT_", "API_SERVER_")
 
 
@@ -53,7 +53,7 @@ def real_user_home() -> Path:
 
 
 def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, str]:
-    """Child env: fake HOME (profile root anchor) + HERMES_HOME under it, nothing credential-shaped."""
+    """Child env: fake HOME (profile root anchor) + A2ASSISTANT_HOME under it, nothing credential-shaped."""
     home = home.resolve()
     assert home != real_user_home() and home / ".hermes" != real_user_home() / ".hermes", home
     env = {k: v for k, v in os.environ.items()
@@ -66,7 +66,7 @@ def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, s
         env.pop(var, None)
     env.update(
         HOME=str(home),
-        HERMES_HOME=str(home / ".hermes"),
+        A2ASSISTANT_HOME=str(home / ".hermes"),
         XDG_STATE_HOME=str(home / ".local" / "state"),
         PYTHONPATH=str(REPO_ROOT),
         NO_COLOR="1",
@@ -75,8 +75,8 @@ def hermetic_env(home: Path, extra: dict[str, str] | None = None) -> dict[str, s
         no_proxy="127.0.0.1,localhost",
         # The live-DB guard treats $HOME/.hermes/state.db of a pytest descendant as production;
         # this HOME is the test's own tmp dir (asserted above).
-        HERMES_STATE_DB_GUARD_BYPASS="1",
-        HERMES_ACCEPT_HOOKS="1",
+        A2ASSISTANT_STATE_DB_GUARD_BYPASS="1",
+        A2ASSISTANT_ACCEPT_HOOKS="1",
     )
     env.update(extra or {})
     return env
@@ -343,7 +343,7 @@ def seed_due_cron_job(t: Tenant, home: Path) -> str:
     """Create (once) an hourly job in the tenant's own cron store and mark it due now (the state the
     "run on next tick" action produces), so the multiplexed ticker's first tick fires it."""
     r = subprocess.run([sys.executable, "-c", _SEED_CRON, t.cron_prompt], cwd=str(home),
-                       env=hermetic_env(home, {"HERMES_HOME": str(t.home)}), capture_output=True, text=True,
+                       env=hermetic_env(home, {"A2ASSISTANT_HOME": str(t.home)}), capture_output=True, text=True,
                        timeout=120, stdin=subprocess.DEVNULL, check=False)
     assert r.returncode == 0, r.stderr[-2000:]
     return r.stdout.strip().splitlines()[-1]
@@ -466,9 +466,9 @@ class TuiBackend:
 
 
 class ServeBackend(TuiBackend):
-    """The real Desktop backend: ``hermes serve --port 0`` with the JSON-RPC surface on ``/api/ws``.
+    """The real Desktop backend: ``a2assistant serve --port 0`` with the JSON-RPC surface on ``/api/ws``.
 
-    ``HERMES_DESKTOP=1`` marks it app-spawned, which is also what runs the cron ticker in-process.
+    ``A2ASSISTANT_DESKTOP=1`` marks it app-spawned, which is also what runs the cron ticker in-process.
     """
 
     def __init__(self, home: Path, log_path: Path, extra_env: dict[str, str] | None = None) -> None:
@@ -480,7 +480,7 @@ class ServeBackend(TuiBackend):
 
         self.token = secrets.token_urlsafe(24)
         self._log = open(log_path, "a", encoding="utf-8")
-        env = {"HERMES_DASHBOARD_SESSION_TOKEN": self.token, "HERMES_DESKTOP": "1", **(extra_env or {})}
+        env = {"A2ASSISTANT_DASHBOARD_SESSION_TOKEN": self.token, "A2ASSISTANT_DESKTOP": "1", **(extra_env or {})}
         self.proc = subprocess.Popen(
             [sys.executable, "-m", "hermes_cli.main", "serve", "--host", "127.0.0.1", "--port", "0"],
             cwd=str(home), env=hermetic_env(home, env), stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
@@ -498,8 +498,8 @@ class ServeBackend(TuiBackend):
                     port_box.append(int(m.group(1)))
         threading.Thread(target=pump, daemon=True, name="tenancy-serve-stdout").start()
         self.port = poll(lambda: port_box[0] if port_box else (self.proc.poll() is not None and -1), 120,
-                         "hermes serve to report its port")
-        assert self.port > 0, f"hermes serve exited rc={self.proc.returncode}"
+                         "a2assistant serve to report its port")
+        assert self.port > 0, f"a2assistant serve exited rc={self.proc.returncode}"
         self.ws = connect(f"ws://127.0.0.1:{self.port}/api/ws?token={self.token}", open_timeout=90, max_size=None)
         self._q: queue.Queue[dict[str, Any]] = queue.Queue()
         self._rid = 0

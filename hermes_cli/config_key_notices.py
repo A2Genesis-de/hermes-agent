@@ -1,4 +1,4 @@
-"""Notices ``hermes config set`` prints for a key path the schema does not know."""
+"""Notices ``a2assistant config set`` prints for a key path the schema does not know."""
 
 from __future__ import annotations
 

@@ -1,5 +1,5 @@
 /**
- * #121148 with REAL rotated session rows: one Electron app + one `hermes serve`,
+ * #121148 with REAL rotated session rows: one Electron app + one `a2assistant serve`,
  * only the LLM is faked. `compression.in_place: false` + a low
  * `threshold_tokens` make the backend's own auto-compaction rotate the live
  * conversation mid-turn (parent sealed with end_reason='compression', a

@@ -6,8 +6,8 @@ import { commandLineIsHermesRuntime } from './hermes-process'
 describe('commandLineIsHermesRuntime (HX003 token matching)', () => {
   it('matches a real A2Assistant gateway command line', () => {
     expect(commandLineIsHermesRuntime('hermes\0gateway\0run')).toBe(true)
-    expect(commandLineIsHermesRuntime('hermes gateway run')).toBe(true)
-    expect(commandLineIsHermesRuntime('hermes --profile work gateway run')).toBe(true)
+    expect(commandLineIsHermesRuntime('a2assistant gateway run')).toBe(true)
+    expect(commandLineIsHermesRuntime('a2assistant --profile work gateway run')).toBe(true)
   })
 
   it('matches an A2Assistant launched by an interpreter (basename of a path token)', () => {
@@ -20,7 +20,7 @@ describe('commandLineIsHermesRuntime (HX003 token matching)', () => {
     expect(commandLineIsHermesRuntime('vim /home/user/hermes-notes.txt')).toBe(false)
     expect(commandLineIsHermesRuntime('/opt/hermesbrew/bin/tool --run')).toBe(false)
     expect(commandLineIsHermesRuntime('node /srv/hermes-dashboard/server.js')).toBe(false)
-    expect(commandLineIsHermesRuntime('cat ~/.hermes/config.yaml')).toBe(false)
+    expect(commandLineIsHermesRuntime('cat ~/.a2assistant/config.yaml')).toBe(false)
   })
 
   // G2 (#150283): the real unmanaged-gateway launch is `python -m hermes_cli.main … gateway

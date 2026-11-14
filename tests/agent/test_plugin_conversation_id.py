@@ -46,7 +46,7 @@ def probe(tmp_path, monkeypatch):
     home = tmp_path / "home"
     plugin = home / "plugins" / "conv_probe"
     plugin.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "config.yaml").write_text("plugins:\n  enabled: [conv_probe]\n")
     (plugin / "plugin.yaml").write_text("name: conv_probe\nversion: '0.1.0'\n")
     (plugin / "__init__.py").write_text(PLUGIN)

@@ -40,7 +40,7 @@ async def _make_flow(tmp_path, monkeypatch, *, registered=True):
 
     assert _HERMES_PROVIDER_CLS is not None
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     reset_manager_for_tests()
 
     storage = HermesTokenStorage("srv")

@@ -49,7 +49,7 @@ def test_api_image_survives_native_cleanup_while_unique_native_bytes_are_collect
 
 
 def test_hosted_batch_total_is_rejected_before_any_capture(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db_path = tmp_path / 'state.db'
     hosted_rooms.create_room(db_path, room_id='room', name='Room', authority_gateway_id='home',
         members=[dict(member_id='member', profile='default', handle='member')])

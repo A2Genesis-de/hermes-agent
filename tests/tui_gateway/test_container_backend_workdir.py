@@ -30,10 +30,10 @@ def _write_cfg(home: Path, body: str) -> Path:
 
 @pytest.fixture
 def launch_home(tmp_path, monkeypatch):
-    """A temp launch HERMES_HOME the gateway and the cache-mount mapper both read."""
+    """A temp launch A2ASSISTANT_HOME the gateway and the cache-mount mapper both read."""
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", home)
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
     monkeypatch.delenv("TERMINAL_CWD", raising=False)

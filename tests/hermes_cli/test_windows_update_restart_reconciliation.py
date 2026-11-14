@@ -56,7 +56,7 @@ def test_merge_helper_reads_token_keys_into_restart_outcome(monkeypatch):
         incomplete=False,
         phase_errors=[],
         pre_restart_gateway_pids=[],
-        restarted_services=["hermes-gateway"],
+        restarted_services=["a2assistant-gateway"],
         failed_or_stale_units=[],
         relaunched_profiles=[],
         externally_supervised_profiles=[],
@@ -73,7 +73,7 @@ def test_merge_helper_reads_token_keys_into_restart_outcome(monkeypatch):
         update_cmd._resume_windows_gateways_and_merge_outcome(outcome, token, False)
 
     assert outcome.relaunched_profiles == ["p1", "p2"]
-    assert outcome.restarted_services == ["hermes-gateway", "svc"]
+    assert outcome.restarted_services == ["a2assistant-gateway", "svc"]
     assert outcome.failed_or_stale_units == ["p3"]
     assert outcome.incomplete is False
 

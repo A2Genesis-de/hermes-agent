@@ -148,9 +148,9 @@ def build_stamp(
     if channel_request is not None:
         from scripts.bundles.desktop_prepare import git, require_source, validate_channel_request
         channel_request = validate_channel_request(channel_request)
-        if os.environ.get("HERMES_BUILD_COMMIT") or os.environ.get("HERMES_PAYLOAD_TAG"):
+        if os.environ.get("A2ASSISTANT_BUILD_COMMIT") or os.environ.get("A2ASSISTANT_PAYLOAD_TAG"):
             raise ValueError("channel request conflicts with commit-build or tag identity")
-        if os.environ.get("HERMES_DESKTOP_VARIANT") != "bundled" or update_mechanism not in {"electron-updater", "app-installer"}:
+        if os.environ.get("A2ASSISTANT_DESKTOP_VARIANT") != "bundled" or update_mechanism not in {"electron-updater", "app-installer"}:
             raise ValueError("channel builds require a bundled native update owner")
         if _run_git("rev-parse", "HEAD", cwd=_REPO_ROOT) != channel_request["commit"] or commit not in (None, channel_request["commit"]):
             raise ValueError("channel build identity does not match checkout HEAD")
@@ -159,12 +159,12 @@ def build_stamp(
         dirty, distance = False, 0
         commit_date = int(git(_REPO_ROOT, "log", "-1", "--format=%ct", "HEAD"))
 
-    commit_build = os.environ.get("HERMES_BUILD_COMMIT")
+    commit_build = os.environ.get("A2ASSISTANT_BUILD_COMMIT")
     if commit_build:
         from scripts.releases.commit_build import require_commit
 
         require_commit(commit_build)
-        if os.environ.get("HERMES_PAYLOAD_TAG"):
+        if os.environ.get("A2ASSISTANT_PAYLOAD_TAG"):
             raise ValueError("Commit builds cannot also select a release tag")
         if _resolve_commit_from_git() != commit_build or commit not in (None, commit_build):
             raise ValueError("Commit build identity does not match the checkout HEAD")
@@ -233,22 +233,22 @@ def build_stamp(
     #               enclosing desktop app (bundled_app.resolve_bundle_layout)
     #               and a tree without one is damage to them.
     # Release artifacts pin a tag. Commit builds never enter an update channel.
-    variant = os.environ.get("HERMES_DESKTOP_VARIANT", "").strip()
+    variant = os.environ.get("A2ASSISTANT_DESKTOP_VARIANT", "").strip()
     if variant not in ("", "bootstrap", "bundled", "light", "store", "runtime"):
         raise SystemExit(
-            f"write_install_stamp: unknown HERMES_DESKTOP_VARIANT {variant!r} "
+            f"write_install_stamp: unknown A2ASSISTANT_DESKTOP_VARIANT {variant!r} "
             "(expected unset, 'bootstrap', 'bundled', 'light', 'store', or 'runtime')"
         )
     payload = "bundled" if variant == "store" else (variant or "bootstrap")
-    tag = os.environ.get("HERMES_PAYLOAD_TAG") or None
+    tag = os.environ.get("A2ASSISTANT_PAYLOAD_TAG") or None
 
     _stable_tag = re.compile(r"^v(0|[1-9]\d{0,2})\.\d+\.\d+$")
     if payload != "bootstrap" and not commit_build and channel_request is None and not (
         tag and (_stable_tag.match(tag) or update_channel.is_canary_tag(tag))
     ):
         raise SystemExit(
-            f"write_install_stamp: HERMES_DESKTOP_VARIANT={payload} requires "
-            f"HERMES_PAYLOAD_TAG=vX.Y.Z or vX.Y.Z+canary.YYYYMMDDTHHMMSSZ (got {tag!r})"
+            f"write_install_stamp: A2ASSISTANT_DESKTOP_VARIANT={payload} requires "
+            f"A2ASSISTANT_PAYLOAD_TAG=vX.Y.Z or vX.Y.Z+canary.YYYYMMDDTHHMMSSZ (got {tag!r})"
         )
 
     stamp = {
@@ -305,7 +305,7 @@ def main() -> int:
         "--update-mechanism",
         required=True,
         choices=UPDATE_MECHANISMS,
-        help="Who applies the next update: 'self' (hermes update), "
+        help="Who applies the next update: 'self' (a2assistant update), "
         "'app-installer' (Windows App Installer), 'electron-updater' (in-app updater), "
         "'external' (nix/docker/store)",
     )

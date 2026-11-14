@@ -1095,7 +1095,7 @@ def test_idle_reaper_rearms_missing_ws_orphan_timer(server, monkeypatch, tmp_pat
     )
 
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     sid = "detached-without-reaper"
     sibling_sid = "live-sibling"
     orphan_lease, message = try_acquire_active_session(
@@ -1154,7 +1154,7 @@ def test_idle_reaper_rearms_missing_ws_orphan_timer(server, monkeypatch, tmp_pat
 
     repo_root = Path(__file__).resolve().parents[2]
     env = os.environ.copy()
-    env["HERMES_HOME"] = str(home)
+    env["A2ASSISTANT_HOME"] = str(home)
     env["PYTHONPATH"] = os.pathsep.join(
         part for part in (str(repo_root), env.get("PYTHONPATH", "")) if part
     )
@@ -1185,7 +1185,7 @@ def test_sync_session_key_after_compress_reanchors_active_session_lease(
     server, monkeypatch, tmp_path
 ):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     from hermes_cli.active_sessions import (
         active_session_registry_snapshot,
@@ -1306,7 +1306,7 @@ def test_slash_exec_rejects_skill_commands(server):
 
 def test_slash_exec_scopes_skill_lookup_to_session_profile(server, tmp_path):
     """slash.exec must resolve get_skill_commands() against the session's own
-    profile_home rather than the gateway process's ambient HERMES_HOME
+    profile_home rather than the gateway process's ambient A2ASSISTANT_HOME
     (#88023). A Desktop session that switches profiles mid-session shares
     the same gateway process, so a skill declared only under the new
     profile's skills.external_dirs must still be recognized here — else the
@@ -1376,7 +1376,7 @@ def test_command_dispatch_expands_stacked_skills_from_temp_home(server, tmp_path
             encoding="utf-8",
         )
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(skills_tool, "SKILLS_DIR", skills_dir)
     monkeypatch.setattr(skill_commands, "_skill_commands_by_key", {})
 
@@ -1422,7 +1422,7 @@ def test_command_dispatch_stacked_split_keeps_unknown_tokens_as_instruction(serv
         encoding="utf-8",
     )
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(skills_tool, "SKILLS_DIR", skills_dir)
     monkeypatch.setattr(skill_commands, "_skill_commands_by_key", {})
 
@@ -1463,7 +1463,7 @@ def test_sessionless_slash_palette_follows_profile_param(server, tmp_path, monke
         (root / "profiles" / name / "config.yaml").write_text(
             f"skills:\n  external_dirs:\n    - {skill_dir.parent}\n"
             f"quick_commands:\n  {name}-qc:\n    type: exec\n    command: echo {name}\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(server, "_hermes_home", str(root))
 
     def palette(profile):
@@ -1727,7 +1727,7 @@ def test_slash_exec_routes_a_secondary_only_bundle_to_dispatch(server, tmp_path,
     import agent.skill_bundles as sb_mod
     import agent.skill_commands as sc_mod
 
-    monkeypatch.delenv("HERMES_BUNDLES_DIR", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_BUNDLES_DIR", raising=False)
     profile_b = tmp_path / "profile_b"
     external_b = tmp_path / "external_b"
     for name in ("one", "two"):
@@ -1829,7 +1829,7 @@ def test_slow_handlers_run_off_the_reader_thread(slow_method, server, monkeypatc
 
 
 def test_skin_live_switch_end_to_end(server, tmp_path, monkeypatch):
-    """Real config + skin files: activating a skin (as `hermes config set` does)
+    """Real config + skin files: activating a skin (as `a2assistant config set` does)
     makes the per-tool reconcile broadcast skin.changed with the resolved palette.
     Exercises _load_cfg → _skin_sig → resolve_skin → _emit with no mocks in between."""
     from hermes_cli import skin_engine
@@ -1973,7 +1973,7 @@ def test_approval_that_ends_before_its_settle_hook_attaches_is_still_withdrawn(s
 
 
 def test_peerless_global_broadcast_never_reaches_stdout_in_ws_backend(capture, monkeypatch):
-    """`hermes serve` / dashboard speak JSON-RPC over WS only; Desktop captures their stdout
+    """`a2assistant serve` / dashboard speak JSON-RPC over WS only; Desktop captures their stdout
     into desktop.log. After the last WS client leaves, the change watcher keeps ticking —
     its sessions.changed / setup.ready / session.reclaimed frames must be dropped, not
     printed (~1100 `[hermes] {"jsonrpc": ...}` lines in desktop.log)."""

@@ -110,7 +110,7 @@ def _profile_overlay_key(prof) -> str:
 
 
 def hermes_overlays() -> dict[str, HermesOverlay]:
-    """``HERMES_OVERLAYS`` plus the overlays registered profiles declare (``provider_overlay``)."""
+    """``A2ASSISTANT_OVERLAYS`` plus the overlays registered profiles declare (``provider_overlay``)."""
     merged = dict(HERMES_OVERLAYS)
     for prof in _overlay_profiles():
         merged.setdefault(_profile_overlay_key(prof), HermesOverlay(**prof.provider_overlay))

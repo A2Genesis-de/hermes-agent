@@ -104,7 +104,7 @@ def test_zero_event_retry_prunes_oversized_tool_output_and_logs_size_delta(monke
     from tests.agent.test_run_agent_codex_responses import _build_agent
     from tools.tool_result_storage import PERSISTED_OUTPUT_TAG
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr("hermes_constants.get_hermes_home", lambda: tmp_path, raising=False)
     agent = _build_agent(monkeypatch)
     seen: list = []

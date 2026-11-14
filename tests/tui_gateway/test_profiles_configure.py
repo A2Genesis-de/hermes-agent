@@ -18,11 +18,11 @@ from tui_gateway import server
 
 @pytest.fixture
 def profile_dir(tmp_path, monkeypatch) -> Path:
-    """A temp HERMES_HOME root with one named profile, ``bot``, at ``<root>/profiles/bot``."""
+    """A temp A2ASSISTANT_HOME root with one named profile, ``bot``, at ``<root>/profiles/bot``."""
     root = tmp_path / "hermes_home"
     path = root / "profiles" / "bot"
     path.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     return path
 
 

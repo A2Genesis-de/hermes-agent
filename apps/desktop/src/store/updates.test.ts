@@ -419,7 +419,7 @@ describe('checkBackendUpdates', () => {
       behind: 2,
       update_available: true,
       can_apply: true,
-      update_command: 'hermes update',
+      update_command: 'a2assistant update',
       message: null,
       commits: [{ sha: 'abc1234', summary: 'feat: x', author: 'a', at: 1 }]
     })
@@ -598,13 +598,13 @@ describe('requestActiveUpdate', () => {
     expect($backendUpdateApply.get().message).toContain('managed outside this dashboard')
   })
 
-  it('falls back to `hermes update` only when an older backend omits update_command', async () => {
+  it('falls back to `a2assistant update` only when an older backend omits update_command', async () => {
     setRemote(true)
     updateHermesSpy.mockResolvedValue({ ok: false, name: 'hermes-update', message: 'Run it yourself.' })
 
     await applyBackendUpdate()
 
-    expect($backendUpdateApply.get().command).toBe('hermes update')
+    expect($backendUpdateApply.get().command).toBe('a2assistant update')
   })
 })
 
@@ -1049,12 +1049,12 @@ describe('applyUpdates terminal state', () => {
   })
 
   it('keeps the manual command state for CLI installs with no staged updater', async () => {
-    applyMock.mockResolvedValue({ ok: true, manual: true, command: 'hermes update' })
+    applyMock.mockResolvedValue({ ok: true, manual: true, command: 'a2assistant update' })
 
     await applyUpdates()
 
     expect($updateApply.get().stage).toBe('manual')
-    expect($updateApply.get().command).toBe('hermes update')
+    expect($updateApply.get().command).toBe('a2assistant update')
     expect($updateOverlayOpen.get()).toBe(true)
     expect(notifySpy).not.toHaveBeenCalled()
   })
@@ -1332,7 +1332,7 @@ describe('applyBackendUpdate recovery', () => {
         install_method: 'git',
         message: 'offline',
         update_available: false,
-        update_command: 'hermes update'
+        update_command: 'a2assistant update'
       })
       .mockResolvedValueOnce({
         behind: 1,
@@ -1342,7 +1342,7 @@ describe('applyBackendUpdate recovery', () => {
         install_method: 'git',
         message: null,
         update_available: true,
-        update_command: 'hermes update'
+        update_command: 'a2assistant update'
       })
 
     const promise = applyBackendUpdate()
@@ -1377,7 +1377,7 @@ describe('applyBackendUpdate recovery', () => {
       install_method: 'pip',
       message: null,
       update_available: true,
-      update_command: 'hermes update'
+      update_command: 'a2assistant update'
     })
 
     const promise = applyBackendUpdate()
@@ -1530,7 +1530,7 @@ describe('applyBackendUpdate recovery', () => {
   })
 
   it("names a partial update's owed user action verbatim, only from this action's own receipt", async () => {
-    const instruction = 'Your local changes are parked in stash@{0}; run `git stash pop` in ~/.hermes/hermes-agent.'
+    const instruction = 'Your local changes are parked in stash@{0}; run `git stash pop` in ~/.a2assistant/app.'
 
     const status = (actionId: string) => ({
       exit_code: 1,
@@ -1552,10 +1552,10 @@ describe('applyBackendUpdate recovery', () => {
     await vi.advanceTimersByTimeAsync(1500)
     const result = await own
 
-    // exit 1 stays a failed apply, but the committed run's debt is named, never as "re-run hermes update".
+    // exit 1 stays a failed apply, but the committed run's debt is named, never as "re-run a2assistant update".
     expect(result).toMatchObject({ ok: false, error: 'apply-failed' })
     expect(result.message).toContain(`local_changes: ${instruction}`)
-    expect(result.message).not.toMatch(/Re-run `hermes update`/)
+    expect(result.message).not.toMatch(/Re-run `a2assistant update`/)
     expect($backendUpdateApply.get()).toMatchObject({ stage: 'error', message: result.message })
 
     // The status route attaches the latest receipt when this action has none: another run's debt is not ours.
@@ -1686,7 +1686,7 @@ describe('startUpdatePoller', () => {
       behind: 1,
       update_available: true,
       can_apply: true,
-      update_command: 'hermes update',
+      update_command: 'a2assistant update',
       message: null
     })
 
@@ -1732,7 +1732,7 @@ describe('startUpdatePoller', () => {
       behind: 1,
       update_available: true,
       can_apply: true,
-      update_command: 'hermes update',
+      update_command: 'a2assistant update',
       message: null
     })
 
@@ -1779,7 +1779,7 @@ describe('startUpdatePoller', () => {
       behind: 4,
       update_available: true,
       can_apply: true,
-      update_command: 'hermes update',
+      update_command: 'a2assistant update',
       message: null
     })
 
@@ -1816,7 +1816,7 @@ describe('startUpdatePoller', () => {
       behind: 1,
       update_available: true,
       can_apply: true,
-      update_command: 'hermes update',
+      update_command: 'a2assistant update',
       message: null
     })
     await vi.advanceTimersByTimeAsync(0)

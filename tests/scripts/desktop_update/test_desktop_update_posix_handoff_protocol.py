@@ -41,10 +41,10 @@ MARKER_SH = POSIX.with_name("marker.sh")
 
 
 def _env(tmp_path: Path, home: Path, **extra: str) -> dict:
-    env = {**os.environ, "HOME": str(tmp_path), "TMPDIR": str(tmp_path), "HERMES_HOME": str(home),
-           "HANDOFF_CAPTURE": str(tmp_path / "calls.txt"), "HERMES_RUNTIME_DIR": str(tmp_path / "store"),
-           "HERMES_UPDATE_SHIM_GRACE_SECONDS": "0"}
-    for key in ("PYTHONPATH", "PYTHONHOME", "HERMES_UPDATE_STARTED_AT", "MARKER_LOCK_TOOL"):
+    env = {**os.environ, "HOME": str(tmp_path), "TMPDIR": str(tmp_path), "A2ASSISTANT_HOME": str(home),
+           "HANDOFF_CAPTURE": str(tmp_path / "calls.txt"), "A2ASSISTANT_RUNTIME_DIR": str(tmp_path / "store"),
+           "A2ASSISTANT_UPDATE_SHIM_GRACE_SECONDS": "0"}
+    for key in ("PYTHONPATH", "PYTHONHOME", "A2ASSISTANT_UPDATE_STARTED_AT", "MARKER_LOCK_TOOL"):
         env.pop(key, None)
     env.update(extra)
     return env
@@ -114,7 +114,7 @@ def _old_desktop_handoff(tmp_path: Path, home: Path, install: Path, procs, *, br
                 f'--desktop-pid $PPID; echo "rc=$?" >> {shlex.quote(str(report))}; sleep 2')
     desktop_code = (
         "import subprocess, sys, time, os\n"
-        f"x = subprocess.Popen(['bash', '-c', {launcher!r}], env=dict(os.environ, HERMES_UPDATE_STARTED_AT='{started}'))\n"
+        f"x = subprocess.Popen(['bash', '-c', {launcher!r}], env=dict(os.environ, A2ASSISTANT_UPDATE_STARTED_AT='{started}'))\n"
         f"bridge = {bridge!r}\n"
         f"if bridge == 'launcher': open({str(marker)!r}, 'w', encoding='utf-8').write(f'{{x.pid}}\\n{started}\\n')\n"  # windows-footgun: ok — a write, inside generated code
         "x.wait()\n"
@@ -156,7 +156,7 @@ def test_launcher_lineage_rule_matches_the_shared_table(tmp_path):
         args = " ".join("1" if case["facts"][name] else "0" for name in LINEAGE_FACTS)
         calls.append(f"if marker_launcher_rule {args}; then echo {case['id']}=1; else echo {case['id']}=0; fi")
     for case in ENV_CASES:
-        calls.append(f"if HERMES_UPDATE_STARTED_AT={shlex.quote(case['env'])} marker_env_started_matches {shlex.quote(case['line2'])}; "
+        calls.append(f"if A2ASSISTANT_UPDATE_STARTED_AT={shlex.quote(case['env'])} marker_env_started_matches {shlex.quote(case['line2'])}; "
                      f"then echo env_{case['id']}=1; else echo env_{case['id']}=0; fi")
     out = subprocess.run(["bash", "-c", "\n".join(calls)], capture_output=True, text=True, encoding="utf-8", timeout=30, check=True).stdout
     got = dict(line.split("=") for line in out.split())
@@ -167,14 +167,14 @@ def test_launcher_lineage_rule_matches_the_shared_table(tmp_path):
 @pytest.mark.parametrize("env_matches", [True, False], ids=["env-matches", "env-differs"])
 def test_reparented_live_launcher_is_adopted_only_with_the_handoff_started_at(tmp_path, procs, env_matches):
     """The table's divergent row on real processes: the launcher X is our live parent, but no
-    longer the Desktop's child (the Desktop quit first); line 2 == HERMES_UPDATE_STARTED_AT."""
+    longer the Desktop's child (the Desktop quit first); line 2 == A2ASSISTANT_UPDATE_STARTED_AT."""
     home, install = _install(tmp_path)
     desktop = subprocess.Popen(["sleep", "60"]); procs.append(desktop)  # not X's parent
     started = int(time.time())
     marker = home / ".hermes-update-in-progress"
     report = tmp_path / "launched.txt"
     launcher = (f'printf "%s\\n{started}\\n" $$ > {shlex.quote(str(marker))}; '
-                f'HERMES_UPDATE_STARTED_AT={started if env_matches else started - 7} bash {shlex.quote(str(POSIX))} --daemonized --no-ui '
+                f'A2ASSISTANT_UPDATE_STARTED_AT={started if env_matches else started - 7} bash {shlex.quote(str(POSIX))} --daemonized --no-ui '
                 f'--self-test-marker --install-root {shlex.quote(str(install))} --desktop-pid {desktop.pid}; echo "rc=$?" > {shlex.quote(str(report))}')
     x = subprocess.run(["bash", "-c", launcher], env=_env(tmp_path, home), timeout=60, check=False)
     assert x.returncode == 0
@@ -409,12 +409,12 @@ def test_result_finished_at_is_stamped_after_the_r6_release_wait(tmp_path):
 
 def test_line_two_stays_young_through_the_r6_release_wait(tmp_path):
     """An old packaged Desktop deletes a marker whose line 2 is 20 minutes old, live owner or
-    not. The release wait can last hours, so the refresher must outlive `hermes update`."""
+    not. The release wait can last hours, so the refresher must outlive `a2assistant update`."""
     home, install = _install(tmp_path, legacy=True)
     marker = home / ".hermes-update-in-progress"
     completion = tmp_path / "release-completion"
     env = _env(tmp_path, home, HANDOFF_COMPLETION=str(completion), HANDOFF_CHECKOUT_LOCK=str(install / ".hermes-update.lock"),
-               HERMES_UPDATE_STARTED_AT=str(int(time.time()) - 600))
+               A2ASSISTANT_UPDATE_STARTED_AT=str(int(time.time()) - 600))
     script = subprocess.Popen(["bash", str(POSIX), "--daemonized", "--no-ui", "--install-root", str(install),
                                "--self-test-refresh-every", "1"], env=env, cwd=tmp_path,
                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
@@ -437,7 +437,7 @@ def test_line_two_stays_young_through_the_r6_release_wait(tmp_path):
 
 
 def test_checkout_lock_probe_never_makes_a_concurrent_acquire_fail(tmp_path):
-    """checkout_lock_held takes the REAL lock; a `hermes update` acquiring it non-blocking in a
+    """checkout_lock_held takes the REAL lock; a `a2assistant update` acquiring it non-blocking in a
     tight loop meanwhile must (practically) never see it busy. A probe that holds it across a
     process exit and a shell close refused ~7% of such attempts."""
     lock = tmp_path / ".hermes-update.lock"
@@ -570,7 +570,7 @@ def test_line_two_is_refreshed_only_while_the_claim_is_still_ours(tmp_path, proc
 
 
 def test_old_desktop_stays_parked_after_the_orchestrator_is_killed_while_the_update_holds_the_lock(tmp_path):
-    """SIGKILL the hand-off once its delegate (`hermes update`) runs and a completion survivor holds
+    """SIGKILL the hand-off once its delegate (`a2assistant update`) runs and a completion survivor holds
     the checkout lock. The old reader judges line 1 alone, so line 1 must name a live custodian at
     EVERY instant -- including the first read after the kill, made while this test holds the A7
     lock so nothing can take the marker over yet (review 5423056011: a takeover after the death

@@ -151,7 +151,7 @@ class _Board:
 
 @pytest.fixture
 def board(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_CRASH_GRACE_SECONDS", "0")
     scratch = _Board(tmp_path)
     yield scratch
     scratch.close()

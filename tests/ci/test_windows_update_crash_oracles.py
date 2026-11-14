@@ -157,7 +157,7 @@ class _Journey:
     (crash.PY_FINAL_FLUSH_FAILED, None, False),  # 120 and no receipt of this run
 ])
 def test_orphan_cell_accepts_exit_120_only_with_a_success_receipt(tmp_path, monkeypatch, rc, receipt, completed):
-    monkeypatch.delenv("HERMES_E2E_STRICT_ACCEPTANCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_E2E_STRICT_ACCEPTANCE", raising=False)
     target = "a" * 40
     tree = {"head": target, "dirty": "", "diff_rc": 0, "diff_err": "", "target_file": True}
     ok = subprocess.CompletedProcess([], 0, stdout="", stderr="")
@@ -211,7 +211,7 @@ _GAP_FAILURE = "orphaned_update: .hermes-update-in-progress read DEAD 3s after t
 
 @pytest.mark.parametrize("fix_in_tree", [False, True])
 def test_orphan_gap_is_excused_only_while_its_fix_is_absent(monkeypatch, fix_in_tree):
-    monkeypatch.delenv("HERMES_E2E_STRICT_ACCEPTANCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_E2E_STRICT_ACCEPTANCE", raising=False)
     monkeypatch.setattr(crash, "orphan_marker_fix_missing", lambda: [] if fix_in_tree else ["a half"])
     expected = AssertionError if fix_in_tree else pytest.xfail.Exception
     with pytest.raises(expected, match="read DEAD"):
@@ -237,16 +237,16 @@ def test_workflow_requires_the_crash_journey_manifest(tmp_path, monkeypatch):
     run, check = steps[names.index("Run Windows install + update E2E")], steps[names.index("Every crash cell ran")]
     assert names.index("Every crash cell ran") > names.index("Run Windows install + update E2E")
     workflow_steps.required(check, {"inputs": {}})  # neither disabled nor advisory
-    assert check["env"]["HERMES_E2E_ARTIFACTS"] == run["env"]["HERMES_E2E_ARTIFACTS"]
+    assert check["env"]["A2ASSISTANT_E2E_ARTIFACTS"] == run["env"]["A2ASSISTANT_E2E_ARTIFACTS"]
     assert f"'{crash.CELLS_RAN_MANIFEST}'" in check["run"] and "throw" in check["run"]
 
     j = crash.Journey(_Machine(tmp_path))
     j.step("install", lambda: "ok")
     j.step("mid_fetch", lambda: (_ for _ in ()).throw(RuntimeError("boom")))
-    monkeypatch.delenv("HERMES_E2E_ARTIFACTS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_E2E_ARTIFACTS", raising=False)
     crash._record_cells_ran(j)
     assert not list(tmp_path.rglob(crash.CELLS_RAN_MANIFEST))
-    monkeypatch.setenv("HERMES_E2E_ARTIFACTS", str(tmp_path / "artifacts"))
+    monkeypatch.setenv("A2ASSISTANT_E2E_ARTIFACTS", str(tmp_path / "artifacts"))
     crash._record_cells_ran(j)
     assert (tmp_path / "artifacts" / crash.CELLS_RAN_MANIFEST).read_text(encoding="utf-8") == (
         "install: ok\nmid_fetch: failed\n")

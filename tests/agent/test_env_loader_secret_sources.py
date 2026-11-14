@@ -1,6 +1,6 @@
 """Tests for the secret-source tracking in ``hermes_cli.env_loader``.
 
-These cover the small public surface that lets `hermes model` / `hermes setup`
+These cover the small public surface that lets `a2assistant model` / `a2assistant setup`
 label detected credentials with their origin ("from Bitwarden") so users
 don't see an unexplained "credentials ✓" line when their .env is empty.
 """
@@ -76,7 +76,7 @@ def test_apply_external_secret_sources_records_bitwarden_origin(tmp_path, monkey
     """End-to-end: when the Bitwarden source fetches keys, applied vars
     end up in ``_SECRET_SOURCES`` so the UI can label them."""
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setenv("BWS_ACCESS_TOKEN", "0.test-token")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     config_path = tmp_path / "config.yaml"
@@ -160,10 +160,10 @@ def test_single_profile_scoped_load_keeps_override_behavior(tmp_path, monkeypatc
     from agent import secret_scope
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
-    monkeypatch.delenv("HERMES_TEST_SHARED_ADAPTER_CONFIG", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TEST_SHARED_ADAPTER_CONFIG", raising=False)
     other_home = tmp_path / "other"
     other_home.mkdir()
-    (other_home / ".env").write_text("HERMES_TEST_SHARED_ADAPTER_CONFIG=second\n")
+    (other_home / ".env").write_text("A2ASSISTANT_TEST_SHARED_ADAPTER_CONFIG=second\n")
 
     was_active = secret_scope.is_multiplex_active()
     secret_scope.set_multiplex_active(False)
@@ -175,10 +175,10 @@ def test_single_profile_scoped_load_keeps_override_behavior(tmp_path, monkeypatc
         reset_hermes_home_override(home_token)
 
     try:
-        assert os.environ.get("HERMES_TEST_SHARED_ADAPTER_CONFIG") == "second"
+        assert os.environ.get("A2ASSISTANT_TEST_SHARED_ADAPTER_CONFIG") == "second"
         assert (other_home / ".env") in loaded
     finally:
-        os.environ.pop("HERMES_TEST_SHARED_ADAPTER_CONFIG", None)
+        os.environ.pop("A2ASSISTANT_TEST_SHARED_ADAPTER_CONFIG", None)
 
 
 def test_multiplex_dotenv_load_hydrates_sources_without_global_env(
@@ -408,7 +408,7 @@ def test_cold_profile_hydration_clears_partial_snapshot_when_sources_are_removed
 def test_apply_external_secret_sources_noop_when_disabled(tmp_path, monkeypatch):
     """Disabled Bitwarden config must not touch the source map."""
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     config_path = tmp_path / "config.yaml"
     config_path.write_text(
         "secrets:\n"
@@ -428,10 +428,10 @@ def test_apply_external_secret_sources_dedupes_within_process(tmp_path, monkeypa
     Bitwarden status line previously printed once per call — 3-5x per
     startup.  The applied-home guard must short-circuit subsequent calls
     so the heavy work (config re-parse, Bitwarden lookup, status print)
-    runs exactly once per HERMES_HOME per process.
+    runs exactly once per A2ASSISTANT_HOME per process.
     """
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setenv("BWS_ACCESS_TOKEN", "0.test-token")
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     config_path = tmp_path / "config.yaml"
@@ -483,7 +483,7 @@ def test_apply_external_secret_sources_dedupes_within_process(tmp_path, monkeypa
 def test_apply_external_secret_sources_status_line_suppresses_secret_names(
     tmp_path, monkeypatch, capsys
 ):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setenv("BWS_ACCESS_TOKEN", "0.test-token")
     monkeypatch.delenv("LEAK_THIS_API_KEY", raising=False)
     monkeypatch.delenv("LEAK_THIS_TOKEN", raising=False)
@@ -597,7 +597,7 @@ def test_apply_external_secret_sources_records_onepassword_origin(tmp_path, monk
     """When the 1Password source resolves refs, applied vars end up in
     ``_SECRET_SOURCES`` labeled ``onepassword``."""
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     (tmp_path / "config.yaml").write_text(
         "secrets:\n"
@@ -638,7 +638,7 @@ def test_apply_external_secret_sources_survives_non_dict_section(tmp_path, monke
     load_hermes_dotenv().
     """
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         "secrets:\n"
         "  bitwarden: true\n"
@@ -654,7 +654,7 @@ def test_apply_external_secret_sources_survives_non_dict_section(tmp_path, monke
 def test_apply_external_secret_sources_bad_ttl_does_not_crash(tmp_path, monkeypatch):
     """A non-numeric cache_ttl_seconds must be coerced, not crash startup."""
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         "secrets:\n"
         "  onepassword:\n"
@@ -722,7 +722,7 @@ def test_env_shadowed_reapply_keeps_home_snapshot(tmp_path, monkeypatch, _fresh_
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "config.yaml").write_text("secrets:\n  fakebulk:\n    enabled: true\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.delenv("GLM_API_KEY", raising=False)
     _register_fake_bulk_source(lambda _home: "vault-value")
 
@@ -746,7 +746,7 @@ def test_home_scoped_reset_preserves_sibling_snapshot(tmp_path, monkeypatch, _fr
     sibling.mkdir(parents=True)
     for h in (home, sibling):
         (h / "config.yaml").write_text("secrets:\n  fakebulk:\n    enabled: true\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.delenv("GLM_API_KEY", raising=False)
     _register_fake_bulk_source(lambda h: f"vault-{h.name}")
 

@@ -1,7 +1,7 @@
 """``hermes_cli.desktop_plugin_install``: cloning a desktop plugin onto the host that serves the Webapp.
 
 Real local Git repositories behind an https identifier (only the clone's network leg is pointed at the
-local repository), a throwaway ``HERMES_HOME``: the folder lands where the Webapp's read routes serve
+local repository), a throwaway ``A2ASSISTANT_HOME``: the folder lands where the Webapp's read routes serve
 it, at exactly the commit the dialog reviewed; a package's half carries the marker that pairs it to its
 agent row, a standalone plugin carries none, and nothing installs twice without ``force``.
 """
@@ -40,7 +40,7 @@ def _commit(path: Path, files: dict[str, str]) -> str:
 def home(tmp_path, monkeypatch):
     hermes_home = tmp_path / "home"
     hermes_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     import hermes_constants
     hermes_constants._default_hermes_root_memo = None
     return hermes_home

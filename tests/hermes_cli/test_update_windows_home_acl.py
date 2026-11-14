@@ -11,7 +11,7 @@ from hermes_cli import update_windows_acl as maint
 
 def _fake_elevated(monkeypatch, tmp_path, elevated=True):
     granted, runs = [], []
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     sid_row = '"host\\\\user","S-1-5-21-1-2-3-1001"\n'  # whoami /user /fo csv /nh
 
     def run(argv, **kw):
@@ -64,7 +64,7 @@ def test_repair_stays_owed_when_nothing_could_be_granted(monkeypatch, tmp_path):
 
 
 def test_repair_walks_below_an_operator_linked_home(monkeypatch, tmp_path):
-    """Review-9 (d): with HERMES_HOME itself a link the tree repair returned (0, [home], []) and the
+    """Review-9 (d): with A2ASSISTANT_HOME itself a link the tree repair returned (0, [home], []) and the
     update step reported success having repaired nothing. The home is pinned to its real dir; a link
     beneath it is still refused."""
     real = tmp_path / "real-home"

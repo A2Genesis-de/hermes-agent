@@ -11,7 +11,7 @@ def test_default_and_user_list_round_trip(tmp_path):
     assert DEFAULT_CONFIG["terminal"]["client_env_passthrough"] == []
     assert _validate_config_key("terminal.client_env_passthrough") == (True, None)
     names = ["GEM_HOME", "POETRY_HOME"]
-    with patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}):
+    with patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path)}):
         assert load_config()["terminal"]["client_env_passthrough"] == []
         (tmp_path / "config.yaml").write_text("terminal:\n  client_env_passthrough: [GEM_HOME, POETRY_HOME]\n")
         config = load_config()

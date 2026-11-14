@@ -2,7 +2,7 @@
 
 ``GET /api/sessions?title=Bot+Chat`` lists a reset lineage as its latest, untitled segment, so a
 fallback returns the titled root. It must not resurrect a deliberately archived Bot Chat into
-``hermes peer dm`` routing, nor answer a ``source=`` query the row does not match."""
+``a2assistant peer dm`` routing, nor answer a ``source=`` query the row does not match."""
 import pytest
 
 from gateway.platforms import api_server_bot_chat as bot_chat

@@ -97,7 +97,7 @@ export function StartupOverlay() {
 }
 
 /** A Webapp tab without a valid sign-in. The service is running, so there is nothing to recover or
- * dismiss: only hermes webapp signs the tab in. */
+ * dismiss: only a2assistant webapp signs the tab in. */
 function WebappSignInOverlay() {
   const copy = useI18n().t.boot.failure
 

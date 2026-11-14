@@ -10,7 +10,7 @@ import pytest
 
 @pytest.mark.no_isolate
 def test_parked_self_probe_skips_disabled_or_deleted_entry(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     from tools import mcp_tool
     from tools import mcp_tool_config as _config

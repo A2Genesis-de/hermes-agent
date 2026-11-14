@@ -7,7 +7,7 @@ work, an interactive fallback, its copy) belongs to the portal and changes witho
 
 Who opens the URL depends on the surface:
 
-* **desktop** (``HERMES_DESKTOP=1``): this process never opens anything. It publishes the challenge
+* **desktop** (``A2ASSISTANT_DESKTOP=1``): this process never opens anything. It publishes the challenge
   (``free_tier.challenge`` global event, and ``free_tier.status``'s ``challenge`` field for a client
   that connects later); the renderer hands it to the Electron main process, which loads it in a
   HIDDEN window and reveals that window only if the page asks for the human.
@@ -119,7 +119,7 @@ def server_message(value: Any) -> str:
 def client_surface() -> str:
     """``gateway`` in the process that holds the messaging gateway's runtime lock (nobody is at its
     console) unless it is serving the local Desktop app, ``desktop`` for that and for the backend the
-    desktop app spawned, else ``cli``. ``HERMES_DESKTOP``
+    desktop app spawned, else ``cli``. ``A2ASSISTANT_DESKTOP``
     alone is inherited by every terminal-pane shell, so desktop ownership needs the spawn credential."""
     from hermes_cli.process_identity import is_desktop_owned_backend, serves_local_desktop_now
     if serves_local_desktop_now():
@@ -322,7 +322,7 @@ def reset_for_tests() -> None:
 
 def _announce(challenge: BrowserChallenge) -> bool:
     """Broadcast to connected desktop clients. False when this process is not a gateway at all
-    (``HERMES_DESKTOP`` is an env var, and a CLI the desktop spawned inherits it): importing the
+    (``A2ASSISTANT_DESKTOP`` is an env var, and a CLI the desktop spawned inherits it): importing the
     gateway here just to find nobody listening would also write an event frame to stdout."""
     server = sys.modules.get("tui_gateway.server")
     if server is None:

@@ -16,7 +16,7 @@ from tui_gateway.hosted_room_service import HostedRoomService
 
 
 def _deferred_room(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
     (tmp_path / ".hermes" / "profiles" / "reviewer").mkdir(parents=True)
     (tmp_path / ".hermes" / "profiles" / "reviewer" / "config.yaml").write_text("{}\n")

@@ -25,7 +25,7 @@ describe("initialProfileScope", () => {
   });
 
   it("keeps a named-profile dashboard on its own profile (#96712)", () => {
-    // `hermes -p demo serve` with the machine's sticky active profile on
+    // `a2assistant -p demo serve` with the machine's sticky active profile on
     // `default`: the dashboard must not retarget chats to the other agent.
     expect(shouldAdoptActiveProfile(null, "", "demo", "default")).toBe(false);
     expect(shouldAdoptActiveProfile(null, "", "custom", "default")).toBe(false);

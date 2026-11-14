@@ -273,7 +273,7 @@ class TestStripUnmanagedPluginTables:
 
     When codex itself writes ``[plugins."<name>@<marketplace>"]`` tables
     (via the user running ``codex plugins enable`` directly), re-running
-    ``hermes codex-runtime migrate`` would re-emit them inside the managed
+    ``a2assistant codex-runtime migrate`` would re-emit them inside the managed
     block and the resulting duplicate-table-header would crash codex.
     """
 
@@ -373,7 +373,7 @@ class TestStripUnmanagedPluginTables:
 class TestHermesHomeLeakGuard:
     """Regression tests for issue #26250 Bug C.
 
-    Previously ``_build_hermes_tools_mcp_entry()`` read ``HERMES_HOME``
+    Previously ``_build_hermes_tools_mcp_entry()`` read ``A2ASSISTANT_HOME``
     directly from ``os.environ``, so a pytest ``monkeypatch.setenv`` would
     leak a transient tempdir path into the user's real ``~/.codex/config.toml``
     once codex spawned the hermes-tools MCP subprocess.
@@ -383,30 +383,30 @@ class TestHermesHomeLeakGuard:
 
 
     def test_real_hermes_home_propagates(self, monkeypatch, tmp_path):
-        """A legitimate HERMES_HOME (not a tempdir path) DOES propagate so the
+        """A legitimate A2ASSISTANT_HOME (not a tempdir path) DOES propagate so the
         MCP subprocess sees the same config as the parent CLI."""
         # Use a path that looks real — under /Users or /home, not /var/folders.
         # We can't easily create one in the test, so just use a stable path
         # outside any tempdir-detector needle. The detector checks for tempdir
         # markers, not for path existence.
         real_path = "/Users/alice/.hermes"
-        monkeypatch.setenv("HERMES_HOME", real_path)
+        monkeypatch.setenv("A2ASSISTANT_HOME", real_path)
         entry = _build_hermes_tools_mcp_entry()
         env = entry.get("env", {})
-        assert env.get("HERMES_HOME") == real_path
+        assert env.get("A2ASSISTANT_HOME") == real_path
 
     def test_unset_hermes_home_omits_env_key(self, monkeypatch):
-        """When HERMES_HOME is unset in the environment, the MCP entry MUST
+        """When A2ASSISTANT_HOME is unset in the environment, the MCP entry MUST
         NOT bake in a resolved-default path. The codex subprocess should
-        inherit whatever HERMES_HOME its launcher (systemd, gateway, shell)
+        inherit whatever A2ASSISTANT_HOME its launcher (systemd, gateway, shell)
         sets at runtime, rather than being pinned to migrate-time defaults.
         Regression guard for issue #26250 follow-up review."""
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         entry = _build_hermes_tools_mcp_entry()
         env = entry.get("env", {})
-        assert "HERMES_HOME" not in env, (
-            f"HERMES_HOME should not be set when env var is unset, got: "
-            f"{env.get('HERMES_HOME')!r}"
+        assert "A2ASSISTANT_HOME" not in env, (
+            f"A2ASSISTANT_HOME should not be set when env var is unset, got: "
+            f"{env.get('A2ASSISTANT_HOME')!r}"
         )
 
 
@@ -454,8 +454,8 @@ class TestSameNameUserMcpTable:
 
 
     def test_cli_migrate_dry_run_json_reports_without_writing(self, tmp_path, monkeypatch, capsys):
-        """`hermes codex-runtime migrate --dry-run --json` is the supported automation seam:
-        drive it through the real ``hermes`` argparse tree so the subcommand registration in
+        """`a2assistant codex-runtime migrate --dry-run --json` is the supported automation seam:
+        drive it through the real ``a2assistant`` argparse tree so the subcommand registration in
         hermes_cli/main.py stays pinned, and honour ``CODEX_HOME`` like every codex sibling."""
         import json
 

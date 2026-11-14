@@ -28,7 +28,7 @@ it('shows manual recovery guidance without claiming the help command installs an
   const message: string = 'Choose the intended branch or channel before updating this older checkout.'
   window.hermesDesktop = {
     updates: {
-      apply: async (): Promise<unknown> => ({ ok: true, manual: true, command: 'hermes update --help', message })
+      apply: async (): Promise<unknown> => ({ ok: true, manual: true, command: 'a2assistant update --help', message })
     }
   } as unknown as Window['hermesDesktop']
   $updateOverlayTarget.set('client')
@@ -44,7 +44,7 @@ it('shows manual recovery guidance without claiming the help command installs an
     )
   })
   expect(screen.getByText(message)).toBeTruthy()
-  expect(screen.getByText('hermes update --help')).toBeTruthy()
+  expect(screen.getByText('a2assistant update --help')).toBeTruthy()
   expect(screen.queryByText(en.updates.manualPickedUp)).toBeNull()
 })
 

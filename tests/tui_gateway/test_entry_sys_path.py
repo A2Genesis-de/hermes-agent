@@ -23,11 +23,11 @@ def test_entry_imports_from_cwd_with_colliding_packages(tmp_path):
         (tmp_path / pkg).mkdir()
         (tmp_path / pkg / "__init__.py").write_text("", encoding="utf-8")
 
-    env = {k: v for k, v in os.environ.items() if k != "HERMES_PYTHON_SRC_ROOT"}
+    env = {k: v for k, v in os.environ.items() if k != "A2ASSISTANT_PYTHON_SRC_ROOT"}
     # Source importable via PYTHONPATH; CWD ('') still precedes it on sys.path
     # for ``-c``, so the shadow (and thus the guard) is exercised.
     env["PYTHONPATH"] = str(PROJECT_ROOT)
-    env["HERMES_HOME"] = str(tmp_path / "hermes_home")
+    env["A2ASSISTANT_HOME"] = str(tmp_path / "hermes_home")
 
     result = subprocess.run(
         [sys.executable, "-c", "import tui_gateway.entry"],

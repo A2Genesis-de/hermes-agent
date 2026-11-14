@@ -25,8 +25,8 @@ def _names(selection, disabled=None):
 def test_saved_opt_in_roundtrip_reaches_schema_and_board(surface, tmp_path, monkeypatch):
     """Exercise the real config writer, availability gate, skills gate and handler."""
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
-    monkeypatch.delenv("HERMES_KANBAN_BOARD", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_BOARD", raising=False)
     from hermes_cli.config import load_config, save_config
     from hermes_cli.tools_config import _apply_toolset_change, _get_platform_tools
     from tools.registry import registry
@@ -101,8 +101,8 @@ def test_saved_opt_in_roundtrip_reaches_schema_and_board(surface, tmp_path, monk
 @pytest.mark.parametrize("legacy", [False, True])
 def test_selection_is_scoped_and_preserves_worker_and_deny_boundaries(legacy, tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
-    monkeypatch.delenv("HERMES_KANBAN_BOARD", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_BOARD", raising=False)
     from hermes_cli.config import load_config, save_config
     from hermes_cli.tools_config import _get_platform_tools
     from agent.delegation_context import delegated_child_context
@@ -125,7 +125,7 @@ def test_selection_is_scoped_and_preserves_worker_and_deny_boundaries(legacy, tm
     save_config(cfg)
     assert not _names(sorted(_get_platform_tools(load_config(), "cli")))
 
-    monkeypatch.setenv("HERMES_KANBAN_TASK", "t_worker")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", "t_worker")
     worker = _names(["file"])
     assert "kanban_complete" in worker
     assert "kanban_list" not in worker

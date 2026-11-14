@@ -108,7 +108,7 @@ class _StderrTee:
 
 def _write_stderr_log_header(server_name: str) -> None:
     """Session marker so operators can find each server's output in the shared log; it leads with the
-    same stamp as every server line (``_StderrTee``) so ``hermes logs mcp --since`` can filter it."""
+    same stamp as every server line (``_StderrTee``) so ``a2assistant logs mcp --since`` can filter it."""
     fh = _get_mcp_stderr_log()
     try:
         fh.write(f"\n{timestamp()} ===== starting MCP server '{server_name}' =====\n")
@@ -212,7 +212,7 @@ def _build_safe_env(user_env: Optional[dict]) -> dict:
         value = get_secret(key)
         if value is not None:
             env[key] = value
-    for key in ("HERMES_KANBAN_DB", "HERMES_KANBAN_BOARD"):
+    for key in ("A2ASSISTANT_KANBAN_DB", "A2ASSISTANT_KANBAN_BOARD"):
         if key in os.environ:
             env[key] = os.environ[key]
     # Pin the ACTIVE (served) profile's home so a stdio child never falls back to the
@@ -224,7 +224,7 @@ def _build_safe_env(user_env: Optional[dict]) -> dict:
     # contextvar, which does not cross the process boundary, while ``os.environ`` holds only
     # the launch profile's home. An explicit server ``env.HERMES_HOME`` still wins below.
     from hermes_constants import get_hermes_home
-    env["HERMES_HOME"] = str(get_hermes_home())
+    env["A2ASSISTANT_HOME"] = str(get_hermes_home())
     if user_env:
         # An entry rendered from one whole ``${VAR}`` that is unset (or empty) counts as absent, so
         # a plugin can forward an optional var without the child seeing the literal placeholder.
@@ -290,7 +290,7 @@ def _managed_launcher(command: str) -> Optional[tuple[str, list[str]]]:
         dirs = [d for d in with_hermes_node_path({"PATH": ""})["PATH"].split(os.pathsep) if d]
     executable = shutil.which(command, path=os.pathsep.join(dirs)) if dirs else None
     if executable is None:
-        raise RuntimeError(f"A2Assistant-managed {command} is not installed; run `hermes pm install {package}`")
+        raise RuntimeError(f"A2Assistant-managed {command} is not installed; run `a2assistant pm install {package}`")
     return executable, dirs
 
 
@@ -714,7 +714,7 @@ def _load_mcp_config() -> dict[str, dict]:
     try:
         from hermes_cli.config import load_config
         from utils import env_var_enabled as _env_enabled
-        if _env_enabled("HERMES_SAFE_MODE"):
+        if _env_enabled("A2ASSISTANT_SAFE_MODE"):
             return {}
         servers = load_config().get("mcp_servers")
         try:  # ensure .env vars are available for interpolation

@@ -1,10 +1,10 @@
-# web/ + hermes_cli/web_routers/ — the dashboard (`hermes dashboard` → `/chat`)
+# web/ + hermes_cli/web_routers/ — the dashboard (`a2assistant dashboard` → `/chat`)
 
 Applies on top of the root `AGENTS.md`. Backend routers: `hermes_cli/web_routers/*.py`, one file per
 dashboard surface, mounted by `hermes_cli/web_server.py` (+ `web_server_*.py` siblings). Frontend:
 `web/src/`. Shared JSON-RPC/WS client: `apps/shared` (`@hermes/shared`), also used by the desktop.
 
-## The dashboard embeds the REAL `hermes --tui` — not a rewrite
+## The dashboard embeds the REAL `a2assistant --tui` — not a rewrite
 
 `hermes_cli/pty_bridge.py` + the `@app.websocket("/api/pty")` endpoint in `web_server.py`:
 
@@ -12,7 +12,7 @@ dashboard surface, mounted by `hermes_cli/web_server.py` (+ `web_server_*.py` si
   (container-driven resize) and `@xterm/addon-unicode11` (wide-character widths).
 - `/api/pty?token=…` upgrades to a WebSocket; auth uses the same ephemeral `_SESSION_TOKEN` as REST,
   passed as a query param because browsers cannot set `Authorization` on a WS upgrade.
-- The server spawns exactly what `hermes --tui` would spawn, through `ptyprocess` (POSIX PTY — WSL
+- The server spawns exactly what `a2assistant --tui` would spawn, through `ptyprocess` (POSIX PTY — WSL
   works, native Windows does not).
 - Frames are raw PTY bytes each way; resize travels as `\x1b[RESIZE:<cols>;<rows>]`, intercepted
   on the server and applied with `TIOCSWINSZ`.
@@ -31,7 +31,7 @@ their failures non-destructively so the terminal pane keeps working.
 
 `dashboard` and `serve` share `cmd_dashboard` / `start_server` but are independent surfaces — neither
 launches the other. `serve` is the headless backend the desktop app spawns (`headless_backend=True`:
-`cmd_dashboard` skips `_build_web_ui` and exports `HERMES_SERVE_HEADLESS=1` so `mount_spa()`
+`cmd_dashboard` skips `_build_web_ui` and exports `A2ASSISTANT_SERVE_HEADLESS=1` so `mount_spa()`
 disables the SPA even if a stray `web_dist/` exists — only JSON-RPC/WS/API is reachable). The
 desktop has no build/runtime dependency on this frontend. Details: `apps/desktop/src/AGENTS.md`.
 What each surface (`serve`, `dashboard`, `webapp`) may do is one table,

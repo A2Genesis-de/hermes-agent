@@ -63,7 +63,7 @@ const ATTACH_REQUIRED = new Set([
 // (`session_key`) is the same CAS mutation on a sidebar row.
 const PARENT_ATTACH_REQUIRED = new Set(['session.branch_stored', 'session.branch_whole', 'session.workspace.move'])
 
-// Canonical-only identity keys. The legacy `hermes serve` contract refuses an unknown key as
+// Canonical-only identity keys. The legacy `a2assistant serve` contract refuses an unknown key as
 // version skew (4000), so they are stripped on a non-canonical dial. `prompt.submit` keeps its
 // `submission_id` on purpose: the submit path retries identityless on that exact refusal and
 // records the send as legacy-attempted, which a silent strip here would hide. A message-level

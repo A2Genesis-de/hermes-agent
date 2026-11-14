@@ -116,7 +116,7 @@ def _strip_resume_name(parts: list[str]) -> str:
 async def discard_lost_turns(authority, session_id) -> str:
     """Messaging ``/discard`` (#134889 GW-10): acknowledge every ``unknown`` (lost-in-restart) turn
     of this chat's FIFO through the owner's fenced ``resolve_unknown``, the path Desktop's Discard,
-    the TUI queue and ``hermes sessions discard`` use. Never replays the input; the saved
+    the TUI queue and ``a2assistant sessions discard`` use. Never replays the input; the saved
     followers run once it commits."""
     from gateway.session_contract import SessionRef
     from hermes_state_runtime import RuntimeStoreError, list_session_admissions

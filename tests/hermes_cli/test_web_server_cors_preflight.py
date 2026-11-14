@@ -24,7 +24,7 @@ from starlette.testclient import TestClient
 @pytest.fixture
 def client(monkeypatch):
     # CORS grants only the backend's own loopback origin: the port it bound.
-    monkeypatch.delenv("HERMES_DESKTOP_DEV_SERVER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_DEV_SERVER", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "127.0.0.1", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_port", 8092, raising=False)
     return TestClient(web_server.app, base_url="http://127.0.0.1:8092")

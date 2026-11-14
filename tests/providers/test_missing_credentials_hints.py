@@ -19,7 +19,7 @@ class _HintedProfile(ProviderProfile):
 @pytest.fixture
 def hinted_provider(tmp_path, monkeypatch):
     """A registry api-key provider (a plugin profile) whose key is unset, with or without a hint."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.delenv("FAKE_HINTED_KEY", raising=False)
     import providers
     from hermes_cli.auth import PROVIDER_REGISTRY, ProviderConfig

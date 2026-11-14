@@ -1,9 +1,9 @@
 """#120527: a dashboard MCP catalog install must never wedge the web server.
 
-Real ``hermes dashboard`` launched the way the reporter launched ``hermes serve``: from an
+Real ``a2assistant dashboard`` launched the way the reporter launched ``a2assistant serve``: from an
 interactive terminal, so the process's stdin IS a TTY (a pty slave here; the master is held open and
 never written — nobody is watching that console). The MCP catalog is sourced through its supported
-package-manager override (``HERMES_OPTIONAL_MCPS``) from a directory holding one manifest for a
+package-manager override (``A2ASSISTANT_OPTIONAL_MCPS``) from a directory holding one manifest for a
 local offline stdio MCP server (``fixture_catalog_mcp.py``), whose tool probe succeeds.
 
 User-visible contract (what the Connectors page needs):
@@ -90,7 +90,7 @@ def _install_and_probe(sb: Sandbox, tmp_path: Path, *, tty: bool, wedge_exc: typ
     returns the installed ``mcp_servers.<name>`` block when the install answered 200."""
     name = f"dashfix-{sb.profiles['default'].tag}"
     catalog = _write_catalog(tmp_path, name)
-    dash = PtyDashboard(sb, tmp_path / "dashboard.log", extra_env={"HERMES_OPTIONAL_MCPS": str(catalog)}, tty=tty)
+    dash = PtyDashboard(sb, tmp_path / "dashboard.log", extra_env={"A2ASSISTANT_OPTIONAL_MCPS": str(catalog)}, tty=tty)
     pool = concurrent.futures.ThreadPoolExecutor(max_workers=3, thread_name_prefix="e2e-120527")
     try:
         stdin = dash.stdin_target()

@@ -15,7 +15,7 @@ def test_search_does_not_create_current_storage_for_empty_or_foreign_reads(tmp_p
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     token = set_hermes_home_override(home)
     handler = registry.get_entry("session_search").handler
     try:
@@ -50,7 +50,7 @@ def test_search_reads_live_storage_without_a_write_commit(tmp_path, monkeypatch)
 
     home = tmp_path / "profile"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     token = set_hermes_home_override(home)
     owner = SessionDB(home / "state.db")
     observer = sqlite3.connect(home / "state.db")

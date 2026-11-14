@@ -95,7 +95,7 @@ class TestRowCapableSignalsStillCount:
     (['gateway'], [], {'unmapped': [{'pid': 99}]}, [], set(), True),
     (['serve', 'dashboard'], [], None, [], set(), False),
     (['serve', 'gateway'], [], None, [], set(), True),
-    (None, [], None, ['hermes-gateway'], set(), True),
+    (None, [], None, ['a2assistant-gateway'], set(), True),
     (None, [], None, [], {4321}, True),
 ])
 def test_expected_rows(plan, pids, token, services, killed, expected):

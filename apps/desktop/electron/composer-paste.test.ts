@@ -15,7 +15,7 @@ afterEach(() => {
 })
 
 describe('writeComposerPaste', () => {
-  it('lands the paste directly under <HERMES_HOME>/composer-pastes so the backend admits it', async () => {
+  it('lands the paste directly under <A2ASSISTANT_HOME>/composer-pastes so the backend admits it', async () => {
     const hermesHome = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-home-'))
     scratch.push(hermesHome)
 

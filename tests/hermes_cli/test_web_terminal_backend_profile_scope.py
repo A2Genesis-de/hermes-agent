@@ -44,7 +44,7 @@ def homes(tmp_path, monkeypatch):
     (root / "config.yaml").write_text(yaml.safe_dump({"terminal": {"backend": "local"}}), encoding="utf-8")
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     from agent import secret_scope
     from tui_gateway import launch_profile_policy as lpp

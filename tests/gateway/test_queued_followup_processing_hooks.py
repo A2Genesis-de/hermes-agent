@@ -145,7 +145,7 @@ async def test_queue_terminal_presentation_belongs_to_last_turn(monkeypatch, tmp
     (tmp_path / "config.yaml").write_text(
         "display: {suppress_warning_notifications: true}", encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     adapter = HookRecordingAdapter()
     runner = _make_runner(adapter)
     adapter._pending_messages[SESSION_KEY] = MessageEvent(

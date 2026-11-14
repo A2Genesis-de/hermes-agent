@@ -36,8 +36,8 @@ def completion(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setenv("HOME", str(home))
-    monkeypatch.setenv("HERMES_HOME", str(home / ".hermes"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "store"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "store"))
     source = tmp_path / "selected source"
     source.mkdir()
     # Copies give bootstrap/main a genuine selected checkout identity. No file
@@ -80,9 +80,9 @@ def completion(tmp_path, monkeypatch):
     _put(home / ".hermes", "config.yaml",
          f"_config_version: {DEFAULT_CONFIG['_config_version'] - 1}\nmodel:\n  default: retained-model\n")
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTHON", "PYTEST_", "VIRTUAL_ENV", "npm_", "NPM_", "pnpm_", "PNPM_"))}
-    env.update(HOME=str(home), HERMES_HOME=str(home / ".hermes"),
-               HERMES_RUNTIME_DIR=str(tmp_path / "store"),
+           if not key.startswith(("A2ASSISTANT_", "PYTHON", "PYTEST_", "VIRTUAL_ENV", "npm_", "NPM_", "pnpm_", "PNPM_"))}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(home / ".hermes"),
+               A2ASSISTANT_RUNTIME_DIR=str(tmp_path / "store"),
                PYTHONPATH="/obsolete/pre-pm/site-packages", PYTHONHOME="/obsolete/python",
                pnpm_config_offline="true")
     probe = subprocess.run([str(python), "-I", "-c",
@@ -170,10 +170,10 @@ def completion(tmp_path, monkeypatch):
                         assert name == 'pnpm' and explicit and not verify
                         assert shutil.which('node', path=base_env['PATH'])
                         assert shutil.which('pnpm', path=base_env['PATH'])
-                        assert base_env['HERMES_PYTHON'] == str(project_python(root))
-                        assert base_env['PYTHON'] == base_env['HERMES_PYTHON']
+                        assert base_env['A2ASSISTANT_PYTHON'] == str(project_python(root))
+                        assert base_env['PYTHON'] == base_env['A2ASSISTANT_PYTHON']
                         (root / 'build-environment.json').write_text(json.dumps({
-                            'python': base_env['HERMES_PYTHON'], 'selected': selected_dependency.__file__,
+                            'python': base_env['A2ASSISTANT_PYTHON'], 'selected': selected_dependency.__file__,
                             'argv': sys.argv, 'old_module': 'pre_pm_only' in sys.modules,
                             'pid': os.getpid(), 'parent': os.getppid(),
                         }))
@@ -211,7 +211,7 @@ def completion(tmp_path, monkeypatch):
                         assert isinstance(plan, UpdatePlan)
                         assert isinstance(plan.runtimes[0], RuntimeRecord)
                         assert plan.to_dict() == request['plan'] | {
-                            'updatable_in_place': True, 'update_mechanism': 'hermes update'}
+                            'updatable_in_place': True, 'update_mechanism': 'a2assistant update'}
                         (root / 'restarted-plan.json').write_text(json.dumps(plan.to_dict()))
                         return fleet._GatewayRestartOutcome(
                             incomplete=False, phase_errors=[], pre_restart_gateway_pids=[],
@@ -414,7 +414,7 @@ def _pnpm_graph(source):
           symlinkSync(target, workspace + '/node_modules/' + name, 'dir');
         }}
         // A real pnpm lifecycle child, not an assertion about a constructed env.
-        writeFileSync('lifecycle-python.json', execFileSync(process.env.HERMES_PYTHON,
+        writeFileSync('lifecycle-python.json', execFileSync(process.env.A2ASSISTANT_PYTHON,
           ['-I', '-c', 'import json, os, sys, selected_dependency; print(json.dumps(dict(python=sys.executable, configured=os.environ["PYTHON"])))']));
     '''))
     _put(source, "packages/value/index.js", "export const value = 'compiled local graph';\n")

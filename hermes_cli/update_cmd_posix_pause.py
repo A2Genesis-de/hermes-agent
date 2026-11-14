@@ -1,4 +1,4 @@
-"""Pre-swap gateway pause for ``hermes update`` on Linux and macOS.
+"""Pre-swap gateway pause for ``a2assistant update`` on Linux and macOS.
 
 Windows pauses its gateways before the fetch (``update_cmd_windows``) because they lock venv
 files. On POSIX nothing is locked, but a gateway that keeps running while git rewrites the tree
@@ -11,7 +11,7 @@ are prepared and the launch files rewritten, before the product builds
 The set rides the Windows pause contract: one token in ``update_pause_record`` (identity = pid
 + start time; supervisor unit, or argv + home for bare processes), written before the first stop,
 resumed by ``_resume_windows_gateways_after_update`` (which dispatches here on
-``platform == "posix"``), adopted by the next ``hermes update`` and resumed by the next launch
+``platform == "posix"``), adopted by the next ``a2assistant update`` and resumed by the next launch
 when this process dies.
 
 * every gateway is drained first: the control socket's ``pause-for-update`` runs the same
@@ -19,7 +19,7 @@ when this process dies.
   in-flight ones finish within ``agent.restart_after_turn_timeout``, then exit), waited for within
   that restart's budget. The request is recorded before it is sent, and carries no planned-stop
   marker (the gateway's marker watcher would take the immediate stop path instead).
-* systemd ``hermes-gateway*`` units and launchd ``ai.hermes.gateway*`` jobs are then stopped and
+* systemd ``a2assistant-gateway*`` units and launchd ``de.a2genesis.a2assistant.gateway*`` jobs are then stopped and
   later started through their supervisor, so it cannot respawn them on old code mid-update; one
   that does not take the drain gets its supervisor's stop at once.
 * bare ``gateway run`` processes that do not answer get marker + SIGTERM, and are replayed from
@@ -123,8 +123,9 @@ def _inside(cgroup: str | None, unit_cgroup: str | None) -> bool:
 
 
 def _discover_systemd() -> list[dict]:
-    """Active ``hermes-gateway*`` units of this install, one per live MainPID."""
+    """Active ``a2assistant-gateway*`` units of this install, one per live MainPID."""
     from hermes_cli.gateway import _ensure_user_systemd_env, supports_systemd_services
+    from hermes_cli.service_names import is_gateway_unit
     from hermes_cli.update_cmd_fleet import (
         _for_each_systemd_gateway_unit, _systemd_gateway_unit_listings, _systemd_unit_owned_by_update,
         _unit_main_pid,
@@ -140,7 +141,7 @@ def _discover_systemd() -> list[dict]:
         _for_each_systemd_gateway_unit(listing.stdout, process_unit=names.append,
                                        on_unit_timeout=lambda name, exc: None)
         for name in names:
-            if not name.startswith("hermes-gateway"):
+            if not is_gateway_unit(name):
                 continue  # serve/dashboard units are not gateways: the post-commit restart owns them
             pid = _unit_main_pid(scope_cmd, name)
             if pid <= 0 or pid in seen_pids or not _systemd_unit_owned_by_update(scope_cmd, name):
@@ -152,7 +153,7 @@ def _discover_systemd() -> list[dict]:
 
 
 def _discover_launchd() -> list[dict]:
-    """Loaded ``ai.hermes.gateway*`` jobs of this install with a live process (macOS)."""
+    """Loaded ``de.a2genesis.a2assistant.gateway*`` jobs of this install with a live process (macOS)."""
     if sys.platform != "darwin":
         return []
     from hermes_cli.gateway import (
@@ -194,7 +195,7 @@ def _supervisor_markers(pid: int) -> str | None:
         env = psutil.Process(pid).environ()
     except Exception:  # health: allow BLE001 -- unreadable environment: no marker proven
         return None
-    if env.get("HERMES_S6_SUPERVISED_CHILD"):
+    if env.get("A2ASSISTANT_S6_SUPERVISED_CHILD"):
         return "s6"
     if unit := _respawning_service(pid):
         return f"systemd unit {unit}"
@@ -280,7 +281,7 @@ def _escape_cgroup(unit: dict) -> bool:
     cmd = ["busctl", bus, "call", "org.freedesktop.systemd1", "/org/freedesktop/systemd1",
            "org.freedesktop.systemd1.Manager", "StartTransientUnit", "ssa(sv)a(sa(sv))",
            f"hermes-update-{os.getpid()}.scope", "fail", "2", "PIDs", "au", str(len(pids)), *map(str, pids),
-           "Description", "s", f"hermes update (outside {unit['unit']} while it is paused)", "0"]
+           "Description", "s", f"a2assistant update (outside {unit['unit']} while it is paused)", "0"]
     with suppress(OSError, subprocess.SubprocessError):
         subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", errors="replace",
                    stdin=subprocess.DEVNULL, timeout=15, check=False)
@@ -318,12 +319,13 @@ def _left_running(units: list[dict], jobs: list[dict]) -> tuple[list[dict], list
 # --------------------------------------------------------------------------- stop / start
 
 def _manage_cmd(scope: str) -> list | None:
+    from hermes_cli.service_names import gateway_systemd_unit_base
     from hermes_cli.update_cmd_fleet import _needs_sudo, _sudo_noninteractive_ok
     cmd = ["systemctl", "--user"] if scope == "user" else ["systemctl"]
     cmd = cmd + ["--no-ask-password"]
     if scope == "system" and _needs_sudo(scope):
         sudo = ["sudo", "-n", *cmd]
-        return sudo if _sudo_noninteractive_ok(cmd + ["show", "-p", "Id", "hermes-gateway"]) else None
+        return sudo if _sudo_noninteractive_ok(cmd + ["show", "-p", "Id", gateway_systemd_unit_base()]) else None
     return cmd
 
 
@@ -533,7 +535,7 @@ def _replay_env(home: str) -> dict:
     from tools.environments.local import build_subprocess_env, served_profile_child_env
     target = Path(home).resolve()
     if target != get_default_hermes_root().resolve() and target == get_routing_process_hermes_home().resolve():
-        return build_subprocess_env(scrub_secrets=False, inherit_profile_home=False, extra={"HERMES_HOME": home})
+        return build_subprocess_env(scrub_secrets=False, inherit_profile_home=False, extra={"A2ASSISTANT_HOME": home})
     return served_profile_child_env(target_home=home, inherit_credentials=True)
 
 
@@ -545,7 +547,7 @@ def _relaunch_bare(entry: dict) -> int:
     logs = Path(entry["home"]) / "logs"
     logs.mkdir(parents=True, exist_ok=True)
     env = _replay_env(entry["home"])
-    for leaked in ("INVOCATION_ID", "JOURNAL_STREAM", "HERMES_UPDATE_PAUSED", "_HERMES_GATEWAY"):
+    for leaked in ("INVOCATION_ID", "JOURNAL_STREAM", "A2ASSISTANT_UPDATE_PAUSED", "_HERMES_GATEWAY"):
         env.pop(leaked, None)
     with open(logs / "gateway-update-resume.log", "ab") as log:
         proc = subprocess.Popen(list(entry["argv"]), env=env, stdin=subprocess.DEVNULL, stdout=log,

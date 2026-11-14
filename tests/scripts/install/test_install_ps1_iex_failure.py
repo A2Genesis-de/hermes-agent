@@ -22,7 +22,7 @@ def _failing_install_env(tmp_path, pinned_git_store):
     home = tmp_path / "home"
     (home / "hermes-agent").mkdir(parents=True)
     (home / "hermes-agent" / "user-file").write_text("preserve me", encoding="utf-8")
-    return dict(os.environ, HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(pinned_git_store))
+    return dict(os.environ, A2ASSISTANT_HOME=str(home), A2ASSISTANT_RUNTIME_DIR=str(pinned_git_store))
 
 
 def _powershell():

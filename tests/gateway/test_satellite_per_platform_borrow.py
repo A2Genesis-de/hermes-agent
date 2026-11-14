@@ -50,7 +50,7 @@ def rig(tmp_path, monkeypatch):
     home = tmp_path / "hh"
     for name in ("ops", "team_b"):
         (home / "profiles" / name).mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     runner = object.__new__(GatewayRunner)
     runner.config = GatewayConfig(multiplex_profiles=True)
     runner.config.platforms = {p: PlatformConfig(enabled=True, extra={}) for p in (_ROUTED, Platform.TELEGRAM)}

@@ -15,6 +15,7 @@ from collections.abc import Callable, Iterable
 from contextlib import closing
 from pathlib import Path
 from typing import Optional
+from hermes_cli.branding import CLI_COMMAND
 
 # The runtime ledger DDL: a target whose state-store modules lack it predates the cutover.
 _RUNTIME_SCHEMA_MARKER = "CREATE TABLE IF NOT EXISTS session_admissions"
@@ -98,8 +99,8 @@ def _pre_runtime_snapshot(home: Path) -> str | None:
 
 
 def _named_profile(home: Path) -> str:
-    """The ``-p`` name that opens ``home`` (``hermes -p acme update`` passes ``profiles/acme``);
-    ``""`` for the default root or a custom HERMES_HOME, which bare ``hermes`` opens."""
+    """The ``-p`` name that opens ``home`` (``a2assistant -p acme update`` passes ``profiles/acme``);
+    ``""`` for the default root or a custom A2ASSISTANT_HOME, which bare ``a2assistant`` opens."""
     from hermes_cli.profiles import _PROFILE_ID_RE, _get_profiles_root
     parent = _get_profiles_root().resolve()
     resolved = home.resolve()
@@ -118,7 +119,7 @@ def _ledgered_profiles(home: Path | None) -> list[tuple[str, Path]]:
 
 def would_refuse(root: Path, target_ref: str, home: Path | None = None, *, git: Callable[..., int],
                  remote: Optional[Callable[[str], Optional[bool]]] = None) -> bool:
-    """Whether ``hermes update`` would refuse ``target_ref`` here: the update check's read-only twin of
+    """Whether ``a2assistant update`` would refuse ``target_ref`` here: the update check's read-only twin of
     :func:`downgrade_refusal`, so a release the updater refuses is never offered as an update.
     The store scan runs first, so ``remote`` is only consulted when some store has runtime history."""
     return bool(_ledgered_profiles(home)) and target_predates_runtime(
@@ -135,11 +136,11 @@ def downgrade_refusal(git_cmd, root: Path, target_ref: str, home: Path | None = 
              "these session stores now use. Downgrading is unsupported.",
              *(f"  {h / 'state.db'} has gateway runtime history." for _name, h in ledgered),
              "  The older release could not delete or prune those sessions.",
-             "  To go back anyway: run `hermes gateway stop`, check out the older release with git, then put back "
+             "  To go back anyway: run `a2assistant gateway stop`, check out the older release with git, then put back "
              "each store's copy from before the upgrade:"]
     for name, h in ledgered:
         snapshot = _pre_runtime_snapshot(h)
-        hermes = f"hermes -p {name}" if name else "hermes"
+        hermes = f"{CLI_COMMAND} -p {name}" if name else CLI_COMMAND
         lines.append(f"    {h}: run `{hermes}` and enter `/snapshot restore {snapshot}`." if snapshot else
                      f"    {h}: no pre-update snapshot predates the upgrade; restore a full backup taken before "
                      f"it with `{hermes} import <backup.zip>`.")

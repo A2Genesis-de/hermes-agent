@@ -172,7 +172,7 @@ def test_detection_matches_the_shared_cases(tmp_path, case):
 def test_inspection_writes_nothing_into_the_profile(tmp_path, sentinel, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     repo = _repo(tmp_path, _agent_files(sentinel))
 
     assert inspect_plugin_source(repo.as_uri())["ok"] is True
@@ -228,7 +228,7 @@ def test_another_profile_never_reads_this_profiles_answer(tmp_path, sentinel, cl
     repo = _repo(tmp_path, _agent_files(sentinel))
     for home in ("a", "b"):
         (tmp_path / home).mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / home))
         assert inspect_plugin_source(repo.as_uri())["ok"] is True
 
     assert clones.count == 2

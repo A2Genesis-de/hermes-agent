@@ -1,4 +1,4 @@
-"""After the checkout moves, the running ``hermes update`` process imports nothing from the tree.
+"""After the checkout moves, the running ``a2assistant update`` process imports nothing from the tree.
 
 Once git (or the ZIP swap) writes the new code, every module this interpreter has not loaded yet is
 the REPLACEMENT tree's: importing one mixes generations in one process, and it is also why every
@@ -32,7 +32,7 @@ import hermes_cli.main
 from hermes_cli import update_cmd, update_cmd_commit, update_cmd_posix_pause, update_receipt
 import hermes_cli.update_lock  # main.py imports it before the update runs
 
-home = os.environ["HERMES_HOME"]
+home = os.environ["A2ASSISTANT_HOME"]
 GONE = 2 ** 22 + 7  # a PID no process holds
 
 
@@ -146,7 +146,7 @@ print("RESULT " + json.dumps({"found": found, "outcome": outcome}))
 # A restart path also has to reach its supervisor (the fakes append their argv to supervisor.log).
 _SUPERVISOR_CALLS = {
     "lost_completion": "bare-replay",
-    "systemd_resume": "start hermes-gateway",
+    "systemd_resume": "start a2assistant-gateway",
     "launchd_resume": "bootstrap gui/0",
     "windows_resume": "restart watcher",
 }
@@ -204,7 +204,7 @@ def _run_case(case, tmp_path, monkeypatch):
         (fake_bin / supervisor).write_text(f'#!/bin/sh\necho "{supervisor} $*" >> "{root}/supervisor.log"\nexit 1\n')
         (fake_bin / supervisor).chmod(0o755)
     # A home of its own (not the account default): the unit and job names carry its suffix.
-    env = {**os.environ, "HOME": str(home), "HERMES_HOME": str(tmp_path / "hermes-home"),
+    env = {**os.environ, "HOME": str(home), "A2ASSISTANT_HOME": str(tmp_path / "hermes-home"),
            "USERPROFILE": str(home), "LOCALAPPDATA": str(home / "AppData" / "Local"),
            "APPDATA": str(home / "AppData" / "Roaming"), "XDG_STATE_HOME": str(tmp_path / "state"), "XDG_CONFIG_HOME": str(tmp_path / "config"),
            "PATH": f"{fake_bin}{os.pathsep}{os.environ.get('PATH', '')}", "GITHUB_TOKEN": "offline",
@@ -213,7 +213,7 @@ def _run_case(case, tmp_path, monkeypatch):
     env.pop("PYTEST_CURRENT_TEST", None)
     label = clone = ""
     if case == "launchd_resume":
-        monkeypatch.setenv("HERMES_HOME", env["HERMES_HOME"])
+        monkeypatch.setenv("A2ASSISTANT_HOME", env["A2ASSISTANT_HOME"])
         from hermes_cli.gateway_launchd import get_launchd_label
 
         label = get_launchd_label()

@@ -44,17 +44,17 @@ def fake_install(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setattr(Path, "home", staticmethod(lambda: home))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     root = tmp_path / "checkout"
     (root / "venv" / "bin").mkdir(parents=True)
     (root / "venv" / "bin" / "python").write_text("#!fake\n", encoding="utf-8")
     (root / "hermes").write_text("# entrypoint\n", encoding="utf-8")
     (root / "run_agent.py").write_text("# agent\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(root))
     store = tmp_path / "tools"
     store.mkdir()
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(store))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(store))
     interpreter = Path(sys._base_executable).resolve()
     (store / "facts.json").write_text(json.dumps({"schema": 1, "packages": {"python": {
         "entry": str(interpreter.parent if os.name == "nt" else interpreter.parents[1]),
@@ -65,12 +65,12 @@ def fake_install(tmp_path, monkeypatch):
 @pytest.mark.platforms("windows")
 @pytest.mark.parametrize("create", [True, False])
 def test_windows_converges_on_the_installer_user_bin(create, monkeypatch, tmp_path):
-    """Windows converges on the installer's convention ($HERMES_HOME\\bin + User PATH); an update
+    """Windows converges on the installer's convention ($A2ASSISTANT_HOME\\bin + User PATH); an update
     no longer skips as "installer-owned" and leaves a venv\\Scripts machine behind."""
     calls = []
     monkeypatch.setattr(_launchers, "_expose_windows_user_bin",
                         lambda root, *, create: calls.append(create) or {"ok": True, "written": []})
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(tmp_path))
     assert _launchers.expose_cli(create=create) == {"ok": True, "written": []}
     assert calls == [create]
 
@@ -91,12 +91,12 @@ def user_path_writes(monkeypatch):
 
 @pytest.mark.platforms("windows")
 def test_sandbox_home_keeps_its_launchers_off_the_user_path(user_path_writes, tmp_path, monkeypatch):
-    """A review sandbox's HERMES_HOME publishes into its own bin and never reaches the User PATH.
+    """A review sandbox's A2ASSISTANT_HOME publishes into its own bin and never reaches the User PATH.
 
     The console environment is not stubbed: Windows builds it from the user's
     stored variables, so these overrides are exactly what a sandbox sets."""
     box = tmp_path / "box"
-    monkeypatch.setenv("HERMES_HOME", str(box / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(box / "hermes"))
     monkeypatch.setenv("LOCALAPPDATA", str(box / "local"))
     monkeypatch.setenv("USERPROFILE", str(box / "user"))
 
@@ -113,9 +113,9 @@ def test_the_home_new_consoles_use_registers_its_bin(user_path_writes, hermes_ho
     local = tmp_path / "local"
     monkeypatch.setenv("LOCALAPPDATA", str(local))
     if hermes_home is None:
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     else:
-        monkeypatch.setenv("HERMES_HOME", str(local.joinpath(*hermes_home)))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(local.joinpath(*hermes_home)))
     monkeypatch.setattr(_launchers, "_new_console_environment", lambda: {"LOCALAPPDATA": str(local)})
 
     result = _launchers._expose_windows_user_bin(tmp_path / "checkout", create=True)
@@ -131,14 +131,14 @@ def test_the_home_new_consoles_use_registers_its_bin(user_path_writes, hermes_ho
 ])
 def test_inherited_home_reference_expands_from_the_console_environment(
         user_path_writes, stored_home, override, tmp_path, monkeypatch):
-    """A sandbox that inherits a stored HERMES_HOME such as %LOCALAPPDATA%\\x and overrides
+    """A sandbox that inherits a stored A2ASSISTANT_HOME such as %LOCALAPPDATA%\\x and overrides
     LOCALAPPDATA resolves a different root from a new console, so it must not match."""
     real = tmp_path / "real"
-    console = {"LOCALAPPDATA": str(real / "local"), "USERPROFILE": str(real / "user"), "HERMES_HOME": stored_home}
+    console = {"LOCALAPPDATA": str(real / "local"), "USERPROFILE": str(real / "user"), "A2ASSISTANT_HOME": stored_home}
     monkeypatch.setattr(_launchers, "_new_console_environment", lambda: dict(console))
     monkeypatch.setenv("LOCALAPPDATA", console["LOCALAPPDATA"])
     monkeypatch.setenv("USERPROFILE", console["USERPROFILE"])
-    monkeypatch.setenv("HERMES_HOME", stored_home)
+    monkeypatch.setenv("A2ASSISTANT_HOME", stored_home)
     monkeypatch.setenv(override, str(tmp_path / "box" / override.lower()))
 
     result = _launchers._expose_windows_user_bin(tmp_path / "checkout", create=True)
@@ -150,7 +150,7 @@ def test_inherited_home_reference_expands_from_the_console_environment(
 @pytest.mark.platforms("windows")
 def test_unknown_console_environment_leaves_the_user_path(user_path_writes, tmp_path, monkeypatch):
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local"))
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     monkeypatch.setattr(_launchers, "_new_console_environment", lambda: None)
 
     assert _launchers._expose_windows_user_bin(tmp_path / "checkout", create=True)["skipped"]
@@ -161,16 +161,16 @@ def test_unknown_console_environment_leaves_the_user_path(user_path_writes, tmp_
 def test_new_console_environment_ignores_this_process(tmp_path, monkeypatch):
     """The real Win32 read: variables set only in this process are absent from a new console's environment."""
     monkeypatch.setenv("LOCALAPPDATA", str(tmp_path / "local"))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
-    monkeypatch.setenv("HERMES_TEST_ONLY_IN_THIS_PROCESS", "1")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_TEST_ONLY_IN_THIS_PROCESS", "1")
 
     environ = _launchers._new_console_environment()
 
     assert environ is not None
-    assert "HERMES_TEST_ONLY_IN_THIS_PROCESS" not in environ
+    assert "A2ASSISTANT_TEST_ONLY_IN_THIS_PROCESS" not in environ
     assert environ.get("LOCALAPPDATA")
     assert Path(environ["LOCALAPPDATA"]) != tmp_path / "local"
-    assert environ.get("HERMES_HOME") != str(tmp_path / "hermes")
+    assert environ.get("A2ASSISTANT_HOME") != str(tmp_path / "hermes")
 
 
 @pytest.mark.platforms("windows")
@@ -181,7 +181,7 @@ def test_environment_block_reader_counts_utf16_units():
     block = ctypes.create_unicode_buffer("A=1\0MOOD=\U0001F600\0HERMES_HOME=C:\\h\0=C:=C:\\\0\0")
 
     assert _launchers._read_environment_block(ctypes.addressof(block)) == {
-        "A": "1", "MOOD": "\U0001F600", "HERMES_HOME": "C:\\h"}
+        "A": "1", "MOOD": "\U0001F600", "A2ASSISTANT_HOME": "C:\\h"}
 
 
 def _windows_home(tmp_path, monkeypatch) -> Path:
@@ -190,8 +190,8 @@ def _windows_home(tmp_path, monkeypatch) -> Path:
     distlib is switched off, so publication writes the ``.cmd`` form on every test host."""
     local = tmp_path / "local"
     monkeypatch.setenv("LOCALAPPDATA", str(local))
-    monkeypatch.delenv("HERMES_HOME", raising=False)
-    monkeypatch.delenv("HERMES_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_RUNTIME_DIR", raising=False)
     monkeypatch.setattr(_launchers, "_new_console_environment", lambda: {"LOCALAPPDATA": str(local)})
     monkeypatch.setattr(_launchers, "_load_script_maker", lambda: None)
     monkeypatch.setattr(_launchers, "_store_script_maker", lambda python_exe: None)
@@ -223,7 +223,7 @@ def _write_exe_launcher(target: Path, python: Path, root: Path) -> None:
 
 
 def _command(home: Path) -> Path:
-    """The ``hermes`` a console runs: PATHEXT resolves .exe before .cmd."""
+    """The ``a2assistant`` a console runs: PATHEXT resolves .exe before .cmd."""
     exe = home / "bin" / "hermes.exe"
     return exe if exe.exists() else home / "bin" / "hermes.cmd"
 
@@ -242,7 +242,7 @@ def test_review_tree_leaves_the_installed_commands_alone(form, path_registration
     """A review tree started against the real home keeps the installed checkout's commands in its bin.
 
     Its boot bootstrap runs expose_cli too; republishing there would point every
-    console's ``hermes`` at the review tree."""
+    console's ``a2assistant`` at the review tree."""
     home = _windows_home(tmp_path, monkeypatch)
     installed = _checkout(home / "hermes-agent")
     review = _checkout(home / "reviews" / "pr-1" / "rebuild-wt")
@@ -380,7 +380,7 @@ class TestExposeCli:
         (tmp_path / "tools" / "facts.json").unlink()
         bare = tmp_path / "sealed"
         bare.mkdir()
-        monkeypatch.setenv("HERMES_INSTALL_ROOT", str(bare))
+        monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(bare))
         result = _launchers.expose_cli()
         assert result == {"ok": True, "skipped": "no-store-python"}
 
@@ -399,7 +399,7 @@ class TestExposeCli:
         _write_bundled_stamp(payload / "repo")
         for name in ("hermes", "hermes-agent", "hermes-acp"):
             (payload / "bin" / name).write_text("\x7fELF fake shim\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_INSTALL_ROOT", str(payload / "repo"))
+        monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(payload / "repo"))
         if not create:
             monkeypatch.setattr("hermes_cli.config.load_config", lambda: pytest.fail("repair read config"))
         result = _launchers.expose_cli(create=create)
@@ -412,7 +412,7 @@ class TestExposeCli:
     ):
         """The stamp is the shape authority. A venv-less checkout whose
         PARENT happens to carry a bin/hermes (the installers' launcher
-        dir shares ~/.hermes with the checkout) must skip, not enter the
+        dir shares ~/.a2assistant with the checkout) must skip, not enter the
         sealed branch — on every platform."""
         (tmp_path / "tools" / "facts.json").unlink()
         parent = tmp_path / "hermes-home"
@@ -420,7 +420,7 @@ class TestExposeCli:
         (parent / "bin" / "hermes").write_text("#!/bin/sh\n# installer launcher\n", encoding="utf-8")
         checkout = parent / "hermes-agent"
         checkout.mkdir()
-        monkeypatch.setenv("HERMES_INSTALL_ROOT", str(checkout))
+        monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(checkout))
         result = _launchers.expose_cli()
         assert result == {"ok": True, "skipped": "no-store-python"}
         assert _launchers._is_bundled_payload(checkout) is False
@@ -463,8 +463,8 @@ def test_direct_packaged_cli_exposes_shims_before_electron(tmp_path):
         shim = bin_dir / name
         shim.write_text(f'#!/bin/sh\nexec {shlex.join([sys.executable, "-I", "-c", code])} "$@"\n', encoding="utf-8")
         shim.chmod(0o755)
-    env = dict(os.environ, HOME=str(home), HERMES_HOME=str(home / ".hermes"),
-               HERMES_INSTALL_ROOT=str(repo), HERMES_RUNTIME_DIR=str(tmp_path / "tools"))
+    env = dict(os.environ, HOME=str(home), A2ASSISTANT_HOME=str(home / ".hermes"),
+               A2ASSISTANT_INSTALL_ROOT=str(repo), A2ASSISTANT_RUNTIME_DIR=str(tmp_path / "tools"))
     # Execute the package CLI directly. No Electron process or linking helper runs.
     # `--help` reaches main()'s boot bootstrap (which owns expose_cli) before argparse
     # exits; `--version` is answered on the pre-import fast path and never gets there.

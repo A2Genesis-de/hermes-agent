@@ -431,7 +431,7 @@ class TestExtensionlessMediaDelivery:
             "gateway.platforms.base.MEDIA_DELIVERY_SAFE_ROOTS",
             (str(root),),
         )
-        monkeypatch.delenv("HERMES_MEDIA_DELIVERY_STRICT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_MEDIA_DELIVERY_STRICT", raising=False)
 
     def test_extensionless_media_extracted_when_file_validates(self, tmp_path, monkeypatch):
         root = tmp_path / "output"
@@ -462,7 +462,7 @@ class TestUniversalMediaEgress:
             "gateway.platforms.base.MEDIA_DELIVERY_SAFE_ROOTS",
             (str(root),),
         )
-        monkeypatch.delenv("HERMES_MEDIA_DELIVERY_STRICT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_MEDIA_DELIVERY_STRICT", raising=False)
 
     @pytest.mark.parametrize("name", [
         "script.py", "server.log", "notes.weirdext", "app.ts", "run.sh",
@@ -505,11 +505,11 @@ class TestMediaDeliveryPathValidation:
         # recency window + denylist). Force strict on so they keep
         # exercising the legacy path even though the public default
         # flipped to off in 2026-05.
-        monkeypatch.setenv("HERMES_MEDIA_DELIVERY_STRICT", "1")
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_DELIVERY_STRICT", "1")
         # Disable recency-based trust by default so the original allowlist
         # tests continue to exercise the strict-allowlist path. Tests that
         # specifically cover recency trust re-enable it themselves.
-        monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_FILES", "0")
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_FILES", "0")
 
 
     def test_rejects_symlink_escape_from_safe_root(self, tmp_path, monkeypatch):
@@ -548,8 +548,8 @@ class TestMediaDeliveryPathValidation:
     ):
         """Strict mode trusts durable attachments without trusting scratch."""
         self._patch_roots(monkeypatch)
-        monkeypatch.setenv("HERMES_KANBAN_HOME", str(tmp_path / "hermes"))
-        monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_FILES", "0")
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_FILES", "0")
         board_root = tmp_path / "hermes" / "kanban" / "boards" / "research"
         board_root.mkdir(parents=True)
         (board_root / "kanban.db").touch()
@@ -575,9 +575,9 @@ class TestMediaDeliveryPathValidation:
         ~/.ssh, ~/.aws, etc.
         """
         self._patch_roots(monkeypatch)
-        monkeypatch.delenv("HERMES_MEDIA_ALLOW_DIRS", raising=False)
-        monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_FILES", "1")
-        monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_SECONDS", "600")
+        monkeypatch.delenv("A2ASSISTANT_MEDIA_ALLOW_DIRS", raising=False)
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_FILES", "1")
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_SECONDS", "600")
 
         # Simulate $HOME so ~/.ssh resolves into our tmp dir.
         fake_home = tmp_path / "home"
@@ -611,8 +611,8 @@ class TestMediaDeliveryDefaultMode:
         )
         # Pin strict OFF — the public default. Tests that exercise the
         # strict path live in TestMediaDeliveryPathValidation.
-        monkeypatch.delenv("HERMES_MEDIA_DELIVERY_STRICT", raising=False)
-        monkeypatch.delenv("HERMES_MEDIA_ALLOW_DIRS", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_MEDIA_DELIVERY_STRICT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_MEDIA_ALLOW_DIRS", raising=False)
 
     def test_accepts_stale_file_outside_allowlist(self, tmp_path, monkeypatch):
         """The motivating case — agent says ``MEDIA:/home/user/notes.md``
@@ -639,7 +639,7 @@ class TestMediaDeliveryDefaultMode:
         ],
     )
     def test_denylist_blocks_mcp_oauth_tokens(self, tmp_path, monkeypatch, rel):
-        """Live MCP OAuth tokens/client creds under ~/.hermes/mcp-tokens/ must
+        """Live MCP OAuth tokens/client creds under ~/.a2assistant/mcp-tokens/ must
         never deliver as native media — same exfil class as auth.json/.env.
         Sibling to the pairing/ directory denylist entry.
         """
@@ -665,7 +665,7 @@ class TestMediaDeliveryDefaultMode:
     @pytest.mark.parametrize("rel", ["webapp/session-token", "webapp/native-sign-in-tokens.json"])
     def test_denylist_blocks_the_webapps_sign_in_files(self, tmp_path, monkeypatch, rel):
         """The Webapp's browser credential and its listener's grants to native apps under
-        ``~/.hermes/webapp/`` never deliver as native media, as the agent's file tools never read them."""
+        ``~/.a2assistant/webapp/`` never deliver as native media, as the agent's file tools never read them."""
         self._patch_roots(monkeypatch)
 
         fake_home = tmp_path / "home"
@@ -681,7 +681,7 @@ class TestMediaDeliveryDefaultMode:
 
 
     def test_denylist_blocks_google_token_default_mode(self, tmp_path, monkeypatch):
-        """Integration credentials at the HERMES_HOME root (google_token.json)
+        """Integration credentials at the A2ASSISTANT_HOME root (google_token.json)
         must never be deliverable, even though they aren't the historically
         enumerated .env/auth.json/config.yaml files. Regression for a
         refreshed google_token.json being auto-attached to a Slack reply
@@ -702,14 +702,14 @@ class TestMediaDeliveryDefaultMode:
 
 
     def test_denylist_blocks_non_cache_file_under_hermes_home(self, tmp_path, monkeypatch):
-        """A non-credential file the agent wrote directly under ~/.hermes
+        """A non-credential file the agent wrote directly under ~/.a2assistant
         (not in a cache subdir) is still deliverable via recency trust — we
         did NOT blanket-deny the tree (per #32090/#34425). This guards against
         accidentally re-introducing the rejected whole-tree deny.
         """
         self._patch_roots(monkeypatch)  # strict mode on
-        monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_FILES", "1")
-        monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_SECONDS", "600")
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_FILES", "1")
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_SECONDS", "600")
 
         fake_home = tmp_path / "home"
         hermes_dir = fake_home / ".hermes"
@@ -725,7 +725,7 @@ class TestMediaDeliveryDefaultMode:
     def test_denylist_blocks_session_stores_but_not_neighbouring_artifacts(self, tmp_path, monkeypatch):
         """The SQLite session/kanban stores (and WAL/SHM sidecars, whose mtime is always fresh),
         legacy ``sessions/`` transcripts and the copied browser cookie store hold every secret ever
-        pasted into a chat; ``MEDIA:~/.hermes/state.db`` must not exfiltrate them (#41071). Named
+        pasted into a chat; ``MEDIA:~/.a2assistant/state.db`` must not exfiltrate them (#41071). Named
         boards keep their DB beside the ATTACHMENTS the gateway already allowlists, so the board
         attachment stays deliverable while ``kanban.db`` next to it does not."""
         self._patch_roots(monkeypatch)
@@ -753,7 +753,7 @@ class TestMediaDeliveryDefaultMode:
     def test_denylist_covers_every_profile_home_not_just_the_launch_home(self, tmp_path, monkeypatch):
         """Multiplex: one process serves every ``<root>/profiles/*``. The credential denylist must
         cover each profile's ``.env`` / ``auth.json`` / ``state.db`` / transcripts whether the emitting
-        turn is the launch (default) profile's or the secondary's own (HERMES_HOME override), while
+        turn is the launch (default) profile's or the secondary's own (A2ASSISTANT_HOME override), while
         the profile's cache artifacts and plain agent-written files stay deliverable."""
         from hermes_constants import reset_hermes_home_override, set_hermes_home_override
 
@@ -782,13 +782,13 @@ class TestMediaDeliveryDefaultMode:
                 reset_hermes_home_override(token)
 
     def test_strict_mode_envvar_restores_legacy_behavior(self, tmp_path, monkeypatch):
-        """Setting HERMES_MEDIA_DELIVERY_STRICT=1 reactivates the older
+        """Setting A2ASSISTANT_MEDIA_DELIVERY_STRICT=1 reactivates the older
         allowlist+recency logic. A stale file outside the allowlist is
         rejected.
         """
         self._patch_roots(monkeypatch)
-        monkeypatch.setenv("HERMES_MEDIA_DELIVERY_STRICT", "1")
-        monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_FILES", "0")
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_DELIVERY_STRICT", "1")
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_FILES", "0")
 
         stale = tmp_path / "old.pdf"
         stale.write_bytes(b"%PDF-1.4")
@@ -827,7 +827,7 @@ class TestMediaDeliveryDefaultMode:
 
 
     def test_profile_scoped_cache_delivers_under_symlinked_root(self, tmp_path, monkeypatch):
-        """Reopened #31733: a profile gateway whose HERMES_HOME is symlinked
+        """Reopened #31733: a profile gateway whose A2ASSISTANT_HOME is symlinked
         under a denied prefix (e.g. /opt/data -> /root/.hermes) emits
         profile-scoped paths (``<root>/profiles/<name>/cache/images/x.png``)
         that resolve under ``/root``. ``$HOME`` is NOT that prefix, so the
@@ -1021,7 +1021,7 @@ class TestDockerContainerMediaPathTranslation:
         cache.mkdir(parents=True)
         media = cache / "generated.png"
         media.write_bytes(b"\x89PNG\r\n\x1a\n")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("TERMINAL_ENV", "docker")
         monkeypatch.delenv("TERMINAL_DOCKER_VOLUMES", raising=False)
 
@@ -1041,7 +1041,7 @@ class TestDockerContainerMediaPathTranslation:
         (secret / "auth.json").write_text('{"token": "SECRET"}')
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("TERMINAL_ENV", "docker")
         monkeypatch.setenv("TERMINAL_CONTAINER_PERSISTENT", "true")
         monkeypatch.setenv("TERMINAL_SANDBOX_DIR", str(sandbox))
@@ -1246,8 +1246,8 @@ class TestGetHumanDelay:
         return adapter
 
     def test_off_and_installed_range_never_touch_process_env(self):
-        env = {"HERMES_HUMAN_DELAY_MODE": "custom", "HERMES_HUMAN_DELAY_MIN_MS": "10",
-               "HERMES_HUMAN_DELAY_MAX_MS": "20"}
+        env = {"A2ASSISTANT_HUMAN_DELAY_MODE": "custom", "A2ASSISTANT_HUMAN_DELAY_MIN_MS": "10",
+               "A2ASSISTANT_HUMAN_DELAY_MAX_MS": "20"}
         with patch.dict(os.environ, env), patch(
             "gateway.platforms.base.random.uniform", return_value=1.5
         ) as uniform:
@@ -1364,8 +1364,8 @@ class TestMediaDeliveryDiagnosability:
     def test_rejected_path_appears_in_log(self, tmp_path, caplog):
         outside = tmp_path / "outside.ogg"
         outside.write_bytes(b"OggS")
-        with patch.dict(os.environ, {"HERMES_MEDIA_DELIVERY_STRICT": "1",
-                                     "HERMES_MEDIA_TRUST_RECENT_FILES": "0"}), \
+        with patch.dict(os.environ, {"A2ASSISTANT_MEDIA_DELIVERY_STRICT": "1",
+                                     "A2ASSISTANT_MEDIA_TRUST_RECENT_FILES": "0"}), \
                 patch("gateway.platforms.base.MEDIA_DELIVERY_SAFE_ROOTS", ()):
             with caplog.at_level("WARNING"):
                 out = BasePlatformAdapter.filter_media_delivery_paths([(str(outside), False)])
@@ -1384,7 +1384,7 @@ class TestMediaDeliveryDiagnosability:
         """One crafted ~\\x00 path must not drop every other attachment."""
         good = tmp_path / "good.png"
         good.write_bytes(b"\x89PNG")
-        monkeypatch.setenv("HERMES_MEDIA_DELIVERY_STRICT", "0")
+        monkeypatch.setenv("A2ASSISTANT_MEDIA_DELIVERY_STRICT", "0")
         out = BasePlatformAdapter.filter_media_delivery_paths([
             ("~\x00evil.png", False),
             (str(good), False),

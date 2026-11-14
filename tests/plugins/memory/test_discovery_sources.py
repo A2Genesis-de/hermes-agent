@@ -89,7 +89,7 @@ def test_project_dir_is_ignored_without_opt_in(tmp_path, monkeypatch):
     """A repo you merely cd into must not be able to offer a memory backend."""
     _write_provider_dir(tmp_path / ".hermes" / "plugins", "projectmem")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.delenv("HERMES_ENABLE_PROJECT_PLUGINS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_ENABLE_PROJECT_PLUGINS", raising=False)
 
     assert "projectmem" not in memory_plugins.list_memory_provider_names()
     assert memory_plugins.find_provider_dir("projectmem") is None
@@ -98,7 +98,7 @@ def test_project_dir_is_ignored_without_opt_in(tmp_path, monkeypatch):
 def test_project_dir_is_discovered_when_opted_in(tmp_path, monkeypatch):
     provider = _write_provider_dir(tmp_path / ".hermes" / "plugins", "projectmem")
     monkeypatch.chdir(tmp_path)
-    monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "1")
+    monkeypatch.setenv("A2ASSISTANT_ENABLE_PROJECT_PLUGINS", "1")
 
     assert "projectmem" in memory_plugins.list_memory_provider_names()
     assert memory_plugins.find_provider_dir("projectmem") == provider
@@ -188,7 +188,7 @@ def test_a_secondary_registration_cannot_cost_the_provider(tmp_path, monkeypatch
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     loaded = memory_plugins.load_memory_provider("auxmem")
     assert loaded is not None
@@ -203,7 +203,7 @@ def test_activation_is_not_gated_on_plugins_enabled(tmp_path, monkeypatch):
     requiring the plugin in plugins.enabled — that would break every existing
     user-installed provider."""
     _write_provider_dir(tmp_path / "plugins", "gatedmem")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     assert memory_plugins.load_memory_provider("gatedmem") is not None
 
@@ -214,21 +214,21 @@ def test_provider_registered_past_the_first_8kb_is_discovered(tmp_path, monkeypa
     provider.mkdir(parents=True)
     docstring = '"""' + "Plain prose about storage.\n" * 400 + '"""\n'  # ~10.8 KB, no contract tokens
     (provider / "__init__.py").write_text(docstring + PROVIDER_SOURCE.format(name="longdoc"), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     assert "longdoc" in memory_plugins.list_memory_provider_names()
     assert memory_plugins.find_provider_dir("longdoc") == provider
 
 
 def test_unreadable_user_plugin_does_not_abort_memory_discovery(tmp_path, monkeypatch):
-    """One mode-000 / ACL-denied ``$HERMES_HOME/plugins/<x>`` must not hide the bundled
-    providers or its readable siblings from the dashboard / ``hermes memory`` pickers (#111804)."""
+    """One mode-000 / ACL-denied ``$A2ASSISTANT_HOME/plugins/<x>`` must not hide the bundled
+    providers or its readable siblings from the dashboard / ``a2assistant memory`` pickers (#111804)."""
     plugins_root = tmp_path / "plugins"
     _write_provider_dir(plugins_root, "goodmem")
     denied = plugins_root / "denied"
     denied.mkdir()
     (denied / "__init__.py").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     real_stat = Path.stat  # chmod 000 does not bite as root; fail the child's stat instead
 
     def stat(self, *args, **kwargs):

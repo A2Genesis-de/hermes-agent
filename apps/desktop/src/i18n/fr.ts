@@ -1616,7 +1616,7 @@ export const frOverrides = {
         'Local par défaut. Utilisez distant quand cette application doit piloter un backend A2Assistant ailleurs. Remplacements par profil ci-dessous.',
       envOverrideTitle: "Des variables d'environnement contrôlent cette session desktop.",
       envOverrideDesc:
-        'Supprimez les variables HERMES_DESKTOP_REMOTE_URL et HERMES_DESKTOP_REMOTE_TOKEN pour utiliser le paramètre enregistré ci-dessous.',
+        'Supprimez les variables A2ASSISTANT_DESKTOP_REMOTE_URL et A2ASSISTANT_DESKTOP_REMOTE_TOKEN pour utiliser le paramètre enregistré ci-dessous.',
       modeTitle: 'Mode de connexion',
       localTitle: 'Gateway local',
       localDesc:
@@ -2345,7 +2345,7 @@ export const frOverrides = {
       'Verrouillez-le pour que l’agent ne puisse pas modifier ce skill. Vous pouvez toujours le modifier vous-même.',
     archive: 'Archiver',
     skillArchivedTitle: 'Skill archivé',
-    skillArchivedMessage: 'Restaurable via hermes curator restore.',
+    skillArchivedMessage: 'Restaurable via a2assistant curator restore.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: "Plugins de l'agent",
@@ -2951,7 +2951,7 @@ export const frOverrides = {
     failedImport: "Échec de l'importation du profil",
     failedExport: "Échec de l'exportation du profil",
     exportNeedsHost: name =>
-      `Le navigateur ne peut pas enregistrer une archive de profil. Sur l'hôte A2Assistant, exécutez : hermes profile export ${name}`,
+      `Le navigateur ne peut pas enregistrer une archive de profil. Sur l'hôte A2Assistant, exécutez : a2assistant profile export ${name}`,
     allProfiles: 'Tous les profils',
     showAllProfiles: 'Afficher tous les profils',
     notServedHere: 'Non proposé ici',
@@ -3867,9 +3867,9 @@ export const frOverrides = {
     versionDetailsDistributionDesktopMsix: 'Application Desktop (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Application Desktop (installateur)',
     versionDetailsDistributionSourceInstaller: "Code source (script d'installation)",
-    versionDetailsDistributionSourceInstallerDesktop: "Code source (script d'installation) + hermes desktop",
+    versionDetailsDistributionSourceInstallerDesktop: "Code source (script d'installation) + a2assistant desktop",
     versionDetailsDistributionSource: 'Code source',
-    versionDetailsDistributionSourceDesktop: 'Code source + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Code source + a2assistant desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: "Environnement d'exécution",
     versionDetailsRuntimeEmbedded: "Environnement d'exécution intégré",
@@ -4842,7 +4842,7 @@ export const frOverrides = {
       reject: 'Rejeter',
       alwaysTitle: 'Toujours autoriser cette commande ?',
       alwaysDescription: pattern =>
-        `Cela ajoute le motif « ${pattern} » à votre liste d'autorisation permanente (~/.hermes/config.yaml). A2Assistant ne redemandera plus pour ce type de commande — que ce soit dans cette session ou dans une session future.`,
+        `Cela ajoute le motif « ${pattern} » à votre liste d'autorisation permanente (~/.a2assistant/config.yaml). A2Assistant ne redemandera plus pour ce type de commande — que ce soit dans cette session ou dans une session future.`,
       alwaysAllow: 'Toujours autoriser'
     },
     clarify: frClarify,
@@ -5215,7 +5215,7 @@ export const frOverrides = {
       success: platform => `Transféré vers ${platform}. Reprenez ici à tout moment.`,
       systemNote: platform => `↻ Transféré vers ${platform} — reprenez ici à tout moment.`,
       failed: error => `Échec du transfert : ${error}`,
-      timedOut: "Délai d'expiration en attendant la Gateway. `hermes gateway` est-il en cours d'exécution ?",
+      timedOut: "Délai d'expiration en attendant la Gateway. `a2assistant gateway` est-il en cours d'exécution ?",
       startMessaging: 'Démarrer la messagerie'
     }
   },

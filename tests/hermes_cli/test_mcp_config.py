@@ -1,5 +1,5 @@
 """
-Tests for hermes_cli.mcp_config — ``hermes mcp`` subcommands.
+Tests for hermes_cli.mcp_config — ``a2assistant mcp`` subcommands.
 
 These tests mock the MCP server connection layer so they run without
 any actual MCP servers or API keys.
@@ -28,7 +28,7 @@ def _set_interactive_stdin(monkeypatch, *, is_tty: bool = True) -> None:
 @pytest.fixture(autouse=True)
 def _isolate_config(tmp_path, monkeypatch):
     """Redirect all config I/O to a temp directory."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(
         "hermes_cli.config.get_hermes_home", lambda: tmp_path
     )
@@ -297,7 +297,7 @@ class TestMcpTest:
         assert "not found in config" in capsys.readouterr().out
 
     def test_cli_dispatcher_forwards_test_exit_code(self, tmp_path, monkeypatch):
-        """``hermes mcp test`` reaches ``main()`` with the handler's code (the dispatcher used to drop it)."""
+        """``a2assistant mcp test`` reaches ``main()`` with the handler's code (the dispatcher used to drop it)."""
         _seed_config(tmp_path, {"ink": {"url": "https://mcp.ml.ink/mcp"}})
         from hermes_cli.main import cmd_mcp
 
@@ -471,7 +471,7 @@ class TestContextVarInterpolation:
 class TestProbeEnvResolution:
     """The probe path must resolve ``${ENV}`` before connecting, so the
     discovery probe behaves like runtime tool loading. Regression for #37792
-    where `hermes mcp add --auth header` sent a literal
+    where `a2assistant mcp add --auth header` sent a literal
     ``Authorization: Bearer ${MCP_X_API_KEY}`` and got 401."""
 
     def test_resolve_interpolates_header(self, monkeypatch):
@@ -536,7 +536,7 @@ class TestProbeEnvResolution:
         assert seen["config"]["headers"]["Authorization"] == "Bearer jwt-token-xyz"
 
     def test_probe_propagates_explicit_connect_timeout_to_config(self, monkeypatch):
-        """An explicit `connect_timeout=` override (e.g. `hermes mcp login`'s 315s, extended so a
+        """An explicit `connect_timeout=` override (e.g. `a2assistant mcp login`'s 315s, extended so a
         user has time to finish an OAuth browser flow) must reach `config["connect_timeout"]` —
         that's what tools/mcp_tool_transport.py::_negotiate_session bounds session.initialize()
         with. Left stale at its unrelated 60s default, the still-pending OAuth callback wait gets
@@ -729,7 +729,7 @@ class TestMcpRemoveEvictsManager:
         monkeypatch.setattr(
             "hermes_cli.mcp_config.get_hermes_home", lambda: tmp_path
         )
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         _set_interactive_stdin(monkeypatch)
 
         from tools.mcp_oauth_manager import get_manager, reset_manager_for_tests

@@ -14,7 +14,7 @@ from hermes_cli.plugins import PluginManager
 
 @pytest.fixture()
 def manager(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes_home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes_home"))
     return PluginManager()
 
 

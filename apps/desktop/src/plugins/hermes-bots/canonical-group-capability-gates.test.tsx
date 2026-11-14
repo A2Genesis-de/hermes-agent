@@ -533,7 +533,7 @@ it('explains a refused gateway group creation in the reader\'s language with the
   expect((await screen.findByRole('alert')).textContent).toBe(words)
 })
 
-// Desktop's own backend and SSH, URL and Cloud connections reach `hermes serve`
+// Desktop's own backend and SSH, URL and Cloud connections reach `a2assistant serve`
 // (tui_gateway/methods_groups.py): it refuses a create with 4110, or 4123/5111 for a missing worker
 // or a failure, and puts the reason in the message. The session gateway answers 4001 with data.detail.
 it('keeps the gateway\'s own reason for a refused create from either server', () => {

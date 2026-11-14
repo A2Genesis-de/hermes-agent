@@ -1,4 +1,4 @@
-"""On-demand worktree + branch reclaim (``hermes worktree`` / ``/worktree prune``).
+"""On-demand worktree + branch reclaim (``a2assistant worktree`` / ``/worktree prune``).
 
 The startup pruner (``cli._prune_stale_worktrees``) is conservative and silent — clean, fully
 merged scratch past an age tier only. This module also reclaims trees whose only "dirt" is
@@ -88,7 +88,7 @@ def _git(args: list, cwd: str, timeout: int = 15) -> subprocess.CompletedProcess
 def _tree_size_mb(path: Path, timeout: int = 30) -> Optional[int]:
     """Cheap directory size via ``du -sm`` — best-effort, None on failure or timeout. Not
     ``subprocess.run``: its post-kill ``wait()`` never returns for a ``du`` stuck in uninterruptible
-    disk I/O, so the caller (a ``hermes -w`` launch, the cron prune thread) would hang with it."""
+    disk I/O, so the caller (a ``a2assistant -w`` launch, the cron prune thread) would hang with it."""
     from hermes_cli._subprocess_compat import bounded_probe_run
 
     try:
@@ -171,7 +171,7 @@ def _classify_tree(_ops, repo_root: str, entry: Path, merge_cache, remote_heads)
 def audit_external_trees(repo_root: str) -> list[ExternalTreeRecord]:
     """List linked worktrees registered OUTSIDE ``.worktrees/``.
 
-    ``hermes -w`` scratch trees all live under ``<repo>/.worktrees/``, but
+    ``a2assistant -w`` scratch trees all live under ``<repo>/.worktrees/``, but
     ``git worktree list --porcelain`` also knows about trees the user (or
     another tool) registered elsewhere. Those are someone else's state, so
     the reclaim paths never touch them — but hiding them entirely makes the

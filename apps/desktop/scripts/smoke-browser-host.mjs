@@ -11,14 +11,14 @@ import { CDP, sleep } from './perf/lib/cdp.mjs'
 import { shownStartupTitlesExpression, startupScreenFailures } from './smoke-browser-host-screens.mjs'
 import { ViewportTab } from './smoke-browser-host-tab.mjs'
 
-const url = process.env.HERMES_BROWSER_HOST_URL || process.argv[2] || 'http://127.0.0.1:9120/'
-const allowGatewayFailure = process.env.HERMES_BROWSER_ALLOW_GATEWAY_FAILURE === '1'
-const requireTerminal = process.env.HERMES_BROWSER_REQUIRE_TERMINAL === '1'
+const url = process.env.A2ASSISTANT_BROWSER_HOST_URL || process.argv[2] || 'http://127.0.0.1:9120/'
+const allowGatewayFailure = process.env.A2ASSISTANT_BROWSER_ALLOW_GATEWAY_FAILURE === '1'
+const requireTerminal = process.env.A2ASSISTANT_BROWSER_REQUIRE_TERMINAL === '1'
 // The gateway serving the page is already up, so its socket opens shortly after the shell paints.
 const GATEWAY_SOCKET_TIMEOUT_MS = 30_000
 
 function findExecutable() {
-  const explicit = process.env.HERMES_BROWSER_EXECUTABLE?.trim()
+  const explicit = process.env.A2ASSISTANT_BROWSER_EXECUTABLE?.trim()
   if (explicit) return explicit
 
   const candidates =
@@ -39,7 +39,7 @@ function findExecutable() {
     }
   }
 
-  throw new Error('No Chromium-compatible browser found; set HERMES_BROWSER_EXECUTABLE')
+  throw new Error('No Chromium-compatible browser found; set A2ASSISTANT_BROWSER_EXECUTABLE')
 }
 
 const ignoredConsoleError = text =>

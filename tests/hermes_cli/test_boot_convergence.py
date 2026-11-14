@@ -24,11 +24,11 @@ def test_each_start_checks_pm_once_before_dispatch(surface, tmp_path, monkeypatc
         "commit": "abcdef012345", "payload": "bundled", "updateMechanism": "electron-updater",
     }))
     monkeypatch.setattr(Path, "home", lambda: home)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(runtime))
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
-    monkeypatch.delenv("HERMES_DISABLE_FAST_SERVE_LAUNCH", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(runtime))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_FAST_SERVE_LAUNCH", raising=False)
     checked = []
     real_check = pm.check
 
@@ -121,8 +121,8 @@ def migrate():
 post_update.BOOT_HOME_STEPS = (('migrate', migrate), ('db', post_update.step_state_db_guard))
 print(json.dumps(boot_bootstrap.run_boot_bootstrap(root)))
 ''')
-    env = dict(os.environ, HOME=str(tmp_path), HERMES_HOME=str(home),
-               HERMES_RUNTIME_DIR=str(tmp_path / "tools"),
+    env = dict(os.environ, HOME=str(tmp_path), A2ASSISTANT_HOME=str(home),
+               A2ASSISTANT_RUNTIME_DIR=str(tmp_path / "tools"),
                PYTHONPATH=str(Path(__file__).resolve().parents[2]))
     command = [sys.executable, str(script), str(root), str(entered), str(release)]
     first = subprocess.Popen([*command, "hold"], env=env, stdout=subprocess.PIPE,
@@ -133,7 +133,7 @@ print(json.dumps(boot_bootstrap.run_boot_bootstrap(root)))
             assert first.poll() is None
             assert time.monotonic() < deadline
             time.sleep(0.02)
-        second = subprocess.run([*command, "go"], env=dict(env, HERMES_HOME=str(other)),
+        second = subprocess.run([*command, "go"], env=dict(env, A2ASSISTANT_HOME=str(other)),
                                 capture_output=True, text=True, timeout=30, check=False)
         assert second.returncode == 0, second.stderr
         result = json.loads(second.stdout.splitlines()[-1])
@@ -181,7 +181,7 @@ def test_failed_migration_is_restored_and_not_retried(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     root = tmp_path / "payload"
     root.mkdir()
     (root / "install-stamp.json").write_text(json.dumps({

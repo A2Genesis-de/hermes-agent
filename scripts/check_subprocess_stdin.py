@@ -220,7 +220,7 @@ def main() -> int:
     # ./.hermes/plugins/, where code like ori/hooks.py can spawn
     # subprocesses with inherited stdin — #67639).
     plugin_roots: list[Path] = [get_hermes_home() / "plugins"]
-    if os.environ.get("HERMES_ENABLE_PROJECT_PLUGINS"):
+    if os.environ.get("A2ASSISTANT_ENABLE_PROJECT_PLUGINS"):
         plugin_roots.append(Path.cwd() / ".hermes" / "plugins")
     seen_roots: set[Path] = set()
     for plugin_root in plugin_roots:

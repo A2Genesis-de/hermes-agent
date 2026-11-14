@@ -4,7 +4,7 @@
 leaves ``pending``; ``GET /api/providers/oauth/nous/handoff?since=&wait=`` holds it until the free
 tier's handoff record changes. Both carry the handoff as fields (``guest_handoff.wire_status``) so
 the desktop can name the apps that moved and the ones to reconnect. Driven through the real FastAPI
-routes against the fake portal ``hermes auth upgrade`` is tested with.
+routes against the fake portal ``a2assistant auth upgrade`` is tested with.
 """
 
 from __future__ import annotations

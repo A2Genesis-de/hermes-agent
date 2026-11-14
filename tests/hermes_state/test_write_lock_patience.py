@@ -154,7 +154,7 @@ def _use_delete_journal_mode(monkeypatch, tmp_path):
     home = tmp_path / "hermes-home"
     home.mkdir()
     (home / "config.yaml").write_text("database:\n  journal_mode: delete\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
 
 def _hold_exclusive(db_path, hold_s, started_evt):

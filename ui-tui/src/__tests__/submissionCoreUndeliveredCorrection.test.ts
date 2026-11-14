@@ -19,7 +19,7 @@ let home: string
 
 beforeEach(() => {
   home = mkdtempSync(join(process.env.TMPDIR ?? '.', 'ink-undelivered-'))
-  vi.stubEnv('HERMES_HOME', home)
+  vi.stubEnv('A2ASSISTANT_HOME', home)
   resetUiState()
   patchUiState({ sid: 'owner', busy: true, status: 'running…' })
 })

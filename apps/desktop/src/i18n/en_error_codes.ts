@@ -125,7 +125,7 @@ export const enErrorCodes: ThreadCopy['errorCodes'] = {
     title: "Can't reach the local model server",
     body: "The local model server isn't serving yet: it may still be starting. Retry in a moment, or switch to another model.",
     bodyNoRetry:
-      'The local model server is turned off. Start it from the A2Assistant desktop app or `hermes model` in a terminal, or switch to another model.'
+      'The local model server is turned off. Start it from the A2Assistant desktop app or `a2assistant model` in a terminal, or switch to another model.'
   },
   SESSION_OWNER_UNCONFIRMED: {
     title: 'Your message may already be queued',

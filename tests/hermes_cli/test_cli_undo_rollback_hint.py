@@ -14,7 +14,7 @@ from tools.checkpoint_manager import CheckpointManager
 
 @pytest.fixture
 def setup(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     project = tmp_path / "proj"
     (project / ".git").mkdir(parents=True)
     (project / "app.js").write_text("hello\n")

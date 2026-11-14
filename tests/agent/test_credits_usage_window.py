@@ -700,14 +700,14 @@ class TestPlanStates:
         assert not any("$" in n.text for n in show)
 
     def test_legacy_fixtures_still_resolve(self, monkeypatch):
-        monkeypatch.setenv("HERMES_DEV_CREDITS", "1")
-        monkeypatch.setenv("HERMES_DEV_CREDITS_FIXTURE", "depleted")
+        monkeypatch.setenv("A2ASSISTANT_DEV_CREDITS", "1")
+        monkeypatch.setenv("A2ASSISTANT_DEV_CREDITS_FIXTURE", "depleted")
         state = ct.dev_fixture_credits_state()
         assert state is not None and not state.is_usage_window and state.paid_access is False
 
     def test_window_fixture_names_are_not_dev_fixtures(self, monkeypatch):
-        monkeypatch.setenv("HERMES_DEV_CREDITS", "1")
-        monkeypatch.setenv("HERMES_DEV_CREDITS_FIXTURE", "window_exhausted")
+        monkeypatch.setenv("A2ASSISTANT_DEV_CREDITS", "1")
+        monkeypatch.setenv("A2ASSISTANT_DEV_CREDITS_FIXTURE", "window_exhausted")
         assert ct.dev_fixture_credits_state() is None
 
 
@@ -905,7 +905,7 @@ class TestUsageCommand:
         joined = "\n".join(lines)
         assert "40% used" in joined and "This week" in joined and "[" in joined
         assert any(l.startswith(account_usage._WINDOW_TOP_TIER_USED_UP) for l in lines) and "Top-up credits: $0.00" in lines
-        assert "(dev fixture — HERMES_DEV_CREDITS_FIXTURE)" in lines
+        assert "(dev fixture — A2ASSISTANT_DEV_CREDITS_FIXTURE)" in lines
 
 
 # ── classifier ────────────────────────────────────────────────────────────────
@@ -1011,7 +1011,7 @@ class TestBlockedResponseCapture:
 
         agent = Agent()
         agent.notice_callback = lambda n: None
-        monkeypatch.delenv("HERMES_DEV_CREDITS_FIXTURE", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_DEV_CREDITS_FIXTURE", raising=False)
         # A warm catalog (a cold one defers the stop to a background re-warm, like a depleted account).
         monkeypatch.setattr(ct, "rewarm_pricing_before_depleted_notice", lambda agent: False)
         err = SimpleNamespace(status_code=402, response=SimpleNamespace(

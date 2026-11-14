@@ -70,7 +70,7 @@ def validate_schedule_knobs(
 def _script_is_command_line(script: str) -> bool:
     """A ``script`` with whitespace that resolves to no file is a command line (``echo hi``),
     not a path; run every tick it would deliver "Script not found" as the payload. A plain
-    missing filename stays creatable (``hermes cron doctor`` reports it)."""
+    missing filename stays creatable (``a2assistant cron doctor`` reports it)."""
     if not any(ch.isspace() for ch in script.strip()):
         return False
     from cron.lifecycle_guard import _resolve_script_path

@@ -159,7 +159,7 @@ def test_a_sigkilled_owner_takes_its_harness_daemon_with_it(tmp_path):
         "print(d.pid, flush=True)\n"
         "time.sleep(300)\n"
     )
-    env = dict(os.environ, HERMES_HOME=str(tmp_path / "home"), PYTHONPATH=str(Path(__file__).resolve().parents[2]))
+    env = dict(os.environ, A2ASSISTANT_HOME=str(tmp_path / "home"), PYTHONPATH=str(Path(__file__).resolve().parents[2]))
     owner = subprocess.Popen([sys.executable, "-c", owner_src], env=env, stdin=subprocess.DEVNULL,
                              stdout=subprocess.PIPE, text=True)
     daemon_pid = None

@@ -51,7 +51,7 @@ _BG_GROUP_RE = re.compile(r"^(hermes_bg_[A-Za-z0-9_-]+)\.(log|pid|exit)$")
 
 
 def _default_terminal_temp_dir() -> Path | None:
-    """Return HERMES_HOME/cache/terminal, or None if unresolvable."""
+    """Return A2ASSISTANT_HOME/cache/terminal, or None if unresolvable."""
     try:
         from hermes_constants import get_hermes_home
         return get_hermes_home() / "cache" / "terminal"
@@ -232,18 +232,18 @@ def _resolve_safe_cwd(cwd: str) -> str:
 
 # --- Child-process environment construction ---
 def _apply_profile_home(env: dict) -> None:
-    """Bridge the context-local HERMES_HOME override, then the subprocess HOME contract."""
+    """Bridge the context-local A2ASSISTANT_HOME override, then the subprocess HOME contract."""
     from hermes_constants import apply_subprocess_home_env, get_hermes_home_override
     try:
         if value := get_hermes_home_override():
-            env["HERMES_HOME"] = value
+            env["A2ASSISTANT_HOME"] = value
     except Exception:
         pass
     apply_subprocess_home_env(env)
 
 
 def _inject_session_context_env(env: dict) -> None:
-    """Bridge gateway session ContextVars (HERMES_SESSION_*) into a child env.
+    """Bridge gateway session ContextVars (A2ASSISTANT_SESSION_*) into a child env.
     Cross-session leak guard: the vars' last-writer-wins ``os.environ`` mirror may
     belong to another turn on a concurrent multi-session host, so once the session
     context is engaged ContextVars are authoritative — a bound value (incl. "") wins
@@ -264,7 +264,7 @@ def _inject_session_context_env(env: dict) -> None:
         elif _engaged:
             env.pop(var_name, None)
     from hermes_cli.plugins_session_env import resolve_session_env
-    if plugin_env := resolve_session_env(env.get("HERMES_SESSION_ID", "")):
+    if plugin_env := resolve_session_env(env.get("A2ASSISTANT_SESSION_ID", "")):
         for name, value in _scrub_credentials(plugin_env, inherit_credentials=False).items():
             if value is None:
                 env.pop(name, None)
@@ -321,7 +321,7 @@ def _finalize_child_env(env: dict) -> dict:
 
 def _scrubbed_env(parts, plugin_strip: frozenset, fix_path) -> dict:
     """Filter each ``(items, unwrap_force)`` in *parts* into one env, rewrite PATH via
-    *fix_path* (always prepending the hermes install dir so bare ``hermes`` resolves
+    *fix_path* (always prepending the hermes install dir so bare ``a2assistant`` resolves
     for children of a systemd/cron-launched gateway), then apply the shared guards."""
     out: dict[str, str] = {}
     for items, unwrap_force in parts:
@@ -397,7 +397,7 @@ def build_subprocess_env(
     ``scrub_secrets=True`` -> :func:`_sanitize_subprocess_env` (profile home inherent,
     ``inherit_profile_home`` ignored). ``scrub_secrets=False`` keeps the base's secrets
     (git credential flows, ``bws``/``op``); ``inherit_profile_home``
-    bridges HERMES_HOME + HOME and ``extra`` is applied last so caller overrides win. Both modes
+    bridges A2ASSISTANT_HOME + HOME and ``extra`` is applied last so caller overrides win. Both modes
     drop the supervised process's own identity (:func:`strip_supervised_process_identity`).
     ``strip_launch_profile`` drops the LAUNCH profile's ``.env`` residue from the base first
     (:func:`strip_launch_profile_env`; a no-op unless a routed home is active) so a child that
@@ -431,7 +431,7 @@ def served_profile_child_env(
     base: Mapping[str, str] | None = None, *, target_home: str | Path | None = None,
     inherit_credentials: bool = False,
 ) -> dict[str, str]:
-    """Child env for a process that acts FOR the active (possibly served) profile: ``hermes -p X``
+    """Child env for a process that acts FOR the active (possibly served) profile: ``a2assistant -p X``
     workers, ``key_cmd`` helpers, browser drivers. The process env is the LAUNCH profile's. When the
     target is a ROUTED home (not the launch profile's — under multiplex or a Desktop/dashboard backend
     serving ``?profile=`` with the flag off) the launch ``.env`` residue and bridged ``TERMINAL_*`` are
@@ -440,7 +440,7 @@ def served_profile_child_env(
     never recorded in ``.env`` or a source snapshot, so a name-based strip cannot see it and the target
     overlay cannot remove it. ``inherit_credentials=True`` is for children that legitimately run with
     the profile's credentials (they run the agent or mint its token): the target profile's own secrets
-    (its ``.env`` + hydrated sources, what a standalone ``hermes -p X`` loads itself) are overlaid — never
+    (its ``.env`` + hydrated sources, what a standalone ``a2assistant -p X`` loads itself) are overlaid — never
     a sibling profile's. Under multiplex with neither a target nor a bound scope the call raises
     (``get_secret``'s fail-closed contract): minting with the launch environ would sign in as the wrong
     profile. ``False`` keeps the provider scrub; the caller re-adds the few keys the child needs via
@@ -452,7 +452,7 @@ def served_profile_child_env(
     env = dict(base) if base is not None else hermes_subprocess_env(inherit_credentials=inherit_credentials)
     target = str(target_home or get_hermes_home_override() or "")
     if target:
-        env["HERMES_HOME"] = target
+        env["A2ASSISTANT_HOME"] = target
         apply_scratch_tmp_env(env)  # TMPDIR follows the served home, like HOME does
         if _is_routed_home(target):
             strip_launch_profile_env(env, target)
@@ -490,7 +490,7 @@ def _is_routed_home(target_home: str | Path) -> bool:
     """True when ``target_home`` is not the process's own (launch) home.
 
     Same launch-home identity as ``agent.secret_scope.serves_routed_profile()``: under a host that
-    mirrors the served profile into ``HERMES_HOME``, the live env var names the served home and the
+    mirrors the served profile into ``A2ASSISTANT_HOME``, the live env var names the served home and the
     launch residue would never be stripped from that profile's child env."""
     from hermes_constants import get_routing_process_hermes_home
     try:
@@ -502,13 +502,13 @@ def _is_routed_home(target_home: str | Path) -> bool:
 def strip_launch_profile_env(env: dict, target_home: str | Path | None = None) -> dict:
     """Drop the LAUNCH profile's residue from a child env built for another served profile.
     ``os.environ`` holds the default profile's ``.env`` and its bridged ``TERMINAL_*`` settings;
-    the secret scrub removes credentials but not settings (``HERMES_MODEL``, ``TERMINAL_ENV``,
-    ``HERMES_LANGUAGE``...), so a standalone ``hermes -p X`` worker and a served one saw different
+    the secret scrub removes credentials but not settings (``A2ASSISTANT_MODEL``, ``TERMINAL_ENV``,
+    ``A2ASSISTANT_LANGUAGE``...), so a standalone ``a2assistant -p X`` worker and a served one saw different
     envs. The child re-loads X's own ``.env`` and bridges X's config itself. ``target_home``
     defaults to the active home override; no-op when there is no target or the target IS the
     launch profile. The authority test is "does this task serve a routed home", not "is the
     gateway-wide multiplex flag on": the Desktop/dashboard backend serves ``?profile=B`` by
-    installing a HERMES_HOME override without that flag."""
+    installing a A2ASSISTANT_HOME override without that flag."""
     from agent.secret_scope import _is_global_env, load_env_file
     from hermes_constants import get_hermes_home_override, get_routing_process_hermes_home
     target = target_home or get_hermes_home_override()
@@ -570,7 +570,7 @@ def _find_bash() -> str:
         return bash
     raise RuntimeError(
         "No shell found. A2Assistant needs bash (Git for Windows on Windows). "
-        "Run `hermes pm install` or reinstall the bundle."
+        "Run `a2assistant pm install` or reinstall the bundle."
     )
 
 
@@ -656,9 +656,9 @@ _HERMES_BIN_DIR_IS_PAYLOAD = False
 
 
 def _resolve_hermes_bin_dir() -> str | None:
-    """Directory holding the ``hermes`` console-script, or None (cached). A gateway
+    """Directory holding the ``a2assistant`` console-script, or None (cached). A gateway
     launched by systemd/cron/a desktop launcher lacks the install dir on PATH and bare
-    ``hermes`` exits 127. Order: a sealed payload's own launcher dir; ``which``; absolute
+    ``a2assistant`` exits 127. Order: a sealed payload's own launcher dir; ``which``; absolute
     ``sys.argv[0]`` naming a real hermes executable; ``sys.executable``'s dir if it holds
     the shim."""
     global _HERMES_BIN_DIR, _HERMES_BIN_DIR_IS_PAYLOAD
@@ -672,14 +672,16 @@ def _resolve_hermes_bin_dir() -> str | None:
     if payload_dir is not None and payload_dir.is_dir():
         _HERMES_BIN_DIR, _HERMES_BIN_DIR_IS_PAYLOAD = str(payload_dir), True
         return _HERMES_BIN_DIR
-    which = shutil.which("hermes")
+    from hermes_cli.service_names import CLI_COMMANDS
+
+    which = next(filter(None, map(shutil.which, CLI_COMMANDS)), None)
     argv0 = sys.argv[0] if sys.argv else ""
     base = os.path.basename(argv0).lower()
     exe_dir = os.path.dirname(sys.executable) if sys.executable else ""
-    shim = "hermes.exe" if _IS_WINDOWS else "hermes"
+    shim = f"{CLI_COMMANDS[0]}.exe" if _IS_WINDOWS else CLI_COMMANDS[0]
     if which:
         candidate = os.path.dirname(which)
-    elif (os.path.isabs(argv0) and (base == "hermes" or base.startswith("hermes."))
+    elif (os.path.isabs(argv0) and (base in CLI_COMMANDS or base.startswith(tuple(f"{c}." for c in CLI_COMMANDS)))
             and os.path.isfile(argv0)):
         candidate = os.path.dirname(argv0)
     else:
@@ -692,7 +694,7 @@ def _resolve_hermes_bin_dir() -> str | None:
 def _prepend_hermes_bin_dir(existing_path: str) -> str:
     """Prepend the hermes install dir to ``existing_path`` if missing. A sealed payload's
     launcher dir moves to the front even when already listed: a login PATH can list
-    another install's ``hermes`` ahead of it."""
+    another install's ``a2assistant`` ahead of it."""
     bin_dir = _resolve_hermes_bin_dir()
     if bin_dir and _HERMES_BIN_DIR_IS_PAYLOAD:
         rest = [entry for entry in existing_path.split(os.pathsep) if entry and entry != bin_dir]
@@ -710,7 +712,7 @@ def _managed_runtime_path_entries() -> list[str]:
 
     - the pm store's node/npm entries — installed to satisfy the desktop
       toolchain; the agent's shell deserves the same.
-    - ``$HERMES_HOME/bin`` — the managed ``uv``. ``install.sh`` writes it there
+    - ``$A2ASSISTANT_HOME/bin`` — the managed ``uv``. ``install.sh`` writes it there
       and nothing has ever put that directory on PATH, so an install whose only
       uv is the managed one looks uv-less to both the agent and the model.
 
@@ -880,7 +882,7 @@ def _append_dropped_path_entries(cmd_string: str, parent_path: str) -> str:
     A login profile can reset PATH outright (Debian's ``/etc/profile``, so every
     Debian/Ubuntu image and host), and the snapshot's ``export -p`` then pins the reset
     PATH over the spawn env for every later command: in the Docker image that loses
-    ``/opt/hermes/bin`` and bare ``hermes`` exits 127 (#56634). Dropped dirs go AFTER
+    ``/opt/hermes/bin`` and bare ``a2assistant`` exits 127 (#56634). Dropped dirs go AFTER
     the login PATH in parent order, so a command that resolved before still resolves
     to the same binary (the user's nvm/pyenv keep precedence); only commands that had
     no match gain one. Present entries are never duplicated; missing absolute dirs are skipped.
@@ -1082,11 +1084,11 @@ class LocalEnvironment(BaseEnvironment):
 
     def get_temp_dir(self) -> str:
         """Shell-safe writable temp dir. Precedence: ``TERMINAL_TEMP_DIR``, TMPDIR/TMP/TEMP
-        (Termux has no system temp dir), ``HERMES_HOME/cache/terminal`` (real storage: a
+        (Termux has no system temp dir), ``A2ASSISTANT_HOME/cache/terminal`` (real storage: a
         tmpfs system temp dir fills under Hermes load; pruned by ``cleanup_terminal_temp_cache``),
         ``tempfile.gettempdir()``; backend env before process env so terminal.env
         overrides work. Windows: ``%TEMP%`` often has spaces that break unquoted bash,
-        so always the HERMES_HOME cache dir with forward slashes (bash- and Python-valid)."""
+        so always the A2ASSISTANT_HOME cache dir with forward slashes (bash- and Python-valid)."""
         if _IS_WINDOWS:
             for key in ("TERMINAL_TEMP_DIR", "TMPDIR"):
                 candidate = self.env.get(key) or os.environ.get(key)

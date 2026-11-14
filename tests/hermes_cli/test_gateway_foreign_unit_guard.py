@@ -1,11 +1,11 @@
-"""`hermes gateway stop|restart|start` from a sandbox home must never operate ANOTHER install's systemd unit.
+"""`a2assistant gateway stop|restart|start` from a sandbox home must never operate ANOTHER install's systemd unit.
 
-Real incident: an e2e helper ran `hermes gateway stop` with a throwaway ``HOME`` and
-``HERMES_HOME=$HOME/.hermes`` on a host whose production gateway is the system unit
-``hermes-gateway.service`` (``Environment=HERMES_HOME=/root/.hermes``). The sandbox home is the
+Real incident: an e2e helper ran `a2assistant gateway stop` with a throwaway ``HOME`` and
+``A2ASSISTANT_HOME=$HOME/.a2assistant`` on a host whose production gateway is the system unit
+``a2assistant-gateway.service`` (``Environment=A2ASSISTANT_HOME=/root/.hermes``). The sandbox home is the
 "default" home relative to its own ``HOME``, so the service name resolved to the bare
-``hermes-gateway``; system units are global, so that unit "existed"; ``_sync_hermes_home_from_systemd_unit``
-then adopted the production home and ``systemctl stop hermes-gateway`` took every bot offline.
+``a2assistant-gateway``; system units are global, so that unit "existed"; ``_sync_hermes_home_from_systemd_unit``
+then adopted the production home and ``systemctl stop a2assistant-gateway`` took every bot offline.
 """
 import os
 from pathlib import Path
@@ -19,15 +19,15 @@ from hermes_cli import gateway_service_owner
 @pytest.fixture
 def host(tmp_path, monkeypatch):
     """A production system unit pinned to ``prod``; the account's own default root is ``account``."""
-    prod = tmp_path / "prod" / ".hermes"
-    account = tmp_path / "account" / ".hermes"
+    prod = tmp_path / "prod" / ".a2assistant"
+    account = tmp_path / "account" / ".a2assistant"
     sandbox_home = tmp_path / "sandbox"
-    for p in (prod, account, sandbox_home / ".hermes"):
+    for p in (prod, account, sandbox_home / ".a2assistant"):
         p.mkdir(parents=True)
     unit_dir = tmp_path / "systemd"
     unit_dir.mkdir()
     (unit_dir / f"{gateway_cli._SERVICE_BASE}.service").write_text(
-        f'[Service]\nEnvironment="HERMES_HOME={prod}"\nExecStart=/bin/true\n', encoding="utf-8")
+        f'[Service]\nEnvironment="A2ASSISTANT_HOME={prod}"\nExecStart=/bin/true\n', encoding="utf-8")
     monkeypatch.setattr(gateway_cli, "_SYSTEM_UNIT_DIR", unit_dir)
     monkeypatch.setattr(gateway_cli, "user_systemd_unit_dir", lambda: tmp_path / "no-user-units")
     monkeypatch.setattr(gateway_cli, "supports_systemd_services", lambda: True)
@@ -49,9 +49,9 @@ def _sandbox(monkeypatch, host):
     naming root no longer gives a throwaway HOME the bare name, but names still collide (a custom root's
     ``profiles/<name>``, a pre-pinning unit), so the guard is what keeps the verb off that unit."""
     monkeypatch.setenv("HOME", str(host["sandbox_home"]))
-    monkeypatch.setenv("HERMES_HOME", str(host["sandbox_home"] / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(host["sandbox_home"] / ".a2assistant"))
     collided = gateway_cli._SYSTEM_UNIT_DIR / f"{gateway_cli.get_service_name()}.service"
-    collided.write_text(f'[Service]\nEnvironment="HERMES_HOME={host["prod"]}"\nExecStart=/bin/true\n', encoding="utf-8")
+    collided.write_text(f'[Service]\nEnvironment="A2ASSISTANT_HOME={host["prod"]}"\nExecStart=/bin/true\n', encoding="utf-8")
 
 
 @pytest.mark.platforms("linux")
@@ -71,31 +71,31 @@ def test_direct_service_verbs_refuse_a_foreign_unit_without_touching_systemd(hos
         getattr(gateway_cli, f"systemd_{verb}")(system=True)
     assert exc.value.code == 1
     assert host["calls"] == []
-    assert os.environ["HERMES_HOME"] == str(host["sandbox_home"] / ".hermes")   # never adopted prod's home
+    assert os.environ["A2ASSISTANT_HOME"] == str(host["sandbox_home"] / ".a2assistant")   # never adopted prod's home
 
 
 @pytest.mark.platforms("linux")
 def test_uninstall_guard_checks_before_the_home_sync(host, monkeypatch):
     _sandbox(monkeypatch, host)
     assert gateway_cli._systemd_unit_belongs_to_current_home(system=True) is False
-    assert os.environ["HERMES_HOME"] == str(host["sandbox_home"] / ".hermes")
+    assert os.environ["A2ASSISTANT_HOME"] == str(host["sandbox_home"] / ".a2assistant")
 
 
 @pytest.mark.platforms("linux")
 def test_sudo_from_the_account_default_home_still_operates_the_unit(host, monkeypatch):
     """#108674: root's default home driving a unit that pins the invoking user's home is the operator."""
     monkeypatch.setenv("HOME", str(host["account"].parent))
-    monkeypatch.setenv("HERMES_HOME", str(host["account"]))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(host["account"]))
     assert gateway_service_owner.foreign_systemd_unit_home(True) is None
     gateway_cli.systemd_stop(system=True)
     assert host["calls"] == [["stop", gateway_cli.get_service_name()]]
-    assert Path(os.environ["HERMES_HOME"]) == host["prod"]                       # adopted, as before
+    assert Path(os.environ["A2ASSISTANT_HOME"]) == host["prod"]                       # adopted, as before
 
 
 @pytest.mark.platforms("linux")
 def test_the_units_own_home_operates_it(host, monkeypatch):
     monkeypatch.setenv("HOME", str(host["prod"].parent))
-    monkeypatch.setenv("HERMES_HOME", str(host["prod"]))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(host["prod"]))
     assert gateway_cli._systemd_unit_installed() is True
     gateway_cli.systemd_stop(system=True)
     assert host["calls"] == [["stop", gateway_cli._SERVICE_BASE]]

@@ -1,8 +1,8 @@
-"""`hermes profile install` / `hermes profile update` against a real distribution with cron jobs.
+"""`a2assistant profile install` / `a2assistant profile update` against a real distribution with cron jobs.
 
-A distribution author schedules jobs with the real CLI (``hermes -p author cron create``) and
+A distribution author schedules jobs with the real CLI (``a2assistant -p author cron create``) and
 publishes the profile directory; a user installs it, schedules a job of their own, and later
-pulls the author's next version with ``hermes profile update``. Every step is a fresh sandboxed
+pulls the author's next version with ``a2assistant profile update``. Every step is a fresh sandboxed
 CLI process over a fake HOME; the assertions read the cron store the scheduler itself reads
 (``cron/jobs.json``) and the CLI's own ``cron list``.
 
@@ -39,7 +39,7 @@ class World:
         self.env = H.isolated_env(root, pythonpath=H.WORKTREE)
         (root / "tmp").mkdir(exist_ok=True)
         self.env["TMPDIR"] = str(root / "tmp")
-        self.hermes_home = Path(self.env["HERMES_HOME"])
+        self.hermes_home = Path(self.env["A2ASSISTANT_HOME"])
         self.src = root / "dist-src"
         self.log: list[str] = []
         self.after_install: list[dict] = []

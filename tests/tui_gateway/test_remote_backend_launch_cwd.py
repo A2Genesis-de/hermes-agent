@@ -22,7 +22,7 @@ def launch_dir(tmp_path, monkeypatch):
     """The gateway's launch directory: an existing host dir nobody picked, with no configured terminal.cwd."""
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", home)
     for name in ("TERMINAL_ENV", "TERMINAL_CWD", "TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE"):
         monkeypatch.delenv(name, raising=False)
@@ -39,7 +39,7 @@ def _backend(monkeypatch, name: str, **env: str) -> None:
 
 
 def _fresh_session(key: str) -> dict:
-    """What ``session.create`` stores for a TUI session that sent no cwd (no ``HERMES_TUI_CWD``)."""
+    """What ``session.create`` stores for a TUI session that sent no cwd (no ``A2ASSISTANT_TUI_CWD``)."""
     explicit, cwd, _remote = server._resolve_create_cwd({}, "tui", None)
     return {"session_key": key, "cwd": cwd, "explicit_cwd": explicit, "profile_home": None, "source": "tui"}
 

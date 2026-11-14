@@ -27,11 +27,11 @@ import pytest
 
 @pytest.fixture
 def tmp_skills(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Isolated skills dir + HERMES_HOME so the real user config is untouched."""
+    """Isolated skills dir + A2ASSISTANT_HOME so the real user config is untouched."""
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "skills").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     return home / "skills"
 
@@ -81,7 +81,7 @@ def test_frontmatter_slug_matched_even_when_dir_name_differs(
         "the old code compared the dir name 'stable-diffusion' and returned None"
     )
     assert "disabled" in msg.lower()
-    assert "hermes skills config" in msg
+    assert "a2assistant skills config" in msg
 
 
 def test_unknown_command_still_returns_none(

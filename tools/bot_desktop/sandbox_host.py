@@ -5,7 +5,7 @@ gateway host and this module via ``placement()``; callers keep using ``runtime.s
 
 Layout inside the sandbox, under ``<sandbox tmp>/hermes-bot-desktop/<profile>/``: ``launcher.sh`` (copied in
 at start), ``env`` (published DISPLAY/XAUTHORITY/DBUS), ``rfb.sock`` (Xvnc's unix socket), ``launcher.pid``.
-Host-side state under ``<HERMES_HOME>/bot-desktop/``: ``sandbox.json`` = ``{"env_key": ..., "display": ...}``
+Host-side state under ``<A2ASSISTANT_HOME>/bot-desktop/``: ``sandbox.json`` = ``{"env_key": ..., "display": ...}``
 so status() knows which terminal environment owns the screen without re-deriving it.
 
 The Desktop pane never sees a socket path: ``open_rfb_stream()`` returns a Popen whose stdin/stdout ARE the
@@ -254,13 +254,13 @@ def start(env: Any, profile: str, *, geometry: str, wait_seconds: float = 20.0,
         raise RuntimeError(f"could not seed the sandbox desktop dir: {proc.stderr.decode('utf-8', 'replace')[-500:]}")
     num = 20  # one profile per sandbox; the launcher's stale-lock logic handles a leftover :20
     child_env = {
-        "HERMES_BD_PROFILE": profile, "HERMES_BD_DISPLAY_NUM": str(num), "HERMES_BD_SOCKET": f"{rdir}/rfb.sock",
-        "HERMES_BD_XAUTH": f"{rdir}/Xauthority", "HERMES_BD_ENV_FILE": f"{rdir}/env",
-        "HERMES_BD_CONFIG_HOME": f"{rdir}/xdg", "HERMES_BD_GEOMETRY": geometry, "HERMES_BD_WALLPAPER": f"{rdir}/wallpaper.png",
+        "A2ASSISTANT_BD_PROFILE": profile, "A2ASSISTANT_BD_DISPLAY_NUM": str(num), "A2ASSISTANT_BD_SOCKET": f"{rdir}/rfb.sock",
+        "A2ASSISTANT_BD_XAUTH": f"{rdir}/Xauthority", "A2ASSISTANT_BD_ENV_FILE": f"{rdir}/env",
+        "A2ASSISTANT_BD_CONFIG_HOME": f"{rdir}/xdg", "A2ASSISTANT_BD_GEOMETRY": geometry, "A2ASSISTANT_BD_WALLPAPER": f"{rdir}/wallpaper.png",
     }
     if browser_exec and browser_exec_line:
-        child_env["HERMES_BD_BROWSER_EXEC"] = browser_exec
-        child_env["HERMES_BD_BROWSER_EXEC_LINE"] = browser_exec_line
+        child_env["A2ASSISTANT_BD_BROWSER_EXEC"] = browser_exec
+        child_env["A2ASSISTANT_BD_BROWSER_EXEC_LINE"] = browser_exec_line
     # The launcher must outlive this exec (docker exec / ssh) and be its own session so stop() can take the
     # whole group (Xvnc, dbus, Xfce) with one kill. `setsid -f` forks, so `$!` would be the wrong pid: the
     # launcher records ITS OWN pid (= its session id) before doing anything else.

@@ -46,7 +46,7 @@ class StatusOutputMixin:
 
     def _vprint(self, *args, force: bool = False, diagnostic: bool = False, **kwargs):
         """Verbose print — suppressed while tokens are streaming (allowed during tool execution) and after
-        the main response; ``force=True`` bypasses both. ``suppress_status_output`` (``hermes chat -q``) wins."""
+        the main response; ``force=True`` bypasses both. ``suppress_status_output`` (``a2assistant chat -q``) wins."""
         if getattr(self, "suppress_status_output", False):
             return
         if diagnostic and not self._warning_presentation_enabled():
@@ -68,7 +68,7 @@ class StatusOutputMixin:
         """True when quiet-mode tool summaries should print directly (CLI, no callback owns rendering);
         ``suppress_status_output`` always wins so ``[tool]``/``[done]`` never land in captured stdout.
 
-        ``suppress_status_output`` (the strict machine-readable mode used by ``hermes chat -Q``) always
+        ``suppress_status_output`` (the strict machine-readable mode used by ``a2assistant chat -Q``) always
         wins: those flows neutralize the rendering callbacks, and without this gate the "no callback owns
         rendering" fallback would print ``[tool]``/``[done]`` spinner lines into the captured stdout it
         exists to keep clean (#93220).
@@ -122,7 +122,7 @@ class StatusOutputMixin:
 
     def _emit_startup_warning(self, message: str) -> None:
         """A warning raised during ``__init__`` that the user must see (e.g. a memory provider that
-        could not be recovered). The CLI prints it; a CLI session the gateway hosts (``hermes chat``) has
+        could not be recovered). The CLI prints it; a CLI session the gateway hosts (``a2assistant chat``) has
         no viewer sink until its first turn wires one, so the line waits for that turn. Other drivers get
         a sticky warn ``AgentNotice``: Desktop renders notices but no warn-kind ``status.update``, and the
         messaging gateway wires its callbacks per turn, after init, so a notice raised before then waits

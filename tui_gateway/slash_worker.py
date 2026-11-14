@@ -66,7 +66,7 @@ def _start_legacy_parent_watchdog(parent_pid: int, *, poll_s: float = 2.0, grace
 
 def _prepare_slash_worker_runtime() -> None:
     """Start bounded MCP discovery before HermesCLI snapshots tools: each slash_worker child is its
-    own process — the parent ``hermes serve`` discovery thread does not populate this registry.
+    own process — the parent ``a2assistant serve`` discovery thread does not populate this registry.
 
     See #61891.
     """
@@ -162,8 +162,8 @@ def main():
     # Passed only by a gateway started before the owned-child update (see the legacy watchdog).
     p.add_argument("--parent-pid", type=int, default=0, help=argparse.SUPPRESS)
     args = p.parse_args()
-    os.environ["HERMES_SESSION_KEY"] = args.session_key
-    os.environ["HERMES_INTERACTIVE"] = "1"
+    os.environ["A2ASSISTANT_SESSION_KEY"] = args.session_key
+    os.environ["A2ASSISTANT_INTERACTIVE"] = "1"
     # Before the heavy cli import, so a legacy parent dying during startup is still noticed.
     _start_legacy_parent_watchdog(args.parent_pid)
     # Import cli ahead of MCP discovery: importing it loads ~/.hermes/.env and sets HERMES_QUIET,

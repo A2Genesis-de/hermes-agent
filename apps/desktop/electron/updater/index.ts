@@ -10,7 +10,7 @@
 //   posix-handoff   git checkout on macOS/Linux — the repo posix hand-off
 //                   script owns the swap.
 //   manual          checkout with no staged updater — the user runs
-//                   `hermes update` themselves.
+//                   `a2assistant update` themselves.
 //
 // The build stamp declares the owner. Runtime dispatch needs no payload probe
 // or Store inference; the strategy reports its mechanism to the renderer.

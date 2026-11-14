@@ -73,7 +73,7 @@ class FakeRemote:
 def remote(monkeypatch, tmp_path):
     root = tmp_path / "root"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     fake = FakeRemote()
     monkeypatch.setattr(oauth, "_client", lambda: httpx.Client(transport=httpx.MockTransport(fake.handle)))
     monkeypatch.setattr(oauth, "_flights", {})

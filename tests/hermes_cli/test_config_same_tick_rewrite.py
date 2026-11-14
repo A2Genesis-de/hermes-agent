@@ -126,7 +126,7 @@ def test_a_fresh_config_turned_unreadable_keeps_the_last_good_settings(frozen_no
     path.parent.mkdir(parents=True, exist_ok=True)
     managed = tmp_path / 'managed'
     managed.mkdir()
-    monkeypatch.setenv('HERMES_MANAGED_DIR', str(managed))
+    monkeypatch.setenv('A2ASSISTANT_MANAGED_DIR', str(managed))
     invalidate_managed_cache()
     (managed / 'config.yaml').write_text(json.dumps({'agent': {'max_turns': 7}}))
     _write(path, 3)

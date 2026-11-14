@@ -7,7 +7,7 @@
  * ACTIVE gateway's own, so on the usual setup the local default vanished
  * while the remote one stayed.
  *
- * Real app, real local backend, real second `hermes serve` registered as a
+ * Real app, real local backend, real second `a2assistant serve` registered as a
  * remote connection; checked from both sides of a switch.
  */
 
@@ -111,9 +111,11 @@ test("the condensed fleet menu lists the active gateway's default on both sides 
         .poll(
           async () => {
             const menu = await openMenu(page)
+
             const atRestLocal = await menu
               .locator('[data-slot="profile-dropdown-gateway"][data-connection-id="local"]')
               .count()
+
             await page.keyboard.press('Escape')
 
             return atRestLocal

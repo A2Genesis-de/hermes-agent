@@ -394,7 +394,7 @@ class SessionStoredReadsMixin:
 
     def sessions_in_workspace(self, session_ids: Iterable[str], workspace: str) -> set[str]:
         """The ids among *session_ids* whose row is in *workspace*: the clause ``list_sessions_rich``
-        filters the stored feed by (``hermes -c``'s rule: the same repo root, or at/under the folder).
+        filters the stored feed by (``a2assistant -c``'s rule: the same repo root, or at/under the folder).
 
         Storage interface: port as ``sessions_in_workspace``."""
         from hermes_state_sessions import _workspace_key_clause

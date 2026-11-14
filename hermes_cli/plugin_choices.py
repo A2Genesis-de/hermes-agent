@@ -7,7 +7,7 @@ Each asker is that surface's existing clarify prompt, so no surface grows a new 
   list answered by a typed reply elsewhere): ``gateway/plugin_command_choice.py``;
 * a local session on the gateway (classic CLI, Ink TUI, Desktop): the ``clarify`` server request to
   its attached viewers (same module);
-* the in-process classic CLI and the legacy ``hermes serve`` backend: their own clarify picker.
+* the in-process classic CLI and the legacy ``a2assistant serve`` backend: their own clarify picker.
 
 An asker takes ``(question, labels)`` and returns the label the user picked, or None; values are
 mapped back here, so a surface never sees them. With no asker bound (a hook, a cron job, a handler

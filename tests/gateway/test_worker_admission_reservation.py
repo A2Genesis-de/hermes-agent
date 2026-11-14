@@ -102,7 +102,7 @@ async def test_input_queued_behind_a_live_worker_is_released_then_runs_when_it_f
     from gateway import session_finite
     from hermes_state_runtime import get_session_admission
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'state.db')
     db.create_session('owned', 'telegram')
     runner = SimpleNamespace(_draining=False, config=SimpleNamespace(multiplex_profiles=False),

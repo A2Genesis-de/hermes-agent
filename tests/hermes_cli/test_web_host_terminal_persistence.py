@@ -21,7 +21,7 @@ def host_app(tmp_path, monkeypatch):
     (home / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(web_server.app.state, "ui_surface", "webapp", raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "localhost", raising=False)
     monkeypatch.setattr(web_server.app.state, "auth_required", False, raising=False)
@@ -90,7 +90,7 @@ def test_shell_scopes_passthrough_after_eager_activation(
     (other / ".env").write_text(
         f"{passthrough}=other-value\n{other_only}=other-only\n", encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv(passthrough, "launch-value")
     monkeypatch.setenv(launch_only, "launch-only")
     monkeypatch.delenv(other_only, raising=False)
@@ -370,7 +370,7 @@ def test_real_profile_a_b_a_and_process_exit_never_respawns(host_app, tmp_path):
                 extra += "&attach=" + tokens[name]
             with client.websocket_connect(url(extra)) as ws:
                 tokens[name] = metadata(ws)["terminalId"]
-                ws.send_bytes(b"printf 'HO%s=%s\\n' ME \"$HERMES_HOME\"\n")
+                ws.send_bytes(b"printf 'HO%s=%s\\n' ME \"$A2ASSISTANT_HOME\"\n")
                 assert b"HOME=" + str(homes[name]).encode() in output_until(ws, b"HOME=" + str(homes[name]).encode())
         token = tokens["alpha"]
         with client.websocket_connect(url("&profile=alpha&attach=" + token)) as ws:

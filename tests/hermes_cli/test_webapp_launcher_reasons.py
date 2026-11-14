@@ -1,4 +1,4 @@
-"""``hermes webapp`` says why the Webapp is off.
+"""``a2assistant webapp`` says why the Webapp is off.
 
 When the ``webapp:`` block asks for the Webapp but is malformed, the command prints the block's own
 problem (an invalid host, port, public URL or a non-boolean ``enabled``), never "Set webapp.enabled:
@@ -23,7 +23,7 @@ def _args(**overrides) -> Namespace:
 def home(monkeypatch, tmp_path):
     root = tmp_path / "root"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(launcher, "_build", lambda args: pytest.fail("built a Webapp that is off"))
     monkeypatch.setattr(launcher, "_ensure", lambda home: pytest.fail("started a gateway for a Webapp that is off"))
     return root

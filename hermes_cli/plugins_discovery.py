@@ -210,21 +210,21 @@ def collect_directory_manifests() -> list[PluginManifest]:
     user_dir = get_hermes_home() / "plugins"
     logger.debug("Scanning user plugins: %s", user_dir)
     _scan("user", user_dir, "user")
-    if _origin._env_enabled("HERMES_ENABLE_PROJECT_PLUGINS"):
+    if _origin._env_enabled("A2ASSISTANT_ENABLE_PROJECT_PLUGINS"):
         project_dir = Path.cwd() / ".hermes" / "plugins"
         logger.debug("Scanning project plugins: %s", project_dir)
         _scan("project", project_dir, "project")
     else:
-        logger.debug("Project plugins disabled (set HERMES_ENABLE_PROJECT_PLUGINS=1 to enable)")
+        logger.debug("Project plugins disabled (set A2ASSISTANT_ENABLE_PROJECT_PLUGINS=1 to enable)")
     return manifests
 
 
 def resolve_manifest_winners(manifests: list[PluginManifest]) -> dict[str, PluginManifest]:
     """Later sources win on key collision (project > user > bundled): a same-named copy under
-    ``~/.hermes/plugins/<name>`` is the documented way to override a bundled plugin, and is logged. A flat
+    ``~/.a2assistant/plugins/<name>`` is the documented way to override a bundled plugin, and is logged. A flat
     user/project manifest that claims a bundled key from a *differently named* directory is an impostor, not
     an override (``impostor_dir/plugin.yaml`` with ``name: kanban``): it is skipped with a warning so
-    ``hermes plugins enable kanban`` never activates unrelated code under the bundled name."""
+    ``a2assistant plugins enable kanban`` never activates unrelated code under the bundled name."""
     winners: dict[str, PluginManifest] = {}
     for manifest in manifests:
         key = manifest_key(manifest)
@@ -319,7 +319,7 @@ def gate_manifest(
             return ManifestGate("defer")
     if enabled is None or not names & enabled:
         return _placeholder(
-            f"not enabled in config (run `hermes plugins enable {lookup_key}` to activate)", logging.DEBUG,
+            f"not enabled in config (run `a2assistant plugins enable {lookup_key}` to activate)", logging.DEBUG,
             "Skipping '%s' (not in plugins.enabled)",
         )
     return ManifestGate("load")

@@ -67,7 +67,7 @@ export const deA2Gaps = {
       bundledReinstallHint:
         'Diese mitgelieferte Installation kann sich nicht innerhalb der App reparieren – installieren Sie die App neu, um ihr Backend wiederherzustellen.',
       reinstallApp: 'App neu installieren',
-      webappDescription: 'Führen Sie hermes webapp auf diesem Computer aus, um diesen Browser anzumelden.',
+      webappDescription: 'Führen Sie a2assistant webapp auf diesem Computer aus, um diesen Browser anzumelden.',
       webappTitle: 'Bei A2Assistant anmelden'
     }
   },
@@ -351,7 +351,7 @@ export const deA2Gaps = {
   updates: {
     applyStatus: {
       owed: steps =>
-        `Backend aktualisiert, aber noch ausstehend: ${steps}. Führen Sie \`hermes update\` erneut aus, um den Vorgang abzuschließen.`
+        `Backend aktualisiert, aber noch ausstehend: ${steps}. Führen Sie \`a2assistant update\` erneut aus, um den Vorgang abzuschließen.`
     }
   }
 } satisfies TranslationOverrides

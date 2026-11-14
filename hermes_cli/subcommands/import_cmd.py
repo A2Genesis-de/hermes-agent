@@ -1,4 +1,4 @@
-"""``hermes import`` subcommand parser."""
+"""``a2assistant import`` subcommand parser."""
 
 from __future__ import annotations
 

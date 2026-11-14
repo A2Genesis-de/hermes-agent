@@ -26,8 +26,8 @@ def test_local_persistent_controls_exports_but_cwd_always_carries(monkeypatch, t
         return json.loads(terminal_tool(cmd, task_id=task_id))["output"].strip()
 
     try:
-        run("cd sub && export HERMES_LP_EXPORT=yes; HERMES_LP_PLAIN=yes")
-        assert run("echo ${HERMES_LP_EXPORT:-none} ${HERMES_LP_PLAIN:-none}") == f"{exported} none"
+        run("cd sub && export A2ASSISTANT_LP_EXPORT=yes; A2ASSISTANT_LP_PLAIN=yes")
+        assert run("echo ${A2ASSISTANT_LP_EXPORT:-none} ${A2ASSISTANT_LP_PLAIN:-none}") == f"{exported} none"
         assert run("pwd -P") == str((tmp_path / "sub").resolve())
     finally:
         cleanup_vm(_resolve_container_task_id(task_id))

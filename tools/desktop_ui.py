@@ -2,12 +2,12 @@
 """Bridge desktop-only tools to Hermes-desktop renderer events.
 
 The desktop ``tui_gateway`` installs an emitter via :func:`set_emitter`; elsewhere it
-stays ``None`` and tools report "desktop only". Routing keys off ``HERMES_UI_SESSION_ID``
+stays ``None`` and tools report "desktop only". Routing keys off ``A2ASSISTANT_UI_SESSION_ID``
 so the event lands on the window that owns the turn (the sink is lock-guarded).
 
 Window-level events (``pane.reveal``, ``preview.open``) route by
-``HERMES_UI_SESSION_ID`` — the window/socket that owns the turn.
-Session-scoped events (``message.reaction``) route by ``HERMES_SESSION_ID``
+``A2ASSISTANT_UI_SESSION_ID`` — the window/socket that owns the turn.
+Session-scoped events (``message.reaction``) route by ``A2ASSISTANT_SESSION_ID``
 so the renderer's gateway-event stream, keyed on the chat session, receives
 the frame on the correct transcript transport (#80678).
 """
@@ -61,11 +61,11 @@ def emit(event: str, payload: dict) -> bool:
     if _emit is None:
         return False
     if event in _SESSION_SCOPED_EVENTS:
-        sid = get_session_env("HERMES_SESSION_ID", "")
+        sid = get_session_env("A2ASSISTANT_SESSION_ID", "")
         if not sid:
-            sid = get_session_env("HERMES_UI_SESSION_ID", "")
+            sid = get_session_env("A2ASSISTANT_UI_SESSION_ID", "")
     else:
-        sid = get_session_env("HERMES_UI_SESSION_ID", "")
+        sid = get_session_env("A2ASSISTANT_UI_SESSION_ID", "")
     _emit(sid, event, payload)
     return True
 

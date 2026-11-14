@@ -1,5 +1,5 @@
 """Full-uninstall macOS sweep: dashboard/serve launchd jobs and Electron/setup
-caches that live OUTSIDE HERMES_HOME and survive the home rmtree (#62209)."""
+caches that live OUTSIDE A2ASSISTANT_HOME and survive the home rmtree (#62209)."""
 from __future__ import annotations
 
 import plistlib
@@ -79,7 +79,7 @@ def test_full_uninstall_sweeps_macos_caches_and_dashboard_launchd(monkeypatch, t
 
     removed_caches, removed_jobs = [], []
     cache_dirs = [tmp_path / "caches" / name for name in
-                  ("A2Assistant", "com.nousresearch.hermes", "hermes-setup",
+                  ("A2Assistant", "de.a2genesis.a2assistant", "hermes-setup",
                    "com.nousresearch.hermes.setup")]
     for d in cache_dirs:
         d.mkdir(parents=True)
@@ -118,12 +118,12 @@ def test_full_uninstall_sweeps_macos_caches_and_dashboard_launchd(monkeypatch, t
 def _args(hermes_home, project_root, *, full, yes):
     from types import SimpleNamespace
     import hermes_constants
-    monkey = {"HERMES_HOME": str(hermes_home)}
+    monkey = {"A2ASSISTANT_HOME": str(hermes_home)}
     real_get = hermes_constants.get_hermes_home
-    hermes_constants.get_hermes_home = (lambda: Path(monkey["HERMES_HOME"]))
+    hermes_constants.get_hermes_home = (lambda: Path(monkey["A2ASSISTANT_HOME"]))
     try:
         # run_uninstall reads HERMES_HOME via the module-level import in uninstall.py
-        uninstall.get_hermes_home = lambda: Path(monkey["HERMES_HOME"])
+        uninstall.get_hermes_home = lambda: Path(monkey["A2ASSISTANT_HOME"])
         return SimpleNamespace(dry_run=False, yes=yes, full=full, data=False, gui=False)
     finally:
         hermes_constants.get_hermes_home = real_get

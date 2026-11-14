@@ -34,8 +34,8 @@ Usage:
     pytest failure. Tokens after ``--`` are never validated.
 
 Environment:
-    HERMES_TEST_WORKERS  Override worker count (default: os.cpu_count())
-    HERMES_TEST_PATHS    Override discovery roots (colon-sep; on Windows
+    A2ASSISTANT_TEST_WORKERS  Override worker count (default: os.cpu_count())
+    A2ASSISTANT_TEST_PATHS    Override discovery roots (colon-sep; on Windows
                          ';' also works and drive letters are handled;
                          default: 'tests')
 
@@ -162,7 +162,7 @@ _DURATIONS_FILE = "test_durations.json"
 
 def _split_pathspec(value: str) -> list[str]:
     """Split a separator-joined path list (``--paths``/``--files``/
-    ``HERMES_TEST_PATHS``) into individual paths.
+    ``A2ASSISTANT_TEST_PATHS``) into individual paths.
 
     POSIX: ``:``-separated, as documented.
 
@@ -482,7 +482,7 @@ def _kill_detached_leftovers(temproot: str) -> None:
     server) leaves that group, is reparented to init when its parent exits, and
     used to run forever: 215 orphan gateways (~52 GB RSS) piled up on one host.
     Every descendant carries the attempt's unique temproot in its environment
-    (``PYTEST_DEBUG_TEMPROOT``/``TMPDIR``, or a ``HOME``/``HERMES_HOME`` a fixture
+    (``PYTEST_DEBUG_TEMPROOT``/``TMPDIR``, or a ``HOME``/``A2ASSISTANT_HOME`` a fixture
     made under it), so it names exactly this attempt's processes and nothing else.
     Linux-only (``/proc``); elsewhere the process-group kill is all there is.
     """
@@ -1252,11 +1252,11 @@ def main() -> int:
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
     parser.add_argument("-j", "--jobs", type=int,
-                        default=int(os.environ.get("HERMES_TEST_WORKERS") or (os.cpu_count() or 4)),
-                        help="Parallel worker count (default: $HERMES_TEST_WORKERS or cpu_count)")
+                        default=int(os.environ.get("A2ASSISTANT_TEST_WORKERS") or (os.cpu_count() or 4)),
+                        help="Parallel worker count (default: $A2ASSISTANT_TEST_WORKERS or cpu_count)")
     parser.add_argument(
         "--paths",
-        default=os.environ.get("HERMES_TEST_PATHS", ":".join(_DEFAULT_ROOTS)),
+        default=os.environ.get("A2ASSISTANT_TEST_PATHS", ":".join(_DEFAULT_ROOTS)),
         help=(
             "Colon-separated discovery roots (default: 'tests'). On "
             "Windows, ';' also separates and drive letters (C:\\...) are "
@@ -1272,25 +1272,25 @@ def main() -> int:
         "--file-timeout",
         type=float,
         default=float(
-            os.environ.get("HERMES_TEST_FILE_TIMEOUT", _DEFAULT_FILE_TIMEOUT_SECONDS)
+            os.environ.get("A2ASSISTANT_TEST_FILE_TIMEOUT", _DEFAULT_FILE_TIMEOUT_SECONDS)
         ),
         help=(
             "Per-file wall-clock cap in seconds. On timeout, the pytest "
             "subprocess and its full process tree are SIGKILL'd. "
-            f"Default: {_DEFAULT_FILE_TIMEOUT_SECONDS}s ({round(_DEFAULT_FILE_TIMEOUT_SECONDS/60)} min), env: HERMES_TEST_FILE_TIMEOUT."
+            f"Default: {_DEFAULT_FILE_TIMEOUT_SECONDS}s ({round(_DEFAULT_FILE_TIMEOUT_SECONDS/60)} min), env: A2ASSISTANT_TEST_FILE_TIMEOUT."
         ),
     )
     parser.add_argument(
         "--file-retries",
         type=int,
         default=int(
-            os.environ.get("HERMES_TEST_FILE_RETRIES", _DEFAULT_FILE_RETRIES)
+            os.environ.get("A2ASSISTANT_TEST_FILE_RETRIES", _DEFAULT_FILE_RETRIES)
         ),
         help=(
             "Re-run a failing test FILE this many times in a fresh subprocess "
             "before declaring it failed. A pass-on-retry counts as passed but "
             "is reported as FLAKY in the summary. 0 disables. "
-            f"Default: {_DEFAULT_FILE_RETRIES}, env: HERMES_TEST_FILE_RETRIES."
+            f"Default: {_DEFAULT_FILE_RETRIES}, env: A2ASSISTANT_TEST_FILE_RETRIES."
         ),
     )
     parser.add_argument(
@@ -1301,7 +1301,7 @@ def main() -> int:
             "Files are distributed across slices using cached durations "
             "so each slice takes roughly equal wall time. "
             "Without a duration cache, files are distributed by count. "
-            "Env: HERMES_TEST_SLICE (format: I/N)."
+            "Env: A2ASSISTANT_TEST_SLICE (format: I/N)."
         ),
     )
     parser.add_argument(
@@ -1481,10 +1481,10 @@ def main() -> int:
 
     # Parse --slice (or HERMES_TEST_SLICE) early so we can exit on bad input
     # before doing any expensive discovery.
-    slice_raw = args.slice or os.environ.get("HERMES_TEST_SLICE")
+    slice_raw = args.slice or os.environ.get("A2ASSISTANT_TEST_SLICE")
     # Read once, here: test processes inherit this env, and a runner they start (the
     # runner's own probe tests) must run its whole file set, not "its" slice of it.
-    os.environ.pop("HERMES_TEST_SLICE", None)
+    os.environ.pop("A2ASSISTANT_TEST_SLICE", None)
     slice_index: int | None = None
     slice_count: int = 1
     if slice_raw:

@@ -162,7 +162,7 @@ class SSHEnvironment(BaseEnvironment):
         return "/root" if self.user == "root" else f"/home/{self.user}"
 
     def _ensure_remote_dirs(self) -> None:
-        """Create base ~/.hermes directory tree on remote in one SSH call."""
+        """Create base ~/.a2assistant directory tree on remote in one SSH call."""
         base = f"{self._remote_home}/.hermes"
         self._run_ssh(quoted_mkdir_command([base, f"{base}/skills", f"{base}/credentials", f"{base}/cache"]),
                       timeout=10)

@@ -1,21 +1,21 @@
-"""Host-scoped update→restart obligation for ``hermes update``.
+"""Host-scoped update→restart obligation for ``a2assistant update``.
 
-Multiplex-only (Teknium ruling): exactly ONE ``hermes gateway run`` per host serves every
+Multiplex-only (Teknium ruling): exactly ONE ``a2assistant gateway run`` per host serves every
 profile, so "this pull still owes the fleet a restart" is a property of the HOST, not of one
-profile's ``HERMES_HOME``. The legacy ``$HERMES_HOME/fleet_restart_pending`` marker was
-per-home: ``hermes -p coder update`` armed and cleared coder's copy while restarting the
+profile's ``A2ASSISTANT_HOME``. The legacy ``$A2ASSISTANT_HOME/fleet_restart_pending`` marker was
+per-home: ``a2assistant -p coder update`` armed and cleared coder's copy while restarting the
 SHARED process, and every other profile's CLI could neither see nor discharge that obligation
 — it simply armed its own and re-killed the same host process.
 
 The record therefore lives beside the host rendezvous record, in
-:func:`gateway.host_rendezvous.host_state_dir` (``$HERMES_GATEWAY_LOCK_DIR`` else
+:func:`gateway.host_rendezvous.host_state_dir` (``$A2ASSISTANT_GATEWAY_LOCK_DIR`` else
 ``$XDG_STATE_HOME/hermes/gateway-locks``) — the one cross-profile, per-OS-user state root the
 tree already has. It is written once per host and installation (keyed by the checkout), read by
 every profile's CLI, and cleared once.
 
 The same "one host process, not one per profile" identity is what
 :func:`collapse_units_to_host_processes` applies to enumerated systemd units: leftover
-per-profile ``hermes-gateway-<p>.service`` units on a multiplexed host all point at the same
+per-profile ``a2assistant-gateway-<p>.service`` units on a multiplexed host all point at the same
 live ``MainPID``, so restarting each one restarts the host process N times.
 """
 
@@ -136,8 +136,8 @@ def arm_host_obligation(
 ) -> bool:
     """Arm the host record, else ``marker`` (the arming profile's per-home breadcrumb). Never raises.
 
-    The one fallback for every arm (``hermes update``'s commit point, a historical updater's
-    takeover). An unwritable host state dir (``HERMES_GATEWAY_LOCK_DIR`` on a read-only mount, a
+    The one fallback for every arm (``a2assistant update``'s commit point, a historical updater's
+    takeover). An unwritable host state dir (``A2ASSISTANT_GATEWAY_LOCK_DIR`` on a read-only mount, a
     container UID that does not own ``$HOME``) must never disarm the obligation (#117275), but the
     marker is visible to the arming profile only: it settles the debt only on an install PROVEN to
     have no other profile, and an unreadable profile roster proves nothing (review S2 residual).
@@ -168,7 +168,7 @@ def arm_host_obligation(
                  host_obligation_path(), hidden)
     # ASCII: a historical updater's takeover may print through a legacy console code page.
     print("  Warning: could not record the pending gateway-restart obligation where every profile sees it "
-          "(state dir not writable) - restart gateways with `hermes gateway restart` if this update is "
+          "(state dir not writable) - restart gateways with `a2assistant gateway restart` if this update is "
           "interrupted.", file=sys.stderr)
     return False
 
@@ -438,7 +438,7 @@ def host_restart_already_completed(sha: Optional[str]) -> bool:
     """True when THIS host obligation was already restarted onto ``sha``.
 
     The guard that makes the catch-up restart idempotent per host: a second profile running
-    ``hermes update`` must attach to the first restart's outcome, never kill the shared
+    ``a2assistant update`` must attach to the first restart's outcome, never kill the shared
     multiplexer again.
     """
     record = read_host_obligation()

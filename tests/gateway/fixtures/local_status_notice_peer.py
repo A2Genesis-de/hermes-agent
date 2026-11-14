@@ -87,7 +87,7 @@ async def probe():
         with contextlib.redirect_stderr(printed), contextlib.redirect_stdout(io.StringIO()):
             for params in events:
                 view._dispatch_event(params['type'], params.get('admission_id'), params.get('payload', {}))
-        Path(os.environ['HERMES_HOME'], 'receipt.json').write_text(json.dumps({
+        Path(os.environ['A2ASSISTANT_HOME'], 'receipt.json').write_text(json.dumps({
             'events': [[p['type'], p.get('payload')] for p in events if p['type'] in (
                 'status.update', 'notification.show', 'notification.clear')], 'cli_stderr': printed.getvalue()}))
     finally:
@@ -101,7 +101,7 @@ def main():
     threading.Thread(target=peer.serve_forever, daemon=True).start()
     url = f'http://127.0.0.1:{peer.server_port}/v1'
     os.environ.update(OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, TERMINAL_ENV='local')
-    Path(os.environ['HERMES_HOME'], 'config.yaml').write_text(
+    Path(os.environ['A2ASSISTANT_HOME'], 'config.yaml').write_text(
         f'model:\n  default: local-control\n  provider: custom\n  base_url: {url}\n'
         'streaming:\n  enabled: false\nauxiliary:\n  title_generation:\n    enabled: false\n'
         + ('display:\n  suppress_warning_notifications: true\n' if suppress else ''))

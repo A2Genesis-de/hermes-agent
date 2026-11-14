@@ -1,8 +1,8 @@
-"""Linux/macOS ``hermes update`` pauses this install's gateways before the first checkout move.
+"""Linux/macOS ``a2assistant update`` pauses this install's gateways before the first checkout move.
 
 One real HEAD install (``_git_world``: the real ``scripts/install.sh`` over real smart HTTP, every
 command in a ``bwrap`` sandbox) is shared by the cells. A credential-free, platform-less (cron-only)
-``hermes gateway run`` lives in the same PID namespace as the updater (``handoff._nshost``), as on a
+``a2assistant gateway run`` lives in the same PID namespace as the updater (``handoff._nshost``), as on a
 user's machine. What is asserted is what the user sees: which gateway process serves the checkout
 (its control-socket ``identify``: pid + ``code_sha``), the update's exit code and transcript, HEAD,
 and the durable pause record ``update_pause_record`` keeps in the root hermes home.
@@ -15,7 +15,7 @@ and the durable pause record ``update_pause_record`` keeps in the root hermes ho
 (d) ``--no-gateway-restart``: nothing is stopped before the move (the user manages gateways).
 (e) SIGKILL mid-stop: the gateway is SIGSTOPped so the updater blocks in its control-socket pause
     request with that request recorded; the whole update tree is SIGKILLed there. The
-    next ``hermes`` launch must leave exactly one gateway serving: none lost, none duplicated.
+    next ``a2assistant`` launch must leave exactly one gateway serving: none lost, none duplicated.
 (f) SIGKILL after the commit, before the restart: the release's dependency preparation holds while
     a toggle exists; the update tree is SIGKILLed once HEAD is the release and the gateway is
     paused. The next launch syncs the dependencies and restarts exactly the paused gateway on the
@@ -24,15 +24,15 @@ and the durable pause record ``update_pause_record`` keeps in the root hermes ho
     preparation raises while a toggle exists and changes ``uv.lock``'s bytes (the dependency stamp),
     so the venv is stale at the new HEAD. The update exits 0 with a ``dependencies`` follow-up and
     the paused gateway stays stopped (the tree gate holds it: it would boot new code on stale
-    dependencies). A ``hermes gateway run`` launched then (the replayed argv) syncs the owed
-    dependencies in its own launch before serving; the next ``hermes`` launch adopts that gateway
+    dependencies). A ``a2assistant gateway run`` launched then (the replayed argv) syncs the owed
+    dependencies in its own launch before serving; the next ``a2assistant`` launch adopts that gateway
     instead of starting a twin, and the record is discharged.
 (i) the checkout move itself fails before the commit point (the release adds a file under a
     directory the user cannot write): the paused gateway is restarted on the OLD code, and the
     update's exit code and receipt outcome equal those of the same failing update run with no
     gateway at all.
 (h) the Desktop hand-off (``scripts/desktop-update/posix.sh``, what the Desktop app spawns before it
-    quits) runs the same ``hermes update --gateway``: the gateway is paused and restarted on the new
+    quits) runs the same ``a2assistant update --gateway``: the gateway is paused and restarted on the new
     commit, and the hand-off's result file reports success.
 """
 
@@ -84,7 +84,7 @@ _SLOW_DEPS = f"""    {_DEPS_MARK}
 
 @pytest.fixture(scope="module")
 def w() -> Iterator[G.World]:
-    """A SHORT root: the gateway's AF_UNIX control socket lives under ``$HERMES_HOME``."""
+    """A SHORT root: the gateway's AF_UNIX control socket lives under ``$A2ASSISTANT_HOME``."""
     base = os.environ.get("TMPDIR") or tempfile.gettempdir()
     root = Path(tempfile.mkdtemp(prefix="hz", dir=base))
     try:
@@ -95,7 +95,7 @@ def w() -> Iterator[G.World]:
             cfg_path.write_text(yaml.safe_dump(cfg, sort_keys=False), encoding="utf-8")
             yield world
     finally:
-        if not os.environ.get("HERMES_E2E_KEEP_ROOT"):
+        if not os.environ.get("A2ASSISTANT_E2E_KEEP_ROOT"):
             shutil.rmtree(root, ignore_errors=True)
 
 
@@ -455,12 +455,12 @@ def test_deps_failure_after_commit_holds_the_paused_set_until_a_launch_syncs(w):
     toggle = w.sb.home / BREAK_DEPS
     # As users run: the suite-wide HERMES_DISABLE_LAZY_INSTALLS also turns off each launch's
     # dependency sync (venv_sync.prepare_launch), and with it the tree gate's dependency hold.
-    lazy = w.sb.env.pop("HERMES_DISABLE_LAZY_INSTALLS", None)
+    lazy = w.sb.env.pop("A2ASSISTANT_DISABLE_LAZY_INSTALLS", None)
     try:
         _deps_failure_cell(w, toggle)
     finally:
         if lazy is not None:
-            w.sb.env["HERMES_DISABLE_LAZY_INSTALLS"] = lazy
+            w.sb.env["A2ASSISTANT_DISABLE_LAZY_INSTALLS"] = lazy
 
 
 def _deps_failure_cell(w: G.World, toggle: Path) -> None:

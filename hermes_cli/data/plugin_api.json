@@ -1,6 +1,6 @@
 {
   "_comment": [
-    "The modules and names a plugin may import from Hermes core. `hermes plugins validate` warns on any other",
+    "The modules and names a plugin may import from Hermes core. `a2assistant plugins validate` warns on any other",
     "Hermes import (hermes_cli/plugin_validate_private_imports.py), and scripts/gen_plugin_api_docs.py renders",
     "website/docs/developer-guide/plugins/public-api.md from this file.",
     "A `module` entry allows the module and its non-underscore names; `module:Name` allows that one name.",

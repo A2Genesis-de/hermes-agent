@@ -125,7 +125,7 @@ async def test_hermes_handle_reaches_the_default_profile_only_when_no_hermes_pro
         (home / "config.yaml").write_text("{}\n", encoding="utf-8")
     if legacy_hermes == "parked":
         (root / "profiles" / "hermes" / "gateway.parked").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root / gateway_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root / gateway_home))
     adapter = _make_adapter(multiplex=multiplex)
 
     async def handler(request):
@@ -161,7 +161,7 @@ async def test_profile_prefix_names_the_same_profile_in_any_case(tmp_path, monke
     for home in [root, root / "profiles" / "worker"] + ([root / "profiles" / "hermes"] if legacy_hermes else []):
         home.mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("{}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     adapter = _make_adapter(multiplex=multiplex)
 
     async def handler(request):
@@ -199,11 +199,11 @@ class TestApiServerModelsUnderProfile:
 
 
 class TestApiServerSessionProfileBinding:
-    """HERMES_SESSION_PROFILE must be bound per /p/<profile>/ request.
+    """A2ASSISTANT_SESSION_PROFILE must be bound per /p/<profile>/ request.
 
     Regression guard for cross-profile sandbox reuse: before the fix,
     _bind_api_server_session never passed ``profile`` to set_session_vars,
-    so every API-server turn bound HERMES_SESSION_PROFILE="" and the
+    so every API-server turn bound A2ASSISTANT_SESSION_PROFILE="" and the
     terminal tool collapsed ALL api_server sessions (default AND org
     profiles) onto the shared "default" container key — letting org-profile
     turns reuse the default profile's sandbox (SSH key / secrets exposure).
@@ -220,7 +220,7 @@ class TestApiServerSessionProfileBinding:
             profile="nm-media",
         )
         try:
-            assert get_session_env("HERMES_SESSION_PROFILE") == "nm-media"
+            assert get_session_env("A2ASSISTANT_SESSION_PROFILE") == "nm-media"
         finally:
             clear_session_vars(tokens)
 

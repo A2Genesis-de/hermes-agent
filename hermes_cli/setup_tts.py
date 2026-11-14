@@ -18,7 +18,7 @@ def _install_tts_extra(extra: str) -> bool:
         pm.sync_venv([extra], explicit=True)
     except (pm.InstallError, OSError, ValueError) as exc:
         _setup.print_error(f"Failed to install {extra}: {exc}")
-        _setup.print_info("Retry with: hermes setup tts")
+        _setup.print_info("Retry with: a2assistant setup tts")
         return False
     _setup.print_success(f"{extra} installed. Restart A2Assistant to use it.")
     return True
@@ -133,7 +133,7 @@ def _setup_tts_provider(config: dict):
         _setup.print_info("OpenAI TTS will use the managed Nous gateway and bill to your subscription.")
         if _setup.get_env_value("VOICE_TOOLS_OPENAI_KEY") or _setup.get_env_value("OPENAI_API_KEY"):
             _setup.print_warning("Direct OpenAI credentials are still configured and may take precedence "
-                                 "until removed from ~/.hermes/.env.")
+                                 "until removed from ~/.a2assistant/.env.")
     elif selected in _TTS_LOCAL_PROVIDERS:
         selected = _tts_local_install_step(selected)
     else:
@@ -144,7 +144,7 @@ def _setup_tts_provider(config: dict):
 
 
 def setup_tts(config: dict):
-    """Standalone TTS setup (for 'hermes setup tts')."""
+    """Standalone TTS setup (for 'a2assistant setup tts')."""
     _setup_tts_provider(config)
 
 

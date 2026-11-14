@@ -32,7 +32,7 @@ def skills_home(tmp_path, monkeypatch):
     refs = d / "references"
     refs.mkdir()
     (refs / "guide.md").write_text("# Guide\n\nDetailed reference content here.\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     reset_skill_view_dedup()
     from tools.skill_manager_guards import _reset_background_review_read_marks
     _reset_background_review_read_marks()

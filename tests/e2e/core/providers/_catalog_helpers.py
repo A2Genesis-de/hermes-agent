@@ -175,7 +175,7 @@ def discover_catalog() -> list[Row]:
     if _CATALOG is None:
         with tempfile.TemporaryDirectory(prefix="catalog-discover-") as d:
             env = {k: v for k, v in os.environ.items() if k in _PASSTHROUGH}
-            env.update(HOME=d, HERMES_HOME=str(Path(d) / ".hermes"), PYTHONPATH=str(REPO_ROOT))
+            env.update(HOME=d, A2ASSISTANT_HOME=str(Path(d) / ".hermes"), PYTHONPATH=str(REPO_ROOT))
             proc = subprocess.run([sys.executable, "-c", _DISCOVER], env=env, capture_output=True,
                                   text=True, timeout=120, cwd=str(REPO_ROOT), check=False)
         line = next((ln for ln in proc.stdout.splitlines() if ln.startswith("CATALOG=")), None)
@@ -198,10 +198,10 @@ def hermetic_env(home: Path, extra: dict[str, str]) -> dict[str, str]:
     env = {k: v for k, v in os.environ.items()
            if (k in _PASSTHROUGH or k.startswith("LC_")) and not k.endswith(_SECRET_SUFFIXES)}
     env.update({
-        "HOME": str(home), "HERMES_HOME": str(home / ".hermes"), "PYTHONPATH": str(REPO_ROOT),
+        "HOME": str(home), "A2ASSISTANT_HOME": str(home / ".hermes"), "PYTHONPATH": str(REPO_ROOT),
         "PYTHONUNBUFFERED": "1", "NO_COLOR": "1", "TERM": "dumb",
         # The child's HOME is tmp_path; this is the state-db guard's documented child escape hatch.
-        "HERMES_STATE_DB_GUARD_BYPASS": "1",
+        "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
     })
     env.update(extra)
     return env

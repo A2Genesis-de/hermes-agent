@@ -3,7 +3,7 @@
 The desktop's welcome trial goes only to a first install, once per OS user, so ``onboarding.start``
 asks this before it claims one. The answer is about the OS user, not the active profile: it looks at
 every Hermes root the machine names (default roots, channel and package roots, the roots gateway
-services and the ``hermes`` launcher point at) and at a marker file no Hermes setting can move.
+services and the ``a2assistant`` launcher point at) and at a marker file no Hermes setting can move.
 
 This is product gating, not security: the inference API's limits stop abuse. So it reads only small
 known files, never scans the disk, never writes into a Hermes root, and treats doubt as "used".
@@ -230,26 +230,26 @@ def _home_globs() -> Iterable[Path]:
 
 
 def _shared_auth_dir() -> Iterable[Path]:
-    raw = os.environ.get("HERMES_SHARED_AUTH_DIR", "").strip()
+    raw = os.environ.get("A2ASSISTANT_SHARED_AUTH_DIR", "").strip()
     return (Path(raw),) if raw else ()
 
 
 def _registry_home() -> Iterable[Path]:
-    """The ``HERMES_HOME`` older Windows installers saved for the user (the desktop honours it)."""
+    """The ``A2ASSISTANT_HOME`` older Windows installers saved for the user (the desktop honours it)."""
     if sys.platform != "win32":
         return ()
     import winreg
 
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, "Environment") as key:
-            value, _kind = winreg.QueryValueEx(key, "HERMES_HOME")
+            value, _kind = winreg.QueryValueEx(key, "A2ASSISTANT_HOME")
     except OSError:
         return ()
     return (Path(os.path.expandvars(str(value))),) if str(value).strip() else ()
 
 
 def _service_homes() -> Iterable[Path]:
-    """The ``HERMES_HOME`` of every gateway service this OS user runs: its own definitions, the
+    """The ``A2ASSISTANT_HOME`` of every gateway service this OS user runs: its own definitions, the
     machine-wide units that run as it, and the launchers its Scheduled Tasks start. Another account's
     gateway is that account's install."""
     from hermes_cli import gateway_windows
@@ -299,11 +299,12 @@ def _is_this_account(account: str) -> bool:
 
 
 def _launcher_root() -> Iterable[Path]:
-    """The root that owns the ``hermes`` on PATH: its launcher execs that root's ``tools/`` Python."""
+    """The root that owns the ``a2assistant`` on PATH: its launcher execs that root's ``tools/`` Python."""
     from hermes_cli._launchers import _launcher_python
+    from hermes_cli.branding import CLI_COMMAND, LEGACY_CLI_COMMAND
     from hermes_platform.resolver import locate_command
 
-    found = locate_command("hermes").command
+    found = locate_command(CLI_COMMAND).command or locate_command(LEGACY_CLI_COMMAND).command
     if not found:
         return ()
     protected = _protected_dirs()
@@ -315,7 +316,7 @@ def _launcher_root() -> Iterable[Path]:
     python = _launcher_python(launcher)
     owners = [p.parent for p in (python.parents if python else ()) if p.name == "tools"]
     if not owners and launcher.parent.name == "bin" and launcher.parent.parent.name == ".hermes":
-        owners = [launcher.parent.parent.parent.parent]  # <root>/<checkout>/.hermes/bin/hermes
+        owners = [launcher.parent.parent.parent.parent]
     return owners[:1]
 
 
@@ -393,7 +394,7 @@ def _provider_config(home: _Root) -> bool:
 
 
 # A deployment secret, not something a user entered.
-_IGNORED_ENV_KEYS = frozenset({"HERMES_ANON_API_SECRET"})
+_IGNORED_ENV_KEYS = frozenset({"A2ASSISTANT_ANON_API_SECRET"})
 _USER_ENV_CATEGORIES = frozenset({"provider", "tool", "messaging", "skill"})
 
 

@@ -18,7 +18,7 @@ async def _owner(tmp_path, monkeypatch):
     from gateway.session_authority import initialize_session_authority
     from hermes_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     runner = GatewayRunner(GatewayConfig(sessions_dir=tmp_path / "sessions"))
     db = SessionDB(tmp_path / "state.db")
     runner.session_store._db = runner._session_db = db

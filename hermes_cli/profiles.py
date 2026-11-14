@@ -20,6 +20,7 @@ from agent.file_safety import HOME_CREDENTIAL_DIRS
 from hermes_cli.archive_safe import archive_root_dirs, make_targz, normalize_archive_parts, safe_extract_targz
 from hermes_cli import config_backend as _config_backend
 from hermes_cli.profiles_config import _migrate_profile_config_if_outdated
+from hermes_cli.service_names import CLI_COMMAND, CLI_COMMANDS, INSTALL_DIR_NAMES, SYSTEMD_GATEWAY_UNITS
 from hermes_cli.home_data_layout import PM_RUNTIME_ROOT_DIRS, SECRET_CACHE_STORES
 from hermes_cli.profiles_remove import _rmtree_make_writable, _rmtree_with_retry, wait_profile_unowned
 from hermes_cli.profiles_export_scrub import (
@@ -27,7 +28,7 @@ from hermes_cli.profiles_export_scrub import (
     scrub_export_secrets as _scrub_export_secrets)
 from hermes_constants import (
     LOCAL_RUNTIME_ROOT_DIRS, PROFILE_ID_RE, clear_named_profile_deleted, mark_named_profile_deleted,
-    named_profile_has_identity, named_profile_is_deleted, named_profile_is_live,
+    named_profile_has_identity, named_profile_is_deleted, named_profile_is_live, unset_env,
 )
 from hermes_cli.config_backend import (
     config_cache_version, config_cache_version_or_none, config_exists, require_file_tooling)
@@ -73,7 +74,7 @@ _CLONE_ALL_STRIP: list[str] = [
 # a clone must run. The runtime trio is ``LOCAL_RUNTIME_ROOT_DIRS``, shared with
 # ``hermes_cli.backup._EXCLUDED_ROOT_DIRS`` so the two lists cannot drift.
 _CLONE_ALL_DEFAULT_EXCLUDE_ROOT: frozenset[str] =  frozenset({
-    "hermes-agent",
+    *INSTALL_DIR_NAMES,
     ".worktrees",
     "profiles",
     "bin",
@@ -231,7 +232,7 @@ def profile_path_contains_private_store(parts: tuple[str, ...]) -> bool:
 # artifacts here — not in a downstream copy.
 _DEFAULT_EXPORT_EXCLUDE_ROOT = DEFAULT_EXPORT_EXCLUDE_ROOT = frozenset({
     # Infrastructure
-    "hermes-agent",         # repo checkout (multi-GB)
+    *INSTALL_DIR_NAMES,
     ".worktrees",           # git worktrees
     "profiles",             # other profiles — never recursive-export
     "bin",                  # installed binaries
@@ -290,13 +291,13 @@ _HERMES_SUBCOMMANDS = frozenset({
 # Path helpers
 
 def _get_profiles_root() -> Path:
-    """Named-profiles root, anchored to the hermes root (NOT the current HERMES_HOME, which
+    """Named-profiles root, anchored to the hermes root (NOT the current A2ASSISTANT_HOME, which
     may itself be a profile) so ``coder profile list`` sees all profiles."""
     return _get_default_hermes_home() / "profiles"
 
 
 def _get_default_hermes_home() -> Path:
-    """Default (pre-profile) HERMES_HOME: ``~/.hermes``, or HERMES_HOME itself in
+    """Default (pre-profile) A2ASSISTANT_HOME: ``~/.a2assistant``, or A2ASSISTANT_HOME itself in
     Docker/custom deployments (e.g. ``/opt/data``)."""
     from hermes_constants import get_default_hermes_root
     return get_default_hermes_root()
@@ -322,27 +323,27 @@ def _find_our_wrapper(alias: str) -> Optional[Path]:
 
 
 def _is_our_wrapper(path: Path) -> bool:
-    """True when *path* reads as a Hermes-generated wrapper (``hermes -p`` in its head)."""
+    """True when *path* reads as a Hermes-generated wrapper (``a2assistant -p`` in its head)."""
     try:
         with open(path, encoding="utf-8-sig") as f:
-            return "hermes -p" in f.read(_WRAPPER_READ_LIMIT)
+            return "a2assistant -p" in f.read(_WRAPPER_READ_LIMIT)
     except Exception:
         return False
 
 
 def _missing_profile_error(canon: str) -> FileNotFoundError:
-    return FileNotFoundError(f"Profile '{canon}' does not exist. Create it with: hermes profile create {canon}")
+    return FileNotFoundError(f"Profile '{canon}' does not exist. Create it with: a2assistant profile create {canon}")
 
 
 def _unknown_profile_error(canon: str) -> FileNotFoundError:
     """For delete/rename/export of a name that matches no profile (likely a typo)."""
-    return FileNotFoundError(f"No profile named '{canon}'. See your profiles with: hermes profile list")
+    return FileNotFoundError(f"No profile named '{canon}'. See your profiles with: a2assistant profile list")
 
 
 def _profile_exists_error(canon: str) -> FileExistsError:
     return FileExistsError(
-        f"A profile named '{canon}' already exists. Switch to it with `hermes profile use {canon}`, "
-        "see all profiles with `hermes profile list`, or choose a different name."
+        f"A profile named '{canon}' already exists. Switch to it with `a2assistant profile use {canon}`, "
+        "see all profiles with `a2assistant profile list`, or choose a different name."
     )
 
 
@@ -362,7 +363,7 @@ def _invalid_profile_name_error(name: str) -> ValueError:
     suggestion = _suggest_profile_name(name)
     return ValueError(
         f"{name!r} is not a valid profile name. {_PROFILE_NAME_RULE} (for example: {suggestion}). "
-        f"Then run `hermes profile create {suggestion}`."
+        f"Then run `a2assistant profile create {suggestion}`."
     )
 
 
@@ -440,7 +441,7 @@ def _existing_profile_dir(name: str) -> tuple[str, Path]:
 
 
 def get_profile_dir(name: str) -> Path:
-    """Resolve a profile name to its HERMES_HOME directory."""
+    """Resolve a profile name to its A2ASSISTANT_HOME directory."""
     canon = normalize_profile_name(name)
     if canon == "default":
         return _get_default_hermes_home()
@@ -488,7 +489,7 @@ def _iter_named_profile_dirs(*, live_only: bool = True) -> list[Path]:
     A dir is a profile only when it carries an identity marker (``named_profile_has_identity``):
     cron/logging side-effects and pre-tombstone ghost shells leave marker-less dirs that must
     not be listed, served, ticked, or ``.env``-seeded — that seeding is what turned a ghost
-    shell into a "real" profile on the next ``hermes update`` (#95188, #94823, #99392)."""
+    shell into a "real" profile on the next ``a2assistant update`` (#95188, #94823, #99392)."""
     profiles_root = _get_profiles_root()
     if not profiles_root.is_dir():
         return []
@@ -565,9 +566,9 @@ def create_wrapper_script(name: str, target: Optional[str] = None) -> Optional[P
     wrapper_path = _wrapper_path(canon)
     try:
         if sys.platform == "win32":
-            wrapper_path.write_text(f"@echo off\r\nhermes -p {profile} %*\r\n", encoding="utf-8")
+            wrapper_path.write_text(f"@echo off\r\n{CLI_COMMAND} -p {profile} %*\r\n", encoding="utf-8")
         else:
-            hermes_exe = shutil.which("hermes") or "hermes"
+            hermes_exe = shutil.which(CLI_COMMAND) or CLI_COMMAND
             wrapper_path.write_text(f'#!/bin/sh\nexec {shlex.quote(hermes_exe)} -p {profile} "$@"\n', encoding="utf-8")
             wrapper_path.chmod(wrapper_path.stat().st_mode | stat.S_IEXEC | stat.S_IXGRP | stat.S_IXOTH)
         return wrapper_path
@@ -619,7 +620,7 @@ def build_alias_map() -> dict[str, str]:
     if not wrapper_dir.is_dir():
         return result
     is_windows = sys.platform == "win32"
-    prefix = "hermes -p "
+    prefix = "a2assistant -p "
     for entry in sorted(wrapper_dir.iterdir()):
         if not entry.is_file():
             continue
@@ -749,7 +750,7 @@ def _seed_model_config(profile_dir: Path) -> None:
 
 
 def _check_gateway_running(profile_dir: Path) -> bool:
-    """Gateway liveness for a profile dir, never mutating HERMES_HOME.
+    """Gateway liveness for a profile dir, never mutating A2ASSISTANT_HOME.
 
     Primary signal is ``gateway.pid`` verified against the runtime lock (fails closed when
     the lock isn't held by *this* reader: dashboard as a separate s6 service, launch-service
@@ -823,7 +824,7 @@ def _walk_skill_count(skills_dir: Path) -> int:
 
 def _count_skills(profile_dir: Path) -> int:
     """Count installed skills in a profile (cached by skills-dir signature + TTL). Walks
-    synchronously when stale — detail surfaces (``hermes profile info``, ``profiles.describe``)
+    synchronously when stale — detail surfaces (``a2assistant profile info``, ``profiles.describe``)
     want the fresh number; polled lists go through :func:`_cached_skill_count`."""
     skills_dir = profile_dir / "skills"
     if not skills_dir.is_dir():
@@ -874,7 +875,7 @@ def _cached_skill_count(profile_dir: Path) -> int:
 def read_profile_meta(profile_dir: Path) -> dict:
     """Read ``profile.yaml`` -> ``{description, description_auto, display_name,
     previous_names}`` (empty defaults when missing/unreadable). Never raises — a
-    corrupt file on one profile must not break ``hermes profile list``."""
+    corrupt file on one profile must not break ``a2assistant profile list``."""
     def _read() -> dict:
         data = _load_yaml_dict(profile_dir / "profile.yaml") or {}
         ui_meta = data.get("ui_meta")
@@ -1100,7 +1101,7 @@ def profiles_to_serve(multiplex: bool, *, include_standalone: bool = False,
     and parked profiles skipped). Pure directory read: never creates a profile dir (#94590).
 
     Named profiles that authored ``gateway.standalone: true`` are skipped because they opted
-    out of the host multiplexer; a ``gateway.parked`` marker (``hermes -p X gateway stop``) skips
+    out of the host multiplexer; a ``gateway.parked`` marker (``a2assistant -p X gateway stop``) skips
     a profile the host would otherwise serve. Callers enumerating INSTALLED profiles pass
     ``include_standalone=True, include_parked=True``; serving/ticking callers pass neither."""
     active = get_active_profile_name() or "default"
@@ -1318,7 +1319,7 @@ def _bootstrap_profile_dir(profile_dir: Path, source_dir: Optional[Path],
 
     ``sync_imports`` also copies the source's ``import-sync.json`` (the manifest the agent-importers
     plugin's ``hermes import-agent`` writes) so the clone stays registered against the same external trees
-    and ``hermes -p <clone> import-agent --sync`` keeps pulling from them. The link is to the
+    and ``a2assistant -p <clone> import-agent --sync`` keeps pulling from them. The link is to the
     external tree, never to the source profile: both profiles stay independent islands."""
     profile_dir.mkdir(parents=True, exist_ok=True)
     for subdir in _PROFILE_DIRS:
@@ -1354,7 +1355,7 @@ def create_profile(
     sections, pairing/session state — unless ``clone_channels`` opts in: a copied bot credential
     makes two gateways fight over one bot (``hermes_cli.profile_channels``; callers list what
     was left behind with ``channel_platforms_configured(source_dir)``).
-    ``no_skills`` creates an empty profile and writes a marker so ``hermes update`` skips
+    ``no_skills`` creates an empty profile and writes a marker so ``a2assistant update`` skips
     re-seeding its skills; it is mutually exclusive with the clone options, which copy skills.
     ``sync_imports`` (``--clone`` only; ``--clone-all`` copies the file anyway) also copies the
     ``import-agent`` sync manifest so the clone can keep pulling the same external agent trees."""
@@ -1371,7 +1372,7 @@ def create_profile(
         raise ValueError("--clone-channels only applies to a clone (--clone, --clone-from or --clone-all).")
     canon = _canon_valid(name)
     if canon == "default":
-        raise ValueError("Cannot create a profile named 'default' — it is the built-in profile (~/.hermes).")
+        raise ValueError("Cannot create a profile named 'default' — it is the built-in profile (~/.a2assistant).")
     profile_dir = get_profile_dir(canon)
     if profile_dir.exists() and not named_profile_has_identity(profile_dir):
         if named_profile_is_deleted(profile_dir):
@@ -1457,7 +1458,7 @@ def _live_default_multiplexer() -> bool:
 
 
 def seed_profile_skills(profile_dir: Path, quiet: bool = False) -> Optional[dict]:
-    """Seed bundled skills into a profile via subprocess (sync_skills() caches HERMES_HOME at
+    """Seed bundled skills into a profile via subprocess (sync_skills() caches A2ASSISTANT_HOME at
     module level). Returns the sync result dict, or None on failure. ``--no-skills`` profiles
     still run the sync: ``sync_skills()`` detects the marker and seeds only essentials."""
     project_root = Path(__file__).parent.parent.resolve()
@@ -1466,7 +1467,7 @@ def seed_profile_skills(profile_dir: Path, quiet: bool = False) -> Optional[dict
             [sys.executable, "-c",
              "import json; from tools.skills_sync import sync_skills; "
              "r = sync_skills(quiet=True); print(json.dumps(r))"],
-            env={**os.environ, "HERMES_HOME": str(profile_dir)},
+            env={**os.environ, "A2ASSISTANT_HOME": str(profile_dir)},
             cwd=str(project_root),
             capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=60,
             check=False,
@@ -1509,24 +1510,21 @@ def backfill_profile_envs(quiet: bool = False) -> list[str]:
 
 
 _BACKEND_TOKENS = frozenset({"serve", "dashboard", "gateway"})
-_HERMES_ARGV_MARKERS = ("hermes_cli.main", "hermes-gateway", "tui_gateway")
-# python / python3 / python3.12 / pythonw(.exe): the interpreter basenames a
-# `#!/…/python3` console-script shim is exec'd through when something (e.g. Electron's
-# `findOnPath('hermes')`) spawns the shim by handing the interpreter its path — then the
-# OS-reported argv[0] is the interpreter, not "hermes".
+_HERMES_ARGV_MARKERS = ("hermes_cli.main", *SYSTEMD_GATEWAY_UNITS, "tui_gateway")
 _PYTHON_INTERPRETER_RE = re.compile(r"^python[\d.]*w?(\.exe)?$")
 # Console-script entry points this project ships (pyproject.toml [project.scripts]).
 # argv[1] is matched against exact names, not ``startswith("hermes")``: with a bare
 # interpreter argv[0], argv[1] can be ANY user script ("hermes-notes.py").
-_HERMES_CONSOLE_SCRIPT_NAMES = frozenset({"hermes", "hermes-agent", "hermes-acp"})
+_HERMES_CONSOLE_SCRIPT_NAMES = frozenset(
+    f"{command}{suffix}" for command in CLI_COMMANDS for suffix in ("", "-agent", "-acp"))
 
 
 def _is_hermes_argv(argv: list) -> bool:
     """True for a Hermes process: entrypoint marker in argv, executable named ``hermes*``,
-    or a python interpreter directly exec'ing a known ``hermes`` console-script shim."""
+    or a python interpreter directly exec'ing a known ``a2assistant`` console-script shim."""
     joined = " ".join(argv)
     exe_name = os.path.basename(argv[0]).lower()
-    if any(marker in joined for marker in _HERMES_ARGV_MARKERS) or exe_name.startswith("hermes"):
+    if any(marker in joined for marker in _HERMES_ARGV_MARKERS) or exe_name.startswith(CLI_COMMANDS):
         return True
     if len(argv) >= 2 and _PYTHON_INTERPRETER_RE.match(exe_name):
         script_name = os.path.basename(str(argv[1])).lower()
@@ -1588,7 +1586,7 @@ def _profile_bound_backend_pids(canon: str, profile_dir: Path) -> list[int]:
             bound = any(normalize_profile_name(sel) == canon for sel in _argv_profile_selectors(argv))
             if not bound:
                 with contextlib.suppress(Exception):  # environ() can raise AccessDenied even same-user
-                    env_home = (proc.environ() or {}).get("HERMES_HOME", "")
+                    env_home = (proc.environ() or {}).get("A2ASSISTANT_HOME", "")
                     bound = bool(env_home) and Path(env_home).resolve() == resolved_dir
             if bound:
                 pids.append(pid)
@@ -1685,7 +1683,7 @@ class ProfileIdentitySettlementPending(RuntimeError):
     settled (``hermes_cli.profile_identity.purge_profile_identity`` returned False).
 
     Subclasses ``RuntimeError`` so delete-failure handling that treats the error as fatal (the
-    CLI's ``hermes profile delete``) keeps working unchanged; surfaces that can report a partial
+    CLI's ``a2assistant profile delete``) keeps working unchanged; surfaces that can report a partial
     success (the dashboard's ``DELETE /api/profiles/{name}``) catch this type — it carries the
     profile, its now-removed path, and the retry command — instead of matching on the message.
     """
@@ -1693,7 +1691,7 @@ class ProfileIdentitySettlementPending(RuntimeError):
     def __init__(self, profile: str, path: Path):
         self.profile = profile
         self.path = path
-        self.retry_command = f"hermes profile purge-identity {profile}"
+        self.retry_command = f"a2assistant profile purge-identity {profile}"
         super().__init__(
             f"Profile '{profile}' was deleted, but its session/routing identity settlement is "
             f"still pending — run: {self.retry_command}")
@@ -1704,7 +1702,7 @@ def delete_profile(name: str, yes: bool = False) -> Path:
     to prevent auto-restart, gateway stopped if running)."""
     canon = normalize_profile_name(name)
     if canon == "default":
-        raise ValueError("Cannot delete the default profile (~/.hermes).\nTo remove everything, use: hermes uninstall")
+        raise ValueError("Cannot delete the default profile (~/.a2assistant).\nTo remove everything, use: a2assistant uninstall")
     canon, profile_dir = _existing_profile_dir(canon)
     gw_running = _check_gateway_running(profile_dir)
     wrapper_path = _find_our_wrapper(canon)
@@ -1820,7 +1818,7 @@ def _maybe_register_gateway_service(profile_name: str) -> None:
     """Register a profile's gateway with s6 inside the container. Best-effort: profile
     creation must not fail over a supervision-tree hiccup; `gateway start` re-registers.
 
-    Port selection: each supervised profile gateway loads its own ``HERMES_HOME`` and binds the port
+    Port selection: each supervised profile gateway loads its own ``A2ASSISTANT_HOME`` and binds the port
     resolved by ``gateway/config.py`` from that profile's environment — ``API_SERVER_PORT`` (or
     ``platforms.api_server.extra.port`` in the profile's ``config.yaml``), defaulting to 8642. There is no
     ``[gateway] port`` key and no Python-side allocator (PR #30136 review item I5 retired the
@@ -1857,10 +1855,10 @@ def _cleanup_gateway_service(name: str, profile_dir: Path) -> bool:
     # dashboard/tui-gateway process reads) and mirror the env for identity-file readers, so a
     # DELETE from a multi-profile dashboard names THIS profile's unit, never the host's bare one.
     from hermes_constants import reset_hermes_home_override, set_hermes_home_override
-    old_home = os.environ.get("HERMES_HOME")
+    old_home = os.environ.get("A2ASSISTANT_HOME")
     home_token = set_hermes_home_override(str(profile_dir))
     try:
-        os.environ["HERMES_HOME"] = str(profile_dir)
+        os.environ["A2ASSISTANT_HOME"] = str(profile_dir)
         from hermes_cli.gateway import get_service_name, get_launchd_plist_path, user_systemd_unit_dir
 
         def _run(*cmd: str) -> None:
@@ -1897,9 +1895,9 @@ def _cleanup_gateway_service(name: str, profile_dir: Path) -> bool:
         print(f"⚠ Service cleanup: {e}")
     finally:
         reset_hermes_home_override(home_token)
-        os.environ.pop("HERMES_HOME", None)
+        unset_env(os.environ, "HOME")
         if old_home is not None:
-            os.environ["HERMES_HOME"] = old_home
+            os.environ["A2ASSISTANT_HOME"] = old_home
     return False
 
 
@@ -1918,7 +1916,7 @@ def _stop_gateway_process(profile_dir: Path) -> None:
         from gateway.status import get_process_start_time, recorded_gateway_home_conflicts, terminate_pid
         if recorded_gateway_home_conflicts(data, expected_home=profile_dir):
             print(
-                f"✗ Refusing to stop PID {pid}: its recorded HERMES_HOME "
+                f"✗ Refusing to stop PID {pid}: its recorded A2ASSISTANT_HOME "
                 f"belongs to a different profile than {profile_dir} "
                 "(stale/poisoned PID record, #89315)."
             )
@@ -1977,8 +1975,8 @@ def _retarget_active_profile(old: str, new: str, message: str) -> None:
 
 
 def get_active_profile_name() -> str:
-    """Profile name inferred from HERMES_HOME: ``"default"`` when unset or ``~/.hermes``, the
-    name under ``~/.hermes/profiles/<name>``, ``"custom"`` for any other path."""
+    """Profile name inferred from A2ASSISTANT_HOME: ``"default"`` when unset or ``~/.a2assistant``, the
+    name under ``~/.a2assistant/profiles/<name>``, ``"custom"`` for any other path."""
     from hermes_constants import get_hermes_home
     resolved = get_hermes_home().resolve()
     if resolved == _get_default_hermes_home().resolve():
@@ -1994,17 +1992,17 @@ def get_active_profile_name() -> str:
 
 
 def current_profile_name(default: str | None = None) -> str | None:
-    """Identity of the profile the current task runs FOR: the ``HERMES_HOME`` override when one is
+    """Identity of the profile the current task runs FOR: the ``A2ASSISTANT_HOME`` override when one is
     bound (a multiplexed cron tick, a routed gateway turn), else a launcher-pinned
-    ``HERMES_PROFILE_NAME``/``HERMES_PROFILE`` (the kanban dispatcher pins it on its workers), else
-    the name derived from the process's ``HERMES_HOME``; *default* when nothing names a profile.
+    ``A2ASSISTANT_PROFILE_NAME``/``A2ASSISTANT_PROFILE`` (the kanban dispatcher pins it on its workers), else
+    the name derived from the process's ``A2ASSISTANT_HOME``; *default* when nothing names a profile.
 
     The env pin is read only outside an override: ``os.environ`` is the LAUNCH profile's, so under
     an override it would re-label a served profile's board writes with the host's identity.
     """
     from hermes_constants import get_hermes_home_override
     if get_hermes_home_override() is None:
-        for env_name in ("HERMES_PROFILE_NAME", "HERMES_PROFILE"):
+        for env_name in ("A2ASSISTANT_PROFILE_NAME", "A2ASSISTANT_PROFILE"):
             value = (os.environ.get(env_name) or "").strip()
             if value:
                 return value
@@ -2018,7 +2016,7 @@ def current_profile_name(default: str | None = None) -> str | None:
 
 def _inside_git_checkout(path: Path) -> bool:
     """True when *path* lies inside a Git checkout. Walks the path's OWN resolved ancestry
-    (not cwd) so the check holds when HERMES_HOME sits in a checkout but the process runs
+    (not cwd) so the check holds when A2ASSISTANT_HOME sits in a checkout but the process runs
     elsewhere (cron, service manager). Resolution failure reports True (fail closed)."""
     try:
         resolved = path.resolve()
@@ -2084,8 +2082,8 @@ def _default_export_ignore(root_dir: Path):
 
     * **Root-level allow-list** — only entries whose name appears in ``_DEFAULT_EXPORT_INCLUDE_ROOT``
     survive. Everything else (such as an unrelated ``x11-dev/`` directory in a Docker deployment where
-    HERMES_HOME equals the cwd) is excluded. Blacklisting was tried first and proved unable to anticipate
-    every non-Hermes file the user may have lying alongside HERMES_HOME (#58394). * **Universal exclusions
+    A2ASSISTANT_HOME equals the cwd) is excluded. Blacklisting was tried first and proved unable to anticipate
+    every non-Hermes file the user may have lying alongside A2ASSISTANT_HOME (#58394). * **Universal exclusions
     at any depth** — ``__pycache__``, sockets and other special files, temp files
     (:func:`_non_exportable_entries`); plus npm lockfiles, which may appear at the root.
     """
@@ -2161,7 +2159,7 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
     if not inferred_name:
         raise ValueError(
             "Cannot determine profile name from archive. "
-            "Specify it explicitly: hermes profile import <archive> --name <name>"
+            "Specify it explicitly: a2assistant profile import <archive> --name <name>"
         )
     if archive_root is None:
         raise ValueError("Profile archive must contain exactly one top-level directory.")
@@ -2170,8 +2168,8 @@ def import_profile(archive_path: str, name: Optional[str] = None) -> Path:
     canon = _canon_valid(inferred_name)
     if canon == "default":
         raise ValueError(
-            "Cannot import as 'default' — that is the built-in root profile (~/.hermes). "
-            "Specify a different name: hermes profile import <archive> --name <name>"
+            "Cannot import as 'default' — that is the built-in root profile (~/.a2assistant). "
+            "Specify a different name: a2assistant profile import <archive> --name <name>"
         )
     profile_dir = get_profile_dir(canon)
     if profile_dir.exists():
@@ -2276,7 +2274,7 @@ def rename_profile(old_name: str, new_name: str) -> Path:
             _notify_multiplexer(old_canon)
         _maybe_register_gateway_service(old_canon)
         if service_removed:
-            print(f"⚠ The gateway service was removed. Reinstall it with: hermes -p {old_canon} gateway install")
+            print(f"⚠ The gateway service was removed. Reinstall it with: a2assistant -p {old_canon} gateway install")
         raise
     print(f"✓ Renamed {old_dir.name} → {new_dir.name}")
     clear_named_profile_deleted(old_dir)
@@ -2315,14 +2313,14 @@ def rename_profile(old_name: str, new_name: str) -> Path:
         _notify_multiplexer(new_canon)
     _maybe_register_gateway_service(new_canon)
     if service_removed:
-        print(f"⚠ The gateway service was removed. Reinstall it with: hermes -p {new_canon} gateway install")
+        print(f"⚠ The gateway service was removed. Reinstall it with: a2assistant -p {new_canon} gateway install")
     return new_dir
 
 
 # Profile env resolution (called from _apply_profile_override)
 
 def profile_root_for_env_home(env_home: str, default_root: Path) -> Path:
-    """Hermes root named by an exported ``HERMES_HOME``: the grandparent of a profile-shaped value
+    """Hermes root named by an exported ``A2ASSISTANT_HOME``: the grandparent of a profile-shaped value
     (``<root>/profiles/<name>``, mirrors ``get_default_hermes_root()``), the value itself otherwise,
     *default_root* when unset. Pure: callers pass any process's env, not only ``os.environ``."""
     env_home = env_home.strip()
@@ -2333,17 +2331,17 @@ def profile_root_for_env_home(env_home: str, default_root: Path) -> Path:
 
 
 def resolve_profile_env(profile_name: str) -> str:
-    """Resolve a profile name to a HERMES_HOME path string. Called early in the CLI entry
-    point, before hermes modules are imported, to set HERMES_HOME.
+    """Resolve a profile name to a A2ASSISTANT_HOME path string. Called early in the CLI entry
+    point, before hermes modules are imported, to set A2ASSISTANT_HOME.
 
-    When HERMES_HOME is already set, the configured spelling IS the launch root (it may be a
+    When A2ASSISTANT_HOME is already set, the configured spelling IS the launch root (it may be a
     junction/symlink alias of the platform default). Keep that spelling so profile re-home does not destroy
     the launcher's lexical provenance -- the subprocess sanitizer needs it to match Hermes-owned PYTHONPATH
     entries written in the same spelling (#82581 junction follow-up). Physically the paths are identical
     (junction-transparent); only the spelling is preserved.
     """
     canon = _canon_valid(profile_name)
-    root = profile_root_for_env_home(os.environ.get("HERMES_HOME", ""), _get_default_hermes_home())
+    root = profile_root_for_env_home(os.environ.get("A2ASSISTANT_HOME", ""), _get_default_hermes_home())
     if canon == "default":
         return str(root)
     profile_dir = root / "profiles" / canon

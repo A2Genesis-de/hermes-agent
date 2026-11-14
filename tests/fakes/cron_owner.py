@@ -18,7 +18,7 @@ from hermes_state_runtime import begin_runtime_epoch
 def cron_owner(home, monkeypatch):
     """The owner of the profile at *home*, over ``home/state.db``; the caller closes ``authority.db``."""
     home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     (home / 'config.yaml').write_text('model: test-model\n', encoding='utf-8')
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {}, 'platform_toolsets': {'cli': []}})
     db = SessionDB(home / 'state.db')

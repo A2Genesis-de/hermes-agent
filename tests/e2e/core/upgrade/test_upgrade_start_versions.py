@@ -20,8 +20,8 @@ def _git(*args: str) -> str:
 
 @pytest.fixture(autouse=True)
 def _fresh_resolver(monkeypatch):
-    monkeypatch.delenv("HERMES_E2E_UPGRADE_BASE", raising=False)
-    monkeypatch.delenv("HERMES_E2E_N1_REF", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_E2E_UPGRADE_BASE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_E2E_N1_REF", raising=False)
     I.upgrade_base.cache_clear()
     if not I.release_tags(before=True):
         pytest.skip("no release tag reachable before HEAD (fetch tags)")
@@ -38,7 +38,7 @@ def test_default_start_is_the_newest_release_before_head():
 
 @pytest.mark.parametrize("generation", [name for name, _ in I.UPDATER_GENERATIONS])
 def test_a_generation_name_starts_from_the_newest_release_that_ships_it(generation, monkeypatch):
-    monkeypatch.setenv("HERMES_E2E_UPGRADE_BASE", generation)
+    monkeypatch.setenv("A2ASSISTANT_E2E_UPGRADE_BASE", generation)
     base = I.upgrade_base()
     assert I.updater_generation(base.ref) == generation
     newer = I.release_tags(before=True)[: I.release_tags(before=True).index(base.ref)]
@@ -47,10 +47,10 @@ def test_a_generation_name_starts_from_the_newest_release_that_ships_it(generati
 
 def test_an_explicit_ref_and_the_older_variable_both_pin_the_start(monkeypatch):
     oldest = I.release_tags(before=True)[-1]
-    monkeypatch.setenv("HERMES_E2E_N1_REF", oldest)
+    monkeypatch.setenv("A2ASSISTANT_E2E_N1_REF", oldest)
     assert I.upgrade_base().ref == oldest
     I.upgrade_base.cache_clear()
-    monkeypatch.setenv("HERMES_E2E_UPGRADE_BASE", "HEAD~1")
+    monkeypatch.setenv("A2ASSISTANT_E2E_UPGRADE_BASE", "HEAD~1")
     assert I.upgrade_base().commit == _git("rev-parse", "HEAD~1")
 
 
@@ -63,5 +63,5 @@ def test_a_published_move_renames_the_file_in_the_new_release(tmp_path):
 
 
 def test_a_scenario_generation_wins_over_the_suite_override(monkeypatch):
-    monkeypatch.setenv("HERMES_E2E_UPGRADE_BASE", "by-path")
+    monkeypatch.setenv("A2ASSISTANT_E2E_UPGRADE_BASE", "by-path")
     assert I.updater_generation(I.upgrade_base("handoff").ref) == "handoff"

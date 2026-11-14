@@ -80,7 +80,7 @@ def _root_to_verify(project_root: Path | None) -> Path:
 
     The hand-off script is read before the pull, so an update that ships a fix to
     the caller side cannot apply it to its own run: a pre-fix ``windows.ps1`` still
-    passes ``Path.cwd()``, which is HERMES_HOME and never holds a packaged Desktop
+    passes ``Path.cwd()``, which is A2ASSISTANT_HOME and never holds a packaged Desktop
     app. Honour a caller-supplied root only while it actually carries one, and fall
     back to the checkout this module was imported from -- the tree the update just
     wrote. A supplied root that does carry a packaged app is still verified as
@@ -97,7 +97,7 @@ def verify_windows_desktop_update(project_root: Path | None = None) -> None:
     """Raise when a zero-exit updater left an incomplete or stale packaged app.
 
     The root defaults to the imported checkout, never the caller's cwd: the hand-off
-    is spawned from HERMES_HOME by the pre-update Desktop, and a cwd-derived root
+    is spawned from A2ASSISTANT_HOME by the pre-update Desktop, and a cwd-derived root
     reported a healthy install as "Desktop executable is missing" (Sep 2026). A
     caller-supplied root with no packaged app falls back to that same checkout, so a
     stale in-flight hand-off cannot fail a healthy install either.

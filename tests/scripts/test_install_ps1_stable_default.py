@@ -60,7 +60,7 @@ def test_install_ps1_lands_on_the_latest_stable_release(tmp_path, side, start, c
     gitconfig = tmp_path / "gitconfig"
     gitconfig.write_text(f'[url "{origin.as_uri()}"]\n  insteadOf = {OFFICIAL}\n', encoding="utf-8")
     env = {**os.environ, "GIT_CONFIG_GLOBAL": str(gitconfig), "NO_COLOR": "1"}
-    env.pop("HERMES_INSTALL_CHANNEL", None)
+    env.pop("A2ASSISTANT_INSTALL_CHANNEL", None)
     if start:
         _git(tmp_path, "clone", "-q", OFFICIAL, str(install), env=env)
         _git(install, "checkout", "-q", "--detach", commits[start], env=env)

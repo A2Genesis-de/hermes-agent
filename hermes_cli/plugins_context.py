@@ -206,8 +206,8 @@ class PluginContext(PluginCapabilityCtxMixin):
 
     @property
     def profile_name(self) -> str:
-        """Active profile name (``"default"``, the ``~/.hermes/profiles/<name>`` id, or ``"custom"``),
-        derived from ``HERMES_HOME`` — not ``_cli_ref``, which is None outside the interactive CLI —
+        """Active profile name (``"default"``, the ``~/.a2assistant/profiles/<name>`` id, or ``"custom"``),
+        derived from ``A2ASSISTANT_HOME`` — not ``_cli_ref``, which is None outside the interactive CLI —
         so gateway and kanban workers get it too."""
         try:
             from hermes_cli.profiles import get_active_profile_name

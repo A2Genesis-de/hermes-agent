@@ -20,7 +20,7 @@ async def owner(tmp_path, monkeypatch):
     from gateway.session_authority import LiveSession, initialize_session_authority
     from gateway.session_controls import AuthorityConnection
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     started, release = asyncio.Event(), asyncio.Event()
 

@@ -1,6 +1,6 @@
 """Serve -> owner cutover for one typed prompt (RT-37, #140385).
 
-A legacy ``hermes serve`` backend (no session authority) refuses a turn while the gateway's durable
+A legacy ``a2assistant serve`` backend (no session authority) refuses a turn while the gateway's durable
 ledger holds work for the same stored session (``session_lifecycle._canonical_ledger_refusal``): a
 legacy turn would run beside the canonical FIFO and write the transcript twice. A Bot Chat the
 gateway also owns hits that on every gateway turn, so the user's own Desktop prompt was refused

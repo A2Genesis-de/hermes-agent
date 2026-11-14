@@ -42,7 +42,7 @@ class _LocalArchives:
 def test_every_target_with_a_pinned_node_can_install_the_js_workspaces():
     """The dashboard, TUI and desktop source builds all install through pnpm on PM's node, so a
     target with a node pin but no pnpm pin cannot build them (Termux: "unavailable on
-    linux-arm64-bionic" from `hermes dashboard`)."""
+    linux-arm64-bionic" from `a2assistant dashboard`)."""
     package = get_package("pnpm")
     lock = Lockfile(paths.lockfile_path())
     version = lock.version("pnpm")

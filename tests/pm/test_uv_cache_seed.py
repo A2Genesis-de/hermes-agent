@@ -31,7 +31,7 @@ def _symlink_or_skip(target: str, link: Path) -> None:
 @pytest.fixture
 def payload_cache(tmp_path, monkeypatch):
     """A sealed payload shipping ``uv-cache/`` beside its store, and a machine cache that is empty."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     payload = tmp_path / "payload"
     entry = payload / "uv-cache" / "archive-v0" / "bucket"
     entry.mkdir(parents=True)

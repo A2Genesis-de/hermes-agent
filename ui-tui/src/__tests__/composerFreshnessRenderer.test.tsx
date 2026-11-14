@@ -12,7 +12,7 @@ import { useComposerState } from '../app/useComposerState.js'
 
 it('does not restore stale same-session paste results after editing away and back', async () => {
   const home = mkdtempSync(join(tmpdir(), 'ink-composer-freshness-'))
-  vi.stubEnv('HERMES_HOME', home)
+  vi.stubEnv('A2ASSISTANT_HOME', home)
   resetUiState()
   patchUiState({ sid: 'session' })
   let finish!: (value: unknown) => void

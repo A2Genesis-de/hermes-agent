@@ -1,4 +1,4 @@
-"""Classic `hermes --cli chat` session commands on the shared gateway, driven in a real PTY.
+"""Classic `a2assistant --cli chat` session commands on the shared gateway, driven in a real PTY.
 
 The classic CLI is main's HermesCLI again (gateway-backed agent and session store), so each
 expectation is main's own output for the same keystrokes (lanes/pushready/probe_cmds.py, main =
@@ -45,7 +45,7 @@ def classic_session(tmp_path):
         # does: main's interactive chat asks it first on a home that never answered.
         "telemetry": {"shared_metrics": {"enabled": False}}}))
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
     tmux_name = "hermes-cli-cmds-" + uuid.uuid4().hex
 

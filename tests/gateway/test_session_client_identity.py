@@ -92,7 +92,7 @@ def test_the_client_label_changes_no_policy_decision(tmp_path, monkeypatch, sour
     from gateway.local_viewer_events import launch_shows_reasoning
     from gateway.session_policy import DAYBREAK_LABELS, build_policy
     from tools.approval_context import _LOCAL_INTERACTIVE_SOURCES
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     config = {'model': {'default': 'm', 'provider': 'custom', 'base_url': 'http://x.invalid/v1'},
               'platform_toolsets': {'cli': ['terminal', 'file'], 'acp': ['file']}}
     params = {'source': source, 'cwd': str(tmp_path)}
@@ -155,7 +155,7 @@ async def test_runtime_describe_advertises_the_client_parameter(tmp_path, monkey
     from gateway.session_controls import AuthorityConnection
     from tests.gateway.test_local_source_labels import _authority
     authority, _store = await _authority(tmp_path, monkeypatch)
-    monkeypatch.setenv('HERMES_HOME', authority.profile_id)
+    monkeypatch.setenv('A2ASSISTANT_HOME', authority.profile_id)
     conn = AuthorityConnection(authority, SimpleNamespace(write=lambda frame: None), {'user_id': 'owner'})
     try:
         described = (await conn.dispatch({'id': 0, 'method': 'runtime.describe', 'params': {}}))['result']
@@ -176,7 +176,7 @@ async def test_a_named_create_and_resume_return_snapshots_that_match_their_contr
     from tests.gateway.test_local_source_labels import _authority
     from tui_gateway.contracts.registry import CANONICAL_METHODS
     authority, _store = await _authority(tmp_path, monkeypatch)
-    monkeypatch.setenv('HERMES_HOME', authority.profile_id)
+    monkeypatch.setenv('A2ASSISTANT_HOME', authority.profile_id)
     conn = AuthorityConnection(authority, SimpleNamespace(write=lambda frame: None), {'user_id': 'owner'})
     try:
         created = await conn.dispatch({'id': 1, 'method': 'session.create', 'params': {

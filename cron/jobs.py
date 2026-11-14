@@ -1,6 +1,6 @@
 # health: allow FILE_LINES -- security fix for #82010: distinguish an explicitly-empty toolset allowlist (fail closed, nothing allowed) from an absent one (no restriction); the added lines are minimal fail-closed branches at this existing chokepoint
-"""Cron job storage: ~/.hermes/cron/jobs.json; output in
-~/.hermes/cron/output/{job_id}/{timestamp}.md"""
+"""Cron job storage: ~/.a2assistant/cron/jobs.json; output in
+~/.a2assistant/cron/output/{job_id}/{timestamp}.md"""
 
 import contextlib
 import copy
@@ -174,7 +174,7 @@ _IMPORT_STORE = _CronStorePaths(CRON_DIR, JOBS_FILE, OUTPUT_DIR)
 def _current_cron_store() -> _CronStorePaths:
     """Paths pinned to this execution context's profile. Precedence: (1) active use_cron_store()
     override; (2) deliberately re-pointed module constants; (3) the ACTIVE profile home via
-    get_hermes_home(), so re-pointing HERMES_HOME after import uses ITS OWN store rather than the
+    get_hermes_home(), so re-pointing A2ASSISTANT_HOME after import uses ITS OWN store rather than the
     user's real jobs.json frozen at import; (4) import-time constants."""
     override = _cron_store_override.get()
     if override is not None:
@@ -216,9 +216,9 @@ _DEFAULT_CRON_INACTIVITY_TIMEOUT = 600.0
 
 
 def _oneshot_run_claim_ttl_seconds() -> float:
-    """One-shot running-claim TTL from ``HERMES_CRON_TIMEOUT``: unset/invalid → 600s → 1800s;
+    """One-shot running-claim TTL from ``A2ASSISTANT_CRON_TIMEOUT``: unset/invalid → 600s → 1800s;
     ``0`` (unlimited) → the fixed floor; positive N → ``max(N * headroom, floor)``."""
-    raw = cron_env_setting("HERMES_CRON_TIMEOUT").strip()
+    raw = cron_env_setting("A2ASSISTANT_CRON_TIMEOUT").strip()
     try:
         timeout = float(raw) if raw else _DEFAULT_CRON_INACTIVITY_TIMEOUT
     except (ValueError, TypeError):
@@ -578,7 +578,7 @@ def _is_recoverable_error_job(job: dict[str, Any]) -> bool:
 
 def _secure_dir(path: Path):
     """Owner-only (0700) via the shared helper, so cron/ and cron/output honor the same managed/
-    container/HERMES_HOME_MODE rules as the rest of HERMES_HOME (#10757)."""
+    container/A2ASSISTANT_HOME_MODE rules as the rest of A2ASSISTANT_HOME (#10757)."""
     from hermes_cli.config import _secure_dir as _shared_secure_dir
     _shared_secure_dir(path)
 
@@ -1275,7 +1275,7 @@ def record_ticker_heartbeat(success: bool = False) -> None:
     "alive but failing" from "firing"; scoped per profile store.
 
     The ticker calls this once per loop iteration. ``success=True`` additionally bumps the *last successful
-    tick* marker. We track two distinct signals so `hermes cron status` can tell a thread that is merely
+    tick* marker. We track two distinct signals so `a2assistant cron status` can tell a thread that is merely
     *alive and looping* (heartbeat fresh, success stale) from one that is actually *firing jobs* (both
     fresh) — a ticker stuck failing every tick would otherwise keep the plain heartbeat fresh and falsely
     report healthy (#32612, #32895).
@@ -1320,7 +1320,7 @@ def get_ticker_heartbeat_age() -> Optional[float]:
     not "dead").
 
     Resolution uses ``_current_cron_store()`` so the heartbeat is correctly scoped to the active profile —
-    critical under multiplex_profiles where ``hermes cron status`` must report per-profile liveness
+    critical under multiplex_profiles where ``a2assistant cron status`` must report per-profile liveness
     (#69377).
     """
     return _epoch_file_age("ticker_heartbeat")
@@ -1330,7 +1330,7 @@ def get_ticker_success_age() -> Optional[float]:
     """Seconds since the ticker last completed a tick WITHOUT raising, or None.
 
     Resolution uses ``_current_cron_store()`` so the heartbeat is correctly scoped to the active profile —
-    critical under multiplex_profiles where ``hermes cron status`` must report per-profile liveness
+    critical under multiplex_profiles where ``a2assistant cron status`` must report per-profile liveness
     (#69377).
     """
     return _epoch_file_age("ticker_last_success")
@@ -2234,7 +2234,7 @@ def trigger_job(job_id: str, extra_prompt: Optional[str] = None) -> Optional[dic
         name = job.get("name", job_id)
         raise ValueError(
             f"Cannot run: job '{name}' is {job.get('state')} (terminal). "
-            f"Create a new occurrence with 'hermes cron resume {name} "
+            f"Create a new occurrence with 'a2assistant cron resume {name} "
             "--run-now' or '--at <ISO-8601>'.")
     manual_run_at = _hermes_now().isoformat()
     return update_job(job["id"], {
@@ -2254,7 +2254,7 @@ def _claim_is_live(claim: Any, now: datetime, ttl_seconds: float) -> bool:
     """True for a well-formed claim aged within ``[0, ttl)`` whose owner is not provably dead:
     future-dated (clock/TZ skew) or malformed claims count as stale so they can never wedge a
     job, and a same-host owner pid that has exited releases the claim immediately instead of
-    after the TTL (a killed ``hermes cron run`` otherwise blocks the next manual run for the
+    after the TTL (a killed ``a2assistant cron run`` otherwise blocks the next manual run for the
     full window with "already being fired")."""
     if not isinstance(claim, dict) or not claim.get("at"):
         return False
@@ -2694,8 +2694,8 @@ def advance_next_run(job_id: str) -> bool:
 
 def _machine_id() -> str:
     """Claim attribution/debugging id (NOT correctness — that comes from the file lock and the
-    fresh-claim check): ``HERMES_MACHINE_ID`` if set, else hostname:pid."""
-    explicit = os.getenv("HERMES_MACHINE_ID", "").strip()
+    fresh-claim check): ``A2ASSISTANT_MACHINE_ID`` if set, else hostname:pid."""
+    explicit = os.getenv("A2ASSISTANT_MACHINE_ID", "").strip()
     if explicit:
         return explicit
     try:
@@ -3124,7 +3124,7 @@ def _oneshot_dispatch_limit_reached(job: dict[str, Any], scan: _DueScan) -> bool
             "Job '%s': one-shot dispatch limit reached (%d/%d) on a record that already completed "
             "a run (last_run_at=%s) — removing it WITHOUT firing. This record was re-armed "
             "without a budget reset (pre-#93615 store or hand edit); re-run it with "
-            "'hermes cron resume <job> --run-now' (#93524).",
+            "'a2assistant cron resume <job> --run-now' (#93524).",
             name, completed, times, job.get("last_run_at"))
     else:
         logger.info(

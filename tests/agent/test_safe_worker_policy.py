@@ -13,8 +13,8 @@ def run_worker(tmp_path, body, mode="safe"):
     home = tmp_path / mode
     home.mkdir(exist_ok=True)
     (home / "config.yaml").write_text("agent:\n  max_turns: 17\n", encoding="utf-8")
-    env = dict(os.environ, HERMES_HOME=str(home), HOME=str(home), PROBE_MODE=mode)
-    for key in ("HERMES_SAFE_MODE", "HERMES_IGNORE_USER_CONFIG", "HERMES_IGNORE_RULES"):
+    env = dict(os.environ, A2ASSISTANT_HOME=str(home), HOME=str(home), PROBE_MODE=mode)
+    for key in ("A2ASSISTANT_SAFE_MODE", "A2ASSISTANT_IGNORE_USER_CONFIG", "A2ASSISTANT_IGNORE_RULES"):
         env.pop(key, None)
     root = Path(__file__).resolve().parents[2]
     script = home / "worker_probe.py"
@@ -56,7 +56,7 @@ def test_worker_config_is_frozen_before_any_profile_read(tmp_path, mode):
         first = cfg["agent"]["max_turns"]
         cfg["agent"]["max_turns"] = 123
         if mode != "ordinary":
-            Path(os.environ["HERMES_HOME"], "config.yaml").write_text("[broken YAML")
+            Path(os.environ["A2ASSISTANT_HOME"], "config.yaml").write_text("[broken YAML")
             # Audit excludes this fixture write, not the preceding reads.
         results = []
         def check():
@@ -77,7 +77,7 @@ def test_private_worker_binding_is_one_shot_typed_and_not_env_selected(tmp_path)
         import json, os
         from dataclasses import FrozenInstanceError
         from agent.safe_worker_policy import _bind_safe_worker_policy, safe_worker_enabled, worker_config_snapshot
-        os.environ["HERMES_SAFE_MODE"] = "1"
+        os.environ["A2ASSISTANT_SAFE_MODE"] = "1"
         assert not safe_worker_enabled()
         for value in (1, "true", None):
             try:
@@ -112,7 +112,7 @@ def test_safe_worker_never_discovers_or_invokes_customizations(tmp_path, mode):
         import json, os, sys
         from pathlib import Path
         mode = os.environ["PROBE_MODE"]
-        home = Path(os.environ["HERMES_HOME"])
+        home = Path(os.environ["A2ASSISTANT_HOME"])
         (home / "config.yaml").write_text("plugins:\n  enabled: [sentinel]\n")
         events = home / "events"
         def mark(value):
@@ -121,7 +121,7 @@ def test_safe_worker_never_discovers_or_invokes_customizations(tmp_path, mode):
             p = home / "plugins" / name
             p.mkdir(parents=True)
             (p / "plugin.yaml").write_text("name: " + name.split("/")[-1] + "\nversion: 1.0.0\nkind: " + kind + "\n")
-            prefix = "from pathlib import Path\nimport os\ndef mark(s):\n    with (Path(os.environ['HERMES_HOME']) / 'events').open('a') as f: f.write(s + '\\n')\n"
+            prefix = "from pathlib import Path\nimport os\ndef mark(s):\n    with (Path(os.environ['A2ASSISTANT_HOME']) / 'events').open('a') as f: f.write(s + '\\n')\n"
             if kind == "standalone":
                 code = "mark('plugin-import')\ndef register(ctx):\n    mark('plugin-register')\n    ctx.register_hook('on_session_start', lambda **kw: mark('plugin-hook'))\n"
             else:
@@ -170,7 +170,7 @@ def test_safe_worker_bypasses_rule_readers_even_without_cli_flags(tmp_path, mode
         import json, os, sys
         from pathlib import Path
         mode = os.environ["PROBE_MODE"]
-        home = Path(os.environ["HERMES_HOME"])
+        home = Path(os.environ["A2ASSISTANT_HOME"])
         project = home / "project"; project.mkdir()
         (project / "AGENTS.md").write_text("PROJECT_SENTINEL")
         sub = project / "sub"; sub.mkdir()
@@ -227,7 +227,7 @@ def test_bare_agent_constructor_cannot_restore_safe_customizations(tmp_path, mod
         import json, os, sys
         from pathlib import Path
         mode = os.environ["PROBE_MODE"]
-        home = Path(os.environ["HERMES_HOME"])
+        home = Path(os.environ["A2ASSISTANT_HOME"])
         (home / "SOUL.md").write_text("IDENTITY_SENTINEL")
         if mode != "ordinary":
             from agent.safe_worker_policy import _bind_safe_worker_policy
@@ -270,7 +270,7 @@ def test_direct_secret_hydration_cannot_read_bypassed_yaml(tmp_path, mode):
         import json, os, sys
         from pathlib import Path
         mode = os.environ["PROBE_MODE"]
-        home = Path(os.environ["HERMES_HOME"])
+        home = Path(os.environ["A2ASSISTANT_HOME"])
         if mode != "ordinary":
             from agent.safe_worker_policy import _bind_safe_worker_policy
             _bind_safe_worker_policy(safe_mode=mode == "safe", ignore_user_config=True, config={})

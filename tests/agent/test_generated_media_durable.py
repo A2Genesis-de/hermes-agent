@@ -46,7 +46,7 @@ def test_old_generated_media_is_not_swept(tmp_path, monkeypatch):
     home = tmp_path / "profiles" / "p"
     home.mkdir(parents=True)
     monkeypatch.setattr(base, "_HERMES_ROOT", tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     path = save_b64_image(base64.b64encode(PNG_1PX).decode(), prefix="red_test")
     _backdate_hours(path)
@@ -55,14 +55,14 @@ def test_old_generated_media_is_not_swept(tmp_path, monkeypatch):
 
     # Still deliverable on a strict gateway with recency trust off: only the
     # cache allowlist can vouch for a day-old file.
-    monkeypatch.setenv("HERMES_MEDIA_DELIVERY_STRICT", "1")
-    monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_FILES", "0")
+    monkeypatch.setenv("A2ASSISTANT_MEDIA_DELIVERY_STRICT", "1")
+    monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_FILES", "0")
     assert base.validate_media_delivery_path(str(path)) == str(path.resolve())
 
 
 def test_generated_dir_is_mounted_from_the_writers_location(tmp_path, monkeypatch):
     """Out-of-sweep is only half the job: remote backends must still see the file."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from tools.credential_files import get_cache_directory_mounts
 
     path = save_b64_image(base64.b64encode(PNG_1PX).decode(), prefix="red_test")

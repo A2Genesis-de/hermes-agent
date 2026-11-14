@@ -1,6 +1,6 @@
 """Gateway ``plugins.manage`` — manifest ``config_schema`` rendered as settings fields (#46600, #87934).
 
-Drives the real discovery + config writer against a temp HERMES_HOME: ``list`` carries each user
+Drives the real discovery + config writer against a temp A2ASSISTANT_HOME: ``list`` carries each user
 plugin's schema with the current values, and ``settings`` writes through the same
 ``plugins.entries.<id>.settings`` namespace ``ctx.get_config`` reads — never a secret into config.yaml.
 """
@@ -28,7 +28,7 @@ def plugins_home(tmp_path, monkeypatch):
     (home / "plugins" / "demo-plugin" / "plugin.yaml").write_text(MANIFEST, encoding="utf-8")
     (home / "config.yaml").write_text(
         "plugins:\n  entries:\n    demo-plugin:\n      settings:\n        retries: 7\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 
@@ -71,7 +71,7 @@ PORTABLE_MANIFEST = """\
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "portable-demo",
   "version": "1.0.0",
-  "extensions": {"com.nousresearch.hermes": {"config_schema": {
+  "extensions": {"de.a2genesis.a2assistant": {"config_schema": {
     "show_chip": {"type": "bool", "default": true},
     "api_key": {"type": "secret", "env": "PORTABLE_DEMO_KEY"}
   }}}

@@ -23,15 +23,15 @@ from cron.scheduler import _resolve_delivery_targets
 
 @pytest.fixture
 def cron_env(tmp_path, monkeypatch):
-    """Isolated cron environment with temp HERMES_HOME."""
+    """Isolated cron environment with temp A2ASSISTANT_HOME."""
     hermes_home = tmp_path / ".hermes"
     hermes_home.mkdir()
     (hermes_home / "cron").mkdir()
     (hermes_home / "cron" / "output").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     import cron.jobs as jobs_mod
-    monkeypatch.setattr(jobs_mod, "HERMES_DIR", hermes_home)
+    monkeypatch.setattr(jobs_mod, "A2ASSISTANT_DIR", hermes_home)
     monkeypatch.setattr(jobs_mod, "CRON_DIR", hermes_home / "cron")
     monkeypatch.setattr(jobs_mod, "JOBS_FILE", hermes_home / "cron" / "jobs.json")
     monkeypatch.setattr(jobs_mod, "OUTPUT_DIR", hermes_home / "cron" / "output")
@@ -52,7 +52,7 @@ def run_env(monkeypatch, tmp_path):
     (home / "config.yaml").write_text(
         "platforms:\n  telegram:\n    enabled: true\n    token: 123456789:AAtest-token-value-ABCDEFGHIJ\n"
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     send_calls = []
     transport = {"success": True}

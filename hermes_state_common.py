@@ -36,7 +36,7 @@ def routed_sessions_setting(key: str, env_var: str) -> Any:
     """``sessions.<key>`` for the profile whose state.db this process is touching.
 
     ``gateway/run.py`` bridges the LAUNCH profile's ``sessions.*`` into ``env_var`` (the cross-process
-    carrier CLI/cron children read). Under a multiplexer a routed turn runs with a HERMES_HOME override
+    carrier CLI/cron children read). Under a multiplexer a routed turn runs with a A2ASSISTANT_HOME override
     and that env slot holds the default profile's value, so a served profile with different
     ``sessions.*`` settings must read its own config.yaml. Unscoped: the env bridge, as before.
     Returns ``None`` when neither source sets the key.
@@ -788,7 +788,7 @@ BEFORE DELETE ON sessions
 WHEN EXISTS (SELECT 1 FROM session_admissions WHERE target_session_id = old.id)
   OR EXISTS (SELECT 1 FROM worker_executions WHERE session_id = old.id)
 BEGIN
-    SELECT RAISE(ABORT, 'Refused to delete a session that has gateway runtime history: state.db was upgraded by a newer A2Assistant, and this older A2Assistant cannot delete such sessions. Downgrading is unsupported. Run hermes update to go back to the newer release, or restore the pre-update snapshot: https://hermes-agent.nousresearch.com/docs/getting-started/updating#rolling-back-to-an-older-release');
+    SELECT RAISE(ABORT, 'Refused to delete a session that has gateway runtime history: state.db was upgraded by a newer A2Assistant, and this older A2Assistant cannot delete such sessions. Downgrading is unsupported. Run a2assistant update to go back to the newer release, or restore the pre-update snapshot: https://hermes-agent.nousresearch.com/docs/getting-started/updating#rolling-back-to-an-older-release');
 END;
 DROP TRIGGER IF EXISTS messages_transcript_revision_update;
 CREATE TRIGGER IF NOT EXISTS messages_transcript_revision_update

@@ -97,7 +97,7 @@ def _cron_default_profile() -> str:
 
     A desktop pool backend runs one process per profile, but these endpoints route storage through
     the profiles tree via ``_cron_profile_home`` — a hardcoded "default" would write a non-default
-    profile's job into ~/.hermes. ``custom`` (HERMES_HOME outside the profiles tree) has no
+    profile's job into ~/.a2assistant. ``custom`` (A2ASSISTANT_HOME outside the profiles tree) has no
     profile-dir equivalent, so it keeps the legacy "default" fallback.
     """
     try:
@@ -109,7 +109,7 @@ def _cron_default_profile() -> str:
 
 
 def _cron_profile_home(profile: Optional[str]) -> tuple[str, Path]:
-    """Resolve a profile query value to (profile_name, HERMES_HOME)."""
+    """Resolve a profile query value to (profile_name, A2ASSISTANT_HOME)."""
     from hermes_cli import profiles as profiles_mod
     raw = (profile or _cron_default_profile()).strip() or "default"
     try:
@@ -139,7 +139,7 @@ def _annotate_cron_job(
 
 @contextlib.contextmanager
 def _cron_store_scope(home: Path):
-    """Point HERMES_HOME and the cron.jobs store at one profile's home for the block.
+    """Point A2ASSISTANT_HOME and the cron.jobs store at one profile's home for the block.
 
     The dashboard is a single process inspecting many profiles; cron.jobs' execution-context
     override keeps these calls from retargeting a concurrent desktop ticker's load/save.

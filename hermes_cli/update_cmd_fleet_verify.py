@@ -1,4 +1,4 @@
-"""Post-restart fleet verification for ``hermes update`` (``update_cmd_fleet`` sibling).
+"""Post-restart fleet verification for ``a2assistant update`` (``update_cmd_fleet`` sibling).
 
 After the restart phase: compare every live gateway's stamped code against the checkout, reconcile
 the pre-update plan against what the restart did, keep the restart owed (a ``gateway_restart``
@@ -24,7 +24,7 @@ _FLEET_PROBE_SETTLE_TIMEOUT_SECONDS = 120.0
 
 
 def _print_legacy_units_warning() -> None:
-    """Legacy hermes.service fights hermes-gateway.service over the bot token; warn on
+    """Legacy hermes.service fights a2assistant-gateway.service over the bot token; warn on
     every update until migrated."""
     from hermes_cli.gateway import (has_legacy_hermes_units, _find_legacy_hermes_units, supports_systemd_services)
     if not (supports_systemd_services() and has_legacy_hermes_units()):
@@ -36,10 +36,10 @@ def _print_legacy_units_warning() -> None:
         print(f"    {path}  ({scope} scope)")
     print()
     print("  These pre-rename units (hermes.service) fight the current")
-    print("  hermes-gateway.service for the bot token and cause SIGTERM")
+    print("  a2assistant-gateway.service for the bot token and cause SIGTERM")
     print("  flap loops. Remove them with:")
     print()
-    print("    hermes gateway migrate-legacy")
+    print("    a2assistant gateway migrate-legacy")
     print()
     print("  (add `sudo` if any are in system scope)")
 
@@ -130,13 +130,15 @@ def _live_gateway_pids_from_fleet(fleet_rows: list) -> dict:
 
 
 def _gateway_unit_runs_one_of(unit: str, pids: set) -> bool:
-    """Every scope that has ``hermes-gateway*`` *unit* loaded runs it as one of *pids*.
+    """Every scope that has ``a2assistant-gateway*`` *unit* loaded runs it as one of *pids*.
 
     The restart bookkeeping keeps bare unit names, so it cannot say which scope failed: a loaded twin
     in the other scope that is not proven keeps the failure. Anything unreadable proves nothing.
     """
     from hermes_cli import update_cmd_fleet as fleet
-    if not pids or not (unit == "hermes-gateway" or unit.startswith("hermes-gateway-")):
+    from hermes_cli.service_names import is_gateway_unit
+
+    if not pids or not is_gateway_unit(unit):
         return False
     loaded = False
     for _scope, scope_cmd in fleet._SYSTEMD_SCOPES:
@@ -269,7 +271,7 @@ def _split_unaccounted(outcomes) -> tuple[bool, set]:
 # part below starts with it and the gateway part always comes first (#141071).
 SERVE_ONLY_REASON_PREFIX = "serve/dashboard "
 _GATEWAY_OWED_REASON = "gateways may still run pre-update code or were stopped without a successor"
-_GATEWAY_RECOVERY = "; recover with `hermes gateway restart`"
+_GATEWAY_RECOVERY = "; recover with `a2assistant gateway restart`"
 
 
 def _owed_restart_reason(restart, stopped, *, gateway_owed: bool, stale_serves: set, down_serves: set) -> str:
@@ -277,7 +279,7 @@ def _owed_restart_reason(restart, stopped, *, gateway_owed: bool, stale_serves: 
 
     The step id stays ``gateway_restart`` (Desktop hand-offs parse it); only the text changes. A run
     whose gateways all verified current but whose dashboard unit could not be restarted must not tell
-    the user to run `hermes gateway restart`, which never touches that unit."""
+    the user to run `a2assistant gateway restart`, which never touches that unit."""
     parts = []
     if gateway_owed:
         parts.append(
@@ -292,7 +294,7 @@ def _owed_restart_reason(restart, stopped, *, gateway_owed: bool, stale_serves: 
     if down_serves:
         parts.append(
             f"{SERVE_ONLY_REASON_PREFIX}process(es) {', '.join(map(str, sorted(down_serves)))} were stopped during the"
-            " update and not brought back; relaunch `hermes serve` / `hermes dashboard`")
+            " update and not brought back; relaunch `a2assistant serve` / `a2assistant dashboard`")
     if stale_serves - down_serves:
         parts.append(
             f"{SERVE_ONLY_REASON_PREFIX}process(es) {', '.join(map(str, sorted(stale_serves - down_serves)))} still run"
@@ -350,7 +352,7 @@ def _verify_fleet_after_update(restart, *, _pre_update_plan, _windows_gateway_re
 
     print()
     print("Tip: You can now select a provider and model:")
-    print("  hermes model              # Select provider and model")
+    print("  a2assistant model              # Select provider and model")
 
     # Compare every live gateway's stamped code_sha against the fresh checkout
     # instead of assuming the restart phase worked.
@@ -500,4 +502,4 @@ def _verify_fleet_after_update(restart, *, _pre_update_plan, _windows_gateway_re
         maybe_auto_migrate_after_update()
     except (Exception, SystemExit) as exc:  # health: allow BLE001 -- a SystemExit here must not fail a committed update
         logger.warning('Multiplex auto-migration after update failed: %s', exc)
-        print(f"  ⚠ Gateway multiplex migration did not finish: {exc} (run `hermes gateway migrate` later)")
+        print(f"  ⚠ Gateway multiplex migration did not finish: {exc} (run `a2assistant gateway migrate` later)")

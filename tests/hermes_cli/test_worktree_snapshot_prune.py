@@ -372,7 +372,7 @@ def test_the_pruner_removes_a_tree_only_when_everything_irreproducible_is_archiv
 
 
 def test_prune_older_than_bounds_what_the_sweep_removes(repo, capsys):
-    """`hermes worktree prune --older-than N` never archives or removes a tree idle < N days."""
+    """`a2assistant worktree prune --older-than N` never archives or removes a tree idle < N days."""
     import argparse
 
     from hermes_cli.worktree_cmd import cmd_worktree

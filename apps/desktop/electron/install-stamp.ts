@@ -16,7 +16,7 @@
  *    local install (the default; also what non-desktop stamps carry).
  *  - 'bundled': the agent runtime ships inside the artifact resources.
  *  - 'light': no runtime at all; remote connections only.
- * Selected at build time by HERMES_DESKTOP_VARIANT (unset = bootstrap).
+ * Selected at build time by A2ASSISTANT_DESKTOP_VARIANT (unset = bootstrap).
  */
 export type ArtifactKind = 'bootstrap' | 'bundled' | 'light'
 
@@ -121,7 +121,7 @@ export const INSTALL_STAMP: Readonly<InstallStamp> | null =
  *    installers, repair-reinstall escalation and update checkouts must
  *    never run; drift means rebuild, updates mean the steward.
  *  - 'checkout': a git tree with venv machinery, provisioner-on-demand
- *    and `hermes update`.
+ *    and `a2assistant update`.
  *
  * Derived from the stamp CONSTANT, never from filesystem probes: a
  * payload/venv/marker probe answers "is this artifact intact?", not

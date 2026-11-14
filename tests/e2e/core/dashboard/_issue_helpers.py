@@ -1,7 +1,7 @@
 """Shared bits for the dashboard lane's open-issue cells (#120527, #120937).
 
 * ``PtyDashboard``: the lane's ``Dashboard`` harness, but spawned with a pseudo-terminal slave as
-  stdin — the shape of ``hermes serve`` / ``hermes dashboard`` launched from an interactive
+  stdin — the shape of ``a2assistant serve`` / ``a2assistant dashboard`` launched from an interactive
   terminal. The master end is held open and never written to (nobody watches that console).
   Teardown SIGKILLs the whole process group: a server wedged in a worker thread never finishes
   a graceful shutdown (the default executor is joined on exit).
@@ -54,7 +54,7 @@ class Issue120937(KnownIssue):
 
 
 class PtyDashboard(Dashboard):
-    """``hermes dashboard`` whose stdin is a pty slave (interactive-terminal launch); ``tty=False``
+    """``a2assistant dashboard`` whose stdin is a pty slave (interactive-terminal launch); ``tty=False``
     gives the same process with stdin=/dev/null (service / desktop-spawned launch) as a control."""
 
     def __init__(self, sb: Sandbox, log_path: Path, extra_env: dict[str, str] | None = None,
@@ -66,7 +66,7 @@ class PtyDashboard(Dashboard):
             self.pty_master, slave = os.openpty()
         else:
             self.pty_master, slave = -1, os.open(os.devnull, os.O_RDONLY)
-        env = sb.env({"HERMES_WEB_DIST": str(sb.root / "web_dist"), "TERM": "xterm-256color",
+        env = sb.env({"A2ASSISTANT_WEB_DIST": str(sb.root / "web_dist"), "TERM": "xterm-256color",
                       **(extra_env or {})})
         try:
             self.proc = subprocess.Popen(
@@ -90,8 +90,8 @@ class PtyDashboard(Dashboard):
         threading.Thread(target=pump, daemon=True, name="dash-pty-stdout").start()
         try:
             self.port = poll(lambda: port_box[0] if port_box else (self.proc.poll() is not None and -1), 120,
-                             "hermes dashboard (tty stdin) to report its port")
-            assert self.port > 0, f"hermes dashboard exited rc={self.proc.returncode}:\n{self.log_tail()}"
+                             "a2assistant dashboard (tty stdin) to report its port")
+            assert self.port > 0, f"a2assistant dashboard exited rc={self.proc.returncode}:\n{self.log_tail()}"
             self.base = f"http://127.0.0.1:{self.port}"
             self.http = httpx.Client(base_url=self.base, timeout=30.0, trust_env=False)
             index = self.http.get("/")
@@ -172,7 +172,7 @@ class GatewayApiServer:
                 "API_SERVER_HOST": "127.0.0.1", "API_SERVER_PORT": str(port)}.items()), encoding="utf-8")
             self._log = open(log_path, "a", encoding="utf-8")
             self.proc = subprocess.Popen(
-                [sys.executable, "-m", "gateway.run"], cwd=str(sb.home), env=sb.env({"HERMES_HOME": str(hermes_home)}),
+                [sys.executable, "-m", "gateway.run"], cwd=str(sb.home), env=sb.env({"A2ASSISTANT_HOME": str(hermes_home)}),
                 stdin=subprocess.DEVNULL, stdout=self._log, stderr=subprocess.STDOUT, start_new_session=True,
             )
             self.base = f"http://127.0.0.1:{port}"

@@ -30,7 +30,7 @@ afterEach(() => {
   spawned.length = 0
 })
 
-// RT-10 (#138774): a HERMES_DESKTOP_HERMES=...\hermes.cmd override is a shell backend. With
+// RT-10 (#138774): a A2ASSISTANT_DESKTOP_HERMES=...\hermes.cmd override is a shell backend. With
 // shell:true Node hands cmd.exe one unquoted line, which a profile path with a space splits at
 // `C:\Users\John` (#74064). The runtime-command probe must quote the launcher like every other
 // shell spawn (windowsShellCommand), and keep the probe flag a separate argument.

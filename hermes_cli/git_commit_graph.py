@@ -1,4 +1,4 @@
-"""Keep a checkout's commit-graph fresh: the ``hermes -w`` pass and every ``hermes update``.
+"""Keep a checkout's commit-graph fresh: the ``a2assistant -w`` pass and every ``a2assistant update``.
 
 Generation numbers in the commit-graph keep ``git tag --merged HEAD`` (the version lookup) and
 ancestry checks off a full history walk: on hermes-agent a graph two months behind cost 0.33 s
@@ -260,7 +260,7 @@ def refresh_in_child(repo_root: str, git_dir: str, log_file: str) -> None:
 def spawn_commit_graph_refresh(repo_root: Path) -> bool:
     """Start the bounded commit-graph refresh in a detached child when it is due; never waits.
 
-    ``hermes update`` is the one regular git pass an install checkout gets (``hermes -w`` is
+    ``a2assistant update`` is the one regular git pass an install checkout gets (``a2assistant -w`` is
     rarely launched from it), so without this its version lookups never get a graph. Detached
     because the write takes seconds and must neither delay the update nor die with it. A spawn that
     fails gives the slot back, so the next update retries instead of waiting out the interval.

@@ -2,7 +2,7 @@
 
 Hermes documents three file-tool boundaries (website/docs/user-guide/security.md, "File write safety"):
 
-* ``HERMES_WRITE_SAFE_ROOT``: ``write_file`` / ``patch`` may only land inside the listed roots.
+* ``A2ASSISTANT_WRITE_SAFE_ROOT``: ``write_file`` / ``patch`` may only land inside the listed roots.
 * Protected paths: the Hermes-home ``.env`` / OAuth stores, ``~/.ssh`` keys and ``authorized_keys`` are
   never written; ``~/.ssh/config`` is approval-gated (a ``-q`` run has no approver, so it is blocked).
 * Read denylist: ``auth.json`` / ``.env`` under the Hermes home and project-local ``.env`` files are never
@@ -11,7 +11,7 @@ Hermes documents three file-tool boundaries (website/docs/user-guide/security.md
 There is no read confinement to a workspace (reads outside the cwd are allowed), so none is asserted.
 Each boundary is judged on the RESOLVED target, so spelling the same file through ``../``, an absolute
 path, a symlink inside the workspace, or a symlinked parent directory must get the same verdict as the
-direct spelling. Everything runs through the real agent tool path: ``hermes chat -q`` with the loopback
+direct spelling. Everything runs through the real agent tool path: ``a2assistant chat -q`` with the loopback
 model issuing the tool calls; outcomes are read on disk and in the tool results Hermes sent back.
 """
 
@@ -110,7 +110,7 @@ def _replace(path: str, old: str) -> dict[str, Any]:
 
 
 def _confined_steps(lay: Layout) -> list[Step]:
-    """HERMES_WRITE_SAFE_ROOT=<workspace>: every write whose resolved target is outside is refused.
+    """A2ASSISTANT_WRITE_SAFE_ROOT=<workspace>: every write whose resolved target is outside is refused.
     Every spelling has its own outside target, so a red names exactly the spelling that escaped."""
     t_write, t_patch, t_dotdot = (lay.out / f"target-{n}.txt" for n in ("symlink-write", "symlink-patch", "dotdot-patch"))
     lay.plant(t_write, "outside-symlink-write")
@@ -227,7 +227,7 @@ def _run(root: Path, build: Callable[[Layout], list[Step]], expected: tuple[str,
 @pytest.fixture(scope="module")
 def confined(tmp_path_factory: pytest.TempPathFactory) -> Run:
     return _run(tmp_path_factory.mktemp("confined"), _confined_steps, CONFINED_SCENARIOS + QUARANTINE_SCENARIOS,
-                lambda lay: {"HERMES_WRITE_SAFE_ROOT": str(lay.ws)})
+                lambda lay: {"A2ASSISTANT_WRITE_SAFE_ROOT": str(lay.ws)})
 
 
 @pytest.fixture(scope="module")

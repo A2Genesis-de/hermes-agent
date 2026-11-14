@@ -437,7 +437,7 @@ def _run_bootstrap(cwd: Path, commands: list[str]) -> None:
 
 
 def _do_git_install(entry: CatalogEntry) -> Path:
-    """Clone the entry's repo into ``~/.hermes/mcp-installs/<name>`` and run bootstrap. Returns the dir."""
+    """Clone the entry's repo into ``~/.a2assistant/mcp-installs/<name>`` and run bootstrap. Returns the dir."""
     assert entry.install is not None and entry.install.type == "git"
     install = entry.install
     dest = _install_root() / entry.name
@@ -492,7 +492,7 @@ def _expand_install_dir(value: str, install_dir: Optional[Path]) -> str:
 def _prompt_env_vars(specs: list[EnvVarSpec], preloaded: Optional[dict[str, str]] = None) -> dict[str, str]:
     """Prompt for each env spec.
 
-    Secrets persist to ~/.hermes/.env. Non-secrets are only collected and
+    Secrets persist to ~/.a2assistant/.env. Non-secrets are only collected and
     returned — the caller inlines them into the server config (config.yaml),
     since .env is secrets-only. Values already supplied by the caller
     (``preloaded``, e.g. from a dashboard form) skip the prompt.
@@ -621,11 +621,11 @@ def _apply_tool_selection(
 
     Probe-success: curses checklist; pre-check priority *prior_selection* (reinstall) > manifest
     ``tools.default_enabled`` > all; all-on clears any filter. Probe-fail: keep the prior filter,
-    else apply ``default_enabled``, else no filter; point the user at ``hermes mcp configure``.
+    else apply ``default_enabled``, else no filter; point the user at ``a2assistant mcp configure``.
     """
     print()
     name = entry.name
-    configure_hint = f"`hermes mcp configure {name}`"
+    configure_hint = f"`a2assistant mcp configure {name}`"
 
     # Exclude-mode manifests never probe: the curated exclude list (names or globs) is written as-is
     # and everything else stays enabled, including tools the server adds later. A prior include
@@ -804,7 +804,7 @@ def _install_entry(entry: CatalogEntry, *, enable: bool, preloaded_env: Optional
         # guidance rather than auto-running it to keep install decoupled from provider-auth lifecycle.
         _say(
             f"  This MCP uses {entry.auth.provider} OAuth. Run "
-            f"`hermes auth {entry.auth.provider}` if you have not "
+            f"`a2assistant auth {entry.auth.provider}` if you have not "
             "already authenticated.",
             Colors.YELLOW)
     elif entry.auth.type == "oauth":

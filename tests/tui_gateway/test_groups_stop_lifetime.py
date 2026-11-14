@@ -17,7 +17,7 @@ def controls(request, tmp_path, monkeypatch):
     import tui_gateway.server as srv
     from tui_gateway import methods_groups_forward
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     with SessionDB(tmp_path / "state.db") as db:
         service = _service(db.db_path)
         service.create_room(room_id="room", name="Stop lifetime", members=[

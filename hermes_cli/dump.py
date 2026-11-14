@@ -15,10 +15,10 @@ from datetime import UTC
 
 
 def _dotenv_key_names() -> set[str]:
-    """Env-var names assigned a non-empty value in ~/.hermes/.env — what the managed backends (launchd /
+    """Env-var names assigned a non-empty value in ~/.a2assistant/.env — what the managed backends (launchd /
     systemd / desktop ``serve``) load, as opposed to the shell exports ``os.getenv`` reflects here.
 
-    ``hermes debug share`` runs in a terminal, so ``os.getenv`` reflects the shell's environment, which can
+    ``a2assistant debug share`` runs in a terminal, so ``os.getenv`` reflects the shell's environment, which can
     include exported keys the managed backend never sees. Comparing against this set lets the dump flag that
     mismatch (the exact trap behind #48504-style "no web_search" reports: key exported in the shell, absent
     from .env, invisible to the launchd backend).
@@ -57,7 +57,7 @@ def _get_git_commit(project_root: Path) -> str:
     The requested *project_root* is authoritative: when it has no git,
     the install-stamp fallback is only valid for the RUNNING install
     (``hermes_cli.version_info`` has no per-root API — it reads
-    HERMES_INSTALL_ROOT / the running code root, never an arbitrary
+    A2ASSISTANT_INSTALL_ROOT / the running code root, never an arbitrary
     directory). For any other root the provenance is unknown.
     """
     value = _git_output(project_root, "rev-parse", "--short=8", "HEAD")
@@ -305,7 +305,7 @@ def run_dump(args):
     toolsets = config.get("toolsets", ["hermes-cli"])
     platforms = [name for name, env in _PLATFORM_ENV_VARS.items() if os.getenv(env)]
     lines = [
-        "--- hermes dump ---",
+        "--- a2assistant dump ---",
         f"version:          {_version_line(project_root)}",
         f"os:               {platform.system()} {platform.release()} {platform.machine()}",
         f"python:           {sys.version.split()[0]}",

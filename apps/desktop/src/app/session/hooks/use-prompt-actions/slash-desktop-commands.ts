@@ -206,7 +206,7 @@ function formatAgents(subagents: SubagentRow[], processes: ProcessRow[]): string
   return lines.join('\n')
 }
 
-// A standalone `hermes serve` answers config.get key=full with the raw effective config, so the
+// A standalone `a2assistant serve` answers config.get key=full with the raw effective config, so the
 // renderer fails closed: it prints only the sections the canonical owner projects
 // (gateway/session_config.py::_client_config) and omits everything else. Keep in sync.
 const CONFIG_ALLOWED: Record<string, true | readonly string[]> = {

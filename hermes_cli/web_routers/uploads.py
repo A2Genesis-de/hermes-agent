@@ -27,7 +27,7 @@ async def upload_chat_file(
     """Stage one user-selected browser file under the active Hermes profile.
 
     The client never chooses a server path. A unique 0600 file under
-    ``$HERMES_HOME/uploads`` is returned for the existing ``file.attach`` flow.
+    ``$A2ASSISTANT_HOME/uploads`` is returned for the existing ``file.attach`` flow.
     """
     profile_home = await asyncio.to_thread(resolve_upload_home, profile)
     try:

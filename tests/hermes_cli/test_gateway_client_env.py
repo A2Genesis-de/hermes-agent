@@ -12,7 +12,7 @@ import pytest
 def _shell(monkeypatch):
     monkeypatch.setenv('PATH', '/client/venv/bin:/usr/bin')
     monkeypatch.setenv('VIRTUAL_ENV', '/client/venv')
-    monkeypatch.setenv('HERMES_EPHEMERAL_SYSTEM_PROMPT', 'mine')
+    monkeypatch.setenv('A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT', 'mine')
     monkeypatch.setenv('NODE_AUTH_TOKEN', 'npm-secret')
     monkeypatch.setenv('OPENAI_API_KEY', 'sk-secret')
 
@@ -20,7 +20,7 @@ def _shell(monkeypatch):
 def _expected(env):
     assert env['PATH'] == '/client/venv/bin:/usr/bin'
     assert env['VIRTUAL_ENV'] == '/client/venv'
-    assert env['HERMES_EPHEMERAL_SYSTEM_PROMPT'] == 'mine'
+    assert env['A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT'] == 'mine'
     assert 'NODE_AUTH_TOKEN' not in env and 'OPENAI_API_KEY' not in env
 
 
@@ -75,7 +75,7 @@ def test_classic_cli_new_sends_this_shells_client_env(monkeypatch):
 def test_client_env_policy_reads_the_profiles_extra_names(monkeypatch, tmp_path):
     from hermes_cli.gateway_chat import client_env_policy
     _shell(monkeypatch)
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     (tmp_path / 'config.yaml').write_text('terminal: {client_env_passthrough: [MY_TOOLCHAIN_HOME]}\n')
     monkeypatch.setenv('MY_TOOLCHAIN_HOME', '/opt/tc')
     assert client_env_policy(['source']) == {}
@@ -92,18 +92,18 @@ def test_client_env_policy_reads_the_effective_config_and_bypass_reads_none(monk
     home, managed = tmp_path / 'home', tmp_path / 'managed'
     home.mkdir()
     managed.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.setenv('HERMES_MANAGED_DIR', str(managed))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_MANAGED_DIR', str(managed))
     (managed / 'config.yaml').write_text('terminal: {client_env_passthrough: [GEM_HOME]}\n')
     monkeypatch.setenv('GEM_HOME', '/gems')
-    for name in ('HERMES_SAFE_MODE', 'HERMES_IGNORE_USER_CONFIG'):
+    for name in ('A2ASSISTANT_SAFE_MODE', 'A2ASSISTANT_IGNORE_USER_CONFIG'):
         monkeypatch.delenv(name, raising=False)
     env = client_env_policy(['client_env'])['client_env']
     _expected(env)
     assert env['GEM_HOME'] == '/gems'
     (home / 'config.yaml').write_text('terminal: {client_env_passthrough: [MY_TOOLCHAIN_HOME]}\n')
     monkeypatch.setenv('MY_TOOLCHAIN_HOME', '/opt/tc')
-    monkeypatch.setenv('HERMES_IGNORE_USER_CONFIG', '1')
+    monkeypatch.setenv('A2ASSISTANT_IGNORE_USER_CONFIG', '1')
     bypass = client_env_policy(['client_env'])['client_env']
     _expected(bypass)
     assert 'GEM_HOME' not in bypass and 'MY_TOOLCHAIN_HOME' not in bypass
@@ -112,7 +112,7 @@ def test_client_env_policy_reads_the_effective_config_and_bypass_reads_none(monk
 def test_tui_launcher_hands_the_shell_env_to_ink(monkeypatch):
     from hermes_cli import main as main_mod, main_tui_launch
     _shell(monkeypatch)
-    monkeypatch.setenv('HERMES_PYTHON', sys.executable)
+    monkeypatch.setenv('A2ASSISTANT_PYTHON', sys.executable)
     monkeypatch.setattr(main_mod, '_has_any_provider_configured', lambda: True)
     captured = {}
     monkeypatch.setattr(main_tui_launch, '_make_tui_argv', lambda tui_dir, tui_dev, notices=None: (['node', 'dist/entry.js'], Path('.')))
@@ -123,7 +123,7 @@ def test_tui_launcher_hands_the_shell_env_to_ink(monkeypatch):
     monkeypatch.setattr(main_mod.subprocess, 'call', fake_call)
     with pytest.raises(SystemExit):
         main_mod._launch_tui()
-    _expected(json.loads(captured['HERMES_TUI_CLIENT_ENV']))
+    _expected(json.loads(captured['A2ASSISTANT_TUI_CLIENT_ENV']))
 
 
 def test_tui_bootstrap_keeps_the_client_env_out_of_a_daemon_it_starts(monkeypatch):
@@ -136,8 +136,8 @@ def test_tui_bootstrap_keeps_the_client_env_out_of_a_daemon_it_starts(monkeypatc
     spec = importlib.util.spec_from_file_location('tui_gateway_bootstrap_probe', path)
     bootstrap = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(bootstrap)
-    monkeypatch.setenv('HERMES_TUI_CLIENT_ENV', json.dumps({'PATH': '/client/bin', 'HERMES_INFERENCE_PROVIDER': 'x'}))
-    monkeypatch.setenv('HERMES_INFERENCE_PROVIDER', 'x')
+    monkeypatch.setenv('A2ASSISTANT_TUI_CLIENT_ENV', json.dumps({'PATH': '/client/bin', 'A2ASSISTANT_INFERENCE_PROVIDER': 'x'}))
+    monkeypatch.setenv('A2ASSISTANT_INFERENCE_PROVIDER', 'x')
     started = []
 
     def ensure(home, **kwargs):
@@ -147,4 +147,4 @@ def test_tui_bootstrap_keeps_the_client_env_out_of_a_daemon_it_starts(monkeypatc
     with pytest.raises(RuntimeError, match='probe'):
         bootstrap.bootstrap(True)
     assert len(started) == 1
-    assert 'HERMES_TUI_CLIENT_ENV' not in started[0] and 'HERMES_INFERENCE_PROVIDER' not in started[0]
+    assert 'A2ASSISTANT_TUI_CLIENT_ENV' not in started[0] and 'A2ASSISTANT_INFERENCE_PROVIDER' not in started[0]

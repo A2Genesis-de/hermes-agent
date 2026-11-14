@@ -98,7 +98,7 @@ def _format_missing_scopes(missing_scopes: list[str]) -> str:
 def install_deps():
     """Sync Hermes' declared Google extra, ready for the next process."""
     if pm is None:
-        print("ERROR: Run this script in the A2Assistant environment; use hermes setup first.")
+        print("ERROR: Run this script in the A2Assistant environment; use a2assistant setup first.")
         return False
     try:
         pm.sync_venv(["google"], explicit=True)
@@ -112,7 +112,7 @@ def install_deps():
 def _ensure_deps():
     """Let PM check imports and stop if activation needs a new process."""
     if pm is None:
-        print("ERROR: Run this script in the A2Assistant environment; use hermes setup first.")
+        print("ERROR: Run this script in the A2Assistant environment; use a2assistant setup first.")
         sys.exit(1)
     try:
         pm.ensure_import("google")

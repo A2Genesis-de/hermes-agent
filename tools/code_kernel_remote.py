@@ -49,7 +49,7 @@ import sys
 import time
 import traceback
 
-KDIR = os.environ["HERMES_KERNEL_DIR"]
+KDIR = os.environ["A2ASSISTANT_KERNEL_DIR"]
 CELLS = os.path.join(KDIR, "cells")
 _CAPTURE_LIMIT = {capture_limit}
 IDLE_EXIT_SECONDS = {idle_exit}
@@ -238,7 +238,7 @@ def _spawn_remote_kernel(env, env_type: str, owner: str, task_env_id: str,
             "rm -f ./kernel.env && touch runner.log && chmod 600 runner.log && "
             '{ nohup python3 kernel_runner.py > runner.log 2>&1 & echo "PID:$!"; }',
             rpc_dir=f"{kernel_dir}/rpc", rpc_token=rpc_token,
-            HERMES_KERNEL_DIR=kernel_dir, PYTHONPATH=kernel_dir)
+            A2ASSISTANT_KERNEL_DIR=kernel_dir, PYTHONPATH=kernel_dir)
         started = _sh(env, launch_cmd, timeout=20)
         pid = next((line.strip()[4:].strip() for line in started.splitlines()
                     if line.strip().startswith("PID:")), "")

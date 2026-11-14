@@ -66,7 +66,7 @@ def sync_registered_providers() -> None:
     registered (entry points enabled in config). Reads the process-wide registry and its source
     record as they stand: never config, never discovery. Not ``provider_source()``: that one is
     profile-aware and scans the bound home's plugin dirs, whose isolation check reads config.
-    ``$HERMES_HOME`` plugins (per profile) are not process-wide and are left out."""
+    ``$A2ASSISTANT_HOME`` plugins (per profile) are not process-wide and are left out."""
     import providers
     from hermes_cli.config_defaults import OPTIONAL_ENV_VARS
     sources = dict(providers._SOURCES)

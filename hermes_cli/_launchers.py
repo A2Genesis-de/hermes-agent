@@ -21,6 +21,7 @@ from pathlib import Path
 if __name__ == "__main__":
     sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
+from hermes_cli.branding import CLI_COMMAND, LEGACY_CLI_COMMAND
 from pm.environments import owning_home_root, store_root
 
 # ``sys`` attribute a launcher sets before ``import hermes_bootstrap``: pin HERMES_HOME to the
@@ -53,11 +54,11 @@ def runtime_command(repo_root: Path, args=(), *, module: str = "hermes_cli.main"
     # checkout, so it is pinned only after ``hermes_bootstrap``'s launch-time repair (see
     # ``_launcher_script``), here again for a bootstrap that predates that hook.
     if home is not None:
-        pin, settle = (f"os.environ['HERMES_HOME'] = os.environ.get('HERMES_HOME') or "
+        pin, settle = (f"os.environ['A2ASSISTANT_HOME'] = os.environ.get('A2ASSISTANT_HOME') or "
                        f"{_inline_string_literal(str(home))}; "), ""
     else:
         pin = f"sys.{PIN_DEFAULT_HOME_FLAG} = True; "
-        settle = ("os.environ.get('HERMES_HOME') or os.environ.__setitem__('HERMES_HOME', "
+        settle = ("os.environ.get('A2ASSISTANT_HOME') or os.environ.__setitem__('A2ASSISTANT_HOME', "
                   "str(__import__('hermes_constants').get_default_hermes_root())); ")
     bootstrap = (
         "import os, sys, runpy; "
@@ -96,22 +97,27 @@ def installation_command(repo_root: Path, args=(), *, module: str = "hermes_cli.
     if resolve_store_python(root) is None:
         return runtime_command(root, args, module=module, python=python, home=home)
     prefix = [] if module == "hermes_cli.main" else ["--run-module", module]
-    return [str(root / ".hermes" / "bin" / "hermes"), *prefix, *args]
+    return [str(root / ".hermes" / "bin" / CLI_COMMAND), *prefix, *args]
 
 #: Launcher command names — keep in lockstep with scripts/install.ps1
 #: Publish-UserCommand and hermes_cli/_install_repair.py.
-WINDOWS_BIN_LAUNCHERS = ("hermes", "hermes-acp")
+PRIMARY_LAUNCHERS = (CLI_COMMAND, f"{CLI_COMMAND}-acp")
+ALIAS_LAUNCHERS = {LEGACY_CLI_COMMAND: CLI_COMMAND, f"{LEGACY_CLI_COMMAND}-acp": f"{CLI_COMMAND}-acp"}
+WINDOWS_BIN_LAUNCHERS = (*PRIMARY_LAUNCHERS, *ALIAS_LAUNCHERS)
 
 CONVENIENCE_COMMANDS = {
-    "hermes-agent": ("hermes", "--run-module", "run_agent"),
-    "a2assistant": ("hermes",),
+    **{alias: (primary,) for alias, primary in ALIAS_LAUNCHERS.items()},
+    f"{CLI_COMMAND}-agent": (CLI_COMMAND, "--run-module", "run_agent"),
+    f"{LEGACY_CLI_COMMAND}-agent": (CLI_COMMAND, "--run-module", "run_agent"),
 }
 
 #: command name -> (entry module, callable) — mirrors pyproject.toml
 #: [project.scripts].
 ENTRY_POINTS = {
-    "hermes": ("hermes_cli.main", "main"),
-    "hermes-acp": ("acp_adapter.entry", "main"),
+    CLI_COMMAND: ("hermes_cli.main", "main"),
+    f"{CLI_COMMAND}-acp": ("acp_adapter.entry", "main"),
+    LEGACY_CLI_COMMAND: ("hermes_cli.main", "main"),
+    f"{LEGACY_CLI_COMMAND}-acp": ("acp_adapter.entry", "main"),
 }
 
 
@@ -124,7 +130,7 @@ def resolve_store_python(repo_root: Path, *, publication: bool = False) -> Path 
 
     Callers that PERSIST the result in a launcher (``stage_launcher`` and the
     publication gates below) pass ``publication=True``: the tree's own store
-    wins over an inherited ``HERMES_RUNTIME_DIR``. The override names a store
+    wins over an inherited ``A2ASSISTANT_RUNTIME_DIR``. The override names a store
     for the running process (an e2e fixture, a desktop toolchain) that a later
     scratch cleanup may delete, leaving the launcher to exit 127 forever
     (#131745). It still supplies the store when the tree records none.
@@ -435,13 +441,13 @@ def _hermes_closure_repair():
             from hermes_cli import _early_recovery
             restored = _early_recovery.restore_interrupted_pull(root)
     except Exception as exc:
-        said.write('hermes: the checkout cannot start after an interrupted `hermes update`, and it was not '
+        said.write('hermes: the checkout cannot start after an interrupted `a2assistant update`, and it was not '
                    'repaired: %s\\n' % (exc,))
     if restored:
-        sys.stderr.write('hermes: the checkout could not start after an interrupted `hermes update`; '
+        sys.stderr.write('hermes: the checkout could not start after an interrupted `a2assistant update`; '
                          'repaired it with the recovery code saved before the update.\\n' + said.getvalue())
         _early_recovery.relaunch_after_restore()
-    sys.stderr.write(said.getvalue() or 'hermes: the checkout cannot start after an interrupted `hermes update`; '
+    sys.stderr.write(said.getvalue() or 'hermes: the checkout cannot start after an interrupted `a2assistant update`; '
                      'launch again once the update that owns it finishes.\\n')
     raise SystemExit(1)
 """
@@ -495,7 +501,7 @@ def _launcher_script(name: str, repo_root: Path, dependencies: Path | None) -> s
         f"    if _early_recovery is not None and _early_recovery.restore_interrupted_pull(Path({root!r})):\n"
         "        _early_recovery.relaunch_after_restore()\n"
         "    from hermes_constants import get_default_hermes_root\n"
-        "    os.environ['HERMES_HOME'] = os.environ.get('HERMES_HOME') or str(get_default_hermes_root())\n"
+        "    os.environ['A2ASSISTANT_HOME'] = os.environ.get('A2ASSISTANT_HOME') or str(get_default_hermes_root())\n"
         "    from hermes_cli._launchers import print_runtime_command\n"
         f"    print_runtime_command(Path({root!r}), sys.argv[2:])\n"
         "    sys.exit(0)\n"
@@ -505,9 +511,9 @@ def _launcher_script(name: str, repo_root: Path, dependencies: Path | None) -> s
         "except Exception:\n"
         "    _hermes_closure_repair()\n"
         "    raise\n"
-        "if not os.environ.get('HERMES_HOME'):\n"
+        "if not os.environ.get('A2ASSISTANT_HOME'):\n"
         "    from hermes_constants import get_default_hermes_root\n"
-        "    os.environ['HERMES_HOME'] = str(get_default_hermes_root())\n"
+        "    os.environ['A2ASSISTANT_HOME'] = str(get_default_hermes_root())\n"
         "if sys.argv[1:2] == ['--run-module']:\n"
         "    import runpy\n"
         "    if len(sys.argv) < 3: sys.exit('hermes: --run-module needs a module')\n"
@@ -552,7 +558,7 @@ def _owns_launcher(target: Path, root: Path) -> bool:
     paths = {str(root / p) for p in (
         "hermes", "run_agent.py", "venv/bin/python", "venv/bin/python3",
         "venv/bin/hermes",
-        ".hermes/bin/hermes", ".hermes/bin/hermes-acp",
+        *(f".hermes/bin/{name}" for name in WINDOWS_BIN_LAUNCHERS),
     )}
     # Current store launchers pass this Python bootstrap as one shell argument.
     bootstrap = f"sys.path.insert(0, {str(root)!r})"
@@ -585,6 +591,14 @@ def _publish_conveniences(root: Path, out_dir: Path, names, *, create: bool = Tr
             raise OSError(f"could not publish launcher {target}")
         published[target] = before != target.lstat().st_mtime_ns
     return published
+
+
+def _write_alias_launchers(local: Path) -> list[Path]:
+    written = []
+    for alias, primary in ALIAS_LAUNCHERS.items():
+        if (path := _write_shell(local / alias, [str(local / primary)])) is not None:
+            written.append(path)
+    return written
 
 
 def stage_launcher(name: str, repo_root: Path, out_dir: Path) -> Path | None:
@@ -622,7 +636,7 @@ def _retire_exe(exe: Path) -> bool:
 
     Windows refuses to delete a mapped image but allows renaming it, and the
     launcher a Python repin has to retire is usually the one running
-    ``hermes update`` (or the launch retrying its owed launcher step), so a
+    ``a2assistant update`` (or the launch retrying its owed launcher step), so a
     plain unlink left every repinned update owing launchers -- and the install
     stamp -- forever. The aside copy goes on the next publication once its
     process has exited."""
@@ -778,7 +792,7 @@ def _is_home_checkout(root: Path, store: Path) -> bool:
 
     That checkout sits at ``<home>/<checkout>`` and runs ``<home>/tools``. The
     layout alone is not proof: a root that only borrows the checkout can match
-    it through HERMES_RUNTIME_DIR=<home>/tools, so the home must also own it.
+    it through A2ASSISTANT_RUNTIME_DIR=<home>/tools, so the home must also own it.
     """
     from hermes_constants import get_default_hermes_root
     home = get_default_hermes_root().resolve()
@@ -789,7 +803,7 @@ def _is_home_checkout(root: Path, store: Path) -> bool:
 def _kept_shared_launcher(name: str, local: Path, store: Path, own: Path | None) -> Path | None:
     """Existing checkout launcher already bound outside this root's store.
 
-    Checkout launchers are shared by every HERMES_HOME; a launch under one
+    Checkout launchers are shared by every A2ASSISTANT_HOME; a launch under one
     data root must never repoint them at another root's interpreter (#123238):
     once that root is deleted, every hermes breaks. Keep the file when it
     execs a live interpreter outside *store*. Missing launchers, dead
@@ -847,7 +861,7 @@ def ensure_install_launchers(repo_root: Path, out_dir: Path) -> list[str]:
     # also heals an install that an earlier foreign launch already rebound.
     owner = _is_home_checkout(root, store)
     written = []
-    for name in WINDOWS_BIN_LAUNCHERS:
+    for name in WINDOWS_BIN_LAUNCHERS if _is_windows() else PRIMARY_LAUNCHERS:
         # ponytail: one guard here covers every caller (launch, sync, repair,
         # install); per-home outputs below stay unguarded. Upgrade to a stamped
         # owning store if shared checkouts ever need cross-home repins.
@@ -857,6 +871,8 @@ def ensure_install_launchers(repo_root: Path, out_dir: Path) -> list[str]:
             continue
         if (path := stage_launcher(name, root, local)) is not None:
             written.append(str(path))
+    if not _is_windows() and len(written) == len(PRIMARY_LAUNCHERS):
+        written.extend(str(path) for path in _write_alias_launchers(local))
     if Path(out_dir).resolve() == local:
         return written
     if len(written) != len(WINDOWS_BIN_LAUNCHERS):
@@ -918,11 +934,12 @@ def expose_cli(project_root: Path | None = None, *, create: bool = True) -> dict
         # entries or reclaim a convenience that was repointed to another root.
         from hermes_constants import get_default_hermes_root
         for directory in (get_default_hermes_root() / "bin", Path("/usr/local/bin")):
-            if directory not in dirs and (not create or _owns_launcher(directory / "hermes", root)):
+            if directory not in dirs and (not create or any(
+                    _owns_launcher(directory / name, root) for name in (CLI_COMMAND, LEGACY_CLI_COMMAND))):
                 dirs.append(directory)
         written = []
         for directory in dirs:
-            published = _publish_conveniences(root, directory, (*WINDOWS_BIN_LAUNCHERS, *CONVENIENCE_COMMANDS), create=create)
+            published = _publish_conveniences(root, directory, tuple(dict.fromkeys((*WINDOWS_BIN_LAUNCHERS, *CONVENIENCE_COMMANDS))), create=create)
             written.extend(path.name for path, changed in published.items() if changed)
         return {"ok": True, "written": written}
     except OSError as exc:
@@ -938,7 +955,7 @@ def _new_console_environment() -> dict[str, str] | None:
 
     CreateEnvironmentBlock builds it from the user's stored variables
     (HKCU\\Environment, the profile folders, the system variables) and ignores
-    this process's environment. A sandbox that overrides HERMES_HOME or
+    this process's environment. A sandbox that overrides A2ASSISTANT_HOME or
     LOCALAPPDATA for its own processes does not change the result. Names are
     upper-cased because Windows compares them case-insensitively.
     """
@@ -1001,7 +1018,7 @@ def owns_user_path(root: Path) -> bool:
 
     Every console the user opens reads the User PATH, so only the root that
     new consoles resolve may register there. A custom root qualifies only when
-    HERMES_HOME is stored as a user variable. A process whose own HERMES_HOME,
+    A2ASSISTANT_HOME is stored as a user variable. A process whose own A2ASSISTANT_HOME,
     LOCALAPPDATA or USERPROFILE override selects a different root (a review
     sandbox, a test home, a suffixed data directory) gets False. So does any
     root when Windows cannot report the console environment.
@@ -1070,7 +1087,7 @@ def _broadcast_environment_change() -> None:
 def _expose_windows_user_bin(root: Path, *, create: bool) -> dict:
     """Windows twin of expose_cli's POSIX half.
 
-    Stage the user-facing commands into ``$HERMES_HOME\\bin`` and register that
+    Stage the user-facing commands into ``$A2ASSISTANT_HOME\\bin`` and register that
     directory in the User PATH -- the same two things scripts/install.ps1 does --
     so an update converges a machine installed under the older venv\\Scripts
     convention instead of leaving it there forever. The registration happens
@@ -1078,7 +1095,7 @@ def _expose_windows_user_bin(root: Path, *, create: bool) -> dict:
 
     Commands there that start another checkout which still exists stay in
     place unless *root* is the home's own checkout: a review tree or worktree
-    started against the home leaves the installed ``hermes`` alone.
+    started against the home leaves the installed ``a2assistant`` alone.
     """
     from hermes_constants import get_default_hermes_root
 
@@ -1129,7 +1146,7 @@ def _symlink_sealed_launchers(payload_bin) -> dict:
 
     Ownership guard mirrors expose_cli's wrapper logic: an existing
     entry is replaced only when it is ours — a symlink into THIS app
-    bundle's payload — or missing/broken. A user's own `hermes` (pipx,
+    bundle's payload — or missing/broken. A user's own `a2assistant` (pipx,
     another checkout's wrapper) is never touched.
     """
     link_dir = Path.home() / ".local" / "bin"

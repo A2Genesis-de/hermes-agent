@@ -403,10 +403,10 @@ def _last_used_profile(src: str) -> str:
 def _secure_snapshot(path: str, *, contents: bool = False) -> None:
     """Lock down a snapshot dir (or, with ``contents``, everything INSIDE it) as a secret store.
     It holds the user's Cookies / Login Data, so it gets the same owner-only perms (managed-mode /
-    NixOS group-share carve-out, HERMES_UID/GID) as every Hermes secret dir — via ``_secure_dir``/
+    NixOS group-share carve-out, A2ASSISTANT_UID/GID) as every Hermes secret dir — via ``_secure_dir``/
     ``_secure_file``, not a bespoke chmod. Contents matter too (#96729): ``copy2`` keeps Chrome's
     0644 and sqlite backups land umask-wide, so cookies were world-readable under the
-    ``HERMES_HOME_MODE`` hatch. Best-effort; never blocks a launch."""
+    ``A2ASSISTANT_HOME_MODE`` hatch. Best-effort; never blocks a launch."""
     try:
         from hermes_cli.config import _secure_dir, _secure_file
         if not contents:
@@ -859,8 +859,8 @@ def _ensure_chrome_debug_data_dir(data_dir: str) -> None:
     ``chrome-debug`` is a real Chromium profile: Cookies, Login Data, and
     Local Storage live here. Created with a bare ``os.makedirs`` it inherits
     the umask and lands 0755, so every other local account could list and
-    read those stores. ``HERMES_HOME`` is 0700 by default, which contains the
-    damage — but the documented ``HERMES_HOME_MODE=0701`` hatch (so nginx can
+    read those stores. ``A2ASSISTANT_HOME`` is 0700 by default, which contains the
+    damage — but the documented ``A2ASSISTANT_HOME_MODE=0701`` hatch (so nginx can
     traverse to a served subdirectory) makes a 0755 child genuinely
     world-readable.
 
@@ -868,7 +868,7 @@ def _ensure_chrome_debug_data_dir(data_dir: str) -> None:
     window where the profile sits world-readable before a follow-up chmod.
     Policy is then reconciled by ``hermes_cli.config._secure_dir``, the house
     helper, rather than a hand-rolled chmod: it skips managed/NixOS installs,
-    honours ``HERMES_HOME_MODE``, and applies ``HERMES_UID``/``HERMES_GID``
+    honours ``A2ASSISTANT_HOME_MODE``, and applies ``A2ASSISTANT_UID``/``A2ASSISTANT_GID``
     ownership so a root-created dir does not lock out uid-mapped Docker
     workers (#34107).
 
@@ -879,7 +879,7 @@ def _ensure_chrome_debug_data_dir(data_dir: str) -> None:
     rules pre-create — it is made lazily at runtime, so a hardcoded 0700 here
     would be the only thing setting its mode and would silently override that
     design. On such a host the gateway and a hostUsers CLI share one
-    ``$HERMES_HOME`` through the hermes group, so a 0700 profile created by
+    ``$A2ASSISTANT_HOME`` through the hermes group, so a 0700 profile created by
     whichever ran first locks the other out of the browser entirely.
     Omitting the explicit mode there lets the inherited setgid + umask decide,
     matching ``ensure_hermes_home``'s managed branch.
@@ -911,7 +911,7 @@ def _open_launch_stderr_log(path: str):
 
     Opened with a plain ``open(path, "wb")`` this lands 0644 under a default
     umask — a fixed, guessable name inside the profile dir hardened just
-    above. Under ``HERMES_HOME_MODE=0701`` the directory is traversable but
+    above. Under ``A2ASSISTANT_HOME_MODE=0701`` the directory is traversable but
     unlistable, so a predictable filename is exactly the case that stays
     reachable; the uuid-named files elsewhere in the profile do not.
 
@@ -935,7 +935,7 @@ def _open_launch_stderr_log(path: str):
     The managed/NixOS carve-out applies at creation here too — the same defect
     the profile directory had. This log is created lazily at runtime and is
     not covered by the module's ``systemd.tmpfiles`` rules; the gateway and an
-    interactive ``hostUsers`` CLI share one ``$HERMES_HOME`` at two uids
+    interactive ``hostUsers`` CLI share one ``$A2ASSISTANT_HOME`` at two uids
     through the hermes group, and a 0600 log created by whichever ran first
     makes the other's truncating open fail with ``EACCES`` — and because every
     candidate binary reuses this one path, that fails *the whole launch*.

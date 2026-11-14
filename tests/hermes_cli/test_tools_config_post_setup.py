@@ -87,7 +87,7 @@ def test_importable_sdk_does_not_bypass_pm_constraints(monkeypatch, capsys, key,
     output = capsys.readouterr().out
     if refused:
         assert "outside frozen feature set" in output
-        assert "Retry with: hermes tools" in output
+        assert "Retry with: a2assistant tools" in output
         assert "Restart A2Assistant" not in output
     else:
         assert "Restart A2Assistant" in output

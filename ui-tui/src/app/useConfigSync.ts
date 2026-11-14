@@ -373,7 +373,7 @@ export const applyDisplay = (
 }
 
 /** T9: on the shared owner the voice bit is the session's gateway `/voice` mode (`config.get
- *  key=voice`), not the owner process's HERMES_VOICE env, which Ink's own env never reflected. */
+ *  key=voice`), not the owner process's A2ASSISTANT_VOICE env, which Ink's own env never reflected. */
 export const hydrateVoiceMode = async (
   gw: GatewayClient,
   setVoiceEnabled: (v: boolean) => void,
@@ -413,7 +413,7 @@ export function useConfigSync({
     // can run long enough to delay prompt.submit on the single stdio RPC pipe.
     // Environment flags are enough to initialize the UI bit; the heavier status
     // check still runs when the user opens /voice.
-    setVoiceEnabled(process.env.HERMES_VOICE === '1')
+    setVoiceEnabled(process.env.A2ASSISTANT_VOICE === '1')
     void hydrateVoiceMode(gw, setVoiceEnabled, scope)
     quietRpc<ConfigMtimeResponse>(gw, 'config.get', { key: 'mtime', session_id: sid }).then(r => {
       if (!scope.isCurrent()) {return}

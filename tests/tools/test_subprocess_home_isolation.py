@@ -1,6 +1,6 @@
 """Tests for subprocess HOME handling in profile mode.
 
-Hermes state stays profile-scoped through HERMES_HOME. Host subprocesses should
+Hermes state stays profile-scoped through A2ASSISTANT_HOME. Host subprocesses should
 keep the user's real HOME by default so external CLIs find existing credentials.
 Containers still use the profile home for persistence, and users can explicitly
 opt into profile HOME isolation on the host.
@@ -26,12 +26,12 @@ class TestGetSubprocessHome:
     def _host_mode(self, monkeypatch):
         monkeypatch.setattr(hermes_constants, "is_container", lambda: False)
         monkeypatch.delenv("TERMINAL_HOME_MODE", raising=False)
-        monkeypatch.delenv("HERMES_REAL_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_REAL_HOME", raising=False)
 
     def _container_mode(self, monkeypatch):
         monkeypatch.setattr(hermes_constants, "is_container", lambda: True)
         monkeypatch.delenv("TERMINAL_HOME_MODE", raising=False)
-        monkeypatch.delenv("HERMES_REAL_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_REAL_HOME", raising=False)
 
 
 
@@ -43,7 +43,7 @@ class TestGetSubprocessHome:
         profile_home = hermes_home / "home"
         profile_home.mkdir(parents=True)
         monkeypatch.setenv("HOME", str(real_home))
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         from hermes_constants import get_subprocess_home
         assert get_subprocess_home() is None
 
@@ -55,8 +55,8 @@ class TestGetSubprocessHome:
         profile_home = hermes_home / "home"
         profile_home.mkdir(parents=True)
         monkeypatch.delenv("HOME", raising=False)
-        monkeypatch.setenv("HERMES_REAL_HOME", str(real_home))
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_REAL_HOME", str(real_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         from hermes_constants import get_subprocess_home
         assert get_subprocess_home() == str(real_home)
 
@@ -71,8 +71,8 @@ class TestGetSubprocessHome:
         real_home = tmp_path / "real-home"
         real_home.mkdir()
         monkeypatch.delenv("HOME", raising=False)
-        monkeypatch.setenv("HERMES_REAL_HOME", str(real_home))
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_REAL_HOME", str(real_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         from tools.environments.local import build_subprocess_env
         assert build_subprocess_env()["HOME"] == str(real_home)
 
@@ -81,7 +81,7 @@ class TestGetSubprocessHome:
         hermes_home = tmp_path / ".hermes"
         profile_home = hermes_home / "home"
         profile_home.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         from hermes_constants import get_subprocess_home
         assert get_subprocess_home() == str(profile_home)
 
@@ -93,7 +93,7 @@ class TestGetSubprocessHome:
         profile_home = profile_dir / "home"
         profile_home.mkdir()
         monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_dir))
         from hermes_constants import get_subprocess_home
         assert get_subprocess_home() == str(profile_home)
 
@@ -105,9 +105,9 @@ class TestGetSubprocessHome:
         real_home = tmp_path / "real-home"
         real_home.mkdir()
         monkeypatch.setenv("TERMINAL_HOME_MODE", "real")
-        monkeypatch.setenv("HERMES_HOME", str(profile_dir))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_dir))
         monkeypatch.setenv("HOME", str(profile_home))
-        monkeypatch.setenv("HERMES_REAL_HOME", str(real_home))
+        monkeypatch.setenv("A2ASSISTANT_REAL_HOME", str(real_home))
 
         from hermes_constants import get_subprocess_home, get_real_home
 
@@ -125,10 +125,10 @@ class TestGetSubprocessHome:
 
         from hermes_constants import get_subprocess_home
 
-        monkeypatch.setenv("HERMES_HOME", str(base / "alpha"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(base / "alpha"))
         home_a = get_subprocess_home()
 
-        monkeypatch.setenv("HERMES_HOME", str(base / "beta"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(base / "beta"))
         home_b = get_subprocess_home()
 
         assert home_a is not None
@@ -153,7 +153,7 @@ class TestMakeRunEnvHomeInjection:
         real_home = tmp_path / "real-home"
         real_home.mkdir()
         monkeypatch.setattr(hermes_constants, "is_container", lambda: False)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("HOME", str(real_home))
         monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
@@ -161,7 +161,7 @@ class TestMakeRunEnvHomeInjection:
         result = _make_run_env({})
 
         assert result["HOME"] == str(real_home)
-        assert result["HERMES_REAL_HOME"] == str(real_home)
+        assert result["A2ASSISTANT_REAL_HOME"] == str(real_home)
 
     def test_profile_mode_injects_profile_home_when_profile_home_exists(self, tmp_path, monkeypatch):
         hermes_home = tmp_path / "hermes"
@@ -171,7 +171,7 @@ class TestMakeRunEnvHomeInjection:
         real_home.mkdir()
         monkeypatch.setattr(hermes_constants, "is_container", lambda: False)
         monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("HOME", str(real_home))
         monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
@@ -179,13 +179,13 @@ class TestMakeRunEnvHomeInjection:
         result = _make_run_env({})
 
         assert result["HOME"] == str(hermes_home / "home")
-        assert result["HERMES_REAL_HOME"] == str(real_home)
+        assert result["A2ASSISTANT_REAL_HOME"] == str(real_home)
 
     def test_no_injection_when_home_dir_missing(self, tmp_path, monkeypatch):
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir()
         # No home/ subdirectory
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setenv("HOME", "/root")
         monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
@@ -195,7 +195,7 @@ class TestMakeRunEnvHomeInjection:
         assert result["HOME"] == "/root"
 
     def test_no_injection_when_hermes_home_unset(self, monkeypatch):
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         monkeypatch.setenv("HOME", "/home/user")
         monkeypatch.setenv("PATH", "/usr/bin:/bin")
 
@@ -220,14 +220,14 @@ class TestSanitizeSubprocessEnvHomeInjection:
         real_home = tmp_path / "real-home"
         real_home.mkdir()
         monkeypatch.setattr(hermes_constants, "is_container", lambda: False)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         base_env = {"HOME": str(real_home), "PATH": "/usr/bin", "USER": "root"}
         from tools.environments.local import _sanitize_subprocess_env
         result = _sanitize_subprocess_env(base_env)
 
         assert result["HOME"] == str(real_home)
-        assert result["HERMES_REAL_HOME"] == str(real_home)
+        assert result["A2ASSISTANT_REAL_HOME"] == str(real_home)
 
     def test_profile_mode_injects_profile_home_when_profile_home_exists(self, tmp_path, monkeypatch):
         hermes_home = tmp_path / "hermes"
@@ -237,19 +237,19 @@ class TestSanitizeSubprocessEnvHomeInjection:
         real_home.mkdir()
         monkeypatch.setattr(hermes_constants, "is_container", lambda: False)
         monkeypatch.setenv("TERMINAL_HOME_MODE", "profile")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         base_env = {"HOME": str(real_home), "PATH": "/usr/bin", "USER": "root"}
         from tools.environments.local import _sanitize_subprocess_env
         result = _sanitize_subprocess_env(base_env)
 
         assert result["HOME"] == str(hermes_home / "home")
-        assert result["HERMES_REAL_HOME"] == str(real_home)
+        assert result["A2ASSISTANT_REAL_HOME"] == str(real_home)
 
     def test_no_injection_when_home_dir_missing(self, tmp_path, monkeypatch):
         hermes_home = tmp_path / "hermes"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
         base_env = {"HOME": "/root", "PATH": "/usr/bin"}
         from tools.environments.local import _sanitize_subprocess_env
@@ -272,7 +272,7 @@ class TestProfileBootstrap:
         home = tmp_path / ".hermes"
         home.mkdir()
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
         from hermes_cli.profiles import create_profile
         profile_dir = create_profile("testbot", no_alias=True)

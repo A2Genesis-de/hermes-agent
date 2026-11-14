@@ -293,7 +293,7 @@ def _drop_gated_carried_tools(merged: list, carried: set) -> list:
 
 def _pinned_tool_defs(saved, fresh, keep_bytes=False) -> tuple:
     """(pinned, same_code, definitions) for a tools[] pin, either shape: a pin from the SAME code keeps
-    its bytes; otherwise (``hermes update``, a legacy name list) each tool takes this process's
+    its bytes; otherwise (``a2assistant update``, a legacy name list) each tool takes this process's
     definition (``fresh``, else its registry schema)."""
     pinned, version = (saved.get("tools") or [], saved.get("version")) if isinstance(saved, dict) else (saved, None)
     if not isinstance(pinned, list):
@@ -328,7 +328,7 @@ def restore_agent_tool_prefix(agent, saved) -> bool:
     predecessor to preserve, so the pin stands in. Pinned by the SAME code, a tool still available
     here keeps its pinned BYTES, whatever this process derives for it (tool_search's per-surface
     catalog, per-surface dynamic parameters, the ``-q`` footprint): tools[] heads every request.
-    Pinned by other code (``hermes update``, a legacy name list) a tool's contract may have moved,
+    Pinned by other code (``a2assistant update``, a legacy name list) a tool's contract may have moved,
     so each takes its current definition. A pinned tool this process did not build is carried
     only while its toolset config allows it here; deregistered tools drop, new tools append. In the
     process that wrote the pin a pinned Tool Search bridge tool keeps its slot (it is synthesized, never

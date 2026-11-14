@@ -92,7 +92,7 @@ def gateway_room_grant_secret(root: Path | str | None = None) -> bytes:
         from hermes_constants import get_hermes_home
         # Profile routing uses a context-local HERMES_HOME override; the process environment
         # retains the installation root and is the authority here.
-        root = os.environ.get("HERMES_HOME") or get_hermes_home()
+        root = os.environ.get("A2ASSISTANT_HOME") or get_hermes_home()
     return _gateway_room_grant_secret_for_home(str(Path(root).expanduser().resolve()))
 
 
@@ -102,7 +102,7 @@ def gateway_room_grant_secret_available(root: Path | str | None = None) -> bool:
     when a grant is first issued)."""
     if root is None:
         from hermes_constants import get_hermes_home
-        root = os.environ.get("HERMES_HOME") or get_hermes_home()
+        root = os.environ.get("A2ASSISTANT_HOME") or get_hermes_home()
     home = Path(root).expanduser().resolve()
     path = home / _ROOM_GRANT_SECRET_FILE
     try:
@@ -267,9 +267,9 @@ def catalog_mapping(
     """Build a canonical catalog mapping with its digest for the SERVED ``target_profile``.
 
     The profile is the session's, never the process's: a multiplexed gateway advertises one
-    catalog per served profile, so there is no env (``HERMES_PROFILE``) fallback (#116900)."""
+    catalog per served profile, so there is no env (``A2ASSISTANT_PROFILE``) fallback (#116900)."""
     # A Desktop-managed gateway exits with the app: the caller's flag is only an upper bound.
-    persistent_process = bool(persistent_process and os.getenv("HERMES_DESKTOP") != "1")
+    persistent_process = bool(persistent_process and os.getenv("A2ASSISTANT_DESKTOP") != "1")
     profile = _identifier(target_profile, field="target_profile")
     checked_policy = RoomExecutionPolicy.from_mapping(
         execution_policy or execution_policy_mapping(target_profile=profile))
@@ -311,17 +311,17 @@ def served_room_link_endpoint(target_profile: str) -> dict[str, Any]:
     """The endpoint a catalog for the served *target_profile* advertises.
 
     A named profile that sets its own ``gateway.room_link_url`` advertises it as is. One that
-    inherits the gateway's endpoint (root config or ``HERMES_ROOM_LINK_URL``) advertises that
+    inherits the gateway's endpoint (root config or ``A2ASSISTANT_ROOM_LINK_URL``) advertises that
     listener's ``/p/<profile>`` mirror, so every lender call runs in that profile's request scope
     and its grant (``target_profile``) never answers on another profile's route. The root config's
     listener is inherited only by a multiplexed gateway, whose shared listener serves the mirror: a
-    single-profile ``hermes -p <profile> gateway run`` is its own process, and the root gateway
+    single-profile ``a2assistant -p <profile> gateway run`` is its own process, and the root gateway
     neither serves that profile nor holds its grant secret."""
     if target_profile == "default":
         return local_room_link_endpoint()
     from agent.secret_scope import is_multiplex_active
     from hermes_cli.profiles import get_profile_dir
-    override = os.getenv("HERMES_ROOM_LINK_URL")
+    override = os.getenv("A2ASSISTANT_ROOM_LINK_URL")
     if override is None and (own := _room_link_url_from_config(str(get_profile_dir(target_profile)))):
         return local_room_link_endpoint(own)
     from hermes_constants import get_default_hermes_root
@@ -350,7 +350,7 @@ def _room_link_url_from_config(home: str) -> str | None:
 
 def _configured_room_link_url() -> str | None:
     """Resolve the explicit endpoint: env override > profile config > root config."""
-    if (override := os.getenv("HERMES_ROOM_LINK_URL")) is not None:
+    if (override := os.getenv("A2ASSISTANT_ROOM_LINK_URL")) is not None:
         return override
     from hermes_constants import get_default_hermes_root, get_hermes_home
     home = get_hermes_home()

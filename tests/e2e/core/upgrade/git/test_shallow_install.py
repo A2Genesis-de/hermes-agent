@@ -1,4 +1,4 @@
-"""Shallow and stale installs through the real ``hermes update``.
+"""Shallow and stale installs through the real ``a2assistant update``.
 
 The handoff generation's ``scripts/install.sh`` (to v2026.9.24) clones ``--depth 1 --single-branch``:
 that is the checkout every user of those releases has. Three installs run concurrently over smart HTTP:
@@ -9,12 +9,12 @@ that is the checkout every user of those releases has. Three installs run concur
   the second must succeed after the first one unshallowed the clone (#124272: the unshallow applied
   ``--filter=tree:0`` to a clone whose objects sit in a non-promisor pack, and the next fetch dies
   in ``pack-objects ... should_include_obj``).
-* ``checked``: the same install after three passive ``hermes update --check`` runs while upstream
+* ``checked``: the same install after three passive ``a2assistant update --check`` runs while upstream
   moved (each is a depth-1 fetch that appends a graft), then updated to HEAD. The history is
   shared, so the update must not claim orphan divergence (#105951's symptom).
 * ``prefetched``: a HEAD install (non-shallow ``tree:0``) with a local commit, where the user ran
   ``git fetch --depth 1 origin main`` (the documented workaround for slow fetches) before
-  ``hermes update``. The local commit shares history with upstream: it must stay recoverable, and
+  ``a2assistant update``. The local commit shares history with upstream: it must stay recoverable, and
   the update must not declare orphan divergence (#123346).
 """
 
@@ -129,7 +129,7 @@ def test_passive_checks_do_not_push_the_next_update_into_orphan_divergence(runs)
     w: G.World = run["w"]
     cp1 = run["cp1"]
     for cp in run["checks"]:
-        assert cp.returncode == 0 and G.TRACEBACK not in G.output(cp), f"`hermes update --check` failed:\n{w.diag(cp)}"
+        assert cp.returncode == 0 and G.TRACEBACK not in G.output(cp), f"`a2assistant update --check` failed:\n{w.diag(cp)}"
     assert cp1.returncode == 0 and run["head1"] == I.head_sha(), f"N-1 -> HEAD update failed:\n{w.diag(cp1)}"
     with known_failure(r"claims orphan divergence",
                        "#124645: each depth-1 `--check` appends a graft the fetch reflog pins, and N-1's "

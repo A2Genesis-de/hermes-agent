@@ -1,4 +1,4 @@
-"""Bring back a ``hermes --tui -w`` worktree a resume needs (N8).
+"""Bring back a ``a2assistant --tui -w`` worktree a resume needs (N8).
 
 Quitting a clean, idle ``--tui -w`` session removes its tree and branch, but the session's policy
 froze that cwd, and the owner refuses every turn in a missing directory (``workspace_unavailable``).

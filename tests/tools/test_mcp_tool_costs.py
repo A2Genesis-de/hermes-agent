@@ -165,7 +165,7 @@ def test_declarations_validate_translate_and_survive_a_native_trust_override(tmp
         root.mkdir(exist_ok=True)
         (root / "plugin.json").write_text(json.dumps({
             "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json", "name": "pkg",
-            "extensions": {"com.nousresearch.hermes": {"servers": {"srv": server_decl}}}}))
+            "extensions": {"de.a2genesis.a2assistant": {"servers": {"srv": server_decl}}}}))
         (root / "mcp.json").write_text(json.dumps({
             "$schema": "https://agent-plugins.org/schemas/1.0.0/mcp.schema.json",
             "mcpServers": {"srv": {"type": "stdio", "command": "python3", "args": ["s.py"]}}}))

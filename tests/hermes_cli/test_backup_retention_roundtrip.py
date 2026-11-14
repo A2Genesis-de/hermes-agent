@@ -1,4 +1,4 @@
-"""Tests for hermes backup retention (--keep) and the session-store import round trip."""
+"""Tests for a2assistant backup retention (--keep) and the session-store import round trip."""
 
 from argparse import Namespace
 from pathlib import Path
@@ -20,7 +20,7 @@ def _no_real_gateway_service(monkeypatch):
 
 
 def test_run_backup_prunes_older_default_named_zips_but_not_others(tmp_path, monkeypatch):
-    """Hourly `hermes backup` callers accumulated 150+ zips; --keep bounds the default-named
+    """Hourly `a2assistant backup` callers accumulated 150+ zips; --keep bounds the default-named
     ones and leaves custom-named or foreign zips alone (#81317)."""
     from argparse import Namespace
     from hermes_cli import backup as backup_mod
@@ -28,7 +28,7 @@ def test_run_backup_prunes_older_default_named_zips_but_not_others(tmp_path, mon
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "config.yaml").write_text("model: x\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     for i in range(4):
         (tmp_path / f"hermes-backup-2026-01-0{i + 1}-000000.zip").write_bytes(b"old")
@@ -59,7 +59,7 @@ def test_import_restores_the_session_store_with_its_message_uids(tmp_path, monke
         db.close()
     assert len(uids) == 2 and all(len(u) == 32 for u in uids)
 
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     from hermes_cli.backup import run_backup, run_import
 

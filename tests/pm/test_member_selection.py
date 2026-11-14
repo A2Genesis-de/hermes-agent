@@ -4,7 +4,7 @@ from pm.workspace import enabled_member_dirs
 
 def test_scoped_members_respect_disabled_and_keep_other_profiles(tmp_path, monkeypatch):
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     current = home / "plugins" / "group" / "plugin"
     other_home = home / "profiles" / "other"
     other = other_home / "plugins" / "same"

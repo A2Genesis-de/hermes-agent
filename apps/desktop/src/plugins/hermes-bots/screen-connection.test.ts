@@ -1,5 +1,5 @@
 /**
- * Two remote hosts can share the same `~/.hermes` path, so a `display.*` event
+ * Two remote hosts can share the same `~/.a2assistant` path, so a `display.*` event
  * matched on `profile_key` alone would let host B's take-over repaint host A's
  * screen pane. The event must also have arrived on the bot's own connection.
  */

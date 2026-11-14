@@ -42,7 +42,7 @@ let unmount = () => {}
 
 beforeEach(() => {
   home = mkdtempSync(join(tmpdir(), 'backtrack-async-'))
-  vi.stubEnv('HERMES_HOME', home)
+  vi.stubEnv('A2ASSISTANT_HOME', home)
   resetUiState()
   resetOverlayState()
   $pendingRewind.set(null)

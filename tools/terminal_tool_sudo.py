@@ -4,6 +4,7 @@ password cache, /dev/tty prompt, the quote-aware shell scanner behind the real-s
 Split out of ``tools/terminal_tool.py``; every public/patched name is re-imported there so
 ``tools.terminal_tool.<name>`` keeps resolving (and monkeypatching) as before."""
 
+from hermes_constants import unset_env
 import logging
 import os
 import platform
@@ -105,7 +106,7 @@ def _reset_cached_sudo_passwords() -> None:
 
 def _in_delegated_child_context() -> bool:
     """True while running inside a delegate_task child. Subagents run on parent-process worker
-    threads and inherit process-wide ``HERMES_INTERACTIVE=1``, which does NOT mean they can reach
+    threads and inherit process-wide ``A2ASSISTANT_INTERACTIVE=1``, which does NOT mean they can reach
     the user: a raw ``/dev/tty`` sudo prompt from a child races the TUI for the tty and blocks the
     child for the full timeout, so children are always headless for sudo prompting. The ContextVar
     is set by ``delegated_child_context()`` and propagates via ``copy_context``."""
@@ -121,8 +122,8 @@ _SUDO_HEADLESS_FAILURES = ("sudo: a password is required", "sudo: no tty present
 
 def _handle_sudo_failure(output: str, env_type: str) -> str:
     """Append a SUDO_PASSWORD tip when sudo failed in a headless context
-    (gateway session, delegate_task child or `hermes chat -q`); otherwise return *output* as is."""
-    is_gateway = env_var_enabled("HERMES_GATEWAY_SESSION")
+    (gateway session, delegate_task child or `a2assistant chat -q`); otherwise return *output* as is."""
+    is_gateway = env_var_enabled("A2ASSISTANT_GATEWAY_SESSION")
     no_user = _no_sudo_user()
     if not (is_gateway or no_user) or not any(f in output for f in _SUDO_HEADLESS_FAILURES):
         return output
@@ -235,7 +236,7 @@ def _prompt_for_sudo_password(timeout_seconds: int = 45, *, command: str = "") -
 
         result = {"password": None, "done": False}
         try:
-            os.environ["HERMES_SPINNER_PAUSE"] = "1"
+            os.environ["A2ASSISTANT_SPINNER_PAUSE"] = "1"
             time.sleep(0.2)
             print("\n".join((
                 "",
@@ -279,7 +280,7 @@ def _prompt_for_sudo_password(timeout_seconds: int = 45, *, command: str = "") -
             human.outcome = "error"
             return ""
         finally:
-            os.environ.pop("HERMES_SPINNER_PAUSE", None)
+            unset_env(os.environ, "SPINNER_PAUSE")
 
 
 def _looks_like_env_assignment(token: str) -> bool:
@@ -468,8 +469,8 @@ def _rewrite_compound_background(command: str) -> str:
 
 
 def _no_sudo_user() -> bool:
-    """A delegated child or a `hermes chat -q` run: nobody can answer a sudo prompt. Single-query only
-    (not _no_user_can_answer): cron strips HERMES_INTERACTIVE and unattended platforms register no sudo callback."""
+    """A delegated child or a `a2assistant chat -q` run: nobody can answer a sudo prompt. Single-query only
+    (not _no_user_can_answer): cron strips A2ASSISTANT_INTERACTIVE and unattended platforms register no sudo callback."""
     from tools.approval_context import _is_single_query_approval_context
     return _in_delegated_child_context() or _is_single_query_approval_context()
 
@@ -510,7 +511,7 @@ def _transform_sudo_command(
     # panel callback, but have no user on the other side — always headless; configured password and
     # session cache still apply.
     should_prompt_for_sudo = (
-        env_var_enabled("HERMES_INTERACTIVE") or _get_sudo_password_callback() is not None
+        env_var_enabled("A2ASSISTANT_INTERACTIVE") or _get_sudo_password_callback() is not None
     ) and not _no_sudo_user()
     if not has_configured_password and not sudo_password and should_prompt_for_sudo:
         # sudoers NOPASSWD must not be forced through the prompt or the -S pipe. The probe is

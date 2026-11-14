@@ -11,7 +11,7 @@ def test_operator_allowlist_shaped_vars_are_not_gates_but_platform_gates_are():
     # Same suffix shape on both sides — only the owner prefix decides.
     assert not is_profile_gate_env("DEMO_ALLOWED_SENDER")
     assert not is_profile_gate_env("ACCESS_ALLOWED_CALLBACK_ACE_TYPE")
-    assert not is_profile_gate_env("HERMES_MEDIA_ALLOW_DIRS")
+    assert not is_profile_gate_env("A2ASSISTANT_MEDIA_ALLOW_DIRS")
     for gate in ("TELEGRAM_ALLOWED_USERS", "TELEGRAM_GROUP_ALLOWED_CHATS", "GATEWAY_ALLOW_ALL_USERS",
                  "TELEGRAM_ALLOW_ALL_USERS", "TELEGRAM_GROUP_ALLOWED_USERS"):
         assert is_profile_gate_env(gate), gate
@@ -27,7 +27,7 @@ def test_routed_no_agent_script_env_keeps_operator_allowlist_and_drops_platform_
     other = launch / "profiles" / "other"
     other.mkdir(parents=True)
     (other / ".env").write_text("OTHER_MARKER=1\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("DEMO_ALLOWED_SENDER", "someone@example.com")
     monkeypatch.setenv("TELEGRAM_GROUP_ALLOWED_CHATS", "111")
 

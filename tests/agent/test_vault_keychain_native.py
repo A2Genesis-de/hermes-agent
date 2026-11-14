@@ -48,7 +48,7 @@ def test_keychain_mode_vault_round_trips_through_the_real_keychain(os_keychain, 
     home = tmp_path / "hermes-home"
     home.mkdir()
     (home / "config.yaml").write_text("vault:\n  key_storage: keychain\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     vault = home / "vault"
 
     item = VaultStore().add_item("login", "Example", dict(_LOGIN), origin="https://example.com").id

@@ -79,7 +79,7 @@ def test_native_cli_consumes_real_minimal_preparation_without_bootstrap(tmp_path
         tools=out / "tools", pm_runtime=runtime, features=features, ref="fixture",
         resources={name: code / name for name in RESOURCE_ENV},
     ))
-    env = {**os.environ, "UV_OFFLINE": "1", "HERMES_HOME": str(tmp_path / "private")}
+    env = {**os.environ, "UV_OFFLINE": "1", "A2ASSISTANT_HOME": str(tmp_path / "private")}
     command = [sys.executable, "-S", "-B", str(SCRIPT), "--prepared", str(prepared)]
     result = subprocess.run(command, cwd=tmp_path, env=env, capture_output=True, text=True, timeout=30, check=False)
     assert result.returncode == 0, result.stderr

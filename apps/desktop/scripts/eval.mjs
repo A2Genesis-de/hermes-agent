@@ -1,11 +1,11 @@
 // Simple eval helper — runs an expression and returns the result.value.
 //
 //   node scripts/eval.mjs "document.title"
-//   HERMES_DESKTOP_CDP_PORT=9333 node scripts/eval.mjs "document.title"
+//   A2ASSISTANT_DESKTOP_CDP_PORT=9333 node scripts/eval.mjs "document.title"
 //
 // Needs a renderer with a debugging port: launch `hgui` / `pnpm run dev` with
-// HERMES_DESKTOP_CDP_PORT set (see electron/dev-cdp.ts).
-const port = Number(process.env.HERMES_DESKTOP_CDP_PORT || 9222)
+// A2ASSISTANT_DESKTOP_CDP_PORT set (see electron/dev-cdp.ts).
+const port = Number(process.env.A2ASSISTANT_DESKTOP_CDP_PORT || 9222)
 let targets
 
 try {
@@ -14,7 +14,7 @@ try {
   console.error(
     `no renderer debugging port on 127.0.0.1:${port}. ` +
       'Dev-server runs (`pnpm run dev` / `hgui`) open one automatically — check the app is running, ' +
-      'and that HERMES_DESKTOP_CDP_PORT is not set to "off" or another port.'
+      'and that A2ASSISTANT_DESKTOP_CDP_PORT is not set to "off" or another port.'
   )
   process.exit(1)
 }

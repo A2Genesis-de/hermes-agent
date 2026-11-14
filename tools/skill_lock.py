@@ -1,10 +1,10 @@
 """User skill locks, enforced on every agent write path.
 
-``hermes curator lock <skill>`` (or the Desktop lock switch) records ``locked: true`` beside
+``a2assistant curator lock <skill>`` (or the Desktop lock switch) records ``locked: true`` beside
 ``pinned`` in the profile's ``skills/.usage.json``. While a skill is locked the agent cannot change
 it: ``skill_manage`` refuses every mutating action, ``write_file``/``patch`` refuse any path inside
 the skill's directory, and ``terminal`` refuses commands that write there. The lock record itself
-is protected the same way, and the agent cannot run ``hermes curator unlock``. The user's own edits
+is protected the same way, and the agent cannot run ``a2assistant curator unlock``. The user's own edits
 (Desktop editor, their own editor, the CLI) are not gated.
 
 The terminal check reads the command's write targets (redirections, tee, cp/mv/rm/sed -i and
@@ -96,12 +96,12 @@ def skill_refusal(name: str) -> str:
     return (f"Skill '{name}' is locked by the user, so the agent cannot change it: skill_manage, "
             f"write_file, patch and terminal all refuse. Don't retry or work around it (no copying it "
             f"under another name); tell the user what you would change. They can unlock it with "
-            f"`hermes curator unlock {name}` or the lock switch in Desktop.")
+            f"`a2assistant curator unlock {name}` or the lock switch in Desktop.")
 
 
 RECORD_REFUSAL = ("skills/.usage.json holds the user's skill locks, so the agent cannot change it "
                   "while any skill is locked.")
-UNLOCK_REFUSAL = ("Only the user can unlock a skill. Ask them to run `hermes curator unlock <skill>` "
+UNLOCK_REFUSAL = ("Only the user can unlock a skill. Ask them to run `a2assistant curator unlock <skill>` "
                   "themselves or use the lock switch in Desktop.")
 
 
@@ -145,7 +145,7 @@ _VAR = re.compile(r"\$\{(\w+)\}|\$(\w+)")
 
 def _shell_env(assigned: dict[str, str] | None = None) -> dict[str, str]:
     from hermes_constants import get_hermes_home
-    return {**os.environ, "HOME": os.path.expanduser("~"), "HERMES_HOME": str(get_hermes_home()),
+    return {**os.environ, "HOME": os.path.expanduser("~"), "A2ASSISTANT_HOME": str(get_hermes_home()),
             **(assigned or {})}
 
 
@@ -266,7 +266,7 @@ class _Scope:
 
 
 def _check_unlock(verb: str, args: list[str], scope: _Scope) -> str | None:
-    if verb == "hermes" or (verb.startswith("python") and "hermes_cli.main" in args):
+    if verb in ("hermes", "a2assistant") or (verb.startswith("python") and "hermes_cli.main" in args):
         if "curator" in args and "unlock" in args[args.index("curator"):]:
             return UNLOCK_REFUSAL
     return None
@@ -389,7 +389,7 @@ def _code_refusal(code: str, locked, record, cwd: str = "") -> str | None:
     if cwd and (reason := _hit(cwd, locked, record)):
         return reason
     home, hermes_home = os.path.expanduser("~"), str(get_hermes_home())
-    text = code.replace("$HERMES_HOME", hermes_home).replace("~", home)
+    text = code.replace("$A2ASSISTANT_HOME", hermes_home).replace("~", home)
     skills_root = os.path.realpath(_skill_usage()._skills_dir())
     if ".usage.json" in text:
         return RECORD_REFUSAL
@@ -434,7 +434,7 @@ def _command_refusal(command: str, cwd: str, locked, record, depth: int = 0) -> 
 
 def command_refusal(command: str, cwd: str) -> str | None:
     """terminal guard: refusal text when *command* writes into a locked skill, the lock record, or
-    runs ``hermes curator unlock``. None when nothing is locked."""
+    runs ``a2assistant curator unlock``. None when nothing is locked."""
     locked = locked_skill_dirs()
     if not locked:
         return None

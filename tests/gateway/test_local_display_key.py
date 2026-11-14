@@ -38,7 +38,7 @@ def test_reasoning_hide_and_footer_reach_the_local_clients_config_read(tmp_path)
         'display': {'show_reasoning': True, 'platforms': {'cli': {'runtime_footer': {'enabled': True}}}},
     }))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
     out = {}
 
@@ -176,7 +176,7 @@ def test_settings_reasoning_toggle_wins_after_a_local_reasoning_hide(tmp_path, m
     from gateway.session_config import _client_config
     from hermes_cli.web_server import _SESSION_HEADER_NAME, _SESSION_TOKEN, app
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     config_mod._LOAD_CONFIG_CACHE.clear()
     config_mod._RAW_CONFIG_CACHE.clear()
     # The state a local `/reasoning hide` leaves (test_reasoning_hide_and_footer_reach_the_local_clients_config_read).

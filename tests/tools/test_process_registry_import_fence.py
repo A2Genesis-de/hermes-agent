@@ -1,8 +1,8 @@
 """Importing a tool module must never open the canonical store.
 
 Only the runtime that owns delegation state (gateway authority, interactive agent) may
-restore durable completions, and only explicitly; an ordinary client CLI (``hermes cron
-run``, ``hermes sessions list``) imports ``tools.process_registry`` transitively and must
+restore durable completions, and only explicitly; an ordinary client CLI (``a2assistant cron
+run``, ``a2assistant sessions list``) imports ``tools.process_registry`` transitively and must
 stay a zero-writer against ``state.db``.
 """
 import json
@@ -16,7 +16,7 @@ import pytest
 
 _IMPORT_PROBE = r'''
 import json, os, sys
-home = os.environ["HERMES_HOME"]
+home = os.environ["A2ASSISTANT_HOME"]
 connects = []
 sys.addaudithook(lambda ev, a: connects.append(str(a[0])) if ev == "sqlite3.connect" and home in str(a[0]) else None)
 import tools.process_registry  # noqa: F401
@@ -27,8 +27,8 @@ print(json.dumps(connects))
 def test_importing_process_registry_does_not_connect_to_state_db(tmp_path):
     home = tmp_path / "home"
     home.mkdir()
-    env = {k: v for k, v in os.environ.items() if not k.startswith("HERMES_")}
-    env.update(HERMES_HOME=str(home), HOME=str(tmp_path), PYTHONPATH=os.getcwd())
+    env = {k: v for k, v in os.environ.items() if not k.startswith("A2ASSISTANT_")}
+    env.update(A2ASSISTANT_HOME=str(home), HOME=str(tmp_path), PYTHONPATH=os.getcwd())
     out = subprocess.run([sys.executable, "-c", _IMPORT_PROBE], env=env, capture_output=True, text=True,
                          timeout=120, stdin=subprocess.DEVNULL, check=False)
     assert out.returncode == 0, out.stderr

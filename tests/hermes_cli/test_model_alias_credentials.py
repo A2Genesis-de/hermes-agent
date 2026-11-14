@@ -536,7 +536,7 @@ class TestAliasCacheIsProfileScoped:
         return home
 
     def _load(self, monkeypatch, home):
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         import hermes_cli.model_switch as ms
 
         ms._ensure_direct_aliases()
@@ -615,7 +615,7 @@ class TestAliasCacheIsProfileScoped:
 
 
 class TestOneShotUsesTheSameHostInvariant:
-    """`hermes chat -m <alias>` must not trust the alias's provider label.
+    """`a2assistant chat -m <alias>` must not trust the alias's provider label.
 
     These exercise the REAL resolver — the leak lives inside
     resolve_runtime_provider's provider-specific branches, so stubbing it

@@ -17,7 +17,7 @@ def scoped_profile(tmp_path, monkeypatch):
     home.mkdir()
     (home / "config.yaml").write_text("model: old-model\ncustom_providers: []\n")
     (home / ".env").write_text("EXAMPLE_PROVIDER_API_KEY=sk-from-profile-dotenv\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("EXAMPLE_PROVIDER_API_KEY", "sk-other-profile-process-env")
     secret_scope.set_multiplex_active(True)
     token = secret_scope.set_secret_scope(secret_scope.build_profile_secret_scope(home))

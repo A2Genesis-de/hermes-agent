@@ -25,7 +25,7 @@ def _home_with_plugin(tmp_path, monkeypatch, name: str, body: str):
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     return home
 

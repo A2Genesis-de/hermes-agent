@@ -1,4 +1,4 @@
-"""``hermes migrate`` subcommand parser."""
+"""``a2assistant migrate`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -8,8 +8,13 @@ def build_migrate_parser(subparsers) -> None:
     from hermes_cli.migrate import cmd_migrate, cmd_migrate_xai
 
     migrate_parser = subparsers.add_parser(
-        "migrate", help="Migrate retired models and deprecated settings",
-        description="xai and relay rewrite deprecated settings in the active config.yaml.")
+        "migrate", help="Move the home to ~/.a2assistant and rename services; migrate retired settings",
+        description="Without a subcommand: move ~/.hermes to ~/.a2assistant, rename the gateway service, "
+            "the launchers and HERMES_* .env keys (--dry-run shows the plan, --rollback restores the previous "
+            "layout). xai and relay rewrite deprecated settings in the active config.yaml.")
+    migrate_parser.add_argument("--dry-run", action="store_true", help="Print the plan without changing anything")
+    migrate_parser.add_argument("--rollback", action="store_true",
+                                help="Restore ~/.hermes and the previous service names")
     migrate_subparsers = migrate_parser.add_subparsers(dest="migrate_type")
 
     migrate_xai = migrate_subparsers.add_parser(
@@ -27,13 +32,13 @@ def build_migrate_parser(subparsers) -> None:
     migrate_xai.set_defaults(func=cmd_migrate_xai)
 
     migrate_relay = migrate_subparsers.add_parser(
-        "relay", help="Convert legacy HERMES_NEMO_RELAY_ATIF_*/ATOF_* exporter vars into relay-plugins.toml",
+        "relay", help="Convert legacy A2ASSISTANT_NEMO_RELAY_ATIF_*/ATOF_* exporter vars into relay-plugins.toml",
         description="The NeMo Relay cutover stopped reading the legacy exporter variables. Generate "
-            "<hermes home>/relay-plugins.toml from them, point HERMES_NEMO_RELAY_PLUGINS_TOML at it, "
-            "and comment the legacy lines out. `hermes update` runs this for every profile automatically.")
+            "<hermes home>/relay-plugins.toml from them, point A2ASSISTANT_NEMO_RELAY_PLUGINS_TOML at it, "
+            "and comment the legacy lines out. `a2assistant update` runs this for every profile automatically.")
     migrate_relay.add_argument(
         "--all-profiles", action="store_true",
-        help="Migrate the default home and every named profile (what `hermes update` does)")
+        help="Migrate the default home and every named profile (what `a2assistant update` does)")
     migrate_relay.add_argument(
         "--no-validate", action="store_true",
         help="Skip activating the generated file through Relay's validator before writing it")

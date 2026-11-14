@@ -24,7 +24,7 @@ function runGit(gitBin, args, cwd): Promise<string> {
 // Fetch `<remote>/<branch>` by explicit refspec; true when the remote has the
 // branch. A tag-pinned narrow clone maps only the tag in remote.<remote>.fetch,
 // so a by-name fetch writes FETCH_HEAD without creating the tracking ref
-// (#125686). Same refspec as `hermes update`: the `+` matters on a depth-1
+// (#125686). Same refspec as `a2assistant update`: the `+` matters on a depth-1
 // clone, where the new tip need not descend from the old one.
 async function fetchTrackingRef(gitBin, root, remote, branch): Promise<boolean> {
   return gitOk(gitBin, ['fetch', remote, `+refs/heads/${branch}:refs/remotes/${remote}/${branch}`], root)

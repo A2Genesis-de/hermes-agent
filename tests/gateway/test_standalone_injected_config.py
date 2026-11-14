@@ -18,7 +18,7 @@ def test_injected_config_cannot_multiplex_a_standalone_home(tmp_path, monkeypatc
     solo.mkdir(parents=True)
     (root / "config.yaml").write_text("{}\n")
     (solo / "config.yaml").write_text("gateway:\n  standalone: true\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     previous = is_multiplex_active()
     try:
         for home in (solo, root, solo):

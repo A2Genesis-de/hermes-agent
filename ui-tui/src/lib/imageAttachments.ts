@@ -73,13 +73,13 @@ async function resolveImagePath(raw: string, base: string): Promise<{ path: stri
 }
 
 async function extractClipboardImage(path: string): Promise<boolean> {
-  const root = process.env.HERMES_PYTHON_SRC_ROOT ?? resolve(import.meta.dirname, '../../..')
+  const root = process.env.A2ASSISTANT_PYTHON_SRC_ROOT ?? resolve(import.meta.dirname, '../../..')
 
-  const python = process.env.HERMES_PYTHON?.trim() || process.env.PYTHON?.trim() ||
+  const python = process.env.A2ASSISTANT_PYTHON?.trim() || process.env.PYTHON?.trim() ||
     (process.platform === 'win32' ? 'python' : 'python3')
 
   const { stdout } = await promisify(execFile)(python, [pythonHelperPath('clipboard_image.py', root), path],
-    { cwd: root, env: { ...process.env, PYTHONPATH: root, HERMES_PYTHON_SRC_ROOT: root }, timeout: 15_000, windowsHide: true })
+    { cwd: root, env: { ...process.env, PYTHONPATH: root, A2ASSISTANT_PYTHON_SRC_ROOT: root }, timeout: 15_000, windowsHide: true })
 
   return stdout.trim() === 'true'
 }
@@ -101,9 +101,9 @@ export async function stageClipboardImage(
 export async function stageImagePath(raw: string, gw: GatewayClient, destination: SubmissionDestination): Promise<StagedImage> {
   // Explicit URL attachments may target another machine, even a loopback SSH
   // tunnel. Only discovery-owned local connections share our profile filesystem.
-  const remote = Boolean(process.env.HERMES_TUI_GATEWAY_URL?.trim())
+  const remote = Boolean(process.env.A2ASSISTANT_TUI_GATEWAY_URL?.trim())
   // A remote session's folder names the owner's filesystem; the bytes are read here.
-  const base = (remote ? process.env.HERMES_CWD : sessionCwd()) || process.cwd()
+  const base = (remote ? process.env.A2ASSISTANT_CWD : sessionCwd()) || process.cwd()
   const source = await resolveImagePath(raw, base)
   const bytes = await readFile(source.path)
 

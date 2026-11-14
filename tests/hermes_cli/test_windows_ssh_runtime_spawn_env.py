@@ -12,15 +12,15 @@ from hermes_cli.windows_ssh_runtime import _spawn_env
     ({}, None),                                                          # an older Desktop
 ])
 def test_spawn_env_carries_only_the_payloads_dev_renderer(monkeypatch, payload, expected):
-    """The backend trusts a dev renderer's http origin only from the HERMES_DESKTOP_DEV_SERVER it
+    """The backend trusts a dev renderer's http origin only from the A2ASSISTANT_DESKTOP_DEV_SERVER it
     inherits, as the POSIX spawn command sets it. One the SSH session happens to export is not this
     Desktop's renderer, so it never leaks into the serve."""
-    monkeypatch.setenv("HERMES_DESKTOP_DEV_SERVER", "http://127.0.0.1:5999")
+    monkeypatch.setenv("A2ASSISTANT_DESKTOP_DEV_SERVER", "http://127.0.0.1:5999")
     monkeypatch.setenv("VIRTUAL_ENV", "C:\\venv")
 
     env = _spawn_env(payload)
 
-    assert env.get("HERMES_DESKTOP_DEV_SERVER") == expected
+    assert env.get("A2ASSISTANT_DESKTOP_DEV_SERVER") == expected
     assert "VIRTUAL_ENV" not in env
 
 

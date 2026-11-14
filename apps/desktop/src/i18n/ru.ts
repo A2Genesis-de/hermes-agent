@@ -1003,7 +1003,7 @@ export const ruOverrides = {
         'По умолчанию — локальный. Используйте удалённый, когда приложение должно управлять бэкендом A2Assistant в другом месте. Соединения шлюзов — на уровне машины; профили обнаруживаются из подключённых шлюзов.',
       envOverrideTitle: 'Переменные окружения управляют этой сессией приложения.',
       envOverrideDesc:
-        'Сбросьте HERMES_DESKTOP_REMOTE_URL и HERMES_DESKTOP_REMOTE_TOKEN, чтобы использовать сохранённую настройку ниже.',
+        'Сбросьте A2ASSISTANT_DESKTOP_REMOTE_URL и A2ASSISTANT_DESKTOP_REMOTE_TOKEN, чтобы использовать сохранённую настройку ниже.',
       modeTitle: 'Режим подключения',
       localTitle: 'Локальный шлюз',
       localDesc: 'Запускает приватный бэкенд A2Assistant на localhost. Это значение по умолчанию, работает офлайн.',
@@ -1382,7 +1382,7 @@ export const ruOverrides = {
     unlockedHint: 'Заблокируйте навык, чтобы агент не мог его менять. Вы по-прежнему можете редактировать его сами.',
     archive: 'В архив',
     skillArchivedTitle: 'Навык в архиве',
-    skillArchivedMessage: 'Восстановить через hermes curator restore.',
+    skillArchivedMessage: 'Восстановить через a2assistant curator restore.',
     hub: {
       searchPlaceholder: 'Поиск в хабе навыков',
       search: 'Поиск',
@@ -1860,7 +1860,7 @@ export const ruOverrides = {
     failedImport: 'Не удалось импортировать профиль',
     failedExport: 'Не удалось экспортировать профиль',
     exportNeedsHost: name =>
-      `Браузер не может сохранить архив профиля. На хосте A2Assistant выполните: hermes profile export ${name}`,
+      `Браузер не может сохранить архив профиля. На хосте A2Assistant выполните: a2assistant profile export ${name}`,
     allProfiles: 'Все профили',
     showAllProfiles: 'Показать все профили',
     notServedHere: 'Здесь не обслуживается',
@@ -3362,7 +3362,7 @@ export const ruOverrides = {
       reject: 'Отклонить',
       alwaysTitle: 'Всегда разрешать эту команду?',
       alwaysDescription: pattern =>
-        `Это добавит паттерн «${pattern}» в ваш постоянный список разрешений (~/.hermes/config.yaml). A2Assistant больше не будет спрашивать о подобных командах — ни в этом сеансе, ни в будущем.`,
+        `Это добавит паттерн «${pattern}» в ваш постоянный список разрешений (~/.a2assistant/config.yaml). A2Assistant больше не будет спрашивать о подобных командах — ни в этом сеансе, ни в будущем.`,
       alwaysAllow: 'Всегда разрешать'
     },
     clarify: ruClarify,
@@ -3624,7 +3624,7 @@ export const ruOverrides = {
       success: platform => `Передаём в ${platform}. Возобновите здесь в любой момент.`,
       systemNote: platform => `↻ Передано в ${platform} — возобновите здесь в любой момент.`,
       failed: error => `Передача не удалась: ${error}`,
-      timedOut: 'Превышено время ожидания шлюза. Выполняется ли `hermes gateway`?'
+      timedOut: 'Превышено время ожидания шлюза. Выполняется ли `a2assistant gateway`?'
     }
   },
   errors: {

@@ -18,7 +18,7 @@ from datetime import datetime, timezone, UTC
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Optional, Set, Tuple
 
-from hermes_constants import OPENROUTER_BASE_URL
+from hermes_constants import OPENROUTER_BASE_URL, default_home_in
 from hermes_cli.config import load_env
 from agent.secret_scope import get_secret as _get_secret, get_secret_str
 from agent.retry_utils import reset_delay_from_message
@@ -310,7 +310,7 @@ class PooledCredential:
             # Pool rows keep the canonical ChatGPT URL; the profile-scoped proxy override must win
             # for every reader of the row — initial resolution AND a 401/429 rotation
             # (client_lifecycle._swap_credential), or a rotation silently leaves the proxy.
-            return get_secret_str("HERMES_CODEX_BASE_URL", "").strip().rstrip("/") or self.base_url
+            return get_secret_str("A2ASSISTANT_CODEX_BASE_URL", "").strip().rstrip("/") or self.base_url
         return self.base_url
 
 
@@ -345,7 +345,7 @@ def _codex_entry_tracks_singleton(entry: PooledCredential, singleton_tokens: dic
 
     ``device_code`` IS the singleton. ``manual:device_code`` is ambiguous: a legacy alias of the
     singleton (same account, must follow its rotations) or an independent account added with
-    ``hermes auth add openai-codex`` (must never be overwritten — adopting turned two logins into
+    ``a2assistant auth add openai-codex`` (must never be overwritten — adopting turned two logins into
     one account, both hitting the same usage limit). Same principal proves the alias; unknown
     identity fails closed.
     """
@@ -514,7 +514,7 @@ def custom_provider_pool_key_candidates(
     base_url: Optional[str], provider_name: Optional[str] = None, config: Optional[dict] = None,
 ) -> list[str]:
     """Return pool keys to try for a custom endpoint: the durable ``providers.<key>`` slug
-    (``hermes auth add <key>``), then legacy ``custom:<display-name>``, so a populated pool is not
+    (``a2assistant auth add <key>``), then legacy ``custom:<display-name>``, so a populated pool is not
     skipped for the ``no-key-required`` placeholder. ``config`` is a frozen route's config: ITS
     entry owns the endpoint, so a live edit of that entry's URL neither drops nor redirects the pool.
     """
@@ -724,7 +724,7 @@ def _guarded_global_root(global_path: Optional[Path]) -> Optional[Path]:
     """Apply the pytest seat belt to a resolved global-root auth.json path.
 
     ``None`` means classic mode (profile == root) or "refuse": under pytest,
-    never write the real user's ``~/.hermes/auth.json`` even when HERMES_HOME
+    never write the real user's ``~/.a2assistant/auth.json`` even when A2ASSISTANT_HOME
     points at a profile path (mirrors the read-side guard in
     ``_load_global_auth_store``). Uses the unmodified HOME env, not
     ``Path.home()`` which fixtures may monkeypatch.
@@ -734,7 +734,7 @@ def _guarded_global_root(global_path: Optional[Path]) -> Optional[Path]:
     if os.environ.get("PYTEST_CURRENT_TEST"):
         real_home_env = os.environ.get("HOME", "")
         if real_home_env:
-            real_root = Path(real_home_env) / ".hermes" / "auth.json"
+            real_root = default_home_in(Path(real_home_env)) / "auth.json"
             try:
                 # Comparing the guard path must not probe the real auth store.
                 if os.path.normcase(os.path.abspath(global_path)) == os.path.normcase(os.path.abspath(real_root)):
@@ -939,8 +939,8 @@ _SINGLE_USE_REFRESH_PROVIDERS = ("openai-codex", "xai-oauth", "anthropic")
 _REFRESH_SWEEP_SPACING_SECONDS = 0.5
 
 _REFRESH_TIMEOUT_ENV_VARS = {
-    "openai-codex": "HERMES_CODEX_REFRESH_TIMEOUT_SECONDS",
-    "xai-oauth": "HERMES_XAI_REFRESH_TIMEOUT_SECONDS",
+    "openai-codex": "A2ASSISTANT_CODEX_REFRESH_TIMEOUT_SECONDS",
+    "xai-oauth": "A2ASSISTANT_XAI_REFRESH_TIMEOUT_SECONDS",
 }
 
 # Singleton-seeded source whose exhausted/DEAD pool row may be revived by a
@@ -1304,7 +1304,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
     def _sync_entry_from_auth_store(self, entry: PooledCredential) -> PooledCredential:
         """Sync a Codex / xAI device_code entry from auth.json ``providers.<id>.tokens``.
 
-        A fresh ``hermes model`` / ``hermes auth`` login writes new tokens
+        A fresh ``a2assistant model`` / ``a2assistant auth`` login writes new tokens
         under ``_auth_store_lock`` while the pool entry may sit frozen behind
         a ``last_error_reset_at`` hours in the future; without this sync every
         request fails with "no available entries" despite fresh credentials on
@@ -1595,7 +1595,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
 
     def _single_use_refresh_lock_timeout(self) -> float:
         """Configured refresh POST timeout plus margin, so a slow token endpoint cannot starve the flock."""
-        env_var = _REFRESH_TIMEOUT_ENV_VARS.get(self.provider, "HERMES_ANTHROPIC_REFRESH_TIMEOUT_SECONDS")
+        env_var = _REFRESH_TIMEOUT_ENV_VARS.get(self.provider, "A2ASSISTANT_ANTHROPIC_REFRESH_TIMEOUT_SECONDS")
         refresh_timeout_seconds = auth_mod.env_float(env_var, 20)
         return max(float(auth_mod.AUTH_LOCK_TIMEOUT_SECONDS), float(refresh_timeout_seconds) + 5.0)
 
@@ -1605,7 +1605,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
         """Write a rotated Anthropic pair to its authoritative singleton, or fail closed.
 
         claude_code -> ~/.claude/.credentials.json (so the fallback resolver
-        and other profiles see it). hermes_pkce -> ~/.hermes/.anthropic_oauth.json
+        and other profiles see it). hermes_pkce -> ~/.a2assistant/.anthropic_oauth.json
         (``_seed_from_singletons`` re-seeds it every load; a borrowed row commits
         to the ROOT's file, never a new profile-local copy, #100339). Not
         ``endswith``: manual:hermes_pkce is pool-owned and a singleton for it
@@ -1614,7 +1614,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
         if entry.source == "claude_code":
             store = "~/.claude/.credentials.json"
         elif entry.source == "hermes_pkce":
-            store = "~/.hermes/.anthropic_oauth.json"
+            store = "~/.a2assistant/.anthropic_oauth.json"
         else:
             return
         try:
@@ -1772,7 +1772,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
                 # CLI's credentials file here — only Hermes' own row goes DEAD.
                 logger.warning(
                     "Anthropic OAuth refresh token for %s is terminally invalid (%s); the credential "
-                    "leaves rotation. Re-run 'hermes auth add anthropic' to sign in again.",
+                    "leaves rotation. Re-run 'a2assistant auth add anthropic' to sign in again.",
                     entry.label or entry.id[:8], exc)
                 self._mark_dead_refresh_grant(entry, exc)
                 return None
@@ -1791,7 +1791,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
                 # silent quarantine looked like "I logged in once and Hermes keeps failing" (#113023).
                 logger.warning(
                     "%s OAuth refresh token is terminally invalid (%s); clearing local token state. "
-                    "Re-run 'hermes auth add %s' to sign in again.", display, exc, self.provider)
+                    "Re-run 'a2assistant auth add %s' to sign in again.", display, exc, self.provider)
                 self._clear_terminal_tokens_state(entry, exc)
                 self._quarantine_sources(entry, {"device_code"})
                 self._mark_dead_refresh_grant(entry, exc)
@@ -1813,7 +1813,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
             if auth_mod._is_terminal_nous_refresh_error(exc):
                 logger.warning(
                     "Nous refresh token is terminally invalid (%s); clearing local token state. "
-                    "Re-run 'hermes auth add nous' to sign in again.", exc)
+                    "Re-run 'a2assistant auth add nous' to sign in again.", exc)
                 self._clear_terminal_nous_state(entry, exc)
                 self._quarantine_sources(
                     entry,
@@ -1832,7 +1832,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
         """Mark a row whose refresh token was terminally rejected DEAD, if the quarantine kept it.
 
         ``_quarantine_sources`` drops only singleton-seeded rows; an independent ``manual:*`` login
-        (``hermes auth add``) survives, and an unmarked survivor re-enters rotation and re-fires the
+        (``a2assistant auth add``) survives, and an unmarked survivor re-enters rotation and re-fires the
         terminal WARNING on every later refresh attempt. DEAD leaves rotation until a write-side
         re-auth sync clears it (never via TTL).
         """
@@ -1993,7 +1993,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
             self._refresh_entry(entry, force=False)
 
     def _reset_cleared_after(self, entry: PooledCredential) -> Optional[float]:
-        """Epoch of a ``hermes auth reset`` persisted by another process AFTER *entry*'s status, else None."""
+        """Epoch of a ``a2assistant auth reset`` persisted by another process AFTER *entry*'s status, else None."""
         try:
             row = next((p for p in read_credential_pool(self.provider)
                         if isinstance(p, dict) and p.get("id") == entry.id), None)
@@ -2006,9 +2006,9 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
     def _resync_stale_entry(self, entry: PooledCredential) -> PooledCredential:
         """Re-read an exhausted/DEAD singleton-seeded entry from its token authority.
 
-        The user may have re-authed (``hermes model`` / ``hermes auth``, the
+        The user may have re-authed (``a2assistant model`` / ``a2assistant auth``, the
         Claude Code CLI, another profile) leaving fresh tokens on disk while
-        the pool entry is frozen behind ``last_error_reset_at``. A ``hermes auth
+        the pool entry is frozen behind ``last_error_reset_at``. A ``a2assistant auth
         reset`` run from another process while this pool is live is honoured the
         same way (#89415): the in-memory cooldown would otherwise outlive it.
         """
@@ -2063,7 +2063,7 @@ class CredentialPool(CredentialPoolAdminMixin, CredentialPoolModelCooldownMixin)
                     if dead_at and now - dead_at > DEAD_MANUAL_PRUNE_TTL_SECONDS:
                         logger.warning(
                             "credential pool: pruning DEAD manual entry %s "
-                            "(reason=%s, age=%.1fh) — re-add via `hermes auth add %s`",
+                            "(reason=%s, age=%.1fh) — re-add via `a2assistant auth add %s`",
                             entry.label or entry.id[:8],
                             entry.last_error_reason or "unknown",
                             (now - dead_at) / 3600.0,
@@ -2527,7 +2527,7 @@ class _Seeder:
         self.is_suppressed = _is_source_suppressed_fn()
 
     def upsert(self, source: str, payload: dict[str, Any]) -> bool:
-        """Upsert unless suppressed (``hermes auth remove`` must stay stable across loads)."""
+        """Upsert unless suppressed (``a2assistant auth remove`` must stay stable across loads)."""
         if self.is_suppressed(self.provider, source):
             return False
         self.active_sources.add(source)
@@ -2665,7 +2665,7 @@ def _seed_tokens_singleton(seed: _Seeder, auth_store: dict[str, Any]) -> None:
     Hermes owns its own Codex auth state and does NOT auto-import
     ~/.codex/auth.json: refresh tokens are single-use, so sharing them with
     Codex CLI / VS Code causes refresh_token_reused races. Adoption is an
-    explicit one-time prompt via `hermes auth openai-codex`.
+    explicit one-time prompt via `a2assistant auth openai-codex`.
     """
     state, source_path = _load_provider_state_with_source(auth_store, seed.provider)
     if owned_profile_reads_root_state(auth_store, seed.provider, source_path):
@@ -2708,7 +2708,7 @@ def _seed_from_singletons(provider: str, entries: list[PooledCredential]) -> tup
 
 
 def get_env_prefer_dotenv(key: str) -> str:
-    """Resolve a credential env var, preferring ~/.hermes/.env over os.environ.
+    """Resolve a credential env var, preferring ~/.a2assistant/.env over os.environ.
 
     The user's config file is authoritative; stale env vars from parent
     processes (Codex CLI, test scripts) must not override deliberate .env
@@ -2744,7 +2744,7 @@ def _warn_env_ingestion_once(provider: str, env_var: str) -> None:
     logger.warning(
         "Ingested %s from environment into the %s credential pool — this "
         "enables %s spend. Remove the key or run "
-        "hermes auth remove %s <n> to suppress.",
+        "a2assistant auth remove %s <n> to suppress.",
         env_var,
         provider,
         "OpenRouter" if provider == "openrouter" else provider,

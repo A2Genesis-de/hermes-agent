@@ -1,4 +1,4 @@
-"""``hermes clipboard`` subcommand parser."""
+"""``a2assistant clipboard`` subcommand parser."""
 
 from __future__ import annotations
 

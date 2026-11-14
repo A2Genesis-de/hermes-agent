@@ -121,7 +121,7 @@ class _HolderWatch:
 
 def _search_slow_ms() -> float:
     """``sessions.search_slow_ms`` for the served profile (default 1000; 0 logs every call)."""
-    value = routed_sessions_setting("search_slow_ms", "HERMES_SEARCH_SLOW_MS")
+    value = routed_sessions_setting("search_slow_ms", "A2ASSISTANT_SEARCH_SLOW_MS")
     try:
         return 1000.0 if value is None or str(value).strip() == "" else float(value)
     except (TypeError, ValueError):
@@ -1158,7 +1158,7 @@ class SessionSearchMixin:
         after_ts: Optional[int] = None, before_ts: Optional[int] = None,
     ) -> list[dict[str, Any]]:
         """:meth:`_search_messages_impl` plus one log line per slow search with the routing
-        path taken. Threshold HERMES_SEARCH_SLOW_MS (default 1000; 0 logs every call)."""
+        path taken. Threshold A2ASSISTANT_SEARCH_SLOW_MS (default 1000; 0 logs every call)."""
         started = time.time()
         rows = None
         try:
@@ -1405,7 +1405,7 @@ class SessionSearchMixin:
                         if is_malformed_db_error(exc):
                             logger.error(
                                 "FTS rebuild failed with a corruption-class error for %s: %s; "
-                                "run 'hermes sessions repair' (or 'hermes doctor --fix') to rebuild the index offline",
+                                "run 'a2assistant sessions repair' (or 'a2assistant doctor --fix') to rebuild the index offline",
                                 tbl, exc)
                         else:
                             logger.warning("FTS rebuild failed for %s: %s", tbl, exc)

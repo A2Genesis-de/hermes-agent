@@ -112,7 +112,7 @@ async def test_kanban_worker_settles_a_card_whose_turn_outstreams_the_client_que
 
     monkeypatch.setattr(gateway_client, "connect_gateway", connect)
     monkeypatch.setattr(session_kanban, "worker_result", lambda *_: {"exit_code": 0, "last_output": "card closed"})
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_GATEWAY_URL", raising=False)
     assert await asyncio.wait_for(kanban_worker_client.run({"task_id": "t1"}, str(tmp_path / "kanban.db")), 5) == 0
 
 

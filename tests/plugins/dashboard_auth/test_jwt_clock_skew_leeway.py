@@ -181,7 +181,7 @@ def _patch_oauth_config(monkeypatch, oauth_block):
 class TestSelfHostedConfig:
     @pytest.fixture(autouse=True)
     def clear_env(self, monkeypatch):
-        for var in ("HERMES_DASHBOARD_OIDC_ISSUER", "HERMES_DASHBOARD_OIDC_CLIENT_ID"):
+        for var in ("A2ASSISTANT_DASHBOARD_OIDC_ISSUER", "A2ASSISTANT_DASHBOARD_OIDC_CLIENT_ID"):
             monkeypatch.delenv(var, raising=False)
 
     def test_leeway_from_config_yaml(self, monkeypatch, rsa_keypair):

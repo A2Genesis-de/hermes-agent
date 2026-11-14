@@ -1308,7 +1308,7 @@ export const zhOverrides = {
       intro:
         'A2Assistant Desktop 默认会启动自己的本地网关。当你希望此应用控制另一台机器上或可信代理后的现有 A2Assistant 后端时，可以使用远程网关。网关连接属于本机级设置；profile 是从所连接的网关中发现的。',
       envOverrideTitle: '环境变量正在控制此桌面会话。',
-      envOverrideDesc: '取消设置 HERMES_DESKTOP_REMOTE_URL 和 HERMES_DESKTOP_REMOTE_TOKEN 后才会使用下面保存的设置。',
+      envOverrideDesc: '取消设置 A2ASSISTANT_DESKTOP_REMOTE_URL 和 A2ASSISTANT_DESKTOP_REMOTE_TOKEN 后才会使用下面保存的设置。',
       modeTitle: '连接模式',
       localTitle: '本地网关',
       localDesc: '在 localhost 启动私有 A2Assistant 后端。这是默认方式，并且可离线工作。',
@@ -1938,7 +1938,7 @@ export const zhOverrides = {
     unlockedHint: '锁定后，智能体将无法更改此技能。你仍可以自己编辑。',
     archive: '归档',
     skillArchivedTitle: '技能已归档',
-    skillArchivedMessage: '可通过 hermes curator restore 恢复。',
+    skillArchivedMessage: '可通过 a2assistant curator restore 恢复。',
     tabPlugins: '插件',
     plugins: {
       ...zhPluginPreviewAccess,
@@ -2474,7 +2474,7 @@ export const zhOverrides = {
     exported: '配置档案已导出',
     failedImport: '导入配置档案失败',
     failedExport: '导出配置档案失败',
-    exportNeedsHost: name => `浏览器无法保存配置档案归档。请在 A2Assistant 主机上运行：hermes profile export ${name}`,
+    exportNeedsHost: name => `浏览器无法保存配置档案归档。请在 A2Assistant 主机上运行：a2assistant profile export ${name}`,
     allProfiles: '全部配置档案',
     showAllProfiles: '显示全部配置档案',
     notServedHere: '此处未提供',
@@ -3462,9 +3462,9 @@ export const zhOverrides = {
     versionDetailsDistributionDesktopMsix: '桌面应用 (MSIX)',
     versionDetailsDistributionDesktopInstaller: '桌面应用（安装器）',
     versionDetailsDistributionSourceInstaller: '源码（安装脚本）',
-    versionDetailsDistributionSourceInstallerDesktop: '源码（安装脚本）+ hermes desktop',
+    versionDetailsDistributionSourceInstallerDesktop: '源码（安装脚本）+ a2assistant desktop',
     versionDetailsDistributionSource: '源码',
-    versionDetailsDistributionSourceDesktop: '源码 + hermes desktop',
+    versionDetailsDistributionSourceDesktop: '源码 + a2assistant desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: '运行时',
     versionDetailsRuntimeEmbedded: '嵌入式（捆绑）',
@@ -4182,7 +4182,7 @@ export const zhOverrides = {
       reject: '拒绝',
       alwaysTitle: '始终允许此命令？',
       alwaysDescription: pattern =>
-        `这会将“${pattern}”模式加入永久允许列表 (~/.hermes/config.yaml)。A2Assistant 对类似命令将不再询问，包括当前会话和未来会话。`,
+        `这会将“${pattern}”模式加入永久允许列表 (~/.a2assistant/config.yaml)。A2Assistant 对类似命令将不再询问，包括当前会话和未来会话。`,
       alwaysAllow: '始终允许'
     },
     clarify: zhClarify,
@@ -4454,7 +4454,7 @@ export const zhOverrides = {
       success: platform => `已移交到 ${platform}。随时可在此处恢复。`,
       systemNote: platform => `↻ 已移交到 ${platform} — 随时可在此处恢复。`,
       failed: error => `移交失败：${error}`,
-      timedOut: '等待网关超时。`hermes gateway` 是否正在运行？'
+      timedOut: '等待网关超时。`a2assistant gateway` 是否正在运行？'
     }
   },
 

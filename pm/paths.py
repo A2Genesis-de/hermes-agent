@@ -11,10 +11,10 @@ def repo_root() -> Path:
 
 
 def install_root() -> Path:
-    """The tree this process runs from. ``HERMES_INSTALL_ROOT`` when a steward
+    """The tree this process runs from. ``A2ASSISTANT_INSTALL_ROOT`` when a steward
     wrapper sets it (Nix points it at the sealed tree whose install stamp lives
     outside the package dir), else the executing checkout."""
-    env = os.environ.get("HERMES_INSTALL_ROOT")
+    env = os.environ.get("A2ASSISTANT_INSTALL_ROOT")
     return Path(env) if env else repo_root()
 
 
@@ -23,7 +23,7 @@ def install_stamp_path(project_root: Path) -> Path:
 
     Beside the code in checkouts, Docker and desktop payloads. A Nix package
     bakes the stamp outside the store's package dir and its wrapper carries
-    ``HERMES_INSTALL_ROOT`` for the executing tree only — so the executing
+    ``A2ASSISTANT_INSTALL_ROOT`` for the executing tree only — so the executing
     tree resolves through install_root, any other tree is taken literally.
     PM reads it in sealed stages (the Docker runtime base) before hermes_cli
     ships, so it lives here rather than beside the stewards.
@@ -52,7 +52,7 @@ def partials_root() -> Path:
     (WindowsApps/agent-payload), and partials are mutable state the
     downloader writes continuously, so they must land somewhere writable
     on every install kind: ``%LOCALAPPDATA%\\hermes\\cache\\partials`` on
-    Windows, ``~/.hermes/cache/partials`` on POSIX.
+    Windows, ``~/.a2assistant/cache/partials`` on POSIX.
     """
     from hermes_constants import get_default_hermes_root
 

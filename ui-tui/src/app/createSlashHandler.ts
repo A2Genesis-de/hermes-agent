@@ -107,7 +107,7 @@ export function createSlashHandler(ctx: SlashHandlerContext): SlashHandler {
     }
 
     // Registry-first fallback: widget apps registered AFTER the static
-    // command table was built (user widgets from $HERMES_HOME/tui-widgets,
+    // command table was built (user widgets from $A2ASSISTANT_HOME/tui-widgets,
     // /widgets-reload) dispatch straight off the live registry.
     if (getWidgetApp(parsed.name)) {
       countTyped()

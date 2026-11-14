@@ -1,4 +1,4 @@
-"""``hermes chat -q``/``-Q`` runs leave this process's plugin manager alone.
+"""``a2assistant chat -q``/``-Q`` runs leave this process's plugin manager alone.
 
 On main they set ``PluginManager._cli_ref`` so a plugin tool dispatched from a one-shot turn got a
 ``parent_agent`` (#67597). The turn and its plugin tools now run in the gateway, and the CLI loads
@@ -17,7 +17,7 @@ from hermes_cli.plugins import get_plugin_manager
 
 @pytest.fixture(autouse=True)
 def _one_shot_seams(monkeypatch):
-    monkeypatch.delenv("HERMES_KANBAN_GOAL_MODE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_GOAL_MODE", raising=False)
     monkeypatch.setattr(cli, "_should_seed_interactive", lambda *a, **k: False)
     monkeypatch.setattr(cli, "_collect_query_images", lambda q, i: (q, []))
     monkeypatch.setattr(cli, "_collect_kanban_task_images", lambda imgs: [])

@@ -66,7 +66,7 @@ const launchEnv = updateWindowEnvironment(
 const app = await _electron.launch({
   executablePath: appBin,
   cwd: path.dirname(appBin),
-  // Inherit the driver env: HERMES_HOME / HOME / updates feed config must
+  // Inherit the driver env: A2ASSISTANT_HOME / HOME / updates feed config must
   // reach the main process exactly as a user's double-click would.
   env: launchEnv,
   timeout: 120_000,
@@ -86,7 +86,7 @@ await runUpdateWindowChat(app, page, {
   expectCommit: values['old-sha'],
   origin: 'bundled', executable: appBin,
   root: path.resolve(path.dirname(appBin), '..', 'Resources', 'agent-payload'),
-  userData: launchEnv.HERMES_DESKTOP_USER_DATA_DIR,
+  userData: launchEnv.A2ASSISTANT_DESKTOP_USER_DATA_DIR,
 });
 await shot(page, '01-app-booted');
 

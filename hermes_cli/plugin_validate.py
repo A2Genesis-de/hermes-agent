@@ -1,9 +1,9 @@
-"""``hermes plugins validate`` — admission checks for a plugin directory.
+"""``a2assistant plugins validate`` — admission checks for a plugin directory.
 
 It performs static manifest checks plus a
 subprocess-isolated capability probe: the plugin is imported and its
 ``register(ctx)`` called against a minimal recording stub context in a
-scratch child process (with a throwaway ``HERMES_HOME``), so a crashing or
+scratch child process (with a throwaway ``A2ASSISTANT_HOME``), so a crashing or
 malicious plugin cannot take down the CLI, and the *actually registered*
 tools/hooks/middleware are compared against the manifest's declared
 ``provides_*`` lists.
@@ -32,7 +32,7 @@ _UPPER_SNAKE_RE = re.compile(r"^[A-Z][A-Z0-9_]*$")
 # Desktop settings renderer keys its field table on) — a private copy drifted and rejected ``secret``.
 _CONFIG_TYPES = frozenset(_CONFIG_SCHEMA_TYPES)
 _PROBE_TIMEOUT = 30
-_PROBE_SENTINEL = "HERMES_VALIDATE_JSON:"
+_PROBE_SENTINEL = "A2ASSISTANT_VALIDATE_JSON:"
 
 
 @dataclass
@@ -351,7 +351,7 @@ def _run_capability_probe(
     """
     with tempfile.TemporaryDirectory(prefix="hermes-validate-") as scratch:
         env = dict(probe[1] if probe else os.environ)
-        env["HERMES_HOME"] = scratch
+        env["A2ASSISTANT_HOME"] = scratch
         # The probe imports this tree's ``providers``; name the tree instead of relying on the cwd.
         repo_root = str(Path(__file__).resolve().parents[1])
         env["PYTHONPATH"] = os.pathsep.join(p for p in (repo_root, env.get("PYTHONPATH", "")) if p)

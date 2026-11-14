@@ -215,7 +215,7 @@ def test_secondary_plugin_socket_gets_a_named_refusal(daemon):
 
 
 def test_root_plugins_stay_available_to_a_secondary_profile_in_its_own_host(daemon):
-    """As a standalone ``hermes --profile beta serve`` did: beta scans its own ``plugins/``, then
+    """As a standalone ``a2assistant --profile beta serve`` did: beta scans its own ``plugins/``, then
     the root's, then the bundled ones; its own copy wins a same-name conflict; its own lists decide;
     the root copy runs in beta's host, never here. (The launch home is the root in this fixture.)"""
     root_imported = _install(daemon.launch, NAME)

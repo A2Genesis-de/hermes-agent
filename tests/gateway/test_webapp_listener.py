@@ -103,7 +103,7 @@ def _start_runtime_api(monkeypatch, tmp_path, config, *, busy=False, refuse=None
     (a list) records what each Webapp verb answers while the Webapp's listener starts."""
     from gateway import run_api, run_runtime
     home = _home(tmp_path, config)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     calls = []
 
     async def start(runner, *, host="127.0.0.1", port=0, webapp=None):
@@ -153,7 +153,7 @@ def test_the_gateway_registers_the_webapp_verbs_before_its_control_socket_answer
     from that moment too (``starting`` until the listener settles), not only once the listener is up."""
     from gateway import control_socket, run_bootstrap
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     seen = {}
 
     async def start(server):

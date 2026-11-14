@@ -14,7 +14,7 @@ def timeline_store(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", home / "state.db")
     db = SessionDB(db_path=home / "state.db")
     db.create_session(session_id="timeline-root", source="desktop")

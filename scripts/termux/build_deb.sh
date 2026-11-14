@@ -86,15 +86,15 @@ PY
     )" || fail "commit version admission failed"
     if [ -n "$RELEASE_COMMIT" ]; then
         DEB_VERSION="$(python3 "$HERE/deb_version.py" "$TAG")" || fail "version derivation failed for tag $TAG"
-        export HERMES_PAYLOAD_TAG="$TAG"
-        unset HERMES_BUILD_COMMIT
+        export A2ASSISTANT_PAYLOAD_TAG="$TAG"
+        unset A2ASSISTANT_BUILD_COMMIT
     else
         DEB_VERSION="${PY_VERSION}+commit${COMMIT_MODE:0:12}"
-        export HERMES_PAYLOAD_TAG=""
-        export HERMES_BUILD_COMMIT="$COMMIT_MODE"
+        export A2ASSISTANT_PAYLOAD_TAG=""
+        export A2ASSISTANT_BUILD_COMMIT="$COMMIT_MODE"
     fi
 else
-    unset HERMES_BUILD_COMMIT
+    unset A2ASSISTANT_BUILD_COMMIT
     COMMIT="$(git -C "$REPO_ABS" rev-parse --verify "refs/tags/$TAG^{commit}")" \
         || fail "tag $TAG not found in $REPO_ABS"
     PY_VERSION="${TAG#v}"
@@ -174,10 +174,10 @@ docker run --rm --platform linux/arm64 \
         mkdir -p "$PREFIX" 2>/dev/null || true
         PY="$PREFIX/lib/hermes-agent/tools/python$PREFIX/bin/python3.14"
         ROOT="$PREFIX/lib/hermes-agent"
-        export HERMES_RUNTIME_DIR="$ROOT/tools"
+        export A2ASSISTANT_RUNTIME_DIR="$ROOT/tools"
         mkdir -p "$PREFIX/tmp"
-        HERMES_HOME="$(mktemp -d "$PREFIX/tmp/hermes-pm-XXXXXX")"
-        export HERMES_HOME
+        A2ASSISTANT_HOME="$(mktemp -d "$PREFIX/tmp/hermes-pm-XXXXXX")"
+        export A2ASSISTANT_HOME
         "$PY" "$ROOT/app/scripts/termux/build_environment.py" assemble \
             --root "$ROOT" --python "$PY" --requirements "$ROOT/.work/resolved-reqs.txt"
     ' || fail "venv assembly failed inside the container (offline wheelhouse install)"
@@ -189,16 +189,16 @@ rm -rf "$ASSEMBLY"
 
 # The install-method stamp (code-scoped, next to hermes_cli/): the deb IS
 # the Termux apt distribution, and detect_install_method reads this marker
-# to route hermes update -> pkg upgrade remediation.
+# to route a2assistant update -> pkg upgrade remediation.
 printf 'apt\n' > "$PAYLOAD_ABS/app/.install_method"
 
 # The shared stamp writer records the apt-termux update owner.
-# Commit mode exports HERMES_BUILD_COMMIT and leaves the tag empty.
+# Commit mode exports A2ASSISTANT_BUILD_COMMIT and leaves the tag empty.
 # 'runtime', not 'bundled': the deb ships a runtime but no Electron app,
 # and 'bundled' readers (data cleanup) go looking for the enclosing app.
 log "Writing app/install-stamp.json"
-HERMES_PAYLOAD_TAG="$TAG" \
-HERMES_DESKTOP_VARIANT=runtime \
+A2ASSISTANT_PAYLOAD_TAG="$TAG" \
+A2ASSISTANT_DESKTOP_VARIANT=runtime \
 python3 "$REPO_ABS/scripts/write_install_stamp.py" \
     --output "$PAYLOAD_ABS/app/install-stamp.json" \
     --commit "$COMMIT" \

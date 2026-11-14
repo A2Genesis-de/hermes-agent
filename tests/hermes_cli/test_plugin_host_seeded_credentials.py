@@ -35,7 +35,7 @@ def _install(tmp_path, monkeypatch):
     (plugin_dir / "__init__.py").write_text(SEEDING_PLUGIN, encoding="utf-8")
     (home / "config.yaml").write_text(yaml.safe_dump({"plugins": {"isolation": "host"}}), encoding="utf-8")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("GH_TOKEN", "shell-only")  # exported in the shell, absent from .env
 
 
@@ -87,7 +87,7 @@ def test_a_routed_home_host_never_inherits_the_launch_shell_token(tmp_path, monk
     for home in (launch, coder, writer):
         home.mkdir()
     (writer / ".env").write_text("GH_TOKEN=writer-own\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("GH_TOKEN", "launch-shell")
     hosted = _profile_proxy(ProviderProfile, str(tmp_path), "m", {
         "name": "amb", "fields": {"env_vars": ["GH_TOKEN"], "ambient_credentials": True}})

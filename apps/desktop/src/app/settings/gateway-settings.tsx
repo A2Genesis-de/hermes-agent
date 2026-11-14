@@ -649,7 +649,7 @@ function GatewayConnectionSettings({ embedded, standalone }: { embedded: boolean
         </div>
       </div>
 
-      {/* An env-pinned remote (HERMES_DESKTOP_REMOTE_URL) still renders this
+      {/* An env-pinned remote (A2ASSISTANT_DESKTOP_REMOTE_URL) still renders this
           block: the override pins the URL/mode, but the browser SESSION is not
           env-owned — docs promise "you still sign in from the Gateway settings
           panel" (user-guide/desktop.md). Hiding it left a lapsed session with

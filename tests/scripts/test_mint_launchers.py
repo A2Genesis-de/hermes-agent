@@ -94,10 +94,10 @@ def payload_tree(tmp_path: Path):
 def _mint(bin_dir: Path, wrapper: Path, specs) -> list[str]:
     env = dict(
         os.environ,
-        HERMES_MINT_BIN_DIR=str(bin_dir),
-        HERMES_MINT_SPECS=json.dumps(specs),
-        HERMES_MINT_WRAPPER=str(wrapper),
-        HERMES_MINT_PYTHON=r"<launcher_dir>\..\tools\py-1\python.exe",
+        A2ASSISTANT_MINT_BIN_DIR=str(bin_dir),
+        A2ASSISTANT_MINT_SPECS=json.dumps(specs),
+        A2ASSISTANT_MINT_WRAPPER=str(wrapper),
+        A2ASSISTANT_MINT_PYTHON=r"<launcher_dir>\..\tools\py-1\python.exe",
     )
     proc = subprocess.run([sys.executable, str(_MINT)], capture_output=True, text=True, env=env, check=False)
     assert proc.returncode == 0, proc.stderr
@@ -153,13 +153,13 @@ def test_minted_launcher_runs_relocated_and_forwards_exit_code(payload_tree, tmp
 def test_mint_rejects_a_non_launcher_dir_shebang(tmp_path):
     env = dict(
         os.environ,
-        HERMES_MINT_BIN_DIR=str(tmp_path),
-        HERMES_MINT_SPECS=json.dumps([{"name": "hermes", "module": "m", "func": "main"}]),
-        HERMES_MINT_PYTHON=r"C:\abs\python.exe",
+        A2ASSISTANT_MINT_BIN_DIR=str(tmp_path),
+        A2ASSISTANT_MINT_SPECS=json.dumps([{"name": "hermes", "module": "m", "func": "main"}]),
+        A2ASSISTANT_MINT_PYTHON=r"C:\abs\python.exe",
     )
     wrapper = tmp_path / "w.py"
     wrapper.write_text("x = 1\n", encoding="utf-8")
-    env["HERMES_MINT_WRAPPER"] = str(wrapper)
+    env["A2ASSISTANT_MINT_WRAPPER"] = str(wrapper)
     proc = subprocess.run([sys.executable, str(_MINT)], capture_output=True, text=True, env=env, check=False)
     assert proc.returncode != 0
     assert "launcher_dir" in proc.stderr

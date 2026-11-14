@@ -1,6 +1,6 @@
-"""Drive a real ``hermes`` CLI / Ink TUI process under a real PTY, rendered through :mod:`._vt`.
+"""Drive a real ``a2assistant`` CLI / Ink TUI process under a real PTY, rendered through :mod:`._vt`.
 
-The child runs with an isolated HOME/HERMES_HOME (only the fake LLM provider configured, no
+The child runs with an isolated HOME/A2ASSISTANT_HOME (only the fake LLM provider configured, no
 inherited credentials) as the session leader of its own PTY, so SIGWINCH from a resize reaches the
 foreground process group exactly as in a terminal emulator, and every process it spawns can be
 found afterwards by session id (orphans keep the sid even after being reparented to init).
@@ -115,7 +115,7 @@ def cmdline(pid: int) -> str:
 
 
 class PtyHermes:
-    """One interactive ``hermes`` process on a PTY with an emulated screen."""
+    """One interactive ``a2assistant`` process on a PTY with an emulated screen."""
 
     def __init__(self, root: Path, argv_tail: list[str], llm: FakeLLMServer | None, *, rows: int, cols: int,
                  extra_config: str = "") -> None:
@@ -136,9 +136,9 @@ class PtyHermes:
         (root / "work").mkdir(parents=True, exist_ok=True)
         env = {k: os.environ[k] for k in ("PATH", "LANG", "LC_ALL") if k in os.environ}
         env.update(
-            HOME=str(self.home), HERMES_HOME=str(self.hermes_home), PYTHONPATH=str(REPO_ROOT),
+            HOME=str(self.home), A2ASSISTANT_HOME=str(self.hermes_home), PYTHONPATH=str(REPO_ROOT),
             TMPDIR=str(root / "tmp"), TERM="xterm-256color", COLORTERM="truecolor",
-            PYTHONUNBUFFERED="1", HERMES_STATE_DB_GUARD_BYPASS="1",
+            PYTHONUNBUFFERED="1", A2ASSISTANT_STATE_DB_GUARD_BYPASS="1",
         )
         if "--tui" in argv_tail:
             # The prebuilt-bundle launch, as tui_pty does. A checkout launch first asks whether
@@ -146,10 +146,10 @@ class PtyHermes:
             # store, so it rebuilds from source and lazily downloads python/node/pnpm before the UI
             # can take the terminal (on CI that download stalled past wait_ready's 120s).
             from tests.e2e.core.tui_pty._helpers import private_tui_dir
-            env["HERMES_TUI_DIR"] = str(private_tui_dir(root))
+            env["A2ASSISTANT_TUI_DIR"] = str(private_tui_dir(root))
             node = shutil.which("node")
             if node:  # the runner's node, so the launcher never lazily installs one into the sandbox
-                env["HERMES_NODE"] = node
+                env["A2ASSISTANT_NODE"] = node
         master, slave = os.openpty()
         self._set_winsize(master, rows, cols)
         self.master = master
@@ -310,7 +310,7 @@ class PtyHermes:
     def leftover_processes(self, timeout: float = 15.0) -> list[str]:
         """Processes still alive in the child's session, or seen as its descendants, after exit.
 
-        The profile's ``gateway run`` is not a leftover: ``hermes chat`` attaches to it and it
+        The profile's ``gateway run`` is not a leftover: ``a2assistant chat`` attaches to it and it
         keeps serving (cron, messaging, the next client) after the client exits; ``close()`` still
         tears it down with the rest of this harness's tree. Neither is that gateway's owner-death
         supervisor while the gateway lives: it belongs to the gateway, and after the gateway's last

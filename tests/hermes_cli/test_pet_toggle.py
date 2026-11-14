@@ -18,7 +18,7 @@ def test_pets_cli_quoted_false_disables_and_toggle_enables(tmp_path, monkeypatch
 
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "config.yaml").write_text(
         yaml.safe_dump(
             {"display": {"pet": {"enabled": "false", "slug": "", "scale": 0.33}}}
@@ -39,7 +39,7 @@ def test_pets_cli_quoted_false_disables_and_toggle_enables(tmp_path, monkeypatch
 def empty_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 

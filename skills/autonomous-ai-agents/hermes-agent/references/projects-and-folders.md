@@ -6,7 +6,7 @@ workspaces the desktop sidebar groups chats by, and a kanban task linked to a pr
 primary folder defaults to a worktree and branch under that repo.
 
 Projects are **not** git concepts and not config keys: they live in their own SQLite store,
-one per profile (`$HERMES_HOME/projects.db`; `~/.hermes` by default, `%LOCALAPPDATA%\hermes`
+one per profile (`$A2ASSISTANT_HOME/projects.db`; `~/.a2assistant` by default, `%LOCALAPPDATA%\hermes`
 on Windows), created on first use. `a2assistant -p <profile> project list` shows another
 profile's projects.
 
@@ -94,25 +94,25 @@ accept the display name; get the slug from `a2assistant project list`.
 
 ```bash
 # Make a project for a repo and start using it
-hermes project create "A2Assistant" ~/Work/hermes-agent --use
+a2assistant project create "A2Assistant" ~/Work/hermes-agent --use
 
 # A workspace spanning two repos (first given = primary)
-hermes project create "Payments" ~/Work/payments-api ~/Work/payments-web
+a2assistant project create "Payments" ~/Work/payments-api ~/Work/payments-web
 
 # Add a folder later / move the primary
-hermes project add-folder payments ~/Work/payments-infra --label infra
-hermes project set-primary payments ~/Work/payments-web
+a2assistant project add-folder payments ~/Work/payments-infra --label infra
+a2assistant project set-primary payments ~/Work/payments-web
 
 # What is active (archived included), and what a project contains
-hermes project list --all
-hermes project show payments
+a2assistant project list --all
+a2assistant project show payments
 
 # Retire one without losing it
-hermes project archive payments        # hidden from list / path resolution
-hermes project restore payments
+a2assistant project archive payments        # hidden from list / path resolution
+a2assistant project restore payments
 
 # A project-linked kanban task (worktree + deterministic branch)
-hermes kanban create "Wire the webhook" --project payments
+a2assistant kanban create "Wire the webhook" --project payments
 ```
 
 ## Troubleshooting

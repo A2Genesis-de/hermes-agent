@@ -138,7 +138,7 @@ def test_sequential_tool_timeout_emits_result_and_continues(tmp_path, monkeypatc
     calls = [_tool_call("hung"), _tool_call("next")]
     assistant = SimpleNamespace(tool_calls=calls)
     messages: list[dict] = []
-    monkeypatch.setenv("HERMES_CONCURRENT_TOOL_TIMEOUT_S", "1.0")
+    monkeypatch.setenv("A2ASSISTANT_CONCURRENT_TOOL_TIMEOUT_S", "1.0")
 
     started = time.monotonic()
     try:
@@ -187,7 +187,7 @@ def test_sequential_tool_timeout_suppresses_late_terminal_event(tmp_path, monkey
 
     calls = [_tool_call("hung"), _tool_call("next")]
     messages: list[dict] = []
-    monkeypatch.setenv("HERMES_CONCURRENT_TOOL_TIMEOUT_S", "1.0")
+    monkeypatch.setenv("A2ASSISTANT_CONCURRENT_TOOL_TIMEOUT_S", "1.0")
 
     try:
         with (
@@ -251,7 +251,7 @@ def test_sequential_tool_interrupt_hides_lifecycle_cancel_detail(tmp_path, monke
             "duration_seconds": 0,
         }
 
-    monkeypatch.setenv("HERMES_CONCURRENT_TOOL_TIMEOUT_S", "30")
+    monkeypatch.setenv("A2ASSISTANT_CONCURRENT_TOOL_TIMEOUT_S", "30")
     monkeypatch.setattr(
         "tools.delegate_tool._build_child_preserving_parent_tools",
         lambda **_kwargs: agent,
@@ -300,10 +300,10 @@ def test_sequential_timeout_does_not_cut_clarify_human_wait(
     """Clarify waits on a human; the generic sequential deadline must not fire.
 
     Only ``agent.clarify_timeout`` (default 90s; ``<= 0`` unlimited) bounds the
-    wait, never ``HERMES_CONCURRENT_TOOL_TIMEOUT_S``.
+    wait, never ``A2ASSISTANT_CONCURRENT_TOOL_TIMEOUT_S``.
     """
     agent = _make_agent(tmp_path)
-    monkeypatch.setenv("HERMES_CONCURRENT_TOOL_TIMEOUT_S", "1.0")
+    monkeypatch.setenv("A2ASSISTANT_CONCURRENT_TOOL_TIMEOUT_S", "1.0")
     monkeypatch.setattr(
         "tools.clarify_gateway.get_clarify_timeout",
         lambda: clarify_timeout,

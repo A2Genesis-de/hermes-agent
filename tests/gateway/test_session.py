@@ -51,10 +51,10 @@ class TestBuildSessionContextPrompt:
         )
         ctx = build_session_context(source, config)
 
-        with patch("hermes_constants.display_hermes_home", return_value="~/.hermes/profiles/coder"):
+        with patch("hermes_constants.display_hermes_home", return_value="~/.a2assistant/profiles/coder"):
             prompt = build_session_context_prompt(ctx)
 
-        assert "~/.hermes/profiles/coder/cron/output/" in prompt
+        assert "~/.a2assistant/profiles/coder/cron/output/" in prompt
 
 
     def test_prompt_quotes_untrusted_metadata_labels(self):
@@ -1112,7 +1112,7 @@ class TestGatewaySessionDbRecovery:
         from types import SimpleNamespace
         import hermes_constants
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: tmp_path)
         store = object.__new__(SessionStore)
         store._db = None

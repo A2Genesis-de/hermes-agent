@@ -1,6 +1,6 @@
 """Plugin activation writes and reads the SAME key on every surface (#27548, #73131, #82898).
 
-Runs the real ``hermes_cli.plugins_cmd`` commands against a temp HERMES_HOME and checks the verdict
+Runs the real ``hermes_cli.plugins_cmd`` commands against a temp A2ASSISTANT_HOME and checks the verdict
 through the loader's own gate (``plugins_discovery.gate_manifest``) — never by re-reading the list
 the command just wrote.
 """
@@ -38,7 +38,7 @@ def home(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes-home"
     (hermes_home / "plugins").mkdir(parents=True)
     (hermes_home / "config.yaml").write_text("plugins:\n  enabled: []\n  disabled: []\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     return hermes_home
 
 
@@ -59,7 +59,7 @@ def _lists():
 
 
 def test_disable_bundled_platform_by_manifest_name_gates_the_loader(home):
-    """`hermes plugins disable telegram-platform` must produce a key the loader's gate matches; the
+    """`a2assistant plugins disable telegram-platform` must produce a key the loader's gate matches; the
     CLI wrote ``platforms/telegram`` while discovery keyed the adapter ``telegram-platform``."""
     plugins_cmd.cmd_disable("telegram-platform")
 
@@ -154,7 +154,7 @@ def test_dashboard_reenable_restores_the_toolset_in_a_saved_list(saved_list_plug
 
 
 def test_cli_disable_and_enable_round_trip_the_toolset_in_a_saved_list(saved_list_plugin):
-    """``hermes plugins disable`` / ``enable`` edit a saved list the same way the dashboard does, each
+    """``a2assistant plugins disable`` / ``enable`` edit a saved list the same way the dashboard does, each
     in its own process; they never touched it, so a toolset the dashboard dropped stayed off."""
     plugins_cmd.cmd_disable("zzre")
     assert _saved_cli_list() == ["hermes-cli"]

@@ -45,7 +45,7 @@ from pathlib import Path
 home, script, mode, foreign = Path(sys.argv[1]), sys.argv[2], sys.argv[3], int(sys.argv[4])
 other_desktop, env_skew = int(sys.argv[5]), int(sys.argv[6])  # a Desktop that is NOT the wrapper's parent
 started = int(time.time())
-env = dict(os.environ, HERMES_UPDATE_STARTED_AT=str(started + env_skew))
+env = dict(os.environ, A2ASSISTANT_UPDATE_STARTED_AT=str(started + env_skew))
 ps = [os.environ['POWERSHELL'], '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', script,
       '-InstallRoot', str(home / 'hermes-agent'), '-NoUi', '-SelfTestMarker', '-NoMarkerCleanup',
       '-DesktopPid', str(other_desktop or os.getpid())]
@@ -65,7 +65,7 @@ def _old_desktop(home: Path, mode: str, foreign: int = 0, other_desktop: int = 0
     program.write_text(OLD_DESKTOP, encoding='utf-8')
     desktop = subprocess.Popen([sys.executable, str(program), str(home), str(SCRIPT), mode, str(foreign),
                                 str(other_desktop), str(env_skew)],
-                               env={**os.environ, 'HERMES_HOME': str(home), 'POWERSHELL': POWERSHELL})
+                               env={**os.environ, 'A2ASSISTANT_HOME': str(home), 'POWERSHELL': POWERSHELL})
     deadline = time.monotonic() + 30
     while not (home / 'desktop.json').exists():
         assert time.monotonic() < deadline and desktop.poll() is None, 'old desktop never spawned'
@@ -115,7 +115,7 @@ def test_r4_live_wrapper_not_the_desktops_child_is_adopted_only_with_the_handoff
     tmp_path: Path, sleeper: subprocess.Popen, env_matches: bool,
 ) -> None:
     """The lineage table's divergent row (round 5 D11) on real processes: the cmd.exe wrapper is
-    our live parent but not the Desktop's child; line 2 == HERMES_UPDATE_STARTED_AT adopts, as
+    our live parent but not the Desktop's child; line 2 == A2ASSISTANT_UPDATE_STARTED_AT adopts, as
     in bash. Any other startedAt refuses."""
     home = tmp_path / 'home'; home.mkdir()
     desktop, wrapper, started, _ = _old_desktop(home, 'waiting-wrapper', other_desktop=sleeper.pid,
@@ -149,7 +149,7 @@ foreach ($c in $data.rule) {
     [Console]::Out.WriteLine("$($c.id)=$([int][bool](Test-MarkerLauncherRule $facts))")
 }
 foreach ($c in $data.env) {
-    $env:HERMES_UPDATE_STARTED_AT = $c.env
+    $env:A2ASSISTANT_UPDATE_STARTED_AT = $c.env
     [Console]::Out.WriteLine("env_$($c.id)=$([int][bool](Test-MarkerEnvStartedAt $c.line2))")
 }
 """

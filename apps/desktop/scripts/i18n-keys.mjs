@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 // Emit the Desktop catalog's key set for language-pack validation.
 //
-// `hermes plugins validate` checks a pack's `<lang>.desktop.yaml` keys against
+// `a2assistant plugins validate` checks a pack's `<lang>.desktop.yaml` keys against
 // `locales/_keys.desktop.json` (repo root, committed). This script derives that
 // file from `src/i18n/en.ts` — every leaf's dotted path, sorted; function-
 // valued entries are keys too (a pack overrides them with a positional
 // `{0}`/`{1}` string). Run via `pnpm run i18n:keys` and commit the result (`--check` verifies);
-// the build never writes it — a dirty checkout would break `hermes update`.
+// the build never writes it — a dirty checkout would break `a2assistant update`.
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { pathToFileURL } from 'node:url'

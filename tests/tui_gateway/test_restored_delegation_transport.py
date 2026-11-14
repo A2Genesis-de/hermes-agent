@@ -22,7 +22,7 @@ from tui_gateway.ws import WSTransport
 def notification_env(monkeypatch, tmp_path):
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     ad._reset_for_tests()
     monkeypatch.setattr(server, "_sessions", {})
     monkeypatch.setattr(process_registry, "completion_queue", queue.Queue())

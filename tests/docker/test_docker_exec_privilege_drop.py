@@ -2,7 +2,7 @@
 
 The shim (docker/hermes-exec-shim.sh, installed at /opt/hermes/bin/hermes)
 exists to prevent the auth.json ownership-mismatch bug where
-`docker exec <c> hermes login` would write /opt/data/auth.json as
+`docker exec <c> a2assistant login` would write /opt/data/auth.json as
 root:root mode 0600, leaving the supervised gateway (UID 10000) unable
 to read its own credentials and returning "Provider authentication
 failed: Hermes is not logged into Nous Portal" on every message.
@@ -13,9 +13,9 @@ These tests verify:
    hermes user before the real binary runs.
 2. ``docker exec --user hermes <c> hermes …`` (already non-root) short-
    circuits and doesn't try to drop again.
-3. Files written under $HERMES_HOME from a ``docker exec`` session land
+3. Files written under $A2ASSISTANT_HOME from a ``docker exec`` session land
    as hermes:hermes — the actual user-visible invariant.
-4. The HERMES_DOCKER_EXEC_AS_ROOT opt-out lets diagnostic sessions keep
+4. The A2ASSISTANT_DOCKER_EXEC_AS_ROOT opt-out lets diagnostic sessions keep
    running as root deliberately.
 
 The main CMD path through the shim is covered by
@@ -44,7 +44,7 @@ def _wait_for_cont_init(container: str) -> None:
     The earlier ``_wait_for_init`` only polled ``docker exec <c> true``,
     which succeeds almost immediately on s6-overlay — long before the
     ``01-hermes-setup`` cont-init hook (docker/stage2-hook.sh) has
-    finished seeding + ``chown hermes:hermes`` config.yaml and running the
+    finished seeding + ``chown hermes:a2assistant`` config.yaml and running the
     Python config migration. A test that wipes config.yaml and then writes
     it as root would then race that boot-time chown: on native amd64
     stage2-hook wins in a blink and the test always passed, but under arm64
@@ -53,7 +53,7 @@ def _wait_for_cont_init(container: str) -> None:
     failing ``test_shim_opt_out_keeps_root`` non-deterministically.
 
     The reliable "cont-init is done" signal is
-    ``$HERMES_HOME/logs/container-boot.log``: it is written by
+    ``$A2ASSISTANT_HOME/logs/container-boot.log``: it is written by
     ``02-reconcile-profiles`` (hermes_cli.container_boot), which s6 runs
     *strictly after* ``01-hermes-setup`` in lexicographic order. The
     reconciler always logs at least one ``profile=default`` line even for a
@@ -108,16 +108,16 @@ def sleep_container(built_image: str, container_name: str) -> Iterator[str]:
 def test_shim_drops_root_to_hermes_uid(sleep_container: str) -> None:
     """docker exec defaults to root; the shim should drop to uid 10000.
 
-    We invoke `hermes` with a Python-style `-c` shim equivalent — there's no
+    We invoke `a2assistant` with a Python-style `-c` shim equivalent — there's no
     pure-hermes "print my uid" command, so we use the venv's python directly
     via the shim's PATH lookup: `python -c 'print(os.getuid())'` is resolved
     through the venv. But that bypasses the shim. Instead, we exploit the
-    fact that the venv's `hermes` is a console_scripts entry — under the
+    fact that the venv's `a2assistant` is a console_scripts entry — under the
     hood it's a tiny Python wrapper. We can't easily inject "print my uid"
-    into it without forking subcommands. Simplest approach: have `hermes`
+    into it without forking subcommands. Simplest approach: have `a2assistant`
     do anything that writes to disk, then check the file's owner.
 
-    Use `hermes config set` which writes config.yaml under HERMES_HOME.
+    Use `a2assistant config set` which writes config.yaml under A2ASSISTANT_HOME.
     The resulting file ownership tells us what UID the shim ended up at.
     """
     # Wipe any prior state.
@@ -163,21 +163,21 @@ def test_e2e_login_then_supervised_gateway_can_read_auth(
 ) -> None:
     """End-to-end regression for the original bug.
 
-    Pre-shim: ``docker exec <c> hermes login`` (root) wrote
+    Pre-shim: ``docker exec <c> a2assistant login`` (root) wrote
     /opt/data/auth.json as root:root 0600. The supervised gateway (UID
     10000) couldn't read it, _load_auth_store swallowed PermissionError
     as a parse failure, and resolve_nous_runtime_credentials raised
     "Hermes is not logged into Nous Portal" on every message.
 
     We can't do a real OAuth login in a unit test, but we can stand in
-    for it by writing the same file shape via `hermes config set`-style
+    for it by writing the same file shape via `a2assistant config set`-style
     writes — what matters is the *file ownership invariant* downstream
     of `_save_auth_store`. If the shim works, every file the
     `docker exec` path produces is hermes-readable.
 
-    Specifically: pretend the operator ran `hermes login` (writes
+    Specifically: pretend the operator ran `a2assistant login` (writes
     auth.json) and verify (a) the file exists and (b) it's readable by
-    the hermes UID. We use `hermes auth list` since that touches the
+    the hermes UID. We use `a2assistant auth list` since that touches the
     auth store on the read side and would fail with the same
     'not logged in' shape if the file was unreadable to uid 10000.
     """

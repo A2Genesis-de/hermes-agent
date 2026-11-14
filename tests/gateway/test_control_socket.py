@@ -90,7 +90,7 @@ def test_client_resolution_prefers_direct_then_pointer(home: Path, tmp_path: Pat
 def test_windows_pipe_name_is_stable_and_home_scoped(tmp_path: Path):
     a = windows_pipe_name(tmp_path / "a")
     b = windows_pipe_name(tmp_path / "b")
-    assert a.startswith(r"\\.\pipe\hermes-gateway-")
+    assert a.startswith(r"\\.\pipe\a2assistant-gateway-")
     assert a != b
     assert a == windows_pipe_name(tmp_path / "a")
 
@@ -357,7 +357,7 @@ def test_no_socket_returns_none_fast(home: Path):
 
 def test_default_identify_payload_shape(home: Path, monkeypatch):
     """The real identify handler carries the fleet-consumer contract fields."""
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     async def scenario():
         server = GatewayControlServer(home)  # default handlers

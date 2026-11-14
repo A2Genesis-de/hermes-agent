@@ -8,6 +8,7 @@ from pathlib import Path
 
 from hermes_constants import get_hermes_home
 
+from hermes_cli.service_names import home_checkout_dir
 from hermes_cli.colors import Colors, color
 from hermes_cli.desktop_bundle import MACOS_APP_BUNDLE
 
@@ -36,17 +37,17 @@ def desktop_userdata_dir() -> Path:
 
 
 def source_built_gui_artifacts(hermes_home: Path) -> list[Path]:
-    """GUI build artifacts produced by ``hermes desktop`` inside the checkout (same ``hermes-agent/`` layout
+    """GUI build artifacts produced by ``a2assistant desktop`` inside the checkout (same ``hermes-agent/`` layout
     install.sh uses). The workspace-root node_modules is shared with the TUI, dashboard and other
     workspaces, so only the desktop workspace's own dependencies belong to GUI removal."""
-    agent_root = hermes_home / "hermes-agent"
+    agent_root = home_checkout_dir(hermes_home)
     desktop_dir = agent_root / "apps" / "desktop"
     return [desktop_dir / "dist", desktop_dir / "release", desktop_dir / "node_modules",
             hermes_home / "desktop-build-stamp.json"]
 
 
 def desktop_install_record() -> Path:
-    """Where ``hermes update`` records the installed ``Hermes.app`` copies it keeps current. The apps
+    """Where ``a2assistant update`` records the installed ``Hermes.app`` copies it keeps current. The apps
     are machine-wide, so the record sits under the default root whichever profile runs; deleting it
     is what stops an uninstalled app from being put back by the next update."""
     from hermes_constants import get_default_hermes_root
@@ -81,9 +82,9 @@ def packaged_gui_app_paths() -> list[Path]:
 
 
 def agent_is_installed(hermes_home: Path) -> bool:
-    """True when a usable Python agent install exists under HERMES_HOME (gates the desktop UI's options).
+    """True when a usable Python agent install exists under A2ASSISTANT_HOME (gates the desktop UI's options).
     Package source or a venv alone is enough — a source checkout without a venv is still "the agent is here"."""
-    return any((hermes_home / "hermes-agent" / sub).is_dir() for sub in ("hermes_cli", "venv", ".venv"))
+    return any((home_checkout_dir(hermes_home) / sub).is_dir() for sub in ("hermes_cli", "venv", ".venv"))
 
 
 def gui_is_installed(hermes_home: Path) -> bool:
@@ -103,7 +104,7 @@ def gui_install_summary(hermes_home: Path | None = None) -> dict:
     # removed; sealed trees (nix / desktop-app / docker) get data-only.
     from hermes_cli import steward as steward_mod
 
-    steward, code_removal_allowed = steward_mod.classify_install(home / "hermes-agent")
+    steward, code_removal_allowed = steward_mod.classify_install(home_checkout_dir(home))
 
     return {
         "hermes_home": str(home),

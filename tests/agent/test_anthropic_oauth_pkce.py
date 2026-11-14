@@ -91,7 +91,7 @@ def test_authorization_url_state_is_not_pkce_verifier(monkeypatch, tmp_path):
     Reusing the verifier as state leaks the verifier into browser history,
     Referer headers, and auth-server access logs — defeating RFC 7636.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     captured_url: dict[str, str] = {}
     captured_token: dict[str, Any] = {}
@@ -161,7 +161,7 @@ def test_callback_state_mismatch_aborts(monkeypatch, tmp_path, caplog):
     CSRF protection that ``state`` is supposed to provide (RFC 6749 §10.12)
     would be absent.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     captured_token: dict[str, Any] = {}
     _patch_oauth_flow(

@@ -42,7 +42,7 @@ def get_service() -> Optional[LSPService]:
     profile override is bound), or None when disabled.
 
     Also registers an :mod:`atexit` hook so a clean exit tears down spawned servers through
-    the LSP ``shutdown``/``exit`` handshake: without it every ``hermes chat`` exit leaks
+    the LSP ``shutdown``/``exit`` handshake: without it every ``a2assistant chat`` exit leaks
     pyright processes for a few seconds while their stdout buffers drain.  SIGKILL/os._exit
     skip atexit; the owner-death supervisor (``LSPClient._spawn`` hands it each server's
     process group) kills whatever is left then.

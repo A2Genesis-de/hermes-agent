@@ -107,7 +107,7 @@ def test_quoted_yaml_reads_preserve_source_policy(ops, env, tmp_path, monkeypatc
 
     home = tmp_path / "profile"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     config = (home if secret_source else tmp_path) / "config.yaml"
     text = 'password: "shortsecret"\napi_key: "os.getenv(\'OPENAI_API_KEY\')"\n'
     config.write_text(text, encoding="utf-8")

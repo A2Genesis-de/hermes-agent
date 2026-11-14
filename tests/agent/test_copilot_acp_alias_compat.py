@@ -206,7 +206,7 @@ def test_alias_serves_its_whole_former_surface_and_warns_once(monkeypatch):
     assert len(deprecations) == 1 and "agent.acp_client.ACPClient" in deprecations[0]
     assert alias._session_model_ids({"models": {"availableModels": [
         {"modelId": "a"}, {"modelId": "b", "_meta": {"copilotEnablement": "disabled"}}]}}) == ["a"]
-    for name in ("HERMES_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH", "HERMES_COPILOT_ACP_ARGS"):
+    for name in ("A2ASSISTANT_COPILOT_ACP_COMMAND", "COPILOT_CLI_PATH", "A2ASSISTANT_COPILOT_ACP_ARGS"):
         monkeypatch.delenv(name, raising=False)
     assert (alias._resolve_command(), alias._resolve_args()) == ("copilot", ["--acp", "--stdio"])
     monkeypatch.setenv("COPILOT_CLI_PATH", "/opt/copilot")

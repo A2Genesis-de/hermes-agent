@@ -1,10 +1,10 @@
-"""``hermes`` must survive git operations on the checkout (launcher layout).
+"""``a2assistant`` must survive git operations on the checkout (launcher layout).
 
-The Windows ``hermes`` command is a staged launcher whose canonical home is
-the managed binary dir ``HERMES_HOME\\bin`` — OUTSIDE the git checkout —
+The Windows ``a2assistant`` command is a staged launcher whose canonical home is
+the managed binary dir ``A2ASSISTANT_HOME\\bin`` — OUTSIDE the git checkout —
 because the earlier in-checkout home (``hermes-agent\\bin``) was swept by
-``hermes update``'s autostash (``git stash push --include-untracked``) and,
-with the desktop updater's ``--keep-stash``, never restored: ``hermes``
+``a2assistant update``'s autostash (``git stash push --include-untracked``) and,
+with the desktop updater's ``--keep-stash``, never restored: ``a2assistant``
 stopped resolving in every new terminal (``venv\\Scripts`` itself must stay
 off PATH — it shadows the user's ``python``, #83797).
 
@@ -13,10 +13,10 @@ launchers that boot the pm STORE python with ``PYTHONPATH=repo;site-packages``
 — never ``venv\\Scripts\\python.exe`` (``pyvenv.cfg`` is inert dead config).
 When the store interpreter has not materialized yet, a runtime-resolving
 ``.cmd`` delegator is staged that finds the store python at boot and fails
-with a clear message until ``hermes pm install`` lands it; legacy copied
+with a clear message until ``a2assistant pm install`` lands it; legacy copied
 venv trampolines (detected by their embedded interpreter path) are replaced.
 ``migrate_windows_bin_path`` moves an existing install's PATH to the
-canonical layout from the ``hermes update`` tail. Platform verdict, PATH
+canonical layout from the ``a2assistant update`` tail. Platform verdict, PATH
 values, and registry I/O are injected parameters (same pattern as
 ``hermes_constants.venv_bin_dir``), so these tests are host-independent
 input→output checks, not host fakes.
@@ -41,7 +41,7 @@ from hermes_cli._install_repair import (
 
 
 def _make_managed(tmp_path, monkeypatch):
-    """Fake managed layout: HERMES_HOME/hermes-agent/venv (+ a fake venv
+    """Fake managed layout: A2ASSISTANT_HOME/hermes-agent/venv (+ a fake venv
     python whose path legacy trampolines would embed). New consoles resolve
     this home, so the PATH migration may edit the (injected) User PATH."""
     home = tmp_path / "hermes"
@@ -49,7 +49,7 @@ def _make_managed(tmp_path, monkeypatch):
     (root / "venv" / "Scripts").mkdir(parents=True)
     (root / "venv" / "Scripts" / "python.exe").write_bytes(b"MZ fake venv python")
     (root / "venv" / "pyvenv.cfg").write_text("home = X\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(_launchers, "new_console_hermes_root", lambda: home)
     return home, root
 
@@ -58,7 +58,7 @@ def _make_store(tmp_path, monkeypatch, *, version="3.11.15+x20260807"):
     """A fake pm store with a materialized python package. The interpreter
     file's bytes don't matter — the heal stages launchers, it never runs
     them — but the LAYOUT must match what pm/paths.py + facts.json
-    describe (HERMES_RUNTIME_DIR override keeps tests off the real store)."""
+    describe (A2ASSISTANT_RUNTIME_DIR override keeps tests off the real store)."""
     store = tmp_path / "store"
     entry = store / f"python-{version}-win32-arm64"
     (entry / "bin").mkdir(parents=True)
@@ -76,7 +76,7 @@ def _make_store(tmp_path, monkeypatch, *, version="3.11.15+x20260807"):
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(store))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(store))
     return store, entry
 
 
@@ -112,7 +112,7 @@ def managed_install(tmp_path, monkeypatch):
 def test_no_store_python_refuses_publication(managed_install, tmp_path, monkeypatch):
     """Repair cannot publish a usable launcher before PM commits Python."""
     home, root = managed_install
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "empty-store"))
 
     restored = ensure_windows_bin_launchers(root, windows=True, user_path_entries=[])
 
@@ -181,11 +181,11 @@ def test_healthy_canonical_layout_with_placeholder_cmds_gets_upgraded(
     tmp_path, monkeypatch
 ):
     """Placeholder .cmd delegators from the fresh install are upgraded to
-    store-python launchers once `hermes pm install` materialized the store."""
+    store-python launchers once `a2assistant pm install` materialized the store."""
     home, root = _make_managed(tmp_path, monkeypatch)
     bin_dir = home / "bin"
     bin_dir.mkdir()
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "empty-store"))
     ensure_windows_bin_launchers(root, windows=True, user_path_entries=[])
     store, _entry = _make_store(tmp_path, monkeypatch)
 
@@ -221,11 +221,11 @@ def test_legacy_bin_not_restaged_without_path_consent(managed_install):
 
 
 def test_source_checkout_untouched(tmp_path, monkeypatch):
-    """A checkout NOT under HERMES_HOME gains nothing anywhere."""
+    """A checkout NOT under A2ASSISTANT_HOME gains nothing anywhere."""
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "empty-store"))
     root = tmp_path / "src" / "hermes-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
 
@@ -242,13 +242,13 @@ def test_noop_on_posix(managed_install):
 
 
 def test_profile_session_still_heals_the_shared_bin(tmp_path, monkeypatch):
-    """Under ``hermes -p <name>`` HERMES_HOME points inside profiles/<name>;
+    """Under ``a2assistant -p <name>`` A2ASSISTANT_HOME points inside profiles/<name>;
     the launcher dir is per-machine, so the heal must anchor on the default
     root and fire anyway — a habitual profile user gets the same repair."""
     home = tmp_path / "hermes"
     root = home / "hermes-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home / "profiles" / "work"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home / "profiles" / "work"))
     _make_store(tmp_path, monkeypatch)
 
     restored = ensure_windows_bin_launchers(root, windows=True, user_path_entries=[])
@@ -355,9 +355,9 @@ def test_migration_refuses_empty_store_without_changing_path(tmp_path, monkeypat
     home = tmp_path / "hermes"
     root = home / "hermes-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (tmp_path / "empty-store").mkdir()
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "empty-store"))
     state, read, write = _fake_registry([str(root / "bin"), r"C:\Windows\system32"])
 
     ok = migrate_windows_bin_path(
@@ -401,8 +401,8 @@ def test_migration_fails_closed_when_the_console_check_raises(managed_install, m
 def test_migration_skips_source_checkouts(tmp_path, monkeypatch):
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "empty-store"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "empty-store"))
     root = tmp_path / "src" / "hermes-agent"
     (root / "venv" / "Scripts").mkdir(parents=True)
     state, read, write = _fake_registry([r"C:\Windows\system32"])
@@ -430,7 +430,7 @@ def test_repo_gitignores_the_legacy_bin_dir():
     """Transition safety: legacy in-checkout launchers must not be stash-swept.
 
     Until every install has migrated, pre-migration checkouts still carry
-    launchers at ``<checkout>/bin``. ``hermes update`` autostashes with
+    launchers at ``<checkout>/bin``. ``a2assistant update`` autostashes with
     ``git stash push --include-untracked``; anything untracked and NOT
     ignored inside the checkout gets swept off disk. Exercises git's real
     ignore machinery rather than reading .gitignore text.
@@ -467,6 +467,6 @@ def test_repo_gitignores_the_legacy_bin_dir():
         check=False,
     )
     assert result.returncode == 0, (
-        "bin/hermes.exe is not gitignored — hermes update's autostash "
+        "bin/hermes.exe is not gitignored — a2assistant update's autostash "
         "(--include-untracked) would sweep pre-migration launchers off disk"
     )

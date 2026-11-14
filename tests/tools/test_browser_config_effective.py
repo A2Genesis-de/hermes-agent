@@ -1,6 +1,6 @@
 """``browser.*`` reads go through the effective user config: the managed overlay wins over the profile's
 file and ``${VAR}`` references expand, as for every other runtime reader (hermes_cli/AGENTS.md, Three
-loaders). A raw read would launch Chromium on a literal ``${HOME}/...`` dir under HERMES_HOME, or ignore
+loaders). A raw read would launch Chromium on a literal ``${HOME}/...`` dir under A2ASSISTANT_HOME, or ignore
 an administrator's pinned profile and flags."""
 
 import textwrap
@@ -14,8 +14,8 @@ def homes(tmp_path, monkeypatch):
     home.mkdir()
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     for name in ("BROWSER_USE_API_KEY", "BROWSERBASE_API_KEY", "BROWSERBASE_PROJECT_ID"):
         monkeypatch.delenv(name, raising=False)
     _reset()

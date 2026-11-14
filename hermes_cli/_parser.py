@@ -9,6 +9,7 @@ import argparse
 import difflib
 import re
 from functools import lru_cache
+from hermes_cli.branding import CLI_COMMAND
 
 # `--profile` / `-p` is consumed by ``main._apply_profile_override`` before argparse runs
 # (it sets ``HERMES_HOME`` and strips itself from ``sys.argv``), so it isn't on the parser.
@@ -27,11 +28,11 @@ _OPTIONAL_VALUE_FLAGS_FALLBACK: frozenset[str] = frozenset({"-c", "--continue"})
 
 
 def _cfg_path() -> str:
-    """``~/.hermes/config.yaml`` spelled for the active profile, for help text.
+    """``~/.a2assistant/config.yaml`` spelled for the active profile, for help text.
 
     ``main._apply_profile_override`` builds this parser (via ``top_level_value_flag_sets``) BEFORE
     it re-homes the process to the sticky ``active_profile``; ``get_hermes_home()`` would emit the
-    "[HERMES_HOME fallback] ... wrong profile" warning on every ``hermes`` command for that
+    "[A2ASSISTANT_HOME fallback] ... wrong profile" warning on every ``a2assistant`` command for that
     throwaway help string. Read the process home directly: after the override it IS the profile home.
     """
     from hermes_constants import display_hermes_home, get_process_hermes_home
@@ -45,7 +46,7 @@ def top_level_value_flag_sets() -> tuple[frozenset[str], frozenset[str]]:
 
     Introspects ``build_top_level_parser()`` (every option with nargs != 0) so the argv scanners in
     ``main.py`` (``_first_positional_argv``, ``_apply_profile_override``) can never drift from the
-    argparse surface — the drift that made ``hermes --reasoning high chat …`` misread ``high`` as
+    argparse surface — the drift that made ``a2assistant --reasoning high chat …`` misread ``high`` as
     the subcommand and forced eager plugin discovery.
 
     Mirrors the ``update_cmd._holder_value_flags`` precedent, including the handwritten-snapshot fallback
@@ -90,51 +91,51 @@ def _inherited_flag(parser, *args, **kwargs):
 _EPILOGUE = """
 Examples:
     hermes                        Start interactive chat
-    hermes chat -q "Hello"        Single query mode
-    hermes --tui                  Launch the modern TUI (or set display.interface: tui)
-    hermes --cli                  Force the classic REPL (overrides display.interface: tui)
-    hermes -c                     Resume the most recent session
-    hermes -c "my project"        Resume a session by name (latest in lineage)
-    hermes --resume <session_id>  Resume a specific session by ID
-    hermes --resume latest        Resume the most recent session (same as -c)
-    hermes --tui --resume latest --in ./dir   Resume ./dir's latest session in the TUI
-    hermes setup                  Run setup wizard
-    hermes logout                 Clear stored authentication
-    hermes auth add <provider>    Add a pooled credential
-    hermes auth list              List pooled credentials
-    hermes auth remove <p> <t>    Remove pooled credential by index, id, or label
-    hermes auth reset <p> [t]     Clear exhaustion status for a provider, or one credential
-    hermes auth priority <p> <t> <n>  Move a pooled credential to priority n (0 = tried first)
-    hermes auth refresh <p> [t]   Refresh a pooled OAuth credential and clear its cooldown
-    hermes model                  Select default model
-    hermes fallback [list]        Show fallback provider chain
-    hermes fallback add           Add a fallback provider (same picker as `hermes model`)
-    hermes fallback remove        Remove a fallback provider from the chain
-    hermes config                 View configuration
-    hermes config edit            Edit config in $EDITOR
-    hermes config set model gpt-4 Set a config value
-    hermes gateway                Run messaging gateway
-    hermes gateway install        Install gateway background service
-    hermes gateway start          Start the installed gateway service
-    hermes gateway stop           Stop the gateway service
-    hermes gateway status         Show gateway status
-    hermes -p <profile> <cmd>     Run any command against a named profile's
-                                  home (also --profile) — e.g. hermes -p coder gateway stop
-    hermes -s hermes-agent-dev,github-auth
-    hermes -w                     Start in isolated git worktree
-    hermes sessions list          List past sessions
-    hermes sessions browse        Interactive session picker
-    hermes sessions rename ID T   Rename/title a session
-    hermes logs                   View agent.log (last 50 lines)
-    hermes logs -f                Follow agent.log in real time
-    hermes logs errors            View errors.log
-    hermes logs --since 1h        Lines from the last hour
-    hermes debug share             Print debug report for support
-    hermes console                Open the safe A2Assistant command console
-    hermes update                 Update to latest version
-    hermes dashboard              Start web UI dashboard (port 9119)
-    hermes dashboard --stop       Stop running dashboard processes
-    hermes dashboard --status     List running dashboard processes
+    a2assistant chat -q "Hello"        Single query mode
+    a2assistant --tui                  Launch the modern TUI (or set display.interface: tui)
+    a2assistant --cli                  Force the classic REPL (overrides display.interface: tui)
+    a2assistant -c                     Resume the most recent session
+    a2assistant -c "my project"        Resume a session by name (latest in lineage)
+    a2assistant --resume <session_id>  Resume a specific session by ID
+    a2assistant --resume latest        Resume the most recent session (same as -c)
+    a2assistant --tui --resume latest --in ./dir   Resume ./dir's latest session in the TUI
+    a2assistant setup                  Run setup wizard
+    a2assistant logout                 Clear stored authentication
+    a2assistant auth add <provider>    Add a pooled credential
+    a2assistant auth list              List pooled credentials
+    a2assistant auth remove <p> <t>    Remove pooled credential by index, id, or label
+    a2assistant auth reset <p> [t]     Clear exhaustion status for a provider, or one credential
+    a2assistant auth priority <p> <t> <n>  Move a pooled credential to priority n (0 = tried first)
+    a2assistant auth refresh <p> [t]   Refresh a pooled OAuth credential and clear its cooldown
+    a2assistant model                  Select default model
+    a2assistant fallback [list]        Show fallback provider chain
+    a2assistant fallback add           Add a fallback provider (same picker as `a2assistant model`)
+    a2assistant fallback remove        Remove a fallback provider from the chain
+    a2assistant config                 View configuration
+    a2assistant config edit            Edit config in $EDITOR
+    a2assistant config set model gpt-4 Set a config value
+    a2assistant gateway                Run messaging gateway
+    a2assistant gateway install        Install gateway background service
+    a2assistant gateway start          Start the installed gateway service
+    a2assistant gateway stop           Stop the gateway service
+    a2assistant gateway status         Show gateway status
+    a2assistant -p <profile> <cmd>     Run any command against a named profile's
+                                  home (also --profile) — e.g. a2assistant -p coder gateway stop
+    a2assistant -s hermes-agent-dev,github-auth
+    a2assistant -w                     Start in isolated git worktree
+    a2assistant sessions list          List past sessions
+    a2assistant sessions browse        Interactive session picker
+    a2assistant sessions rename ID T   Rename/title a session
+    a2assistant logs                   View agent.log (last 50 lines)
+    a2assistant logs -f                Follow agent.log in real time
+    a2assistant logs errors            View errors.log
+    a2assistant logs --since 1h        Lines from the last hour
+    a2assistant debug share             Print debug report for support
+    a2assistant console                Open the safe A2Assistant command console
+    a2assistant update                 Update to latest version
+    a2assistant dashboard              Start web UI dashboard (port 9119)
+    a2assistant dashboard --stop       Stop running dashboard processes
+    a2assistant dashboard --status     List running dashboard processes
 
 For more help on a command:
     hermes <command> --help
@@ -164,11 +165,11 @@ def _add_top_level_flags(parser: argparse.ArgumentParser) -> None:
     # `chat` subcommand; if neither -z nor a subcommand consumes them, they fall through as None.
     inherited(parser, "-m", "--model", default=None, help=(
         "Model override for this invocation (e.g. anthropic/claude-sonnet-4.6). "
-        "Applies to -z/--oneshot and --tui. Also settable via HERMES_INFERENCE_MODEL env var."))
+        "Applies to -z/--oneshot and --tui. Also settable via A2ASSISTANT_INFERENCE_MODEL env var."))
     inherited(parser, "--provider", default=None, help=(
         "Provider override for this invocation (e.g. openrouter, anthropic). "
         "Applies to -z/--oneshot and --tui. The persistent provider lives in config.yaml "
-        "under model.provider — use `hermes setup` or edit the file to change it."))
+        "under model.provider — use `a2assistant setup` or edit the file to change it."))
     inherited(parser, "--reasoning", default=None, metavar="LEVEL", help=(
         "Reasoning effort for this invocation: none, minimal, low, medium, "
         "high, xhigh, max, or ultra. Overrides agent.reasoning_effort in "
@@ -192,7 +193,7 @@ def _add_top_level_flags(parser: argparse.ArgumentParser) -> None:
         help="Run in an isolated git worktree (for parallel agents)")
     inherited(parser, "--accept-hooks", action="store_true", default=False, help=(
         "Auto-approve any unseen shell hooks declared in config.yaml "
-        "without a TTY prompt.  Equivalent to HERMES_ACCEPT_HOOKS=1 or "
+        "without a TTY prompt.  Equivalent to A2ASSISTANT_ACCEPT_HOOKS=1 or "
         "hooks_auto_accept: true in config.yaml.  Use on CI / headless "
         "runs that can't prompt."))
     inherited(parser, "--skills", "-s", action="append", default=None,
@@ -223,7 +224,7 @@ def _build_chat_parser(subparsers) -> argparse.ArgumentParser:
     """The ``chat`` subparser (also the implicit default command).
 
     Flags ALSO declared on the top-level parser use ``default=argparse.SUPPRESS``: for
-    ``hermes -m foo chat`` argparse first sets ``args.model`` from the top-level parser, then
+    ``a2assistant -m foo chat`` argparse first sets ``args.model`` from the top-level parser, then
     dispatches to the chat subparser, which shares the namespace and ``dest`` — a plain ``None``
     default would silently clobber the top-level value. SUPPRESS keeps the subparser action a no-op
     unless the flag is actually passed after the subcommand (tests/hermes_cli/
@@ -294,7 +295,7 @@ def _build_chat_parser(subparsers) -> argparse.ArgumentParser:
         help="Run in an isolated git worktree (for parallel agents on the same repo)")
     inherited(chat_parser, "--accept-hooks", action="store_true", default=SUPPRESS, help=(
         "Auto-approve any unseen shell hooks declared in config.yaml "
-        "without a TTY prompt (see also HERMES_ACCEPT_HOOKS env var and "
+        "without a TTY prompt (see also A2ASSISTANT_ACCEPT_HOOKS env var and "
         "hooks_auto_accept: in config.yaml)."))
     inherited(chat_parser, "--checkpoints", action="store_true", default=SUPPRESS,
               help="Enable filesystem checkpoints before destructive file operations (use /rollback to restore)")
@@ -333,7 +334,7 @@ def _build_chat_parser(subparsers) -> argparse.ArgumentParser:
 def _plugin_command_install_hint(prog: str, value: str):
     """Install command when *value* names a catalog memory plugin that resolves nowhere: its
     ``hermes <name>`` command exists only once the plugin is installed. Top level only; never raises."""
-    if prog != "hermes" or not re.fullmatch(r"[a-z0-9_-]{1,64}", value):
+    if prog != CLI_COMMAND or not re.fullmatch(r"[a-z0-9_-]{1,64}", value):
         return None
     try:
         from plugins.memory import find_provider_dir
@@ -346,7 +347,7 @@ def _plugin_command_install_hint(prog: str, value: str):
 
 
 def _moved_command_hint(prog: str, value: str) -> str:
-    """Where a command that left core went (``hermes auth spotify``, ``hermes mcp serve``, ...)."""
+    """Where a command that left core went (``a2assistant auth spotify``, ``a2assistant mcp serve``, ...)."""
     from hermes_cli.left_core_migration import moved_command_hint
     return moved_command_hint(prog, value)
 
@@ -388,7 +389,7 @@ def build_top_level_parser():
     ``subparsers.add_parser(...)``.
     """
     parser = HermesArgumentParser(
-        prog="hermes", description="A2Assistant - AI assistant with tool-calling capabilities",
+        prog=CLI_COMMAND, description="A2Assistant - AI assistant with tool-calling capabilities",
         formatter_class=argparse.RawDescriptionHelpFormatter, epilog=_EPILOGUE)
     _add_top_level_flags(parser)
     # metavar keeps the usage line to ``hermes [...] <command>`` instead of the brace list of

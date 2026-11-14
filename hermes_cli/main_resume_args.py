@@ -1,4 +1,4 @@
-"""``hermes chat`` resume-argument steps split out of ``hermes_cli.main``: ``--resume @claude/@codex``
+"""``a2assistant chat`` resume-argument steps split out of ``hermes_cli.main``: ``--resume @claude/@codex``
 imports, and recreating a removed ``--tui -w`` worktree a resumed session needs (N8)."""
 
 import os
@@ -21,7 +21,7 @@ def import_foreign_resume(args) -> None:
         print(f"Error: {e}")
         sys.exit(1)
     print(f"✓ Imported as {_imported_id} — resuming it now.")
-    print(f"  (later: hermes --resume {_imported_id})")
+    print(f"  (later: a2assistant --resume {_imported_id})")
     args.resume = _imported_id
 
 

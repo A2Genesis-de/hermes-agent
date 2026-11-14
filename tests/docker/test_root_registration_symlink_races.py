@@ -2,7 +2,7 @@
 
 ``/run/hermes-service`` is owned by hermes, so a hermes process can rename anything root
 creates there and put a symlink in its place. These tests play that hermes process for real,
-inside the image, against root registration (``HERMES_DOCKER_EXEC_AS_ROOT=1`` or a direct
+inside the image, against root registration (``A2ASSISTANT_DOCKER_EXEC_AS_ROOT=1`` or a direct
 Python call) and root lifecycle control.
 """
 from __future__ import annotations
@@ -40,7 +40,7 @@ sm.S6ServiceManager().register_profile_gateway('swap', start_now=False)
 def test_root_registration_survives_staging_swap(built_image: str, container_name: str) -> None:
     start_container(built_image, container_name)
     registered = docker_exec(container_name, "python3", "-c", _SWAP_DURING_REGISTRATION,
-                             user="root", extra_docker_args=("-e", "HERMES_DOCKER_EXEC_AS_ROOT=1"))
+                             user="root", extra_docker_args=("-e", "A2ASSISTANT_DOCKER_EXEC_AS_ROOT=1"))
     assert registered.returncode == 0, registered.stderr
     # hermes could not reach root's half-built slot anywhere.
     assert "swapped" not in registered.stdout, registered.stdout
@@ -66,7 +66,7 @@ def test_root_lifecycle_control_does_not_follow_control_symlink(
     registered = docker_exec(container_name, "python3", "-c", (
         "from hermes_cli.service_manager import S6ServiceManager; "
         "S6ServiceManager().register_profile_gateway('ctl', start_now=False)"
-    ), user="root", extra_docker_args=("-e", "HERMES_DOCKER_EXEC_AS_ROOT=1"))
+    ), user="root", extra_docker_args=("-e", "A2ASSISTANT_DOCKER_EXEC_AS_ROOT=1"))
     assert registered.returncode == 0, registered.stderr
     slot = f"{SCANDIR}/gateway-ctl"
     ok, state = poll_container(container_name, f"/command/s6-svstat {slot}", deadline_s=30)
@@ -85,7 +85,7 @@ def test_root_lifecycle_control_does_not_follow_control_symlink(
         "    S6ServiceManager().restart('gateway-ctl')\n"
         "except S6CommandError as exc:\n"
         "    print('refused', exc)\n"
-    ), user="root", extra_docker_args=("-e", "HERMES_DOCKER_EXEC_AS_ROOT=1"))
+    ), user="root", extra_docker_args=("-e", "A2ASSISTANT_DOCKER_EXEC_AS_ROOT=1"))
     assert control.returncode == 0, control.stderr
     victim = docker_exec_sh(container_name, "cat /opt/victim-file; echo; stat -c '%u %a' "
                             "/opt/victim-file", user="root")
@@ -100,7 +100,7 @@ def test_root_slot_parking_does_not_follow_marker_or_event_symlinks(
     registered = docker_exec(container_name, "python3", "-c", (
         "from hermes_cli.service_manager import S6ServiceManager; "
         "S6ServiceManager().register_profile_gateway('park', start_now=False)"
-    ), user="root", extra_docker_args=("-e", "HERMES_DOCKER_EXEC_AS_ROOT=1"))
+    ), user="root", extra_docker_args=("-e", "A2ASSISTANT_DOCKER_EXEC_AS_ROOT=1"))
     assert registered.returncode == 0, registered.stderr
     slot = f"{SCANDIR}/gateway-park"
     ok, state = poll_container(container_name, f"/command/s6-svstat {slot}", deadline_s=30)
@@ -119,7 +119,7 @@ def test_root_slot_parking_does_not_follow_marker_or_event_symlinks(
         "from hermes_cli import gateway_multiplex_s6 as s6\n"
         "s6._wait_down(s6._manager().scandir / 'gateway-park', timeout_ms=500)\n"
         "s6.park_named_slot('park')\n"
-    ), user="root", extra_docker_args=("-e", "HERMES_DOCKER_EXEC_AS_ROOT=1"))
+    ), user="root", extra_docker_args=("-e", "A2ASSISTANT_DOCKER_EXEC_AS_ROOT=1"))
     assert parked.returncode == 0, parked.stderr
     victims = docker_exec_sh(container_name, (
         "cat /opt/victim-file; echo; stat -c '%u %a %Y' /opt/victim-file; ls -A /opt/victim-dir"

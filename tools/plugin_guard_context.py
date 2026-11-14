@@ -159,11 +159,11 @@ def catalog_cap(finding: Finding) -> Optional[str]:
 # ~/.hermes/profiles/N/roles/crew``). It lands at medium (a note). A wider target (``$HOME``, ``$HOME/.hermes``,
 # ``$HOME/.hermes/plugins/*``) only gets the generic prose step (high, caution) and the same line in a ``.sh``
 # stays critical (#115353).
-_UNINSTALL_HOME = r'(?:\$HOME|\$\{HOME\}|~)/\.hermes'
+_UNINSTALL_HOME = r'(?:\$HOME|\$\{HOME\}|~)/\.(?:hermes|a2assistant)'
 
 
 def _uninstall_operand(group: str) -> str:
-    """One ``~/.hermes/<segments>/<leaf>`` operand, optionally quoted (quote tracked by *group*)."""
+    """One ``~/.a2assistant/<segments>/<leaf>`` operand, optionally quoted (quote tracked by *group*)."""
     return (rf'(?P<{group}>["\']?)' + _UNINSTALL_HOME
             + rf'(?:/[A-Za-z0-9][A-Za-z0-9._-]*)+/?(?P={group})')
 
@@ -499,7 +499,7 @@ def is_quoted_injection_phrase(finding: Finding, line: str) -> bool:
 # keeps full severity.
 _TRAVERSAL_RUN = re.compile(r"(?:\.\./)+\.\.")
 _SENSITIVE_AFTER_TRAVERSAL = re.compile(
-    r"(?:/|\\)*(?:etc\b|passwd\b|shadow\b|\.ssh\b|\.aws\b|\.env\b|\.hermes\b|\.gnupg\b|\.kube\b"
+    r"(?:/|\\)*(?:etc\b|passwd\b|shadow\b|\.ssh\b|\.aws\b|\.env\b|\.(?:hermes|a2assistant)\b|\.gnupg\b|\.kube\b"
     r"|\.docker\b|\.netrc\b|\.npmrc\b|\.pypirc\b|\.config\b|proc\b|root\b|home\b|var\b|usr\b|sys\b)",
     re.IGNORECASE)
 

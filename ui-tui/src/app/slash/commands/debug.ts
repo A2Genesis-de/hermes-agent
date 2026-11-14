@@ -31,7 +31,7 @@ export const debugCommands: SlashCommand[] = [
   ...widgetAppCommands,
 
   {
-    help: 'rescan $HERMES_HOME/tui-widgets and (re)register user widget apps',
+    help: 'rescan $A2ASSISTANT_HOME/tui-widgets and (re)register user widget apps',
     name: 'widgets-reload',
     run: (_arg, ctx) => {
       void loadUserWidgets().then(({ errors, loaded }) => {
@@ -48,7 +48,7 @@ export const debugCommands: SlashCommand[] = [
   },
 
   {
-    help: 'write a V8 heap snapshot + memory diagnostics (see HERMES_HEAPDUMP_DIR)',
+    help: 'write a V8 heap snapshot + memory diagnostics (see A2ASSISTANT_HEAPDUMP_DIR)',
     name: 'heapdump',
     run: (_arg, ctx) => {
       const { heapUsed, rss } = process.memoryUsage()
@@ -87,8 +87,8 @@ export const debugCommands: SlashCommand[] = [
               t('slashCmd.debug.themeInfo.osc11Background'),
               terminalBackgroundHex() ?? t('slashCmd.debug.themeInfo.noReply')
             ],
-            ['HERMES_TUI_BACKGROUND', process.env.HERMES_TUI_BACKGROUND ?? unset],
-            ['HERMES_TUI_THEME', process.env.HERMES_TUI_THEME ?? unset],
+            ['A2ASSISTANT_TUI_BACKGROUND', process.env.A2ASSISTANT_TUI_BACKGROUND ?? unset],
+            ['A2ASSISTANT_TUI_THEME', process.env.A2ASSISTANT_TUI_THEME ?? unset],
             ['COLORFGBG', process.env.COLORFGBG ?? unset],
             ['TERM_PROGRAM', process.env.TERM_PROGRAM ?? unset],
             [

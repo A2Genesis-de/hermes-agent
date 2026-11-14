@@ -1,7 +1,7 @@
 """Post-commit outcomes (contract C3) on the real Windows hand-off script.
 
-A real ``windows.ps1`` drives a real published launcher whose ``hermes``
-application is a scripted stand-in: once ``hermes update`` exits 0 the install
+A real ``windows.ps1`` drives a real published launcher whose ``a2assistant``
+application is a scripted stand-in: once ``a2assistant update`` exits 0 the install
 is on the new version, so nothing afterwards may report "still on the previous
 version", and the hand-off's own supervision (watchdog, probes, marker
 release) must not turn healthy work into a failure.
@@ -52,7 +52,7 @@ def main():
         k32.GetProcessTimes(handle, *[ctypes.byref(t) for t in times])
         k32.CloseHandle(handle)
         ct = times[0].value / 1e7 - 11644473600
-        marker = Path(os.environ['HERMES_HOME']) / '.hermes-update-in-progress'
+        marker = Path(os.environ['A2ASSISTANT_HOME']) / '.hermes-update-in-progress'
         head = marker.read_bytes().decode().split('\\n')[:3]
         marker.write_bytes(('\\n'.join(head) + '\\ndelegate:%d ct:%.3f\\n' % (child.pid, ct)).encode())
     if os.environ.get('HANDOFF_HANG'):
@@ -61,9 +61,9 @@ def main():
     receipt = os.environ.get('HANDOFF_RECEIPT')   # this run's finalized receipt: outcome[,correlation]
     if receipt:
         outcome, correlation = (receipt.split(',') + [''])[:2]
-        path = Path(os.environ['HERMES_HOME']) / 'logs' / 'update_receipts' / 'latest.json'
+        path = Path(os.environ['A2ASSISTANT_HOME']) / 'logs' / 'update_receipts' / 'latest.json'
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps({'correlation_id': correlation or os.environ.get('HERMES_UPDATE_CORRELATION_ID'),
+        path.write_text(json.dumps({'correlation_id': correlation or os.environ.get('A2ASSISTANT_UPDATE_CORRELATION_ID'),
                                     'outcome': outcome, 'finished_at': '2026-10-05T12:00:00+00:00'}, indent=2),
                         encoding='utf-8')
         return int(os.environ.get('HANDOFF_EXIT', '0'))
@@ -86,7 +86,7 @@ def _handoff(tmp_path: Path, *args: str, verify: str = 'pass\n', timeout: int = 
         ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(SCRIPT),
          '-InstallRoot', str(install), '-NoUi', *args],
         cwd=tmp_path, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-        env={**os.environ, 'HERMES_HOME': str(home), 'HERMES_RUNTIME_DIR': str(tmp_path / 'empty-store'),
+        env={**os.environ, 'A2ASSISTANT_HOME': str(home), 'A2ASSISTANT_RUNTIME_DIR': str(tmp_path / 'empty-store'),
              'HANDOFF_CALLS': str(calls), 'PYTHONIOENCODING': 'utf-8', **env},
     )
     try:
@@ -116,7 +116,7 @@ def test_verify_failure_after_a_committed_update_is_ok_with_warnings(tmp_path: P
 @pytest.mark.platforms('windows')
 def test_result_is_atomic_json_carrying_started_at_and_warnings(tmp_path: Path) -> None:
     started = int(time.time()) - 5
-    code, out, _, result, home = _handoff(tmp_path, HERMES_UPDATE_STARTED_AT=str(started))
+    code, out, _, result, home = _handoff(tmp_path, A2ASSISTANT_UPDATE_STARTED_AT=str(started))
     assert code == 0, out
     assert (result['ok'], result['started_at'], result['warnings']) == (True, started, []), result
     assert not list(home.glob('.hermes-update-result.json.*.tmp'))
@@ -201,7 +201,7 @@ def test_marker_with_a_live_delegate_is_handed_to_it_at_finish(tmp_path: Path) -
 def test_watchdog_remap_after_banner_reports_interrupted_followups(tmp_path: Path) -> None:
     code, out, _argv, result, _ = _handoff(
         tmp_path, '-NoGateway', HANDOFF_HANG='Update complete! (v1.0.0)',
-        HERMES_UPDATE_STEP_IDLE_SECONDS='3',
+        A2ASSISTANT_UPDATE_STEP_IDLE_SECONDS='3',
     )
     assert code == 0, out
     assert (result['ok'], result['manual']) == (True, True), result
@@ -211,7 +211,7 @@ def test_watchdog_remap_after_banner_reports_interrupted_followups(tmp_path: Pat
 @pytest.mark.platforms('windows')
 def test_cpu_busy_pipe_silent_update_is_not_killed_by_the_idle_watchdog(tmp_path: Path) -> None:
     code, out, _argv, result, _ = _handoff(
-        tmp_path, '-NoGateway', HANDOFF_BUSY_SECONDS='15', HERMES_UPDATE_STEP_IDLE_SECONDS='4',
+        tmp_path, '-NoGateway', HANDOFF_BUSY_SECONDS='15', A2ASSISTANT_UPDATE_STEP_IDLE_SECONDS='4',
     )
     assert code == 0, out
     assert (result['ok'], result['warnings']) == (True, []), result

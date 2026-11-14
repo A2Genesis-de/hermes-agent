@@ -91,9 +91,9 @@ RUN apt-get -o Acquire::Retries=3 update && \
 # build, and cannot apt at run time either (unprivileged, no sudo). Only this
 # build step needs root —
 # Xvnc is a userspace X server, so the runtime user can drive it.
-#   docker build --build-arg HERMES_BOT_DESKTOP=1 .
-ARG HERMES_BOT_DESKTOP=0
-RUN if [ "$HERMES_BOT_DESKTOP" = "1" ]; then \
+#   docker build --build-arg A2ASSISTANT_BOT_DESKTOP=1 .
+ARG A2ASSISTANT_BOT_DESKTOP=0
+RUN if [ "$A2ASSISTANT_BOT_DESKTOP" = "1" ]; then \
         apt-get -o Acquire::Retries=3 update && \
         DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::Retries=3 install -y --no-install-recommends \
         tigervnc-standalone-server xfce4-panel xfwm4 xfdesktop4 xfce4-settings xfce4-terminal \
@@ -174,7 +174,7 @@ RUN set -eu; \
 # updated.
 COPY --chmod=0755 docker/tini-shim.sh /usr/bin/tini
 
-# Non-root user for runtime; UID can be overridden via HERMES_UID at runtime
+# Non-root user for runtime; UID can be overridden via A2ASSISTANT_UID at runtime
 RUN useradd -u 10000 -m -d /opt/data hermes
 
 
@@ -202,7 +202,7 @@ WORKDIR /opt/hermes
 # arm64), so it is resolved at build time and never hunted at boot.
 # hermes_cli/browser_runtime.py reads it when a volume over the runtime dir
 # hides pm's facts; stage2-hook.sh checks it still names a binary.
-ENV HERMES_RUNTIME_DIR=/opt/hermes/tools
+ENV A2ASSISTANT_RUNTIME_DIR=/opt/hermes/tools
 COPY pm/ pm/
 # pm's lazy imports resolve get_default_hermes_root()/project_venv_dir()
 # from hermes_constants (stdlib-only) at install time — a sealed-stage
@@ -229,7 +229,7 @@ RUN set -eu; \
 RUN python3 -c 'from pathlib import Path; from pm import stage_manager_runtime; from scripts.bundles.payload import seal_pm_runtime; root = Path("/opt/hermes"); python = Path("/usr/local/bin/python3").resolve(); stage_manager_runtime(python=python, destination=root / "pm-runtime", project=root / "pm"); seal_pm_runtime(root, python)'
 
 # JS build helpers use the prepared interpreter without an installer parent.
-ENV HERMES_PYTHON=/usr/local/bin/python3
+ENV A2ASSISTANT_PYTHON=/usr/local/bin/python3
 # The standalone interpreter records its builder's clang toolchain;
 # native extensions must use the compiler installed in this image.
 ENV CC=gcc CXX=g++
@@ -295,8 +295,8 @@ FROM runtime_base AS python_deps
 COPY pyproject.toml setup.py uv.lock ./
 RUN touch ./README.md
 # --cache puts uv's cache at /opt/hermes/uv-cache, the seed path that
-# pm.packages.uv_cache_dir() merges into $HERMES_HOME/cache/uv on first use.
-# Do not leave the cache at its default: HERMES_HOME is not set yet in this
+# pm.packages.uv_cache_dir() merges into $A2ASSISTANT_HOME/cache/uv on first use.
+# Do not leave the cache at its default: A2ASSISTANT_HOME is not set yet in this
 # stage, so the default is /root/.hermes/cache/uv, which nothing reads. A plugin
 # install then runs with an empty cache and builds python-olm from source.
 RUN python3 -m pm.build_env --source /opt/hermes --python /usr/local/bin/python3 \
@@ -371,7 +371,7 @@ COPY --from=frontend_build /opt/products/web /opt/hermes/hermes_cli/web_dist
 COPY --from=webapp_build /opt/hermes/apps/desktop/dist-webapp /opt/hermes/apps/desktop/dist-webapp
 # ---------- Bot Screen X socket directory ----------
 # Xvnc would create this itself (/tmp is 1777); pre-creating it keeps ownership
-# deterministic when HERMES_UID is remapped between boots.
+# deterministic when A2ASSISTANT_UID is remapped between boots.
 RUN mkdir -p /tmp/.X11-unix && chmod 1777 /tmp/.X11-unix
 
 # XDG_RUNTIME_DIR (set below) sits under a predictable name in world-writable /tmp.
@@ -401,14 +401,14 @@ RUN mkdir -p /opt/hermes/bin && \
     chmod 0755 /opt/hermes /opt/hermes/bin/hermes && \
     printf 'docker\n' > /opt/hermes/.install_method
 # The ``.install_method`` stamp is baked next to the running code (the install
-# tree), NOT into $HERMES_HOME. $HERMES_HOME (/opt/data) is a shared data
+# tree), NOT into $A2ASSISTANT_HOME. $A2ASSISTANT_HOME (/opt/data) is a shared data
 # volume that is commonly bind-mounted from the host and even shared with a
 # host-side Desktop/CLI install; stamping it at boot used to clobber that
-# host install's marker and wrongly block its ``hermes update``. A code-scoped
+# host install's marker and wrongly block its ``a2assistant update``. A code-scoped
 # stamp is read first by detect_install_method() and is immune to the share.
 # Start as root so the s6-overlay stage2 hook can usermod/groupmod and chown
 # the data volume. Each supervised service then drops to the hermes user via
-# `s6-setuidgid hermes` in its run script. If HERMES_UID is unset, services
+# `s6-setuidgid a2assistant` in its run script. If A2ASSISTANT_UID is unset, services
 # run as the default hermes user (UID 10000).
 
 # ---------- Image provenance + install stamp ----------
@@ -417,7 +417,7 @@ RUN mkdir -p /opt/hermes/bin && \
 # full-provenance /opt/hermes/install-stamp.json next to the code.
 # .dockerignore excludes .git, so the stamp is the only commit channel the
 # image carries: hermes_cli/version_info.py reads it at runtime (stamp
-# first, live git second, unknown third), and both `hermes dump` and
+# first, live git second, unknown third), and both `a2assistant dump` and
 # banner.get_git_banner_state() consume it through version_info.
 #
 # A local `docker build` without CI gets the minimal all-zero fallback
@@ -428,7 +428,7 @@ RUN mkdir -p /opt/hermes/bin && \
 # The versioned, non-secret provenance marker is the authoritative runtime
 # signal that this filesystem came from an immutable image.  It deliberately
 # lives outside both /opt/hermes (which operators sometimes bind-mount as a
-# checkout) and /opt/data (the mutable HERMES_HOME volume).  Its `revision`
+# checkout) and /opt/data (the mutable A2ASSISTANT_HOME volume).  Its `revision`
 # is read from the install stamp; the fallback stamp's all-zero commit maps
 # to null.
 RUN set -eu; \
@@ -452,11 +452,11 @@ COPY docker/s6-rc.d/ /etc/s6-overlay/s6-rc.d/
 
 # stage2-hook handles UID/GID remap, volume chown, config seeding,
 # skills sync — all the work the old entrypoint.sh did before
-# `exec hermes`. Wired in as cont-init.d/01- so it
+# `exec a2assistant`. Wired in as cont-init.d/01- so it
 # runs before user services start.
 #
 # 02-reconcile-profiles re-creates per-profile gateway s6 service
-# slots from $HERMES_HOME/profiles/<name>/ after a container restart
+# slots from $A2ASSISTANT_HOME/profiles/<name>/ after a container restart
 # (the /run/hermes-service/ scandir is tmpfs and wiped on restart). Phase 4.
 RUN mkdir -p /etc/cont-init.d && \
     printf '#!/command/with-contenv sh\nexec /opt/hermes/docker/stage2-hook.sh\n' \
@@ -466,7 +466,7 @@ COPY --chmod=0755 docker/cont-init.d/015-supervise-perms /etc/cont-init.d/015-su
 COPY --chmod=0755 docker/cont-init.d/02-reconcile-profiles /etc/cont-init.d/02-reconcile-profiles
 
 # ---------- Runtime ----------
-ENV HERMES_WEB_DIST=/opt/hermes/hermes_cli/web_dist
+ENV A2ASSISTANT_WEB_DIST=/opt/hermes/hermes_cli/web_dist
 # Point the TUI launcher at the prebuilt bundle baked at build time (the
 # frontend_build stage's scripts/build/tui.mjs product). This makes
 # _make_tui_argv take the prebuilt-bundle fast path
@@ -482,9 +482,9 @@ ENV HERMES_WEB_DIST=/opt/hermes/hermes_cli/web_dist
 # ENOTEMPTY → the chat tab dies with a 502 / "[session ended]". Pointing at the
 # prebuilt bundle sidesteps the whole check. (A separate launcher hardening is
 # tracked independently.)
-ENV HERMES_TUI_DIR=/opt/hermes/ui-tui
-ENV HERMES_HOME=/opt/data
-ENV HERMES_WRITE_SAFE_ROOT=/opt/data
+ENV A2ASSISTANT_TUI_DIR=/opt/hermes/ui-tui
+ENV A2ASSISTANT_HOME=/opt/data
+ENV A2ASSISTANT_WRITE_SAFE_ROOT=/opt/data
 # Opt-in backend SDKs install on first use into PM dependency generations under
 # /opt/data/installs (the sealed /opt/hermes/.venv is never written); stage2
 # re-resolves them against each new image. security.allow_lazy_installs: false
@@ -498,15 +498,15 @@ ENV XDG_RUNTIME_DIR=/tmp/hermes-runtime
 
 # `docker exec` privilege-drop shim. When operators run
 # `docker exec <c> hermes ...` they default to root, and any file the
-# command writes under $HERMES_HOME (auth.json, .env, config.yaml) ends
+# command writes under $A2ASSISTANT_HOME (auth.json, .env, config.yaml) ends
 # up root-owned and unreadable to the supervised gateway (UID 10000).
 # The shim lives at /opt/hermes/bin/hermes, sits earliest on PATH, and
-# transparently re-exec's the real venv binary via `s6-setuidgid hermes`
+# transparently re-exec's the real venv binary via `s6-setuidgid a2assistant`
 # when invoked as root. Non-root callers (supervised processes,
-# `--user hermes`, etc.) hit the short-circuit path with no overhead.
+# `--user a2assistant`, etc.) hit the short-circuit path with no overhead.
 # Recursion is impossible because the shim exec's the venv binary by
 # absolute path (/opt/hermes/.venv/bin/hermes). See the shim source for
-# the opt-out env var (HERMES_DOCKER_EXEC_AS_ROOT=1).
+# the opt-out env var (A2ASSISTANT_DOCKER_EXEC_AS_ROOT=1).
 COPY --chmod=0755 docker/hermes-exec-shim.sh /opt/hermes/bin/hermes
 COPY --chmod=0755 docker/entrypoint-dispatch.sh /opt/hermes/docker/entrypoint-dispatch.sh
 
@@ -531,7 +531,7 @@ COPY --chmod=0644 docker/profile-hermes-path.sh /etc/profile.d/hermes.sh
 RUN mkdir -p /opt/data && chmod 0644 /opt/hermes/tools/facts.json && \
     rm -f /opt/hermes/.venv/.lock /opt/hermes/pm-runtime/.lock
 # Build helpers use system Python above; TUI gateway children need the sealed runtime.
-ENV HERMES_PYTHON=/opt/hermes/.venv/bin/python
+ENV A2ASSISTANT_PYTHON=/opt/hermes/.venv/bin/python
 VOLUME [ "/opt/data" ]
 
 # The image ENTRYPOINT is a tiny dispatcher rather than `/init` directly.

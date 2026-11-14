@@ -44,9 +44,9 @@ DISCORD_AUTO_THREAD SLACK_HOME_CHANNEL SLACK_HOME_CHANNEL_NAME SLACK_ALLOWED_USE
 WHATSAPP_ENABLED WHATSAPP_MODE WHATSAPP_ALLOWED_USERS SIGNAL_HTTP_URL SIGNAL_ACCOUNT
 SIGNAL_ALLOWED_USERS SIGNAL_GROUP_ALLOWED_USERS SIGNAL_HOME_CHANNEL SIGNAL_HOME_CHANNEL_NAME
 SIGNAL_IGNORE_STORIES HASS_TOKEN HASS_URL EMAIL_ADDRESS EMAIL_PASSWORD EMAIL_IMAP_HOST
-EMAIL_SMTP_HOST EMAIL_HOME_ADDRESS EMAIL_HOME_ADDRESS_NAME HERMES_DASHBOARD_SESSION_TOKEN
-HERMES_DASHBOARD_BASIC_AUTH_PASSWORD HERMES_DASHBOARD_BASIC_AUTH_SECRET HERMES_DASHBOARD_DRAIN_SECRET
-HERMES_DASHBOARD_OIDC_CLIENT_SECRET HERMES_ANON_API_SECRET HERMES_MEET_REALTIME_KEY
+EMAIL_SMTP_HOST EMAIL_HOME_ADDRESS EMAIL_HOME_ADDRESS_NAME A2ASSISTANT_DASHBOARD_SESSION_TOKEN
+A2ASSISTANT_DASHBOARD_BASIC_AUTH_PASSWORD A2ASSISTANT_DASHBOARD_BASIC_AUTH_SECRET A2ASSISTANT_DASHBOARD_DRAIN_SECRET
+A2ASSISTANT_DASHBOARD_OIDC_CLIENT_SECRET A2ASSISTANT_ANON_API_SECRET A2ASSISTANT_MEET_REALTIME_KEY
 GATEWAY_ALLOWED_USERS GATEWAY_ALLOW_ALL_USERS GH_TOKEN GITHUB_APP_ID
 GITHUB_APP_PRIVATE_KEY_PATH GITHUB_APP_INSTALLATION_ID MODAL_TOKEN_ID MODAL_TOKEN_SECRET
 DAYTONA_API_KEY VERCEL_OIDC_TOKEN VERCEL_TOKEN VERCEL_PROJECT_ID VERCEL_TEAM_ID
@@ -369,9 +369,9 @@ def test_runtime_adapter_secret_follows_the_bound_profiles_registry(child_env, m
         assert child_sees() == {name: None, "MY_APP_KEY": "operator"}
         register_env_passthrough([name])
         assert not is_env_passthrough(name)
-        monkeypatch.setenv("HERMES_HOME", str(home_b))  # B has no such adapter: operator-owned
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home_b))  # B has no such adapter: operator-owned
         assert child_sees() == {name: "fake-secret", "MY_APP_KEY": "operator"}
-        monkeypatch.setenv("HERMES_HOME", str(home_a))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home_a))
         assert child_sees() == {name: None, "MY_APP_KEY": "operator"}
     finally:
         platform_registry.unregister("acme-chat", scope=scope_a)
@@ -546,7 +546,7 @@ def test_launcher_alias_provenance(child_env, monkeypatch, link_at, profile):
     unrelated = child_env / "user-tools/hermes-agent"
     unrelated.mkdir(parents=True)
     lexical_root = configured / "hermes-agent"
-    monkeypatch.setenv("HERMES_HOME", str(configured))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(configured))
     assert Path(resolve_profile_env("default")) == configured
     assert Path(resolve_profile_env("coder")) == configured / "profiles/coder"
     if link_at == "home":
@@ -1020,7 +1020,7 @@ class TestNativeEnvironmentContracts:
             _make_directory_link(configured_home, physical_home)
         except OSError as exc:
             pytest.skip(f"directory link unavailable on this host: {exc}")
-        monkeypatch.setenv("HERMES_HOME", str(configured_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(configured_home))
 
         launcher_entry = Path(_preserve_hermes_home_path(physical_root))
         aliases = local_pythonpath._build_hermes_repo_root_aliases(
@@ -1051,9 +1051,9 @@ class TestNativeEnvironmentContracts:
     def test_profile_rehome_keeps_junction_lexical_alias(self, tmp_path, monkeypatch):
         """Profile re-home must not lose the launcher's lexical repo-root spelling.
 
-        The desktop/CLI spawn children with HERMES_HOME and PYTHONPATH in the
+        The desktop/CLI spawn children with A2ASSISTANT_HOME and PYTHONPATH in the
         configured (junction) spelling, but --profile / sticky active_profile
-        re-home HERMES_HOME through resolve_profile_env() before the
+        re-home A2ASSISTANT_HOME through resolve_profile_env() before the
         sanitizer loads.  Regression (junction + profile re-home): the alias
         builder must still recover the lexical root so the inherited lexical
         repo-root entry is stripped.
@@ -1074,7 +1074,7 @@ class TestNativeEnvironmentContracts:
             pytest.skip(f"directory link unavailable on this host: {exc}")
 
         # Launcher contract: the configured spelling is the env and the root.
-        monkeypatch.setenv("HERMES_HOME", str(configured_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(configured_home))
         lexical_root = configured_home / "hermes-agent"
 
         # Profile re-home keeps the configured spelling (physically identical
@@ -1461,7 +1461,7 @@ class TestBlocklistCoverage:
             "EMAIL_SMTP_HOST",
             "EMAIL_HOME_ADDRESS",
             "EMAIL_HOME_ADDRESS_NAME",
-            "HERMES_DASHBOARD_SESSION_TOKEN",
+            "A2ASSISTANT_DASHBOARD_SESSION_TOKEN",
             "GATEWAY_ALLOWED_USERS",
             "GH_TOKEN",
             "GITHUB_APP_ID",
@@ -1485,7 +1485,7 @@ class TestSanePathIncludesHomebrew:
     def _disable_hermes_bin_injection(self):
         """These tests assert the sane-path merge in isolation. Disable the
         hermes-install-dir prepend (a separate concern, covered by
-        TestHermesBinDirOnPath) so a real ``hermes`` on the test runner's PATH
+        TestHermesBinDirOnPath) so a real ``a2assistant`` on the test runner's PATH
         doesn't shift the asserted PATH layout."""
         from tools.environments import local as local_mod
         saved = local_mod._HERMES_BIN_DIR
@@ -1550,7 +1550,7 @@ class TestSanePathIncludesHomebrew:
         from tools.environments.local import _make_run_env
         # Keep the real home vars: the adapter-secret lookup resolves the profile home.
         windows_env = {"Path": r"C:\Windows\System32;C:\Program Files\Git\bin",
-                       **{k: os.environ[k] for k in ("USERPROFILE", "HOMEDRIVE", "HOMEPATH", "HERMES_HOME")
+                       **{k: os.environ[k] for k in ("USERPROFILE", "HOMEDRIVE", "HOMEPATH", "A2ASSISTANT_HOME")
                           if k in os.environ}}
         monkeypatch.setattr(local_mod, "_git_bash_bin_dirs", list)
         with patch.object(local_mod.os, "environ", windows_env):

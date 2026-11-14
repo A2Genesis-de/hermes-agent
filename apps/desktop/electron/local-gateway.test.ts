@@ -7,9 +7,9 @@ import { shortSocketTmpDir } from './local-gateway.test-helpers'
 
 test('the ensure client inherits the caller-scrubbed parent env, not the raw Desktop env', async () => {
   // #68367: a sibling profile's `gateway ensure` must not see the launch profile's dotenv
-  // credentials. The parent env passed in IS the environment; only HERMES_HOME and the
+  // credentials. The parent env passed in IS the environment; only A2ASSISTANT_HOME and the
   // backend's own entries are layered on top.
-  const printEnv = ['-e', 'process.stdout.write(JSON.stringify({ leak: process.env.LEAK ?? null, home: process.env.HERMES_HOME, own: process.env.OWN }))']
+  const printEnv = ['-e', 'process.stdout.write(JSON.stringify({ leak: process.env.LEAK ?? null, home: process.env.A2ASSISTANT_HOME, own: process.env.OWN }))']
 
   const result = await runGatewayEnsure(
     { command: process.execPath, args: printEnv, env: { OWN: '1' }, shell: false },
@@ -22,16 +22,16 @@ test('the ensure client inherits the caller-scrubbed parent env, not the raw Des
 })
 
 test('the ensure client never hands a dev renderer origin to the long-lived local gateway', async () => {
-  // A dev Desktop's own env names its renderer (HERMES_DESKTOP_DEV_SERVER). The gateway `ensure`
+  // A dev Desktop's own env names its renderer (A2ASSISTANT_DESKTOP_DEV_SERVER). The gateway `ensure`
   // starts outlives that session, and Desktop reaches it through main-process HTTP and Origin-less
   // socket dials, so it needs no renderer origin; inherited, it would keep trusting that port.
-  const printEnv = ['-e', 'process.stdout.write(JSON.stringify(process.env.HERMES_DESKTOP_DEV_SERVER ?? null))']
+  const printEnv = ['-e', 'process.stdout.write(JSON.stringify(process.env.A2ASSISTANT_DESKTOP_DEV_SERVER ?? null))']
 
   const result = await runGatewayEnsure(
-    { command: process.execPath, args: printEnv, env: { HERMES_DESKTOP_DEV_SERVER: 'http://127.0.0.1:5174' }, shell: false },
+    { command: process.execPath, args: printEnv, env: { A2ASSISTANT_DESKTOP_DEV_SERVER: 'http://127.0.0.1:5174' }, shell: false },
     process.cwd(),
     '/home/x/.hermes',
-    { PATH: process.env.PATH ?? '', HERMES_DESKTOP_DEV_SERVER: 'http://127.0.0.1:5174' }
+    { PATH: process.env.PATH ?? '', A2ASSISTANT_DESKTOP_DEV_SERVER: 'http://127.0.0.1:5174' }
   )
 
   expect(JSON.parse(result.stdout)).toBeNull()
@@ -194,19 +194,23 @@ test('a restart-wait owner is attached to answer a parked prompt; a plain drain 
 })
 
 test('a stale owner this window restarts is attached in its restart wait before the restart finishes (#139041)', async () => {
-  // `hermes gateway restart` waits for the old owner to exit; a turn parked on approval/clarify
+  // `a2assistant gateway restart` waits for the old owner to exit; a turn parked on approval/clarify
   // there waits for an answer only this window can give. Awaiting the restart first deadlocked both.
   const { createStaleGatewayRestarter } = await import('./local-gateway')
   const endpoint = { profile_id: '/h', instance_id: 'old', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1234', capabilities: ['session-authority-v1'], supervisor: 'none', code_sha: 'old' }
+
   let finishRestart = () => {}
   const restarted: string[] = []
+
   const restartStale = createStaleGatewayRestarter(owner => { restarted.push(owner)
 
  return new Promise<void>(resolve => { finishRestart = resolve }) }, () => undefined)
+
   const answers = [
     { code: 0, stdout: JSON.stringify({ state: 'ready', endpoint, client_code_sha: 'new' }) },
     { code: 6, stdout: JSON.stringify({ state: 'draining', reason_code: 'restart_wait', endpoint, client_code_sha: 'new' }) }
   ]
+
   const attached = ensureLocalGateway(async () => answers.shift()!, undefined, restartStale)
   const outcome = await Promise.race([attached, new Promise(resolve => setTimeout(() => resolve('blocked on the restart'), 500))])
   finishRestart()
@@ -216,8 +220,8 @@ test('a stale owner this window restarts is attached in its restart wait before 
 
 test('an ensure child that never reached the protocol boundary is diagnosed from stderr, not as a JSON parse error', async () => {
   // `main`'s hermes has no `gateway ensure` subcommand: argparse usage on stderr, nothing on stdout.
-  const legacy = { code: 2, stdout: '', stderr: "usage: hermes gateway [-h] ...\nhermes gateway: 'ensure' is not a `hermes gateway` command.\nRun `hermes gateway --help` to see all commands.\n" }
-  await expect(ensureLocalGateway(async () => legacy)).rejects.toThrow(/produced no result \(exit 2\): Run `hermes gateway --help`/)
+  const legacy = { code: 2, stdout: '', stderr: "usage: a2assistant gateway [-h] ...\nhermes gateway: 'ensure' is not a `a2assistant gateway` command.\nRun `a2assistant gateway --help` to see all commands.\n" }
+  await expect(ensureLocalGateway(async () => legacy)).rejects.toThrow(/produced no result \(exit 2\): Run `a2assistant gateway --help`/)
   // A missing profile: the CLI exits 1 before the ensure command runs.
   await expect(ensureLocalGateway(async () => ({ code: 1, stdout: '', stderr: "Error: Profile 'gone' does not exist.\n" }))).rejects.toThrow(/exit 1\): Error: Profile 'gone' does not exist\./)
   // A protocol outcome is never re-diagnosed: `incompatible` stays the gateway's own verdict.
@@ -281,6 +285,7 @@ test('a redial whose re-ensure comes back without a gateway endpoint names that,
   const { localGatewayDial } = await import('./local-gateway')
   const endpoint = { profile_id: '/h', control_home: null, instance_id: 'dead', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1234', capabilities: ['session-authority-v1'], supervisor: 'none' }
   const mint = vi.fn(async () => { throw new Error('Gateway ticket control socket missing') })
+
   const ensure = vi.fn()
     .mockResolvedValueOnce({ baseUrl: 'http://127.0.0.1:1234', gatewayEndpoint: endpoint })
     .mockResolvedValueOnce({ baseUrl: 'http://127.0.0.1:1234' })
@@ -291,7 +296,7 @@ test('a redial whose re-ensure comes back without a gateway endpoint names that,
 })
 
 test('a ready owner running other code than this A2Assistant is restarted once, then re-ensured', async () => {
-  // After `hermes update` the live gateway still serves the old code and answers model calls
+  // After `a2assistant update` the live gateway still serves the old code and answers model calls
   // 503 "Restart required"; attaching to it on every dial pinned the user to it forever.
   const { createStaleGatewayRestarter } = await import('./local-gateway')
   const endpoint = { profile_id: '/h/profiles/w', control_home: '/h', instance_id: 'old', authority_epoch: 1, runtime_protocol: 1, api_origin: 'http://127.0.0.1:1234', capabilities: ['session-authority-v1'], supervisor: 'none', code_sha: 'OLD' }
@@ -462,7 +467,7 @@ test.skipIf(process.platform === 'win32')('a group-accessible control socket is 
   }
 })
 
-// R7: the profile home keeps the operator's mode (Python `home_mode_unsafe`: HERMES_HOME_MODE
+// R7: the profile home keeps the operator's mode (Python `home_mode_unsafe`: A2ASSISTANT_HOME_MODE
 // 0750/0701, a 0755 home); only write by another user can swap the socket. The socket stays 0600.
 test.skipIf(process.platform === 'win32')('a supported home mode mints its ticket; a home others can write is refused', async () => {
   const fs = await import('node:fs/promises')
@@ -631,17 +636,17 @@ test('a session write that names its owner only in the body gets a grant for tha
 
 test('an ensure refusal names its remedy instead of only a status pointer', async () => {
   // A gateway another install owns is refused, not replaced; ensure says what to do in `detail`.
-  const detail = "another A2Assistant install's gateway owns this profile; stop it there: hermes gateway stop"
+  const detail = "another A2Assistant install's gateway owns this profile; stop it there: a2assistant gateway stop"
 
   await expect(ensureLocalGateway(async () => ({
     code: 3, stdout: JSON.stringify({ state: 'incompatible', reason_code: 'runtime_protocol', detail, endpoint: null })
-  }))).rejects.toThrow(`Gateway incompatible (runtime_protocol). ${detail}. Use hermes gateway status for recovery.`)
+  }))).rejects.toThrow(`Gateway incompatible (runtime_protocol). ${detail}. Use a2assistant gateway status for recovery.`)
 })
 
 test('an elevated or other-session gateway is named with its remedy, not as authorization (#139845, #140252)', async () => {
   const cases = [
-    ['gateway_elevated', 'The running gateway (PID 23460) was started as administrator, so this non-elevated app cannot reach it. Stop it from an administrator prompt (hermes gateway stop), then start A2Assistant without elevation'],
-    ['gateway_other_session', 'The running gateway (PID 23460) runs in another Windows logon session (session 0, e.g. a boot-time scheduled task), so this app cannot reach it. Stop it (hermes gateway stop from an administrator prompt) and let only one auto-start task launch the gateway']
+    ['gateway_elevated', 'The running gateway (PID 23460) was started as administrator, so this non-elevated app cannot reach it. Stop it from an administrator prompt (a2assistant gateway stop), then start A2Assistant without elevation'],
+    ['gateway_other_session', 'The running gateway (PID 23460) runs in another Windows logon session (session 0, e.g. a boot-time scheduled task), so this app cannot reach it. Stop it (a2assistant gateway stop from an administrator prompt) and let only one auto-start task launch the gateway']
   ]
 
   for (const [reason_code, detail] of cases) {
@@ -657,5 +662,5 @@ test('an elevated or other-session gateway is named with its remedy, not as auth
 test('an update-paused ensure refusal points to the restart that completes its tail', async () => {
   await expect(ensureLocalGateway(async () => ({
     code: 6, stdout: JSON.stringify({ state: 'draining', reason_code: 'update_paused', endpoint: null })
-  }))).rejects.toThrow('Gateway draining (update_paused). Use hermes gateway restart for recovery.')
+  }))).rejects.toThrow('Gateway draining (update_paused). Use a2assistant gateway restart for recovery.')
 })

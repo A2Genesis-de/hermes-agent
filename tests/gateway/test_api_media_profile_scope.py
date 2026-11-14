@@ -42,7 +42,7 @@ async def test_restart_recovery_keeps_every_profiles_held_images_and_collects_ea
     beta.mkdir(parents=True)
     for home in (launch, beta):
         (home / 'config.yaml').write_text('{}')
-    monkeypatch.setenv('HERMES_HOME', str(launch))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(launch))
     store = SessionStore(config=GatewayConfig(), sessions_dir=launch / 'sessions')
     registry = SessionAuthorities(launch, multiplexed=True)
     runner = SimpleNamespace(_draining=False, session_store=store, session_authorities=registry,

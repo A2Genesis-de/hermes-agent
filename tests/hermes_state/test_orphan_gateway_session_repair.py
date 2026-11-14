@@ -328,7 +328,7 @@ def test_donor_must_share_the_orphans_profile(tmp_path, monkeypatch):
 
     root = tmp_path / "hermes"
     root.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH)
     store = SessionDB(db_path=root / "state.db")  # owner: default
     try:

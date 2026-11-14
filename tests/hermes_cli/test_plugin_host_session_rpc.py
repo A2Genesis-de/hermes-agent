@@ -67,7 +67,7 @@ def test_plugin_rpc_and_session_events_in_either_isolation_mode(tmp_path, monkey
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     runner, frames = two_profile_runner(launch, secondary)
     monkeypatch.setattr(run_api, "_ACTIVE_RUNNER", runner)
@@ -175,7 +175,7 @@ def test_hosted_session_event_is_sent_only_as_the_live_plugin_running_it(tmp_pat
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     registry, frames = SessionAuthorities(launch), {}
     for profile in dict.fromkeys((launch, home)):

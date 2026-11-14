@@ -15,7 +15,7 @@ def _create(monkeypatch, tmp_path):
     from tui_gateway import server
 
     (tmp_path / "config.yaml").write_text("model:\n  default: claude-opus-5\n  provider: anthropic\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(server, "_sessions", {})
     monkeypatch.setattr(server, "_load_cfg", dict)
     monkeypatch.setattr(server, "_profile_home", lambda *a: None)

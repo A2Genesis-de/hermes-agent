@@ -1,4 +1,4 @@
-"""`hermes sessions prune` while the always-on gateway owns state.db (live smoke LS-F7).
+"""`a2assistant sessions prune` while the always-on gateway owns state.db (live smoke LS-F7).
 
 The gateway is always up, so a CLI prune that refuses whenever a process holds the store (and
 deletes under it with ``--force``) is unusable or a second writer. With a ready owner the CLI only
@@ -47,7 +47,7 @@ def _connection(authority, *, operator, native=True):
 
 @pytest.fixture
 def owned_store(monkeypatch, tmp_path):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(db_path=tmp_path / 'state.db')
     epoch = rt.begin_runtime_epoch(db, instance_id='owner')
     retired = []

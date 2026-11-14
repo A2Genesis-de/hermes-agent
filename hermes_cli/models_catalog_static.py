@@ -75,7 +75,7 @@ _OPENROUTER_ONLY = {
 
 def _codex_curated_models() -> list[str]:
     """openai-codex curated list from codex_models.py (DEFAULT_CODEX_MODELS + forward-compat
-    synthesis) so the gateway /model picker and the CLI ``hermes model`` flow share one source."""
+    synthesis) so the gateway /model picker and the CLI ``a2assistant model`` flow share one source."""
     from hermes_cli.codex_models import DEFAULT_CODEX_MODELS, _finalize_codex_models
     return _finalize_codex_models(list(DEFAULT_CODEX_MODELS))
 
@@ -117,7 +117,7 @@ def _xai_finalize_catalog(ids: list[str]) -> list[str]:
 
 
 def _xai_curated_models() -> list[str]:
-    """Offline curated floor for the xAI OAuth picker: $HERMES_HOME/models_dev_cache.json
+    """Offline curated floor for the xAI OAuth picker: $A2ASSISTANT_HOME/models_dev_cache.json
     (no network), else ``_XAI_STATIC_FALLBACK``. Any failure falls through to the static list.
     Reads through the process-wide models.dev copy, so the parse is the one every later reader shares."""
     try:
@@ -263,7 +263,7 @@ def sync_plugin_provider_catalog() -> int:
     Runs at import and again from ``providers._sync_auth_registry`` whenever a profile is registered
     after this module was imported. The import-time pass alone observes a *partial* registry: a
     plugin whose own imports pull ``hermes_cli.models`` in mid-``_discover_providers()``, or a
-    profile registered later at runtime, would otherwise never reach the picker, ``hermes model``,
+    profile registered later at runtime, would otherwise never reach the picker, ``a2assistant model``,
     ``/model`` or the Desktop ``model.options`` list until restart — the catalog twin of the auth
     registry window (#102123). Idempotent by slug; built-in rows are never rewritten. A row lands
     after its ``picker_after`` slug when that row exists, else at the end.

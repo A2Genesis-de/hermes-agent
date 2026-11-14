@@ -2,7 +2,7 @@
 
 ``host_multiplexer_serving`` reads the HOST-wide rendezvous record, so two readers were fooled:
 
-* #121352 — two Hermes tenants (separate ``HERMES_HOME`` roots) on one host each expose a profile
+* #121352 — two Hermes tenants (separate ``A2ASSISTANT_HOME`` roots) on one host each expose a profile
   named ``default``; tenant B's guard saw tenant A's multiplexer "serving default" and refused
   with exit 78, parking B's launchd unit. A host gateway under ANOTHER tenant root never serves us.
 * #120871 — a standalone fleet member (``-p argus gateway run``, no default gateway) publishes the
@@ -30,7 +30,7 @@ def _use_home(monkeypatch, fake_home: Path, hermes_home: Path) -> None:
     hermes_home.mkdir(parents=True, exist_ok=True)
     (hermes_home / "config.yaml").write_text("{}\n", encoding="utf-8")
     monkeypatch.setenv("HOME", str(fake_home))
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     monkeypatch.setattr("gateway.status._get_process_hermes_home", lambda: hermes_home)
 
@@ -96,7 +96,7 @@ def test_satellite_served_by_same_tenants_multiplexer_is_still_refused(tmp_path,
     assert gw.named_profile_served_by_running_multiplexer() is True
     refused, out = _refusal(gw)
     assert refused is True
-    assert "hermes -p default gateway restart" in out
+    assert "a2assistant -p default gateway restart" in out
     with pytest.raises(SystemExit) as exc:
         with redirect_stdout(io.StringIO()):
             gw._guard_named_profile_under_multiplexer()
@@ -104,7 +104,7 @@ def test_satellite_served_by_same_tenants_multiplexer_is_still_refused(tmp_path,
 
 
 def test_cron_status_restart_hint_names_the_profile_hosting_the_scheduler(tmp_path, monkeypatch, gw):
-    """#120871: `hermes -p argus cron status` on a standalone fleet points at argus, not default."""
+    """#120871: `a2assistant -p argus cron status` on a standalone fleet points at argus, not default."""
     from gateway.host_topology import HostGatewayTopology
     from hermes_cli import cron as cron_mod
 
@@ -120,11 +120,11 @@ def test_cron_status_restart_hint_names_the_profile_hosting_the_scheduler(tmp_pa
     class _Stop(Exception):
         pass
 
-    def _capture(pids, restart_command="hermes gateway restart"):
+    def _capture(pids, restart_command="a2assistant gateway restart"):
         seen.append(restart_command)
         raise _Stop
 
     monkeypatch.setattr(cron_mod, "_print_ticker_health", _capture)
     with pytest.raises(_Stop), redirect_stdout(io.StringIO()):
         cron_mod.cron_status()
-    assert seen == ["hermes --profile argus gateway restart"]
+    assert seen == ["a2assistant --profile argus gateway restart"]

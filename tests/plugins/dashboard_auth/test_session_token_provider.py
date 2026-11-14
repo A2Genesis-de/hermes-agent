@@ -2,7 +2,7 @@
 gated-mode credential).
 
 Loads the bundled session_token plugin module directly and exercises:
-  * registration — registers when HERMES_DASHBOARD_SESSION_TOKEN is provisioned
+  * registration — registers when A2ASSISTANT_DASHBOARD_SESSION_TOKEN is provisioned
     (literal or file:<path>, BOM-tolerant), skips when it is absent, when the
     dashboard.session_token_auth.enabled knob opts out, and when the token file
     is unreadable (the file resolver's SystemExit mapped to a skip, never a
@@ -31,7 +31,7 @@ def plugin():
 
 @pytest.fixture(autouse=True)
 def _clean_env_and_registry(monkeypatch):
-    monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
     registry.clear_providers()
     yield
     registry.clear_providers()
@@ -100,11 +100,11 @@ class TestRegister:
         ctx = MagicMock()
         plugin.register(ctx)
         ctx.register_dashboard_auth_provider.assert_not_called()
-        assert "HERMES_DASHBOARD_SESSION_TOKEN" in plugin.LAST_SKIP_REASON
+        assert "A2ASSISTANT_DASHBOARD_SESSION_TOKEN" in plugin.LAST_SKIP_REASON
 
     def test_registers_with_env_token(self, plugin, monkeypatch):
         token = _token()
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", token)
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", token)
         monkeypatch.setattr(plugin, "_load_session_token_auth_section", dict)
         ctx = MagicMock()
         plugin.register(ctx)
@@ -116,9 +116,9 @@ class TestRegister:
 
     def test_resolves_file_prefix(self, plugin, monkeypatch, tmp_path):
         token = _token()
-        token_file = tmp_path / "hermes-gateway-token"
+        token_file = tmp_path / "a2assistant-gateway-token"
         token_file.write_text(f"\ufeff{token}\n", encoding="utf-8")  # BOM + newline
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", f"file:{token_file}")
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", f"file:{token_file}")
         monkeypatch.setattr(plugin, "_load_session_token_auth_section", dict)
         ctx = MagicMock()
         plugin.register(ctx)
@@ -128,7 +128,7 @@ class TestRegister:
 
     def test_skip_on_unreadable_token_file(self, plugin, monkeypatch, tmp_path):
         monkeypatch.setenv(
-            "HERMES_DASHBOARD_SESSION_TOKEN", f"file:{tmp_path / 'missing'}")
+            "A2ASSISTANT_DASHBOARD_SESSION_TOKEN", f"file:{tmp_path / 'missing'}")
         monkeypatch.setattr(plugin, "_load_session_token_auth_section", dict)
         ctx = MagicMock()
         plugin.register(ctx)
@@ -136,7 +136,7 @@ class TestRegister:
         assert plugin.LAST_SKIP_REASON
 
     def test_config_opt_out(self, plugin, monkeypatch):
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", _token())
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", _token())
         monkeypatch.setattr(
             plugin, "_load_session_token_auth_section", lambda: {"enabled": False})
         ctx = MagicMock()
@@ -147,7 +147,7 @@ class TestRegister:
     def test_short_token_still_registers_with_warning(
             self, plugin, monkeypatch, caplog):
         token = "short-but-mine"
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", token)
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", token)
         monkeypatch.setattr(plugin, "_load_session_token_auth_section", dict)
         ctx = MagicMock()
         with caplog.at_level("WARNING"):
@@ -162,7 +162,7 @@ class TestRegister:
 
 
 class TestRealConfigLoader:
-    """The opt-out key is read from an actual config.yaml under a temp HERMES_HOME via the same
+    """The opt-out key is read from an actual config.yaml under a temp A2ASSISTANT_HOME via the same
     ``load_config_section`` path the plugin uses — no loader patch, so a misspelled section or
     key path fails here."""
 
@@ -170,8 +170,8 @@ class TestRealConfigLoader:
     def home(self, monkeypatch, tmp_path):
         home = tmp_path / ".hermes"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.setenv("HERMES_DASHBOARD_SESSION_TOKEN", _token())
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", _token())
         return home
 
     def _register(self, plugin):

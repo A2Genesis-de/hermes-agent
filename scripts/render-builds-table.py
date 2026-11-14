@@ -1,5 +1,5 @@
 #!/usr/bin/env -S bash -c 'exec "$BASH" "$(dirname "$0")/run-in-hermes-env" python3 "$0" "$@"'
-"""Render the release download tables into <!-- HERMES_BUILDS_TABLE -->, and
+"""Render the release download tables into <!-- A2ASSISTANT_BUILDS_TABLE -->, and
 the same rows as standalone pages in the bucket.
 
 Runs after the build jobs of desktop-bundled-release.yml finish, including
@@ -56,8 +56,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scripts.releases import handoff, r2, semver, stable, versioning
 from scripts.releases.desktop_targets import TARGETS as DESKTOP_TARGETS
 
-MARKER = "<!-- HERMES_BUILDS_TABLE -->"
-END_MARKER = "<!-- /HERMES_BUILDS_TABLE -->"
+MARKER = "<!-- A2ASSISTANT_BUILDS_TABLE -->"
+END_MARKER = "<!-- /A2ASSISTANT_BUILDS_TABLE -->"
 DEFAULT_REPO = "NousResearch/hermes-agent"
 
 # Asset name shapes (electron-builder artifactName in
@@ -607,7 +607,7 @@ def main() -> int:
                         help="With --summary-commit: comma-separated failed job names, "
                              "blamed on the Not built rows")
     parser.add_argument("--repo", default=DEFAULT_REPO)
-    parser.add_argument("--bundle-env-json", default=os.environ.get("HERMES_BUNDLE_ENV_JSON", ""),
+    parser.add_argument("--bundle-env-json", default=os.environ.get("A2ASSISTANT_BUNDLE_ENV_JSON", ""),
                         help="Explicit non-secret commit desktop bundle overrides, not the CI environment")
     parser.add_argument("--run-url", default=None,
                         help="Actual workflow run URL for incomplete-build diagnostics")
@@ -733,7 +733,7 @@ def main() -> int:
     if not args.pending_run_url and not args.dry_run and not incomplete and names and not args.no_channel_page:
         write_channel_page(args.tag, assets, args.r2_base_url, repo=args.repo, smoke_results=smoke_results)
     if MARKER not in body:
-        print("::warning::release body has no HERMES_BUILDS_TABLE marker; leaving it unchanged")
+        print("::warning::release body has no A2ASSISTANT_BUILDS_TABLE marker; leaving it unchanged")
         return 0
 
     new_body = splice(body, block)

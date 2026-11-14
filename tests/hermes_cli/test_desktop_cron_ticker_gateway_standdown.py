@@ -1,4 +1,4 @@
-"""Desktop cron ticker yields to a live gateway that owns cron on the same HERMES_HOME (#52202).
+"""Desktop cron ticker yields to a live gateway that owns cron on the same A2ASSISTANT_HOME (#52202).
 
 Every path (multiplex, and the fail-open single-profile fallback) gates each tick through
 ``profile_gate`` and takes over once that gateway stops (#126822).
@@ -13,7 +13,7 @@ import pytest
 
 @pytest.fixture()
 def ticker_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME plus a seam recording whether the provider started."""
+    """Isolated A2ASSISTANT_HOME plus a seam recording whether the provider started."""
     import hermes_constants
 
     monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: tmp_path)

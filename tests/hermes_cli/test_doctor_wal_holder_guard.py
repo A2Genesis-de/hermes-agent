@@ -1,4 +1,4 @@
-"""Regression: ``hermes doctor --fix`` must not checkpoint the live WAL under a running gateway.
+"""Regression: ``a2assistant doctor --fix`` must not checkpoint the live WAL under a running gateway.
 
 Checkpoint-lock premise (#40177): a bare ``sqlite3.connect`` runs WAL recovery and
 ``PRAGMA wal_checkpoint(PASSIVE)`` joins the live WAL — that second-writer handling
@@ -61,7 +61,7 @@ def test_doctor_names_retired_wal_holders_instead_of_healthy_state_db(tmp_path, 
 
     db = tmp_path / "state.db"
     db.write_bytes(b"")
-    monkeypatch.setattr(doctor, "HERMES_HOME", tmp_path)
+    monkeypatch.setattr(doctor, "A2ASSISTANT_HOME", tmp_path)
     monkeypatch.setattr(hermes_state_dbfile, "iter_deleted_sqlite_sidecar_holders",
                         lambda path: [(4242, f"{path}-wal"), (4242, f"{path}-shm")])
     probed = []

@@ -1,4 +1,4 @@
-"""Name the picks pnpm's minimumReleaseAge refuses during `hermes pm update --pnpm`.
+"""Name the picks pnpm's minimumReleaseAge refuses during `a2assistant pm update --pnpm`.
 
 `pnpm update --no-save` reports a too-young pick only as ERR_PNPM_STRICT_MIN_RELEASE_AGE_REQUIRES_SAVE,
 which names no package (pnpm 12 returns before it formats the violations). The same update with

@@ -482,7 +482,7 @@ class TestRevoke:
             assert store.is_approved("telegram", "user1") is False
 
     def test_revoke_from_other_store_is_not_undone_by_inflight_approval(self, tmp_path, monkeypatch):
-        """Dashboard requests and the ``hermes pairing`` CLI each build their own store, so
+        """Dashboard requests and the ``a2assistant pairing`` CLI each build their own store, so
         an approval that read approved.json before a revoke landed must not write it back."""
         with patch("gateway.pairing.PAIRING_DIR", tmp_path), \
                 patch("gateway.pairing._sync_allowlist_add"), patch("gateway.pairing._sync_allowlist_remove"):
@@ -591,7 +591,7 @@ class TestProfileScopedStorage:
 
     def test_default_store_uses_global_dir(self, tmp_path, monkeypatch):
         """PairingStore() (no profile) keeps the legacy global path so the
-        ``hermes pairing`` CLI continues to work without a profile context."""
+        ``a2assistant pairing`` CLI continues to work without a profile context."""
         from hermes_constants import get_hermes_home
         monkeypatch.setattr("hermes_constants.get_hermes_home", lambda: tmp_path)
         # Re-import PAIRING_DIR (it's a module-level constant resolved at
@@ -607,10 +607,10 @@ class TestProfileScopedStorage:
         """Regression test for #93449.
 
         PairingStore() (no profile) must not freeze its directory to
-        whatever HERMES_HOME resolved to the first time this module's
+        whatever A2ASSISTANT_HOME resolved to the first time this module's
         default path was computed. A long-lived process (the gateway,
         started once at container/process boot) can construct a
-        PairingStore before HERMES_HOME/profile context is fully
+        PairingStore before A2ASSISTANT_HOME/profile context is fully
         established; a later store in the same process must still pick up
         the real, current value instead of being stuck with a stale one.
         Deliberately does not patch PAIRING_DIR directly, unlike the sibling
@@ -630,7 +630,7 @@ class TestProfileScopedStorage:
 
     def test_profile_store_uses_profiles_subdir(self, tmp_path, monkeypatch):
         """Explicit profile stores use that profile's normal Hermes layout."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         store = PairingStore(profile="yangyang")
         assert store.profile == "yangyang"
         expected = tmp_path / "profiles" / "yangyang" / "platforms" / "pairing"
@@ -640,10 +640,10 @@ class TestProfileScopedStorage:
         assert expected.is_dir()
 
     def test_profile_store_matches_profile_cli_home(self, tmp_path, monkeypatch):
-        """Gateway and ``hermes -p`` must resolve the same pairing store."""
+        """Gateway and ``a2assistant -p`` must resolve the same pairing store."""
         from hermes_constants import get_hermes_dir
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         profile_home = tmp_path / "profiles" / "coder"
         profile_home.mkdir(parents=True)
 
@@ -660,7 +660,7 @@ class TestProfileScopedStorage:
         """Multiplexing must not invent a ``profiles/default`` store."""
         from hermes_constants import get_hermes_dir
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         expected = get_hermes_dir(
             "platforms/pairing",
             "pairing",
@@ -674,7 +674,7 @@ class TestProfileScopedStorage:
         self, tmp_path, monkeypatch
     ):
         """Existing approvals survive either profile directory layout."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         profile_home = tmp_path / "profiles" / "coder"
         legacy_dir = profile_home / "pairing"
         consolidated_dir = profile_home / "platforms" / "pairing"
@@ -697,7 +697,7 @@ class TestProfileScopedStorage:
     def test_profile_approval_does_not_leak_to_global(self, tmp_path, monkeypatch):
         """Approving in a profile-scoped store must not appear in the global
         store — and vice versa. This is the whole point of the fix."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         with patch("gateway.pairing.PAIRING_DIR", tmp_path):
             global_store = PairingStore()
             profile_store = PairingStore(profile="yangyang")
@@ -716,7 +716,7 @@ class TestProfileScopedStorage:
     def test_profile_uses_distinct_rate_limit_file(self, tmp_path, monkeypatch):
         """Rate-limit state is per-profile, not shared globally — otherwise
         one profile's flood would lock out the other profile's users."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         with patch("gateway.pairing.PAIRING_DIR", tmp_path):
             global_store = PairingStore()
             profile_store = PairingStore(profile="yangyang")

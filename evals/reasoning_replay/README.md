@@ -102,11 +102,11 @@ python evals/reasoning_replay/harness.py report --out $OUT   # writes matrix.md 
 ```
 
 **Credentials** are read at call time and never written to disk or printed.
-- The Nous Portal key comes from `~/.hermes/auth.json` (`providers.nous.agent_key`, falling
+- The Nous Portal key comes from `~/.a2assistant/auth.json` (`providers.nous.agent_key`, falling
   back to `access_token`). On a 401 the file is re-read once, waiting 15 s if the key has not
   changed yet.
 - Every other route reads its key from the process environment first, then from
-  `~/.hermes/.env`.
+  `~/.a2assistant/.env`.
 - Named routes are listed in `ROUTES`. For anything else, use `--route custom` with
   `--base-url` and `--key-env`.
 

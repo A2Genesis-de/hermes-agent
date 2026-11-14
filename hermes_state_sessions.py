@@ -1321,7 +1321,7 @@ class SessionSessionsMixin:
         ``include_pinned`` back-fills pins the page missed, still obeying the other
         filters except archived: a pin is an explicit keep, so a pinned row stamped
         archived must still return. ``local_created_sources`` restricts ``source='local'``
-        rows to those surfaces before LIMIT/OFFSET. ``workspace_key``: the ``hermes -c`` folder rule.
+        rows to those surfaces before LIMIT/OFFSET. ``workspace_key``: the ``a2assistant -c`` folder rule.
 
         Storage interface: port as ``list_sessions_rich`` (``workspace_key`` is ``session.list``'s
         ``workspace`` filter)."""
@@ -1556,7 +1556,7 @@ class SessionSessionsMixin:
         skip_launch_stubs: bool = False,
     ) -> list[dict[str, Any]]:
         """Sessions MRU-first with a computed ``last_active``; ``workspace_key`` scopes to one workspace
-        so ``hermes -c``/``--resume`` picks its last session. ``source`` may be one label or several.
+        so ``a2assistant -c``/``--resume`` picks its last session. ``source`` may be one label or several.
         ``local_created_sources`` restricts ``source='local'`` rows before LIMIT/OFFSET, and
         ``skip_launch_stubs`` drops empty launch stubs (launch_stub_filter_sql) before it too."""
         where_clauses = [launch_stub_filter_sql(self)] if skip_launch_stubs else []

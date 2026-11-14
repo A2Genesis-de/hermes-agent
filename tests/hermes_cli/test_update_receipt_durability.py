@@ -24,9 +24,9 @@ def _run(tmp_path: Path, body: str) -> dict:
         from hermes_cli.process_identity import _process_create_time
     """) + textwrap.dedent(body), encoding="utf-8")
     env = {key: value for key, value in os.environ.items()
-           if not key.startswith(("HERMES_", "PYTEST_"))}
-    env.update(HOME=str(home), USERPROFILE=str(home), HERMES_HOME=str(state),
-               HERMES_RUNTIME_DIR=str(tmp_path / "tools"),
+           if not key.startswith(("A2ASSISTANT_", "PYTEST_"))}
+    env.update(HOME=str(home), USERPROFILE=str(home), A2ASSISTANT_HOME=str(state),
+               A2ASSISTANT_RUNTIME_DIR=str(tmp_path / "tools"),
                XDG_CONFIG_HOME=str(home / ".config"), XDG_CACHE_HOME=str(home / ".cache"),
                PYTHONPATH=os.pathsep.join([str(ROOT), *filter(None, sys.path)]),
                PYTHONDONTWRITEBYTECODE="1")

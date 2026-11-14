@@ -50,7 +50,7 @@ def _make_metadata(token_endpoint: str = "https://auth.example.com/oauth/token")
 
 class TestMetadataStorage:
     def test_save_and_load_roundtrip(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         storage = HermesTokenStorage("example-server")
 
         meta = _make_metadata()
@@ -66,7 +66,7 @@ class TestMetadataStorage:
 
 
     def test_remove_deletes_meta_file(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         storage = HermesTokenStorage("cleanup-server")
 
         storage.save_oauth_metadata(_make_metadata())
@@ -104,7 +104,7 @@ def _manager_provider_with_context(storage: HermesTokenStorage, **context_attrs)
 class TestManagerOAuthProviderMetadata:
     def test_initialize_restores_metadata_from_disk(self, tmp_path, monkeypatch):
         """Cold-load: if we have no in-memory metadata but disk has some, restore it."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         storage = HermesTokenStorage("mgr-srv")
         storage.save_oauth_metadata(_make_metadata("https://mgr.example.com/token"))
         provider = _manager_provider_with_context(storage, oauth_metadata=None)
@@ -121,7 +121,7 @@ class TestManagerOAuthProviderMetadata:
 
     def test_async_auth_flow_persists_on_completion(self, tmp_path, monkeypatch):
         """End-to-end: running the wrapped auth_flow persists discovered metadata."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         storage = HermesTokenStorage("flow-srv")
         provider = _manager_provider_with_context(
             storage,

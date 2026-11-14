@@ -1,4 +1,4 @@
-"""N8 review 2.2: quitting a clean ``hermes --tui -w`` session that had a conversation removes its
+"""N8 review 2.2: quitting a clean ``a2assistant --tui -w`` session that had a conversation removes its
 tree and branch, but the session's policy froze that cwd, so a later resume had every turn refused
 ``workspace_unavailable``. A resume (``--tui --resume``, ``-c``, classic CLI; all go through
 ``_resolve_chat_session_args``) now recreates a missing tree the ``--tui -w`` launcher created, at
@@ -29,7 +29,7 @@ def _branches(repo):
 
 
 def _quit_clean_session_with_history(tmp_path, monkeypatch):
-    """``hermes --tui -w``, one user + assistant exchange, ``/quit`` (row ended ``tui_shutdown``)."""
+    """``a2assistant --tui -w``, one user + assistant exchange, ``/quit`` (row ended ``tui_shutdown``)."""
     from hermes_cli import main_tui_launch
     from hermes_cli.worktree_ops import _setup_worktree
     from hermes_constants import get_hermes_home
@@ -37,7 +37,7 @@ def _quit_clean_session_with_history(tmp_path, monkeypatch):
 
     repo = _repo(tmp_path)
     monkeypatch.chdir(repo)
-    monkeypatch.setenv('HERMES_PYTHON', sys.executable)
+    monkeypatch.setenv('A2ASSISTANT_PYTHON', sys.executable)
     wt_info = _setup_worktree(str(repo), sync_base=False, retain_db=get_hermes_home() / 'state.db')
     monkeypatch.setattr(main_tui_launch, '_setup_tui_worktree', lambda: wt_info)
     monkeypatch.setattr(main_tui_launch, '_make_tui_argv', lambda *_: (['node'], Path('.')))
@@ -45,12 +45,12 @@ def _quit_clean_session_with_history(tmp_path, monkeypatch):
 
     def ink(_argv, cwd=None, env=None):
         db = SessionDB(db_path=get_hermes_home() / 'state.db')
-        db.create_session('tui-wt', 'tui', cwd=env['HERMES_TUI_CWD'])
+        db.create_session('tui-wt', 'tui', cwd=env['A2ASSISTANT_TUI_CWD'])
         db.append_message('tui-wt', 'user', 'hello')
         db.append_message('tui-wt', 'assistant', 'hi')
         db.end_session('tui-wt', 'tui_shutdown')
         db.close()
-        Path(env['HERMES_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
+        Path(env['A2ASSISTANT_TUI_ACTIVE_SESSION_FILE']).write_text(json.dumps({'session_id': 'tui-wt'}))
         return 0
 
     monkeypatch.setattr(main_tui_launch.subprocess, 'call', ink)
@@ -180,7 +180,7 @@ def test_a_store_error_reading_the_policy_falls_back_to_the_row_cwd(tmp_path, mo
 
 @pytest.mark.asyncio
 async def test_resume_recreates_the_removed_classic_worktree(tmp_path, monkeypatch):
-    """Classic ``hermes -w`` runs its session's tools in the tree (frozen policy cwd) while the row
+    """Classic ``a2assistant -w`` runs its session's tools in the tree (frozen policy cwd) while the row
     keeps main's stamp, the repo root. Quit removes the clean tree; ``-c`` now gets it back."""
     import cli
     from gateway.config import GatewayConfig

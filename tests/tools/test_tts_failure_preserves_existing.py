@@ -17,7 +17,7 @@ from tools import tts_tool
 def _piper_without_session_platform(monkeypatch):
     for var in _VAR_MAP.values():
         var.set(_UNSET)
-    monkeypatch.delenv("HERMES_SESSION_PLATFORM", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PLATFORM", raising=False)
     monkeypatch.setattr(tts_tool, "_load_tts_config", lambda: {"provider": "piper"})
     monkeypatch.setattr(tts_tool, "_import_piper", lambda: object())
     yield

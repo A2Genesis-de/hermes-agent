@@ -12,7 +12,7 @@ from tui_gateway.hosted_room_service import HostedRoomService
 
 @pytest.mark.parametrize("later_messages", [0, 25])
 def test_settled_discussion_retry_publishes_once(tmp_path, monkeypatch, later_messages):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
     (tmp_path / ".hermes" / "profiles" / "reviewer").mkdir(parents=True)
     (tmp_path / ".hermes" / "profiles" / "reviewer" / "config.yaml").write_text("{}\n")  # identity marker

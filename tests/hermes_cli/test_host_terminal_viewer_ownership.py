@@ -50,7 +50,7 @@ async def test_takeover_revokes_waiting_workers_and_waits_for_an_admitted_write(
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     master, slave = pty.openpty()
     tty.setraw(slave)
@@ -200,7 +200,7 @@ async def test_takeover_during_an_admitted_input_write_keeps_the_shell(tmp_path,
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     entered, release = threading.Event(), threading.Event()
 
@@ -458,7 +458,7 @@ async def test_closing_the_tab_during_a_waiting_paste_detaches_and_keeps_the_she
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     registry = HostTerminalRegistry()
     # 1 MiB: more than a pseudo-terminal buffers anywhere between its master and the program.
@@ -671,7 +671,7 @@ def test_a_tab_closed_behind_more_keys_than_the_input_queue_holds_is_detached(tm
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     # 1 MiB: more than a pseudo-terminal buffers anywhere between its master and the program.
     paste = b"".join(b"%05d %s\n" % (n, b"x" * 57) for n in range(16 * 1024))
@@ -709,7 +709,7 @@ def test_a_live_tab_typing_behind_a_waiting_write_answers_keepalive_pings(tmp_pa
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     bridge = SlowAccept()
     session = PtySession("terminal", bridge, buffer_cap=32, read_timeout=0.01)
@@ -781,7 +781,7 @@ async def test_a_live_tab_typing_past_a_full_input_queue_is_held_back_and_loses_
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     owner = HostOwner(("loopback", "test"), profile, "sh", str(tmp_path))
     registry = HostTerminalRegistry()
     bridge = SlowAccept()

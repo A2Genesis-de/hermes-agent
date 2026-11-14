@@ -1,7 +1,7 @@
 // IPC surface for local filesystem operations the renderer's project/file
 // surfaces use: directory reads, reveal/open in the OS file manager, plugin
 // roots + git installs, rename/write/trash, and the plugin SDK's folder-scoped
-// file door. Extracted from main.ts; path hardening, HERMES_HOME resolution,
+// file door. Extracted from main.ts; path hardening, A2ASSISTANT_HOME resolution,
 // and the git binary stay injected.
 import fs from 'node:fs'
 import path from 'node:path'
@@ -45,7 +45,7 @@ export function registerFsIpc({
   ipcMain.handle('hermes:fs:readDir', async (_event, dirPath) => readDirForIpc(dirPath))
 
   // `ctx.files`: a plugin's own data folder plus folders the user grants it.
-  // The legacy `~/.hermes` stays protected beside the resolved and default homes.
+  // The legacy `~/.a2assistant` stays protected beside the resolved and default homes.
   registerPluginFilesIpc({
     ipcMain,
     dialog,
@@ -117,8 +117,8 @@ export function registerFsIpc({
     }
   })
 
-  // The LOCAL Desktop runtime-plugin root: `<HERMES_HOME>/desktop-plugins`,
-  // resolved from the main-process HERMES_HOME (see resolveHermesHome) — NOT from
+  // The LOCAL Desktop runtime-plugin root: `<A2ASSISTANT_HOME>/desktop-plugins`,
+  // resolved from the main-process A2ASSISTANT_HOME (see resolveHermesHome) — NOT from
   // the connected backend. A remote backend reports its own `hermes_home` over
   // the gateway, which is a path on the REMOTE box; deriving the plugin dir from
   // it yields `undefined/desktop-plugins` (or a non-existent remote path) and the
@@ -165,9 +165,9 @@ export function registerFsIpc({
     return reconcileDesktopHalvesReport(hermesHome, root)
   })
 
-  // The LOCAL logs root (`<HERMES_HOME>/logs`, profile-aware) — the error
+  // The LOCAL logs root (`<A2ASSISTANT_HOME>/logs`, profile-aware) — the error
   // card's "Open Logs" action reveals agent.log/gateway.log without the user
-  // knowing where HERMES_HOME lives. Same Electron-local resolution as the
+  // knowing where A2ASSISTANT_HOME lives. Same Electron-local resolution as the
   // plugin roots: valid in every connection mode, created on demand. The
   // caller names the profile that OWNS the failing session: a pooled backend
   // serves many profile homes, and the active Desktop profile is the launch

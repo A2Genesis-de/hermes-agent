@@ -1,4 +1,4 @@
-"""``hermes gateway`` and ``hermes proxy`` subcommand parsers."""
+"""``a2assistant gateway`` and ``a2assistant proxy`` subcommand parsers."""
 
 from __future__ import annotations
 
@@ -102,7 +102,7 @@ def build_gateway_parser(
             "Inside the s6-overlay Docker image, normally `gateway run` is "
             "automatically redirected to the supervised s6 service (so the "
             "gateway gets auto-restart on crash, plus a supervised dashboard "
-            "if HERMES_DASHBOARD is set). Pass --no-supervise to opt out and "
+            "if A2ASSISTANT_DASHBOARD is set). Pass --no-supervise to opt out and "
             "get the historical pre-s6 foreground behavior: the gateway is "
             "the container's main process and the container exits with the "
             "gateway's exit code. No effect outside an s6 container."),
@@ -138,7 +138,7 @@ def build_gateway_parser(
                     "is a credential: it is printed for the calling process only, never logged, and "
                     "expires 30 seconds after it is minted.",
         epilog="Exit codes: 0 attached; 2 invalid invocation; otherwise the exit code "
-               "`hermes gateway ensure` gives the same verdict.")
+               "`a2assistant gateway ensure` gives the same verdict.")
     _flag(gateway_attach, "--json", help="Emit one JSON result (default)")
     attach_mode = gateway_attach.add_mutually_exclusive_group()
     _flag(attach_mode, "--start", help="Start the gateway when none serves this profile")
@@ -199,7 +199,7 @@ def build_gateway_parser(
     _flag(gateway_install, "--if-missing", dest="if_missing",
         help="Do nothing when a gateway service is already installed")
     _flag(gateway_install, "--force-unit-path", dest="force_unit_path",
-        help="Repoint a service definition that pins another HERMES_HOME at this one")
+        help="Repoint a service definition that pins another A2ASSISTANT_HOME at this one")
     _flag(gateway_install, "--elevated-handoff", dest="elevated_handoff", help=argparse.SUPPRESS)
 
     gateway_uninstall = gateway_subparsers.add_parser("uninstall", help="Uninstall gateway service")
@@ -213,7 +213,7 @@ def build_gateway_parser(
         "migrate-legacy", help="Remove legacy hermes.service units from pre-rename installs",
         description="Stop, disable, and remove legacy A2Assistant gateway unit files "
             "(e.g. hermes.service) left over from older installs. Profile "
-            "units (hermes-gateway-<profile>.service) and unrelated "
+            "units (a2assistant-gateway-<profile>.service) and unrelated "
             "third-party services are never touched.")
     _flag(gateway_migrate_legacy, "--dry-run", dest="dry_run",
         help="List what would be removed without doing it")
@@ -244,7 +244,7 @@ def build_gateway_parser(
 
     proxy_start = proxy_subparsers.add_parser("start", help="Run the proxy in the foreground")
     proxy_start.add_argument("--provider", default="nous",
-        help="Upstream provider: nous or xai (default: nous). See `hermes proxy providers`.")
+        help="Upstream provider: nous or xai (default: nous). See `a2assistant proxy providers`.")
     proxy_start.add_argument("--host", default=None,
         help="Bind address (default: 127.0.0.1). Use 0.0.0.0 to expose on LAN.")
     proxy_start.add_argument("--port", type=int, default=None, help="Bind port (default: 8645)")

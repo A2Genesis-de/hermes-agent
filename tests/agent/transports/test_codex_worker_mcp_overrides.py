@@ -42,7 +42,7 @@ def launch(monkeypatch, tmp_path):
     """Return ``launch(env) -> list[str]`` of the ``mcp_servers.*`` overrides in the worker argv."""
     _RecordingPopen.commands = []
     monkeypatch.setattr(subprocess, "Popen", _RecordingPopen)
-    for key in (*KANBAN_ENV_KEYS, DELEGATED_CHILD_ENV_MARKER, "HERMES_KANBAN_DB", "HERMES_KANBAN_BOARD"):
+    for key in (*KANBAN_ENV_KEYS, DELEGATED_CHILD_ENV_MARKER, "A2ASSISTANT_KANBAN_DB", "A2ASSISTANT_KANBAN_BOARD"):
         monkeypatch.delenv(key, raising=False)
 
     def _launch(env: dict[str, str]) -> list[str]:
@@ -68,15 +68,15 @@ def test_worker_overrides_target_the_migrated_server(launch, tmp_path):
     """Producer/consumer contract: every ``-c mcp_servers.<name>.env.*`` override the worker
     launcher emits names an entry the migration actually writes to config.toml."""
     overrides = launch({
-        "HERMES_KANBAN_TASK": "11111111-1111-4111-8111-111111111111",
-        "HERMES_KANBAN_RUN_ID": "42",
-        "HERMES_KANBAN_DB": str(tmp_path / "board" / "kanban.db"),
+        "A2ASSISTANT_KANBAN_TASK": "11111111-1111-4111-8111-111111111111",
+        "A2ASSISTANT_KANBAN_RUN_ID": "42",
+        "A2ASSISTANT_KANBAN_DB": str(tmp_path / "board" / "kanban.db"),
     })
     assert overrides, "dispatcher-owned worker must scope the managed MCP endpoint"
     targeted = {arg.split(".env.", 1)[0].removeprefix("mcp_servers.") for arg in overrides}
     migrated = _migrated_server_names(tmp_path)
     assert targeted <= migrated, f"overrides target {targeted - migrated}, which codex has no transport for"
-    assert any(arg.startswith(f"mcp_servers.{next(iter(targeted))}.env.HERMES_KANBAN_TASK=") for arg in overrides)
+    assert any(arg.startswith(f"mcp_servers.{next(iter(targeted))}.env.A2ASSISTANT_KANBAN_TASK=") for arg in overrides)
 
 
 def test_only_dispatcher_owned_workers_get_mcp_overrides(launch):
@@ -84,4 +84,4 @@ def test_only_dispatcher_owned_workers_get_mcp_overrides(launch):
     ``mcp_servers.*`` override at all (nothing to scope, nothing for codex to reject)."""
     assert launch({}) == []
     with non_dispatcher_owned_context():
-        assert launch({"HERMES_KANBAN_TASK": "11111111-1111-4111-8111-111111111111"}) == []
+        assert launch({"A2ASSISTANT_KANBAN_TASK": "11111111-1111-4111-8111-111111111111"}) == []

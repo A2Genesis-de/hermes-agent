@@ -13,7 +13,7 @@ import { registerUpdateMetricsIpc, UpdateRunRecorder } from './updater/update-me
 export interface DesktopSharedMetrics {
   noteUpdateProgress(stage: string): void
   /** Run `strategy.apply()`; recorded only when `packaged` (a checkout hand-off is counted by
-   *  `hermes update`'s own receipt). */
+   *  `a2assistant update`'s own receipt). */
   trackUpdateApply(packaged: UpdaterStrategy | null, strategy: UpdaterStrategy): Promise<UpdaterApplyResultWire>
   /** `installWindowRendererLifecycle` hook: counts a live window's renderer loss (no-op unless that
    *  window's focused profile collects). */

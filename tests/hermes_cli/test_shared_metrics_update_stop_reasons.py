@@ -1,4 +1,4 @@
-"""Every `hermes update` exit before the apply step names its closed reason (hermes.update.run
+"""Every `a2assistant update` exit before the apply step names its closed reason (hermes.update.run
 ``failure_class``), in-process and through the parked copy alike; exits that fire before the
 receipt opens still count once; a run that committed and owes work never reads ``failed``."""
 
@@ -20,7 +20,7 @@ from hermes_cli.observability import shared_metrics_update as update_metrics
 @pytest.fixture
 def rows(tmp_path, monkeypatch):
     captured: list[tuple[str, dict]] = []
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr("hermes_cli.config.read_raw_config_readonly",
                         lambda: {"telemetry": {"shared_metrics": {"enabled": True}}})
     monkeypatch.setattr(relay_shared_metrics, "enabled", lambda: True)
@@ -131,19 +131,19 @@ def _marker(home, *lines: str) -> None:
 def test_an_exit_before_the_receipt_reads_desktop_only_under_its_own_hand_off(rows, monkeypatch):
     """Invariant: a pre-receipt exit carries the initiator its receipt would: ``desktop`` when the
     marker names this process as the hand-off's delegate or names its hand-off partner, ``cli`` when
-    the marker belongs to some other update (a terminal `hermes update` refused by a Desktop run)."""
+    the marker belongs to some other update (a terminal `a2assistant update` refused by a Desktop run)."""
     import os
 
     from hermes_cli.update_cmd_common import _record_stop
 
-    monkeypatch.delenv("HERMES_UPDATE_HANDOFF_PID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_UPDATE_HANDOFF_PID", raising=False)
     pid, other = os.getpid(), 999_999
     _marker(rows.home, other, 1, "ct:1.000", f"delegate:{pid} ct:2.000")  # the posix/Windows hand-off
     _record_stop("lock_held", without_receipt="refused")
-    monkeypatch.setenv("HERMES_UPDATE_HANDOFF_PID", str(other))  # the Tauri updater's claim
+    monkeypatch.setenv("A2ASSISTANT_UPDATE_HANDOFF_PID", str(other))  # the Tauri updater's claim
     _marker(rows.home, other, 1, "ct:1.000")
     _record_stop("git_in_progress", without_receipt="failed")
-    monkeypatch.delenv("HERMES_UPDATE_HANDOFF_PID")  # a CLI run refused by someone else's update
+    monkeypatch.delenv("A2ASSISTANT_UPDATE_HANDOFF_PID")  # a CLI run refused by someone else's update
     _record_stop("lock_held", without_receipt="refused")
     (rows.home / ".hermes-update-in-progress").unlink()
     _record_stop("managed_install", without_receipt="refused")
@@ -160,16 +160,16 @@ def test_a_lock_refusal_of_the_hand_offs_own_update_child_is_a_failed_run(rows, 
 
     from hermes_cli.update_cmd_common import _record_stop
 
-    monkeypatch.delenv("HERMES_UPDATE_HANDOFF_PID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_UPDATE_HANDOFF_PID", raising=False)
     pid, other = os.getpid(), 999_999
     _marker(rows.home, other, 1, "ct:1.000", f"delegate:{pid} ct:2.000")  # our own hand-off's claim
     _record_stop("lock_held", without_receipt="refused")
     _marker(rows.home, other, 1, "ct:1.000", f"delegate:{os.getppid()} ct:2.000")  # Windows: relaunched child
     _record_stop("lock_held", without_receipt="refused")
-    monkeypatch.setenv("HERMES_UPDATE_HANDOFF_PID", str(other))
+    monkeypatch.setenv("A2ASSISTANT_UPDATE_HANDOFF_PID", str(other))
     _marker(rows.home, other, 1, "ct:1.000")
     _record_stop("lock_held", without_receipt="refused")
-    monkeypatch.delenv("HERMES_UPDATE_HANDOFF_PID")
+    monkeypatch.delenv("A2ASSISTANT_UPDATE_HANDOFF_PID")
     _record_stop("lock_held", without_receipt="refused")
 
     assert [(r["outcome"], r["kind"], r["failure_class"]) for r in rows.runs()] == [
@@ -334,7 +334,7 @@ def test_the_bare_bootstrap_interpreter_parks_and_the_next_start_applies_the_gat
     script = ("import json, sys; sys.path.insert(0, sys.argv[1]); from hermes_cli import update_receipt as r; "
               "assert 'ruamel' not in sys.modules; r._publish_shared_metrics(json.loads(sys.argv[2]))")
     subprocess.run([sys.executable, "-I", "-S", "-c", script, str(tree), json.dumps(receipt)], check=True,
-                   env={"HERMES_HOME": str(home), "HOME": str(home.parent), "PATH": os.environ.get("PATH", "")})
+                   env={"A2ASSISTANT_HOME": str(home), "HOME": str(home.parent), "PATH": os.environ.get("PATH", "")})
     parked = sorted(path.name for path in pending.glob("*.json"))
     assert parked == ["0123456789abcdef0123456789abcdef.json", "earlier.json"]  # nothing emitted, nothing lost
     assert "alice" not in (pending / parked[0]).read_text()

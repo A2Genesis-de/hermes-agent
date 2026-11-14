@@ -92,7 +92,7 @@ _SKILLS_DIR_AT_IMPORT = SKILLS_DIR
 
 def _skills_dir() -> Path:
     """Active profile's skills dir at call time: the patched ``SKILLS_DIR`` when a patcher changed
-    it, else live profile-scoped HERMES_HOME (long-lived runtimes may import before profile set)."""
+    it, else live profile-scoped A2ASSISTANT_HOME (long-lived runtimes may import before profile set)."""
     configured = Path(SKILLS_DIR)
     return configured if configured != _SKILLS_DIR_AT_IMPORT else get_hermes_home() / "skills"
 
@@ -116,7 +116,7 @@ def skill_lookup_path_error(name: str) -> Optional[str]:
 
 
 def load_env() -> dict[str, str]:
-    """Snapshot of HERMES_HOME/.env for the post-skill secret-capture diff (same tokenizer that
+    """Snapshot of A2ASSISTANT_HOME/.env for the post-skill secret-capture diff (same tokenizer that
     installs the profile scope, so a captured value never differs from the served one). A frozen-policy
     worker never opens the profile ``.env``: ``hermes_cli.config.load_env`` owns that short-circuit."""
     from agent.safe_worker_policy import worker_config_snapshot
@@ -170,7 +170,7 @@ def check_skills_requirements() -> bool:
 
 
 def _get_category_from_path(skill_path: Path) -> Optional[str]:
-    """``~/.hermes/skills/mlops/axolotl/SKILL.md`` -> ``"mlops"``; active profile dir first
+    """``~/.a2assistant/skills/mlops/axolotl/SKILL.md`` -> ``"mlops"``; active profile dir first
     (respects test monkeypatching), then skills.external_dirs."""
     dirs_to_check = [_skills_dir()]
     with suppress(Exception):
@@ -197,16 +197,16 @@ def _parse_tags(tags_value) -> list[str]:
 
 def _is_skill_disabled(*names: str, platform: str | None = None) -> bool:
     """Any of *names* disabled in config (one config load)? Platform precedence: explicit arg,
-    ``HERMES_PLATFORM``, session ``HERMES_SESSION_PLATFORM``. A globally-disabled skill stays disabled on every platform
+    ``A2ASSISTANT_PLATFORM``, session ``A2ASSISTANT_SESSION_PLATFORM``. A globally-disabled skill stays disabled on every platform
     (keep in sync with agent.skill_utils.get_disabled_skill_names)."""
     try:
         from hermes_cli.config import load_config
         skills_cfg = load_config().get("skills", {})
-        resolved_platform = platform or os.getenv("HERMES_PLATFORM")
+        resolved_platform = platform or os.getenv("A2ASSISTANT_PLATFORM")
         if not resolved_platform:
             with suppress(Exception):
                 from gateway.session_context import get_session_env
-                resolved_platform = get_session_env("HERMES_SESSION_PLATFORM") or ""
+                resolved_platform = get_session_env("A2ASSISTANT_SESSION_PLATFORM") or ""
         platform_disabled = None
         if resolved_platform:
             platform_disabled = cfg_get(skills_cfg, "platform_disabled", resolved_platform)
@@ -578,7 +578,7 @@ def locate_skill(name: str, local_category_name: Optional[str], roots):
                 f"Project skill '{name}' is quarantined: the security scan flagged its content as "
                 "dangerous. It will not load until the repo's skill content changes and passes a re-scan.",
                 hint="Inspect the skill in the repo checkout, or untrust the repo with "
-                "`hermes skills untrust`."), None, None
+                "`a2assistant skills untrust`."), None, None
     if not skill_md or not skill_md.exists():
         available = [s["name"] for s in sort_skills(find_all_skills())[:20]]
         return _fail(f"Skill '{name}' not found.", available_skills=available,
@@ -603,7 +603,7 @@ def _log_security_warnings(name: str, skill_md: Path, content: str, all_dirs, ac
         trusted_dirs.extend(d.resolve() for d in all_dirs)
     warnings = []
     if not _under_any(skill_md, trusted_dirs):
-        warnings.append(f"skill file is outside the trusted skills directory (~/.hermes/skills/): {skill_md}")
+        warnings.append(f"skill file is outside the trusted skills directory (~/.a2assistant/skills/): {skill_md}")
     if any(p in content.lower() for p in _INJECTION_PATTERNS):
         warnings.append("skill content contains patterns that may indicate prompt injection")
     if warnings:
@@ -649,7 +649,7 @@ def skill_view(
         rel = _owned_relative(skill_dir, skill_md, all_dirs)
         if _is_skill_disabled(resolved_name, rel) and (_is_skill_disabled(resolved_name) or any(
                 e["path"] == skill_md and e["load_name"] == rel for e in _skill_catalog(skip_disabled=True, include_hidden=True))):
-            return _fail(f"Skill '{resolved_name}' is disabled. Enable it with `hermes skills` or inspect the files directly on disk.")
+            return _fail(f"Skill '{resolved_name}' is disabled. Enable it with `a2assistant skills` or inspect the files directly on disk.")
         if file_path and skill_dir:
             return _serve_skill_file(
                 skill_dir, file_path, name, list_available=True, mark_read=True,
@@ -690,7 +690,7 @@ def skill_view(
                 deps_note = (
                     "Tool dependencies could not be installed — "
                     + "; ".join(failed_deps)
-                    + ". Run `hermes pm install "
+                    + ". Run `a2assistant pm install "
                     + " ".join(str(d) for d in declared_deps)
                     + "` and reload."
                 )

@@ -15,7 +15,7 @@ from pathlib import Path
 from typing import BinaryIO, Sequence, TextIO
 
 EXTERNAL_SUPERVISOR_FLAG = "--external-supervisor"
-_LAUNCHD_LABEL_ENV = "HERMES_LAUNCHD_LABEL"
+_LAUNCHD_LABEL_ENV = "A2ASSISTANT_LAUNCHD_LABEL"
 # gateway.restart.GATEWAY_FATAL_CONFIG_EXIT_CODE. This wrapper is a launcher boot
 # file: it runs from a source slice and stays stdlib-only.
 _GATEWAY_FATAL_CONFIG_EXIT_CODE = 78
@@ -27,7 +27,7 @@ _STDOUT_DRAIN_TIMEOUT_S = 5.0
 
 
 def timestamp() -> str:
-    """Local time in logging.Formatter's default ``%(asctime)s`` shape, which ``hermes logs --since`` parses."""
+    """Local time in logging.Formatter's default ``%(asctime)s`` shape, which ``a2assistant logs --since`` parses."""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S,%f")[:23]
 
 
@@ -116,10 +116,12 @@ def _child_launchd_label_env(environ: Mapping[str, str] | None = None) -> dict[s
     via ``gateway.restart.launchd_job_label``). Only ``ai.hermes.*`` labels are exported;
     app-coalition labels are meaningless as a job identity.
     """
+    from hermes_cli.service_names import is_launchd_label
+
     env = os.environ if environ is None else environ
     for variable in ("XPC_SERVICE_NAME", _LAUNCHD_LABEL_ENV):
         label = str(env.get(variable, "") or "").strip()
-        if label.startswith("ai.hermes"):
+        if is_launchd_label(label):
             return {_LAUNCHD_LABEL_ENV: label}
     return {}
 
@@ -129,7 +131,7 @@ def _prepare_child_command(command: Sequence[str], environ: Mapping[str, str] | 
 
     launchd stamps ``XPC_SERVICE_NAME=<job label>`` only on this wrapper (its direct child; an
     interactive shell has none, the grandchild sees ``XPC_SERVICE_NAME=0``). Newly generated
-    plists put ``--external-supervisor`` on the inner ``gateway run`` so ``hermes update`` can see
+    plists put ``--external-supervisor`` on the inner ``gateway run`` so ``a2assistant update`` can see
     the flag on the live process argv.
     """
     argv = [str(part) for part in command]

@@ -49,7 +49,7 @@ def _make_legacy_db(path: Path) -> None:
 def _setup_home(tmp_path, monkeypatch) -> Path:
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     db_path = kb.kanban_db_path(board="legacy")
     db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -130,7 +130,7 @@ def _default_board_db(tmp_path, monkeypatch) -> Path:
     (the back-compat top-level ``<root>/kanban.db`` #83445 reports on)."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     db_path = kb.kanban_db_path(board="default")
     db_path.parent.mkdir(parents=True, exist_ok=True)

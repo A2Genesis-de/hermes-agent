@@ -7,7 +7,7 @@
 # s6-supervise creates each service's ``supervise/`` 0700 and its
 # control FIFO 0600, owned by its effective UID — root, because it is
 # spawned by the root s6-svscan (PID 1). Hermes runtime paths
-# (``hermes doctor`` etc.) run as hermes and need ``s6-svstat`` and
+# (``a2assistant doctor`` etc.) run as hermes and need ``s6-svstat`` and
 # ``s6-svc`` against these slots, i.e. group search on ``supervise/``,
 # group read on ``supervise/status`` + ``supervise/lock`` and group
 # write on ``supervise/control``.

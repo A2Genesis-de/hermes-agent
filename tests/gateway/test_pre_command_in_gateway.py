@@ -104,7 +104,7 @@ def _gateway(tmp_path, *, isolation=None, beta=False, project=False):
         (home / 'profiles' / 'beta' / 'config.yaml').write_text(json.dumps(profile))
         _probe_plugin(home / 'profiles' / 'beta', tmp_path / 'beta.jsonl')
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
     try:
         with daemon(root, home, env, barrier=False) as (proc, desc):
@@ -197,7 +197,7 @@ def test_pre_command_fires_once_in_the_gateway_and_cli_plugins_reads_its_list(tm
         'plugins': {'enabled': ['probe-hook']},
     }))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
 
     def no_local_plugin(*_a, **_k):
@@ -228,7 +228,7 @@ def test_pre_command_fires_once_in_the_gateway_and_cli_plugins_reads_its_list(tm
 
                 # The classic CLI: a command it forwards fires once, in the gateway; /plugins lists
                 # the gateway's loaded plugins. Both read this profile's home as the CLI process does.
-                monkeypatch.setenv('HERMES_HOME', str(home))
+                monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
                 monkeypatch.setattr('hermes_cli.gateway_side.connection_for', lambda _cli: wire)
                 c = HermesCLI.__new__(HermesCLI)
                 c.config, c.session_id = {}, sent['cli']

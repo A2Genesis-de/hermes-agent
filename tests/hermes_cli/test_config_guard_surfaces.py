@@ -12,10 +12,10 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _isolated_config_env(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.delenv("HERMES_IGNORE_USER_CONFIG", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.delenv("A2ASSISTANT_IGNORE_USER_CONFIG", raising=False)
     yield
-    os.environ.pop("HERMES_IGNORE_USER_CONFIG", None)
+    os.environ.pop("A2ASSISTANT_IGNORE_USER_CONFIG", None)
 
 def _write_corrupt_config(tmp_path):
     path = tmp_path / "config.yaml"
@@ -49,7 +49,7 @@ class TestGatewayGuard:
         from gateway.run import _guard_corrupt_user_config
 
         _write_corrupt_config(tmp_path)
-        monkeypatch.setenv("HERMES_IGNORE_USER_CONFIG", "1")
+        monkeypatch.setenv("A2ASSISTANT_IGNORE_USER_CONFIG", "1")
         _guard_corrupt_user_config()  # must not raise
 
 class TestCronRunJobGuard:
@@ -107,7 +107,7 @@ class TestCronRunJobGuard:
 
 class TestServeGuard:
     def test_serve_headless_refuses_corrupt_config(self, tmp_path, capsys):
-        """The `hermes serve` headless path fails closed before startup."""
+        """The `a2assistant serve` headless path fails closed before startup."""
         from argparse import Namespace
 
         from hermes_cli import main as main_mod

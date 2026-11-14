@@ -1,13 +1,13 @@
 /**
  * Invariants for what is eager vs lazy in the root ``package.json``.
  *
- * The root ``package.json`` is installed by ``hermes update`` on every user,
+ * The root ``package.json`` is installed by ``a2assistant update`` on every user,
  * including users who never opted into a given browser backend. Anything
  * listed in ``dependencies`` therefore runs its postinstall script for
  * everyone, and — per #43564 — was also part of the npm workspace install
  * graph, where a workspace-scoped ``npm ci`` (``--workspace ui-tui
  * --workspace web``) could silently prune it right back out on the next
- * ``hermes update``.
+ * ``a2assistant update``.
  *
  * The contract:
  *
@@ -19,7 +19,7 @@
  * - ``@askjo/camofox-browser`` is NOT eager. Camofox is an opt-in browser
  *   backend that ships as the ``camofox`` catalog plugin (Hermes core carries
  *   no Camofox code). Its postinstall fetches a ~300MB Firefox-fork binary,
- *   which silently blocked ``hermes update`` for multi-minute stretches on
+ *   which silently blocked ``a2assistant update`` for multi-minute stretches on
  *   slow / network-restricted connections (notably users in China running
  *   through a VPN), so it installs only when the user sets the plugin up.
  *

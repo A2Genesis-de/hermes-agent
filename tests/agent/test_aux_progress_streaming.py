@@ -383,7 +383,7 @@ class TestAggregateChatStream:
             return
         if case == "provider_stale_timeout_before_first_token":
             gates["release"].set()
-            monkeypatch.setenv("HERMES_STREAM_STALE_TIMEOUT", "0.5")
+            monkeypatch.setenv("A2ASSISTANT_STREAM_STALE_TIMEOUT", "0.5")
             monkeypatch.setattr("hermes_cli.config.load_config_readonly",
                                 lambda: {"providers": {"openrouter": {"stale_timeout_seconds": 900}}})
             result = call("slow", "compression", via_relay_seam=True, provider="openrouter")

@@ -1,4 +1,4 @@
-"""`hermes sessions adopt` brings a profile's pre-gateway chats under its gateway, as the host.
+"""`a2assistant sessions adopt` brings a profile's pre-gateway chats under its gateway, as the host.
 
 The Webapp's browser reaches the gateway through its dashboard mount as the login it authenticated
 (on a loopback bind, the session-token owner). Hermes is single-user, so that login is the machine
@@ -18,7 +18,7 @@ from tests.gateway.fixtures.owner_process import running_owner
 #: The owner's dashboard session token (``HERMES_DASHBOARD_SESSION_TOKEN``): what a loopback browser
 #: login presents on the gateway's dashboard mount.
 _BROWSER_TOKEN = 'b' * 43
-_OWNER_ENV = {'HERMES_DASHBOARD_SESSION_TOKEN': _BROWSER_TOKEN}
+_OWNER_ENV = {'A2ASSISTANT_DASHBOARD_SESSION_TOKEN': _BROWSER_TOKEN}
 
 _OLD_CHATS = (('old-desktop', 'desktop', None), ('old-desktop-nous', 'desktop', 'nous:account'),
               ('old-cli', 'cli', None), ('foreign-desktop', 'desktop', 'telegram:42'),
@@ -75,7 +75,7 @@ async def _browser_resume(home, descriptor, sid):
 @pytest.mark.platforms("linux")
 def test_adopting_old_chats_lets_the_browser_login_continue_them(tmp_path, model_peer, monkeypatch, capsys):
     with running_owner(tmp_path, model_peer, prepare=_seed, extra_env=_OWNER_ENV) as (home, descriptor, _env):
-        monkeypatch.setenv('HERMES_HOME', str(home))
+        monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
         # The browser login is the machine owner, exactly as native Desktop: it opens an old chat
         # itself, and that first claim is the owner's (the adopt pass no longer offers it).
         first = asyncio.run(_browser_resume(home, descriptor, 'old-desktop'))
@@ -116,7 +116,7 @@ def _seed_long_and_moved(home):
 @pytest.mark.platforms("linux")
 def test_adopt_survives_a_long_history_and_names_what_the_owner_refused(tmp_path, model_peer, monkeypatch, capsys):
     with running_owner(tmp_path, model_peer, prepare=_seed_long_and_moved, extra_env=_OWNER_ENV) as (home, descriptor, _env):
-        monkeypatch.setenv('HERMES_HOME', str(home))
+        monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
         status, out = _adopt(capsys)
         assert status == 0 and 'Adopted 1 chat(s).' in out, out
         assert 'Skipped 1: invalid_params (cwd: must be an absolute path to an existing directory).' in out, out
@@ -145,7 +145,7 @@ def _refused_adopt(capsys, monkeypatch, home, *argv):
         raise AssertionError('adopt connected to the gateway')
 
     monkeypatch.setattr(gateway_client, 'connect_gateway', no_gateway)
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     status, captured = _run_adopt(capsys, *argv)
     return status, captured.out, captured.err
 
@@ -164,7 +164,7 @@ def test_adopt_names_the_upgrade_for_a_store_no_newer_hermes_has_opened(tmp_path
     status, out, err = _refused_adopt(capsys, monkeypatch, home, *argv)
 
     assert status == 1 and out == '', out
-    assert len(err.splitlines()) == 1 and 'older' in err and '`hermes sessions repair`' in err, err
+    assert len(err.splitlines()) == 1 and 'older' in err and '`a2assistant sessions repair`' in err, err
     assert _store_files(home) == before
 
 

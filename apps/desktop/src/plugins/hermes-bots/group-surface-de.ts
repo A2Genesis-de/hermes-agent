@@ -156,7 +156,7 @@ export const GROUP_SURFACE_DE = {
     attentionFallback: "Benötigt Aufmerksamkeit",
     attentionProviderAuth: "Für dieses Profil erneut anmelden",
     attentionQuota: "Kontingent oder Guthaben aufgebraucht",
-    attentionMissingConfig: "Anbieter nicht eingerichtet — hermes model ausführen",
+    attentionMissingConfig: "Anbieter nicht eingerichtet — a2assistant model ausführen",
     attentionBlocked: "Bot blockiert — letzte Nachricht ansehen",
     editMenu: "Bearbeiten…",
     duplicate: "Duplizieren",

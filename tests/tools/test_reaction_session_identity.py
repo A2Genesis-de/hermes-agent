@@ -22,7 +22,7 @@ def test_reaction_uses_durable_session_with_routing_key(tmp_path, monkeypatch, r
         db.append_message("chat-b", "user", "Other conversation")
         foreign = db.latest_message_row_id("chat-b", role="user")
     emitted = []
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", path)  # conftest pins this per test
     monkeypatch.setattr(reactions.desktop_ui, "emit", lambda *args: emitted.append(args))
     tokens = set_session_vars(session_key=routing_key, session_id="chat-a")
@@ -56,7 +56,7 @@ def test_reaction_keeps_legacy_key_fallback_and_empty_session(tmp_path, monkeypa
         db.create_session("legacy", "local")
         db.append_message("legacy", "user", "Legacy message")
         row = db.latest_message_row_id("legacy", role="user")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", path)  # conftest pins this per test
     emitted = []
     monkeypatch.setattr(reactions.desktop_ui, "emit", lambda *args: emitted.append(args))

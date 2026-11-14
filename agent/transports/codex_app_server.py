@@ -117,9 +117,9 @@ class CodexAppServerClient:
         # endpoint acts for this worker; grant it scope via its existing per-server
         # environment (the entry the runtime migration registers), never by granting
         # the whole executor process ownership.
-        owned_task = os.environ.get("HERMES_KANBAN_TASK") and is_dispatcher_owned_worker_context()
+        owned_task = os.environ.get("A2ASSISTANT_KANBAN_TASK") and is_dispatcher_owned_worker_context()
         if owned_task:
-            for key in (*KANBAN_ENV_KEYS, "HERMES_KANBAN_DB", "HERMES_KANBAN_BOARD"):
+            for key in (*KANBAN_ENV_KEYS, "A2ASSISTANT_KANBAN_DB", "A2ASSISTANT_KANBAN_BOARD"):
                 if key in os.environ:
                     cmd += ["-c", f"mcp_servers.{HERMES_TOOLS_MCP_SERVER_NAME}.env.{key}={json.dumps(os.environ[key])}"]
             cmd += ["-c", f'mcp_servers.{HERMES_TOOLS_MCP_SERVER_NAME}.env.{DELEGATED_CHILD_ENV_MARKER}=""']
@@ -127,9 +127,11 @@ class CodexAppServerClient:
         # Kanban workers must write handoff/status to the board DB outside the
         # workspace: keep the sandbox on, add the Kanban root as writable.
         if owned_task:
-            kanban_db = spawn_env.get("HERMES_KANBAN_DB")
-            default_root = os.path.join(spawn_env.get("HERMES_HOME", os.path.expanduser("~/.hermes")), "kanban")
-            kanban_root = os.path.dirname(kanban_db) if kanban_db else spawn_env.get("HERMES_KANBAN_ROOT", default_root)
+            kanban_db = spawn_env.get("A2ASSISTANT_KANBAN_DB")
+            from hermes_constants import get_hermes_home
+
+            default_root = os.path.join(spawn_env.get("A2ASSISTANT_HOME") or str(get_hermes_home()), "kanban")
+            kanban_root = os.path.dirname(kanban_db) if kanban_db else spawn_env.get("A2ASSISTANT_KANBAN_ROOT", default_root)
             cmd += [
                 "-c", 'sandbox_mode="workspace-write"',
                 "-c", f'sandbox_workspace_write.writable_roots=["{kanban_root}"]',

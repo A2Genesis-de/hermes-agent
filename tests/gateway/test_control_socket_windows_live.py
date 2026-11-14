@@ -6,7 +6,7 @@ proactor event loop with the DEFAULT verb handlers, then drives the real
 sync client and the real fleet consumers against it — no mocks anywhere.
 
 Proves, on windows-latest:
-  1. `GatewayControlServer` binds ``\\\\.\\pipe\\hermes-gateway-<hash>`` via
+  1. `GatewayControlServer` binds ``\\\\.\\pipe\\a2assistant-gateway-<hash>`` via
      ``loop.start_serving_pipe`` and answers ``identify``/``status``.
   2. The sync client's pipe transport (open/write/read/busy-retry) works
      against a live server and returns the child's true pid + code identity.
@@ -68,7 +68,7 @@ def _argv_visible(pid: int, marker: str) -> bool:
 _CHILD_CODE = r"""
 import asyncio, os, sys
 sys.path.insert(0, sys.argv[1])
-os.environ["HERMES_HOME"] = sys.argv[2]
+os.environ["A2ASSISTANT_HOME"] = sys.argv[2]
 from gateway.control_socket import GatewayControlServer
 
 async def main():

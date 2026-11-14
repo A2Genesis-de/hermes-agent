@@ -8,7 +8,7 @@ Three edges of the fail-closed multi-profile host (review of #111620):
   its own credential after a concurrent first secondary flips ``get_secret`` to fail closed
   (``_MULTIPLEX_ACTIVE`` is consulted on every read; the scope decision is made once at entry);
 * releasing a runtime scope is per-reset best-effort: a failing terminal reset must not leave the
-  previous profile's secrets / HERMES_HOME installed for the next body in that context.
+  previous profile's secrets / A2ASSISTANT_HOME installed for the next body in that context.
 """
 
 from __future__ import annotations
@@ -33,7 +33,7 @@ def two_homes(tmp_path, monkeypatch):
     b.mkdir(parents=True)
     (root / ".env").write_text(f"A_ONLY_TOKEN={A_VAL}\n", encoding="utf-8")
     (b / ".env").write_text(f"B_ONLY_TOKEN={B_VAL}\nSHARED_TOKEN=b-dotenv-stale\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("A_ONLY_TOKEN", A_VAL)
     monkeypatch.setenv("INJECTED_TOKEN", ENV_VAL)  # systemd / op run credential injection, no file
     monkeypatch.setattr(server, "_hermes_home", root)

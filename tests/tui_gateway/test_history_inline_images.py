@@ -55,7 +55,7 @@ def test_resume_cold_carries_the_switch(tmp_path, monkeypatch):
 
     home = tmp_path / ".hermes"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", home / "state.db")
     db = SessionDB(home / "state.db")
     db.create_session("img-chat", source="desktop")

@@ -2,7 +2,7 @@
  * C2 core: transcript integrity across every transition that has shipped a
  * duplicate / vanishing / reordered message bug.
  *
- * One real Electron app + one real `hermes serve` backend (only the LLM is
+ * One real Electron app + one real `a2assistant serve` backend (only the LLM is
  * faked, by a scripted recording provider). After every transition the
  * transcript oracle (./oracle.ts) asserts: each persisted user/assistant
  * message is rendered exactly once, in order, nothing unpersisted is

@@ -1,6 +1,6 @@
 """profiles.describe / profiles.configure resolve credentials from the described profile's scope.
 
-``_hermes_home_scope`` used to bind only the HERMES_HOME override. Under multi-profile hosting the
+``_hermes_home_scope`` used to bind only the A2ASSISTANT_HOME override. Under multi-profile hosting the
 toolset snapshot's ``XAI_API_KEY`` read then raised ``UnscopedSecretError``, which the best-effort
 ``_try`` turned into an empty enabled set: every unpinned profile described as "all toolsets off"
 (#120726), and a Desktop editor save from that snapshot pinned whatever subset the user re-checked.
@@ -21,7 +21,7 @@ from hermes_constants import reset_hermes_home_override, set_hermes_home_overrid
 @pytest.fixture
 def hosted(tmp_path, monkeypatch):
     """Launch home with no xAI key + named profile ``bot`` whose own ``.env`` carries one; multi-profile
-    hosting active the way ``hermes serve`` activates it at boot."""
+    hosting active the way ``a2assistant serve`` activates it at boot."""
     import tui_gateway.launch_profile_policy as policy
     from agent.secret_scope import set_multiplex_active
 
@@ -30,7 +30,7 @@ def hosted(tmp_path, monkeypatch):
     bot.mkdir(parents=True)
     (bot / ".env").write_text("XAI_API_KEY=xai-bot-only\n", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.delenv("XAI_API_KEY", raising=False)
     monkeypatch.setattr(server, "_hermes_home", launch)
     monkeypatch.setattr(policy, "_snapshot", None)
@@ -42,7 +42,7 @@ def hosted(tmp_path, monkeypatch):
 
 
 def _enabled_under_own_scope(home: Path) -> set:
-    """What `hermes -p <profile> tools list` resolves: that profile's config under its own secrets."""
+    """What `a2assistant -p <profile> tools list` resolves: that profile's config under its own secrets."""
     from hermes_cli.config import load_config
     from hermes_cli.tools_config import _get_platform_tools
 

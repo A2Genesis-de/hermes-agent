@@ -16,7 +16,7 @@ def _reset_session_context() -> None:
 @pytest.fixture(autouse=True)
 def _clean_session_platform(monkeypatch):
     _reset_session_context()
-    monkeypatch.delenv("HERMES_SESSION_PLATFORM", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PLATFORM", raising=False)
     yield
     _reset_session_context()
 
@@ -55,7 +55,7 @@ def test_piper_telegram_converts_to_opus_voice(tmp_path, monkeypatch):
 
     convert = Mock(side_effect=fake_convert)
 
-    monkeypatch.setenv("HERMES_SESSION_PLATFORM", "telegram")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_PLATFORM", "telegram")
     monkeypatch.setattr(tts_tool, "_load_tts_config", lambda: {"provider": "piper"})
     monkeypatch.setattr(tts_tool, "_import_piper", lambda: object())
     monkeypatch.setattr(tts_tool, "_generate_piper_tts", _write_piper_output)

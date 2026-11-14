@@ -1,6 +1,6 @@
-"""Driver-side spawn interception for hermes desktop E2E legs.
+"""Driver-side spawn interception for a2assistant desktop E2E legs.
 
-Pre-PM ``hermes`` is a venv console script that imports this module at
+Pre-PM ``a2assistant`` is a venv console script that imports this module at
 startup via ``PYTHONPATH``. PM launchers use -I and instead load it via
 the driver-side pm-launch.py before the installed bootstrap. With an
 explicit env-var opt-in the module wraps
@@ -17,7 +17,7 @@ identically on every sampled OLD ref -- version drift in the launch
 shapes is the matcher's problem, which lives here, next to the driver
 (the same maintenance model as ``installer_supports()``).
 
-Opt-in: ``HERMES_E2E_CAPTURE_LAUNCH=<path>`` -- the spec is written
+Opt-in: ``A2ASSISTANT_E2E_CAPTURE_LAUNCH=<path>`` -- the spec is written
 there, and the marker file ``<path>.captured`` distinguishes "hermes
 desktop exited 0 and we captured" from "exited 0 without reaching a
 launch" (a version that errors out earlier must FAIL the leg, loudly).
@@ -32,7 +32,7 @@ tag's own hermes_cli/main.py):
 
   3ddf82fe249+ on Windows: the packaged launch is a detached
                subprocess.Popen(launch_command, creationflags=...) and
-               ``hermes desktop`` exits without waiting for it
+               ``a2assistant desktop`` exits without waiting for it
 
 Every shape passes an explicit ``env=`` kwarg, so both ``subprocess.run``
 and ``subprocess.Popen`` are intercepted. npm BUILD calls (``npm run
@@ -42,7 +42,7 @@ through untouched -- they must run for real.
 
 import os
 
-_SPEC_PATH = os.environ.get("HERMES_E2E_CAPTURE_LAUNCH")
+_SPEC_PATH = os.environ.get("A2ASSISTANT_E2E_CAPTURE_LAUNCH")
 
 if _SPEC_PATH:
     import json

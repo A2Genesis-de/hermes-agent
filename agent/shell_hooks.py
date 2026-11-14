@@ -176,7 +176,7 @@ def register_from_config(cfg: Optional[dict[str, Any]], *, accept_hooks: bool = 
             consented.append(spec)
         else:
             logger.warning("shell hook for %s (%s) not allowlisted in %s — skipped. Use --accept-hooks / "
-                           "HERMES_ACCEPT_HOOKS=1 / hooks_auto_accept: true, or approve it at a CLI prompt "
+                           "A2ASSISTANT_ACCEPT_HOOKS=1 / hooks_auto_accept: true, or approve it at a CLI prompt "
                            "for this profile.", spec.event, spec.command, allowlist_path())
     with _registered_lock:
         return _wire(manager, home_key, consented)
@@ -187,7 +187,7 @@ def sync_from_config(load_cfg: Callable[[], dict[str, Any]]) -> None:
     consent, for a long-lived process (the gateway) that must behave as a new process would: hooks
     configured and consented since start register, hooks removed from config or revoked are
     unregistered. Consent is the allowlist, an opt-in in force (``hooks_auto_accept`` /
-    ``HERMES_ACCEPT_HOOKS`` / this process's own ``--accept-hooks``), or a launch's ``--accept-hooks``
+    ``A2ASSISTANT_ACCEPT_HOOKS`` / this process's own ``--accept-hooks``), or a launch's ``--accept-hooks``
     whose allowlist write failed (``accept_for_launch``). Never prompts or writes. An empty config
     (a loader that failed open), a malformed ``hooks:`` entry or an unreadable allowlist must never
     disarm a ``fail_closed`` guard, so each adds but never removes. Config and allowlist are read
@@ -212,7 +212,7 @@ def sync_from_config(load_cfg: Callable[[], dict[str, Any]]) -> None:
             elif (home_key, spec.event, spec.command) not in _skip_logged:  # once per process, not per open
                 _skip_logged.add((home_key, spec.event, spec.command))
                 logger.warning("shell hook for %s (%s) not allowlisted in %s — skipped. Approve it at a CLI "
-                               "prompt for this profile, or use --accept-hooks / HERMES_ACCEPT_HOOKS=1 / "
+                               "prompt for this profile, or use --accept-hooks / A2ASSISTANT_ACCEPT_HOOKS=1 / "
                                "hooks_auto_accept: true.", spec.event, spec.command, allowlist_path())
         manager = get_plugin_manager()
         with _registered_lock:
@@ -254,7 +254,7 @@ def accept_for_launch(cfg: Optional[dict[str, Any]]) -> None:
     """A launch's ``--accept-hooks`` on the gateway: record every configured hook in the allowlist,
     and keep the consent in memory when that write fails, so it still registers
     the hook at the next ``sync_from_config`` (main registered it in memory). Only an unsaved approval
-    is held, so a later ``hermes hooks revoke`` of a saved one takes effect."""
+    is held, so a later ``a2assistant hooks revoke`` of a saved one takes effect."""
     specs = record_consent_from_config(cfg, accept_hooks=True)
     if not specs:
         return
@@ -265,8 +265,8 @@ def accept_for_launch(cfg: Optional[dict[str, Any]]) -> None:
 
 
 def accept_for_process() -> None:
-    """This process's own ``--accept-hooks`` (``hermes gateway run --accept-hooks``): an opt-in in
-    force for its lifetime, as ``HERMES_ACCEPT_HOOKS`` would be, without exporting that variable to
+    """This process's own ``--accept-hooks`` (``a2assistant gateway run --accept-hooks``): an opt-in in
+    force for its lifetime, as ``A2ASSISTANT_ACCEPT_HOOKS`` would be, without exporting that variable to
     every tool subprocess."""
     global _process_accept
     _process_accept = True
@@ -280,8 +280,8 @@ def _hook_specs(cfg: Optional[dict[str, Any]]) -> tuple[Optional[list[ShellHookS
     from utils import env_var_enabled
     if safe_worker_enabled() or not isinstance(cfg, dict):
         return None, True
-    if env_var_enabled("HERMES_SAFE_MODE"):  # hooks are user customizations too — fire zero user-configured code
-        logger.info("HERMES_SAFE_MODE=1 — shell-hook registration skipped")
+    if env_var_enabled("A2ASSISTANT_SAFE_MODE"):  # hooks are user customizations too — fire zero user-configured code
+        logger.info("A2ASSISTANT_SAFE_MODE=1 — shell-hook registration skipped")
         return None, True
     return _parse_hooks(cfg.get("hooks"))
 
@@ -331,7 +331,7 @@ def _consented(spec: ShellHookSpec, accept: bool, allowed: set[tuple[str, str]],
 
 
 def iter_configured_hooks(cfg: Optional[dict[str, Any]]) -> list[ShellHookSpec]:
-    """Parse config hooks without registering (``hermes hooks list`` / doctor)."""
+    """Parse config hooks without registering (``a2assistant hooks list`` / doctor)."""
     return _parse_hooks_block(cfg.get("hooks")) if isinstance(cfg, dict) else []
 
 
@@ -576,7 +576,7 @@ def _evaluate_result(
       block instead of silently contributing nothing.
 
     Shared by the live callback path (:func:`_make_callback`) and the CLI
-    test helper (:func:`run_once`) so ``hermes hooks test`` reflects
+    test helper (:func:`run_once`) so ``a2assistant hooks test`` reflects
     production behaviour exactly.
     """
     blocking_event = spec.event in _BLOCKING_EVENTS
@@ -814,10 +814,10 @@ def _command_script_path(command: str) -> str:
 
 
 def _resolve_effective_accept(cfg: dict[str, Any], accept_hooks_arg: bool) -> bool:
-    """Any truthy opt-in channel wins: explicit arg, this process's --accept-hooks, HERMES_ACCEPT_HOOKS,
+    """Any truthy opt-in channel wins: explicit arg, this process's --accept-hooks, A2ASSISTANT_ACCEPT_HOOKS,
     hooks_auto_accept."""
     from utils import env_var_enabled
-    if accept_hooks_arg or _process_accept or env_var_enabled("HERMES_ACCEPT_HOOKS"):
+    if accept_hooks_arg or _process_accept or env_var_enabled("A2ASSISTANT_ACCEPT_HOOKS"):
         return True
     cfg_val = cfg.get("hooks_auto_accept", False)
     return cfg_val if isinstance(cfg_val, bool) else isinstance(cfg_val, str) and cfg_val.strip().lower() in _TRUTHY
@@ -852,7 +852,7 @@ def script_is_executable(command: str) -> bool:
 
 
 def run_once(spec: ShellHookSpec, kwargs: dict[str, Any]) -> dict[str, Any]:
-    """Fire one hook with a synthetic payload (``hermes hooks test`` / doctor) through the production path."""
+    """Fire one hook with a synthetic payload (``a2assistant hooks test`` / doctor) through the production path."""
     result = _spawn(spec, _serialize_payload(spec.event, kwargs))
     result["parsed"] = _evaluate_result(spec, result)
     return result

@@ -6,7 +6,7 @@ A seeded property / matrix layer over every surface that writes ``config.yaml`` 
       one key changes that key's line(s) only (comments, quoting, unicode, ``${VAR}`` templates,
       explicit-default values, dotted provider names and nulls all survive);
 * P2  "set one key" changes exactly one key, on every writer: in-process ``set_config_value`` over
-      EVERY documented scalar leaf of ``DEFAULT_CONFIG``, the real ``hermes config set`` CLI
+      EVERY documented scalar leaf of ``DEFAULT_CONFIG``, the real ``a2assistant config set`` CLI
       subprocess, a real ``python -m tui_gateway.entry`` stdio JSON-RPC process (``config.set``),
       and the dashboard/Desktop ``PUT /api/config`` (partial bodies, like Desktop sends);
 * P3  a failed read never results in a clobbering write: for every single config read an
@@ -359,8 +359,8 @@ def _read(path: Path) -> str:
 
 @pytest.fixture
 def home(monkeypatch):
-    """The per-test HERMES_HOME the repo conftest sandboxes; config caches reset around the test."""
-    hh = Path(os.environ["HERMES_HOME"])
+    """The per-test A2ASSISTANT_HOME the repo conftest sandboxes; config caches reset around the test."""
+    hh = Path(os.environ["A2ASSISTANT_HOME"])
     hh.mkdir(parents=True, exist_ok=True)
     assert str(_cfg_path()).startswith(str(hh))
     _reset_config_caches()
@@ -576,7 +576,7 @@ def _cli(env: dict, *args: str, timeout: float = 120) -> subprocess.CompletedPro
 
 def _cli_home(tmp_path: Path, case: Case) -> tuple[dict, Path]:
     env = isolated_env(tmp_path / "cli", pythonpath=WORKTREE, extra=case.env)
-    cfg = Path(env["HERMES_HOME"]) / "config.yaml"
+    cfg = Path(env["A2ASSISTANT_HOME"]) / "config.yaml"
     _write_file(cfg, case.text)
     return env, cfg
 
@@ -635,8 +635,8 @@ def test_p2_env_lock_refusal_is_not_reported_as_success(key, tmp_path):
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / ".env").write_text("DEEPSEEK_API_KEY=sk-admin\nTELEGRAM_HOME_CHANNEL=111\n", encoding="utf-8")
-    env = isolated_env(tmp_path / "cli", pythonpath=WORKTREE, extra={"HERMES_MANAGED_DIR": str(managed)})
-    hh = Path(env["HERMES_HOME"])
+    env = isolated_env(tmp_path / "cli", pythonpath=WORKTREE, extra={"A2ASSISTANT_MANAGED_DIR": str(managed)})
+    hh = Path(env["A2ASSISTANT_HOME"])
     (hh / ".env").write_text("DEEPSEEK_API_KEY=sk-old\nTELEGRAM_HOME_CHANNEL=5\n", encoding="utf-8")
     cfg_text = "model:\n  default: deepseek-chat\n  api_key: sk-old\n"
     _write_file(hh / "config.yaml", cfg_text)
@@ -655,7 +655,7 @@ class _RpcProc:
     def __init__(self, root: Path):
         self.root = root
         self.env = isolated_env(root, pythonpath=WORKTREE)
-        self.home = Path(self.env["HERMES_HOME"])
+        self.home = Path(self.env["A2ASSISTANT_HOME"])
         _write_file(self.home / "config.yaml", "model_catalog:\n  enabled: false\n")
         self.stderr = open(root / "tui_gateway.stderr", "w", encoding="utf-8")
         self.proc = subprocess.Popen([sys.executable, "-m", "tui_gateway.entry"], cwd=str(WORKTREE), env=self.env,
@@ -1021,7 +1021,7 @@ def gen_dotenv(seed: int) -> tuple[str, list[str], dict[str, str]]:
 def env_restore(monkeypatch):
     saved = dict(os.environ)
     monkeypatch.setenv("PATH", _BASE_PATH)
-    monkeypatch.setenv("HERMES_MULTIPLEX_PROFILES", "0")
+    monkeypatch.setenv("A2ASSISTANT_MULTIPLEX_PROFILES", "0")
     yield
     os.environ.clear()
     os.environ.update(saved)

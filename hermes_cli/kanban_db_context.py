@@ -219,7 +219,7 @@ def _ctx_role_history(lines: list[str], conn: sqlite3.Connection, task: Task, no
 
 def _ctx_comments(lines: list[str], comments: list[Comment], now: int) -> None:
     """Newest ``_CTX_MAX_COMMENTS`` comments. The explicit "comment from
-    worker" framing stops an operator-controlled HERMES_PROFILE like
+    worker" framing stops an operator-controlled A2ASSISTANT_PROFILE like
     "hermes-system" being read as a system directive above an
     attacker-influenceable body (defense-in-depth)."""
     shown, omitted_note = _ctx_tail(comments, _CTX_MAX_COMMENTS, "comment")

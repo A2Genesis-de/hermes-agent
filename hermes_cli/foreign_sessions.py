@@ -232,7 +232,7 @@ def _list_sessions(source: str, root: Optional[Path]) -> list[ForeignSession]:
 def import_foreign_session(source: str, path) -> str:
     """Import one foreign session through the gateway's ``session.mutate import`` (the gateway is the
     only state.db writer, #106742); returns the new Hermes session id. The row lands as an ordinary
-    ``cli`` session bound to this importer, so ``hermes --resume`` continues it writable.
+    ``cli`` session bound to this importer, so ``a2assistant --resume`` continues it writable.
 
     Raises ``ValueError`` on unknown source or a session with no usable conversation turns, and
     ``GatewayClientError`` (a ``ValueError``) when the gateway refuses the import."""
@@ -288,7 +288,7 @@ def pick_foreign_session(source: Optional[str] = None, *, limit: int = 25) -> Op
         print(f"  {i:>2}. {datetime.fromtimestamp(s.mtime):%Y-%m-%d %H:%M}  {s.label}{ws}  [{s.turn_count} turns]")
     if not sys.stdin.isatty():
         print("Non-interactive terminal — pass the file path directly:\n"
-              "  hermes sessions import --from claude|codex <path>")
+              "  a2assistant sessions import --from claude|codex <path>")
         return None
     try:
         raw = input(f"Import which session? [1-{len(sessions)}, empty to cancel] ").strip()
@@ -306,7 +306,7 @@ def pick_foreign_session(source: Optional[str] = None, *, limit: int = 25) -> Op
 
 
 def run_sessions_import(args) -> Optional[str]:
-    """`hermes sessions import` entry point. Returns new session id or None."""
+    """`a2assistant sessions import` entry point. Returns new session id or None."""
     source = getattr(args, "from_source", None)
     path = getattr(args, "path", None)
     if path:
@@ -334,5 +334,5 @@ def run_sessions_import(args) -> Optional[str]:
         print(f"Error: {e}")
         return None
     print(f"✓ Imported {_SOURCE_LABELS.get(source, source)} session as {session_id}")
-    print(f"  Continue it with:  hermes --resume {session_id}")
+    print(f"  Continue it with:  a2assistant --resume {session_id}")
     return session_id

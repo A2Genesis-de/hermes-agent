@@ -44,7 +44,7 @@ def test_bypass_session_freezes_code_defaults_without_reading_profile(tmp_path, 
     home.mkdir()
     (home / 'config.yaml').write_text('model: [unterminated\n  terminal: {backend: docker}\n', encoding='utf-8')
     (home / '.env').write_text('TERMINAL_ENV=docker\n', encoding='utf-8')
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     # The ordinary owner discovered plugins at startup, long before this launch (contract J:
     # an owner that boots against broken config is a separate limitation).
     discover_plugins()
@@ -74,4 +74,4 @@ def test_bypass_session_freezes_code_defaults_without_reading_profile(tmp_path, 
     assert 'terminal' in policy.toolsets and not set(policy.toolsets) & get_plugin_toolset_keys_nowait()
     terminal = json.loads(policy.terminal_json)
     assert terminal['TERMINAL_ENV'] == 'local' and terminal['TERMINAL_CWD'] == str(cwd)
-    assert dict(os.environ).get('HERMES_SAFE_MODE') is None
+    assert dict(os.environ).get('A2ASSISTANT_SAFE_MODE') is None

@@ -50,8 +50,8 @@ def resolve_request_profile(adapter: Any, request: Any):
     """Resolve + validate the /p/<profile>/ prefix: ``None`` (no prefix, or multiplexing off and the
     prefix names this gateway's own profile), the served profile name, or ``_PROFILE_REJECTED``
     (-> 404). Fail closed: a foreign prefix must never be ignored. The default profile's handle
-    ``hermes`` reaches the default profile, because peers address the mirror by the handle their
-    roster shows (#118076), unless the host has a profile literally named ``hermes``."""
+    ``a2assistant`` reaches the default profile, because peers address the mirror by the handle their
+    roster shows (#118076), unless the host has a profile literally named ``a2assistant``."""
     from gateway.platforms.api_server import _PROFILE_REJECTED, _prefix_names_served_profile
     profile = _prefix_profile(request)
     if not profile:

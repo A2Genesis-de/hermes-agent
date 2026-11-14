@@ -1,6 +1,6 @@
 """Dashboard gateway lifecycle actions must elevate on a system-scope install.
 
-Regression for #110820: the Restart Gateway button spawned ``hermes gateway restart`` as the
+Regression for #110820: the Restart Gateway button spawned ``a2assistant gateway restart`` as the
 dashboard's own user, and the CLI refuses system-scope verbs below root, so the button could
 never work on a systemd *system* install — the refusal only reached the action log while the
 endpoint reported a started action.
@@ -24,10 +24,10 @@ def unprivileged(monkeypatch):
 @pytest.fixture
 def system_scope_install(monkeypatch, tmp_path):
     """Only the SYSTEM unit is installed, the shape that needs root."""
-    system_unit = tmp_path / "etc" / "hermes-gateway.service"
+    system_unit = tmp_path / "etc" / "a2assistant-gateway.service"
     system_unit.parent.mkdir(parents=True)
     system_unit.write_text("[Service]\n", encoding="utf-8")
-    user_unit = tmp_path / "user" / "hermes-gateway.service"
+    user_unit = tmp_path / "user" / "a2assistant-gateway.service"
     monkeypatch.setattr(
         "hermes_cli.gateway.get_systemd_unit_path",
         lambda system=False: system_unit if system else user_unit,

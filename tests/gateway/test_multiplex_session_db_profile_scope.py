@@ -45,7 +45,7 @@ from hermes_constants import (
 
 @pytest.fixture
 def multiplex_homes(tmp_path, monkeypatch):
-    """A root home plus a named profile home, with HERMES_HOME on the root.
+    """A root home plus a named profile home, with A2ASSISTANT_HOME on the root.
 
     Mirrors the reported layout: one gateway process launched under the root
     home, serving a ``fitness`` profile whose store lives under
@@ -58,7 +58,7 @@ def multiplex_homes(tmp_path, monkeypatch):
     root.mkdir(parents=True)
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}\n", encoding="utf-8")  # identity marker: a bare dir is not a profile
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
 
     # The suite-wide fixture in conftest re-points ``hermes_state.DEFAULT_DB_PATH``
     # at a fake home, which trips the deliberate escape hatch in

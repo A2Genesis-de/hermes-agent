@@ -18,7 +18,7 @@
 
 **El agente de IA con mejora continua creado por [Nous Research](https://nousresearch.com).** Es el único agente con un bucle de aprendizaje integrado: crea habilidades a partir de la experiencia, las mejora durante el uso, se impulsa a sí mismo a persistir el conocimiento, busca en sus propias conversaciones pasadas y construye un modelo cada vez más profundo de quién eres a lo largo de las sesiones. Ejecútalo en un VPS de $5, un clúster de GPUs o infraestructura sin servidor que cuesta casi nada cuando está inactivo. No está atado a tu laptop — habla con él desde Telegram mientras trabaja en una VM en la nube.
 
-Usa cualquier modelo que quieras — [Nous Portal](https://portal.nousresearch.com), [OpenRouter](https://openrouter.ai) (más de 200 modelos), [NovitaAI](https://novita.ai), [NVIDIA NIM](https://build.nvidia.com) (Nemotron), [Xiaomi MiMo](https://platform.xiaomimimo.com), [z.ai/GLM](https://z.ai), [Kimi/Moonshot](https://platform.moonshot.ai), [MiniMax](https://www.minimax.io), [Hugging Face](https://huggingface.co), OpenAI, o tu propio endpoint. Cambia con `hermes model` — sin cambios de código, sin dependencias.
+Usa cualquier modelo que quieras — [Nous Portal](https://portal.nousresearch.com), [OpenRouter](https://openrouter.ai) (más de 200 modelos), [NovitaAI](https://novita.ai), [NVIDIA NIM](https://build.nvidia.com) (Nemotron), [Xiaomi MiMo](https://platform.xiaomimimo.com), [z.ai/GLM](https://z.ai), [Kimi/Moonshot](https://platform.moonshot.ai), [MiniMax](https://www.minimax.io), [Hugging Face](https://huggingface.co), OpenAI, o tu propio endpoint. Cambia con `a2assistant model` — sin cambios de código, sin dependencias.
 
 <table>
 <tr><td><b>Una interfaz de terminal real</b></td><td>TUI completa con edición multilínea, autocompletado de comandos, historial de conversaciones, interrupción y redirección, y salida de herramientas en streaming.</td></tr>
@@ -57,7 +57,7 @@ del sistema. MSIX/App Installer es una distribución separada.
 
 > **Android / Termux:** Hay un paquete APT en pruebas para dispositivos aarch64. Incluye Python, Node.js y la TUI. Sigue la [guía de Termux](https://hermes-agent.nousresearch.com/docs/getting-started/termux), no el script de instalación para escritorio y servidor.
 >
-> **Windows:** Windows nativo es totalmente compatible — el comando de PowerShell de arriba instala todo. Si prefieres usar WSL2, el comando de Linux también funciona allí. La instalación nativa de Windows se encuentra en `%LOCALAPPDATA%\hermes`; WSL2 instala en `~/.hermes` como en Linux.
+> **Windows:** Windows nativo es totalmente compatible — el comando de PowerShell de arriba instala todo. Si prefieres usar WSL2, el comando de Linux también funciona allí. La instalación nativa de Windows se encuentra en `%LOCALAPPDATA%\hermes`; WSL2 instala en `~/.a2assistant` como en Linux.
 
 Después de la instalación:
 
@@ -72,14 +72,14 @@ hermes              # ¡empieza a chatear!
 
 ```bash
 hermes              # CLI interactiva — inicia una conversación
-hermes model        # Elige tu proveedor y modelo LLM
-hermes tools        # Configura qué herramientas están habilitadas
-hermes config set   # Establece valores de configuración individuales
-hermes gateway      # Inicia el gateway de mensajería (Telegram, Discord, etc.)
-hermes setup        # Ejecuta el asistente de configuración completo
+a2assistant model        # Elige tu proveedor y modelo LLM
+a2assistant tools        # Configura qué herramientas están habilitadas
+a2assistant config set   # Establece valores de configuración individuales
+a2assistant gateway      # Inicia el gateway de mensajería (Telegram, Discord, etc.)
+a2assistant setup        # Ejecuta el asistente de configuración completo
 hermes claw migrate # Migra desde OpenClaw (si vienes de OpenClaw)
-hermes update       # Actualiza a la última versión
-hermes doctor       # Diagnostica cualquier problema
+a2assistant update       # Actualiza a la última versión
+a2assistant doctor       # Diagnostica cualquier problema
 ```
 
 📖 **[Documentación completa →](https://hermes-agent.nousresearch.com/docs/)**
@@ -96,10 +96,10 @@ Hermes funciona con cualquier proveedor que quieras — eso no cambiará. Pero s
 Un comando desde una instalación nueva:
 
 ```bash
-hermes setup --portal
+a2assistant setup --portal
 ```
 
-Esto te autentica vía OAuth, establece Nous como tu proveedor y activa el Tool Gateway. Comprueba qué está conectado en cualquier momento con `hermes portal info`. Detalles completos en la [página de documentación del Tool Gateway](https://hermes-agent.nousresearch.com/docs/user-guide/features/tool-gateway).
+Esto te autentica vía OAuth, establece Nous como tu proveedor y activa el Tool Gateway. Comprueba qué está conectado en cualquier momento con `a2assistant portal info`. Detalles completos en la [página de documentación del Tool Gateway](https://hermes-agent.nousresearch.com/docs/user-guide/features/tool-gateway).
 
 Puedes seguir usando tus propias claves por herramienta cuando quieras — el gateway es por backend, no todo o nada.
 
@@ -107,11 +107,11 @@ Puedes seguir usando tus propias claves por herramienta cuando quieras — el ga
 
 ## Referencia rápida: CLI vs Mensajería
 
-Hermes tiene dos puntos de entrada: inicia la interfaz de terminal con `hermes`, o ejecuta el gateway y habla con él desde Telegram, Discord, Slack, WhatsApp, Signal o Email. Una vez en una conversación, muchos comandos de barra son compartidos entre ambas interfaces.
+Hermes tiene dos puntos de entrada: inicia la interfaz de terminal con `a2assistant`, o ejecuta el gateway y habla con él desde Telegram, Discord, Slack, WhatsApp, Signal o Email. Una vez en una conversación, muchos comandos de barra son compartidos entre ambas interfaces.
 
 | Acción                              | CLI                                           | Plataformas de mensajería                                                         |
 | ----------------------------------- | --------------------------------------------- | --------------------------------------------------------------------------------- |
-| Empezar a chatear                   | `hermes`                                      | Ejecuta `hermes gateway setup` + `hermes gateway start`, luego envía un mensaje al bot |
+| Empezar a chatear                   | `a2assistant`                                      | Ejecuta `a2assistant gateway setup` + `a2assistant gateway start`, luego envía un mensaje al bot |
 | Nueva conversación                  | `/new` o `/reset`                             | `/new` o `/reset`                                                                 |
 | Cambiar modelo                      | `/model [proveedor:modelo]`                   | `/model [proveedor:modelo]`                                                       |
 | Establecer personalidad             | `/personality [nombre]`                       | `/personality [nombre]`                                                           |
@@ -153,12 +153,12 @@ Toda la documentación está en **[hermes-agent.nousresearch.com/docs](https://h
 
 Si vienes de OpenClaw, Hermes puede importar automáticamente tu configuración, memorias, habilidades y claves API.
 
-**Durante la configuración inicial:** El asistente de configuración (`hermes setup`) detecta automáticamente `~/.openclaw` y ofrece migrar antes de que comience la configuración.
+**Durante la configuración inicial:** El asistente de configuración (`a2assistant setup`) detecta automáticamente `~/.openclaw` y ofrece migrar antes de que comience la configuración.
 
 **En cualquier momento después de instalar:**
 
 ```bash
-hermes plugins install agent-importers  # una vez: OpenClaw, Claude Code, Codex y Cursor
+a2assistant plugins install agent-importers  # una vez: OpenClaw, Claude Code, Codex y Cursor
 hermes claw migrate              # Migración interactiva (preset completo)
 hermes claw migrate --dry-run    # Vista previa de qué se migraría
 hermes claw migrate --preset user-data   # Migrar sin secretos
@@ -169,7 +169,7 @@ Qué se importa:
 
 - **SOUL.md** — archivo de personalidad
 - **Memorias** — entradas de MEMORY.md y USER.md
-- **Habilidades** — habilidades creadas por el usuario → `~/.hermes/skills/openclaw-imports/`
+- **Habilidades** — habilidades creadas por el usuario → `~/.a2assistant/skills/openclaw-imports/`
 - **Lista de comandos permitidos** — patrones de aprobación
 - **Configuración de mensajería** — configuración de plataformas, usuarios permitidos, directorio de trabajo
 - **Claves API** — secretos en lista de permitidos (Telegram, OpenRouter, OpenAI, Anthropic, ElevenLabs)

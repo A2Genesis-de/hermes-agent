@@ -56,7 +56,7 @@ def cli(session_id="20261012_000000_abcdef", resumed=False):
 
 
 def test_new_session_is_created_on_the_gateway_and_its_id_adopted(store, monkeypatch):
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
     db, client = store
     sid = db.open_session(cli(), {"model": "m1", "toolsets": ["file", "web"], "provider": None})
     assert sid == "local-new"
@@ -70,20 +70,20 @@ def test_new_session_is_created_on_the_gateway_and_its_id_adopted(store, monkeyp
 
 def test_a_finite_run_creates_mains_oneshot_session_so_bare_c_finds_it(store, monkeypatch):
     """Main labels a `chat -q` / `-Q` session ``oneshot`` (agent.session_source.session_source_for), which
-    `hermes -c` / `--resume latest` count as CLI history; created as ``cli`` the owner stores the
+    `a2assistant -c` / `--resume latest` count as CLI history; created as ``cli`` the owner stores the
     transport's ``local`` and the next bare `-c` finds nothing."""
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE_EXPLICIT", raising=False)
-    monkeypatch.setenv("HERMES_SINGLE_QUERY_SESSION", "1")
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE_EXPLICIT", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_SINGLE_QUERY_SESSION", "1")
     db, client = store
     db.open_session(cli(), {})
     assert client.calls[-1][1]["source"] == "oneshot"
     # An explicit `--source tool` still wins, and an interactive session stays `cli`.
-    monkeypatch.setenv("HERMES_SESSION_SOURCE", "tool")
-    monkeypatch.setenv("HERMES_SESSION_SOURCE_EXPLICIT", "1")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_SOURCE", "tool")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_SOURCE_EXPLICIT", "1")
     GatewaySessionStore(db.connection).open_session(cli(), {})
     assert client.calls[-1][1]["source"] == "tool"
-    for name in ("HERMES_SINGLE_QUERY_SESSION", "HERMES_SESSION_SOURCE", "HERMES_SESSION_SOURCE_EXPLICIT"):
+    for name in ("A2ASSISTANT_SINGLE_QUERY_SESSION", "A2ASSISTANT_SESSION_SOURCE", "A2ASSISTANT_SESSION_SOURCE_EXPLICIT"):
         monkeypatch.delenv(name)
     GatewaySessionStore(db.connection).open_session(cli(), {})
     assert client.calls[-1][1]["source"] == "cli"
@@ -337,7 +337,7 @@ def test_new_session_id_is_a_fresh_gateway_session(store, monkeypatch):
     """/new: the id main mints is the gateway's new session (created with the profile's default model:
     an explicit -m was for the previous session only)."""
     from hermes_cli.cli_init_mixin import CLIInitMixin
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
     db, client = store
     host = types.SimpleNamespace(session_id="local-old", _resumed=True, _session_db=db, model="m-explicit",
                                  _explicit_model_override=True, requested_provider=None, enabled_toolsets=["file"],
@@ -424,7 +424,7 @@ def test_bare_continue_finds_the_last_session_the_cli_created(tmp_path, monkeypa
     """Bare ``-c`` (main.py ``_resolve_last_session``) reads main's labels too: a gateway row labelled
     ``local`` that the CLI created is CLI history."""
     import sqlite3
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from hermes_state import SessionDB
     writer = SessionDB(db_path=tmp_path / "state.db")
     writer.create_session("local-cli", source="local")
@@ -498,7 +498,7 @@ def test_row_cwd_is_mains_stamp_while_the_tools_run_in_terminal_cwd(store, monke
     monkeypatch.chdir(repo)
     monkeypatch.setenv("TERMINAL_CWD", str(tree))
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
     db.open_session(cli(), {"toolsets": ["file"]})
     first = [p for m, p in client.calls if m == "session.create"][-1]
     assert first["cwd"] == str(tree.resolve()) and first["row_cwd"] == str(repo.resolve())
@@ -523,7 +523,7 @@ def test_a_sandbox_backend_sends_the_host_launch_dir_not_its_terminal_cwd(store,
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("TERMINAL_CWD", "/project/not-on-this-host")
     monkeypatch.setenv("TERMINAL_ENV", backend)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
     db.create({"toolsets": ["file"]})
     assert [p for m, p in client.calls if m == "session.create"][-1]["cwd"] == str(tmp_path.resolve())
     monkeypatch.setattr(gss, "session_store", lambda: db)
@@ -542,7 +542,7 @@ def test_a_mounting_docker_backend_sends_the_w_worktree_not_the_launch_dir(store
     monkeypatch.setenv("TERMINAL_CWD", str(tree))
     monkeypatch.setenv("TERMINAL_ENV", "docker")
     monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
     db.create({"toolsets": ["file"]})
     assert [p for m, p in client.calls if m == "session.create"][-1]["cwd"] == str(tree.resolve())
 
@@ -552,7 +552,7 @@ def test_a_mounting_docker_backend_sends_the_w_worktree_not_the_launch_dir(store
 def test_a_removed_w_worktree_is_sent_so_the_gateway_refuses_it(store, monkeypatch, tmp_path, backend, mount, entry):
     """-w publishes its tree in TERMINAL_CWD without a chdir; once the tree is gone, creating from the
     original checkout would put the agent's edits there. Main sent the path and the gateway refused it.
-    ``hermes -w`` records the tree in the imported ``cli`` module, ``python cli.py -w`` in ``__main__``."""
+    ``a2assistant -w`` records the tree in the imported ``cli`` module, ``python cli.py -w`` in ``__main__``."""
     import sys
     from hermes_cli import gateway_session_store as gss
     db, client = store
@@ -568,7 +568,7 @@ def test_a_removed_w_worktree_is_sent_so_the_gateway_refuses_it(store, monkeypat
     monkeypatch.setenv("TERMINAL_ENV", backend)
     if mount:
         monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", mount)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
     db.create({"toolsets": ["file"]})
     assert [p for m, p in client.calls if m == "session.create"][-1]["cwd"] == str(tree.resolve())
     monkeypatch.setattr(gss, "session_store", lambda: db)
@@ -578,7 +578,7 @@ def test_a_removed_w_worktree_is_sent_so_the_gateway_refuses_it(store, monkeypat
 
 @pytest.mark.parametrize("backend,mount", [("local", None), ("docker", "true")])
 def test_a_project_resumed_after_w_is_sent_not_the_w_worktree(store, monkeypatch, tmp_path, backend, mount):
-    """``hermes -w`` in A, ``/resume`` of a session from B, then ``/new``: the resume moves cwd and
+    """``a2assistant -w`` in A, ``/resume`` of a session from B, then ``/new``: the resume moves cwd and
     TERMINAL_CWD to B but A stays recorded (its quit cleanup is still due), so A must not win."""
     import sys
     from hermes_cli.cli_session_mixin import CLISessionMixin
@@ -592,7 +592,7 @@ def test_a_project_resumed_after_w_is_sent_not_the_w_worktree(store, monkeypatch
     monkeypatch.setenv("TERMINAL_ENV", backend)
     if mount:
         monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", mount)
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
     CLISessionMixin._restore_session_cwd(types.SimpleNamespace(), {"cwd": str(project_b)}, quiet=True)
     db.create({"toolsets": ["file"]}, record_cwd=False)
     assert [p for m, p in client.calls if m == "session.create"][-1]["cwd"] == str(project_b.resolve())
@@ -810,11 +810,11 @@ def test_branch_never_shows_yolo_the_gateway_refused(store):
 
 
 def test_exported_ignore_rules_never_refuses_a_bare_resume(store, monkeypatch):
-    """CLI-2: an exported HERMES_IGNORE_RULES is creation policy only, so a bare `hermes -c` continues a
+    """CLI-2: an exported A2ASSISTANT_IGNORE_RULES is creation policy only, so a bare `a2assistant -c` continues a
     session created without it (Desktop, Ink, before the export); a typed --ignore-rules is still refused,
     as the thin client refuses it."""
     from hermes_cli.cli_init_mixin import CLIInitMixin, _gateway_launch
-    monkeypatch.setenv("HERMES_IGNORE_RULES", "1")
+    monkeypatch.setenv("A2ASSISTANT_IGNORE_RULES", "1")
     db, client = store
     _frozen_launch(client, {"model": "m-frozen"})
 

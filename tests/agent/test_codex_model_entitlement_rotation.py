@@ -38,7 +38,7 @@ def pool(tmp_path, monkeypatch):
     root.mkdir()
     (tmp_path / "fakehome").mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "fakehome"))
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     import hermes_constants
     hermes_constants._default_hermes_root_memo = None  # type: ignore[attr-defined]

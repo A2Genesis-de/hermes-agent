@@ -7,9 +7,9 @@ Two additive capabilities, both designed so a failure inside them can never
 break an update (every public entry point is exception-swallowing):
 
 1. **Update receipt** — a machine-readable JSON record of what one
-   ``hermes update`` run discovered, did, skipped (and why), written to
+   ``a2assistant update`` run discovered, did, skipped (and why), written to
    the ROOT home's ``logs/update_receipts/`` (``get_default_hermes_root()``,
-   never a sticky profile's ``HERMES_HOME``). Silent-failure classes this
+   never a sticky profile's ``A2ASSISTANT_HOME``). Silent-failure classes this
    makes visible: #88848 (helper died after "success" printed), #74973
    (restart silently skipped), #85753 (restart phase never ran), #81193
    (desktop shows failure for a successful update).
@@ -135,14 +135,14 @@ def _str_records(entries: Any, keys: tuple[str, ...], *, pid: bool = False) -> l
 def _launcher_correlation_id() -> Optional[str]:
     """Correlation id handed in by an external launcher, or None.
 
-    Desktop's managed SSH update exports ``HERMES_UPDATE_CORRELATION_ID`` and
+    Desktop's managed SSH update exports ``A2ASSISTANT_UPDATE_CORRELATION_ID`` and
     only accepts a receipt whose ``correlation_id`` equals it. This is separate
     from ``update_id``, which stays the CLI's own id for pm sync receipts."""
-    return os.environ.get("HERMES_UPDATE_CORRELATION_ID", "").strip() or None
+    return os.environ.get("A2ASSISTANT_UPDATE_CORRELATION_ID", "").strip() or None
 
 
 class UpdateReceipt:
-    """Collects the observable facts of one ``hermes update`` run."""
+    """Collects the observable facts of one ``a2assistant update`` run."""
 
     def __init__(self) -> None:
         self.data: dict[str, Any] = {
@@ -159,7 +159,7 @@ class UpdateReceipt:
         self.data["correlation_id"] = _launcher_correlation_id()
         # The dashboard action that spawned this run: the receipt store is root-wide, so the
         # action-status route certifies an outcome only from a receipt naming ITS action.
-        self.data["action_id"] = os.environ.get("HERMES_ACTION_ID", "").strip() or None
+        self.data["action_id"] = os.environ.get("A2ASSISTANT_ACTION_ID", "").strip() or None
 
     def step(self, name: str, ok: bool, detail: str = "") -> None:
         self.data["steps"].append({"name": name, "ok": bool(ok), "detail": detail, "at": _utc_now_iso()})
@@ -239,7 +239,7 @@ def _receipt_dir() -> Path:
 def _receipt_dirs() -> list[Path]:
     """The root store, then the profile's own when a named profile makes them differ. ``pm/``
     writes its sync receipts to ``get_hermes_home()`` and receipts from before the root move live
-    there too, so readers take both and writers mirror ``latest.json`` into it (``hermes -p <name>
+    there too, so readers take both and writers mirror ``latest.json`` into it (``a2assistant -p <name>
     pm status`` reads only that one)."""
     from hermes_constants import get_hermes_home
 
@@ -413,12 +413,12 @@ def record_build_stage(followups) -> None:
     record_stage("build", "failed" if any(step in BUILD_FOLLOWUPS for step, _ in followups) else "success")
 
 
-def record_followup(step: str, reason: str, *, retry: str = "the next launch or `hermes update` retries it") -> None:
+def record_followup(step: str, reason: str, *, retry: str = "the next launch or `a2assistant update` retries it") -> None:
     """A post-commit step failed: print ⚠, keep the run a success, and say what is still owed.
 
     The code already committed, so the update does not fail; the step's own obligation (the
     source tail, the fleet restart, the launch-time bytecode sweep) stays armed and the next
-    launch or ``hermes update`` retries it. Never raises. The printed line is a protocol: the
+    launch or ``a2assistant update`` retries it. Never raises. The printed line is a protocol: the
     Desktop hand-offs (scripts/desktop-update/posix.sh, windows.ps1) parse ``Update follow-up
     '<step>' did not finish:`` to report every owed step, so keep it one whole line.
     """
@@ -438,7 +438,7 @@ def record_user_action(step: str, reason: str) -> None:
 
     Unlike a follow-up nothing retries it (a stash whose restore conflicted stays parked until the
     user re-applies it), so the run can never be a plain success: it finalizes ``partial`` and
-    ``hermes update`` exits 1, as #122557 established for an unrestored autostash.
+    ``a2assistant update`` exits 1, as #122557 established for an unrestored autostash.
     """
     _record("fact", f"update user action {step}", "user_action", {"step": step, "reason": " ".join(str(reason).split())[:500]})
     persist_running_receipt()
@@ -573,7 +573,7 @@ def _started_by_handoff_partner() -> str | None:
     ours" (update_cmd._record_update_initiator, which runs under the lock) would call every
     refusal Desktop-started. The claim is ours only when it names us as its delegate (the posix and
     Windows hand-offs write that line before the update runs) or names our hand-off partner on
-    line 1 or the delegate line (``HERMES_UPDATE_HANDOFF_PID``, the Tauri updater; our parent, a
+    line 1 or the delegate line (``A2ASSISTANT_UPDATE_HANDOFF_PID``, the Tauri updater; our parent, a
     launcher between the hand-off and us). The marker is read raw: no liveness probe and no
     cleanup (those are lock policy, not a metrics side effect).
     """
@@ -869,7 +869,7 @@ def finalized_receipt(update_id: str) -> Optional[dict[str, Any]]:
 def finalize_pending_update_receipt(exit_code: Optional[int] = None, stop_reason: str = "") -> Optional[Path]:
     """Command-boundary safety net: persist a still-open receipt, if any. Never raises.
 
-    ``hermes update`` has many early ``sys.exit`` paths (preflight refusals, venv-holder refusal,
+    ``a2assistant update`` has many early ``sys.exit`` paths (preflight refusals, venv-holder refusal,
     fetch failure) predating the inner finalize calls; finalizing here means refused/failed runs —
     where a receipt matters most — leave a record. Exit 0/None → ``success``, exit 2 → ``refused``
     (preflight convention), else → ``failed`` (``partial`` when the run committed and only owes a
@@ -926,7 +926,7 @@ def finalize_interrupted_update_receipt(stop_reason: str, *, exit_code: int = 13
     along (the completion child persisted stages this process never saw).
     """
     print("⚠ Interrupted after the code was updated: the new code is in place; its remaining steps are owed "
-          "and the next launch or `hermes update` finishes them.", flush=True)
+          "and the next launch or `a2assistant update` finishes them.", flush=True)
     if _current.get() is None:
         return None
     closed = resume_run_record()
@@ -952,8 +952,8 @@ def settle_latest_receipt_fleet(fleet: list[dict[str, Any]], *, discharges) -> b
     """Record on ``latest.json`` that the fleet it still reports as owed now serves the checkout.
 
     A failed receipt whose plan rows cannot be matched to a live gateway (unknown identity,
-    pre-pull SHAs) keeps ``hermes update`` exiting 1 and every CLI start warning about mixed
-    modules, long after the operator's ``hermes gateway restart`` fixed the fleet (#117051). The
+    pre-pull SHAs) keeps ``a2assistant update`` exiting 1 and every CLI start warning about mixed
+    modules, long after the operator's ``a2assistant gateway restart`` fixed the fleet (#117051). The
     caller has just verified every live row is current at the checkout SHA; persisting that
     matrix as the receipt's post-restart ``fleet`` (and un-flagging ``gateway_restart``) is what
     lets the stale-runtime readers see the recovery. ``discharges(settled_receipt)`` decides on
@@ -1257,7 +1257,7 @@ _FLEET_ROW_UNKNOWN = "  ? {profile} (pid {pid}) — version unknown (gateway pre
 # so the copy does not claim one.
 _FLEET_ROW_IDENTITY_PENDING = (
     "  ? {profile} (pid {pid}) — new pid since the update, code identity not published yet"
-    " — re-check with `hermes gateway status`"
+    " — re-check with `a2assistant gateway status`"
 )
 
 
@@ -1294,7 +1294,7 @@ def print_fleet_version_matrix(fleet: list[dict[str, Any]]) -> bool:
     if RESTART_PENDING_STATE in states:
         print()
         print("  ℹ A restart-pending gateway has not yet been verified on the new code;")
-        print("    check after this update exits with `hermes gateway status`.")
+        print("    check after this update exits with `a2assistant gateway status`.")
     stale_or_down = sum(1 for entry in fleet if entry.get("state") in ("stale", "down"))
     if stale_or_down:
         print()
@@ -1307,6 +1307,6 @@ def print_fleet_version_matrix(fleet: list[dict[str, Any]]) -> bool:
         print()
         print(
             f"⚠ Gateway restart still owed: {stale_or_down} gateway(s) still running the old code (or stopped).")
-        print("  Run `hermes gateway restart` (or `hermes -p <profile> gateway restart` for a named")
-        print("  profile), then `hermes gateway status` to confirm.")
+        print("  Run `a2assistant gateway restart` (or `a2assistant -p <profile> gateway restart` for a named")
+        print("  profile), then `a2assistant gateway status` to confirm.")
     return stale_or_down > 0

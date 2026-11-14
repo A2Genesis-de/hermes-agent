@@ -352,7 +352,7 @@ class GatewayProfileReconcileMixin:
     async def _multiplex_for_added_profile(self) -> bool:
         """Start multiplexing in place when this gateway booted standalone ONLY because the host had
         one profile and a second now exists (#141623). Boot settles the mode once, so without this a
-        profile created afterwards (Desktop's New Agent, ``hermes profile create``) was never served:
+        profile created afterwards (Desktop's New Agent, ``a2assistant profile create``) was never served:
         every ticket, session and delete for it was refused until a manual restart.
 
         No restart and no drain: the launch env is frozen and unscoped secret reads fail closed
@@ -693,7 +693,7 @@ def profile_scoped_chore(runner, chore):
 
 
 def migrate_profile_identity_verb(runner):
-    """Build the ``migrate-profile-identity`` control-verb handler for ``hermes profile rename``
+    """Build the ``migrate-profile-identity`` control-verb handler for ``a2assistant profile rename``
     (#111926). The live multiplexer owns the routing index in memory and writes it back
     periodically, so a CLI-side rewrite of ``agent:<old>:*`` would be clobbered on the next save;
     the CLI therefore asks this process to rekey both durable stores AND ``SessionStore._entries``.
@@ -735,7 +735,7 @@ def migrate_profile_identity_verb(runner):
 
 
 def purge_profile_identity_verb(runner):
-    """Build the ``purge-profile-identity`` control-verb handler for ``hermes profile delete``
+    """Build the ``purge-profile-identity`` control-verb handler for ``a2assistant profile delete``
     (#111926, delete side). The live multiplexer owns the routing index in memory and writes it back
     periodically, so a CLI-side DELETE of ``agent:<name>:*`` rows would be undone by its next save;
     the CLI therefore asks this process to drop the durable rows AND ``SessionStore._entries``.

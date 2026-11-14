@@ -1,10 +1,10 @@
 /**
  * One remote backend per SSH connection, every profile scoped per request.
  *
- * A registry SSH source used to spawn `hermes --profile <p> serve --isolated`
+ * A registry SSH source used to spawn `a2assistant --profile <p> serve --isolated`
  * on the remote for EACH profile opened (one tunnel + one remote process per
- * (connection, profile)). The remote `hermes serve` already multiplexes every
- * profile under its HERMES_HOME the way a URL remote or the local host backend
+ * (connection, profile)). The remote `a2assistant serve` already multiplexes every
+ * profile under its A2ASSISTANT_HOME the way a URL remote or the local host backend
  * does (REST `?profile=`, a host-scoped `/api/ws`), so a named profile rides the
  * connection's default backend as a `sharedRemote` descriptor instead: the
  * first click needs no remote spawn, and a hover/roster sweep cannot fan out

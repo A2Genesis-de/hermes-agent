@@ -1,5 +1,5 @@
 """Unattended-platform runs resolve flagged commands from ``approvals.unattended_mode`` unless a
-client can actually answer the card. The gateway exports ``HERMES_EXEC_ASK=1`` to every session
+client can actually answer the card. The gateway exports ``A2ASSISTANT_EXEC_ASK=1`` to every session
 it runs, so without this a webhook run posted its card to the route's delivery chat (where
 ``/approve`` resolves a different session) and a non-streaming api_server chat parked on a
 ``pending_approval`` its client never sees; both hung for the full approval timeout (#100532)."""
@@ -16,14 +16,14 @@ SESSION = "test-unattended-presence"
 def unattended_session(monkeypatch):
     monkeypatch.setattr(approval_mod, "_YOLO_MODE_FROZEN", False)
     monkeypatch.setattr(approval_context, "_get_approval_mode", lambda: "manual")
-    for var in ("HERMES_CRON_SESSION", "HERMES_GATEWAY_SESSION", "HERMES_INTERACTIVE"):
+    for var in ("A2ASSISTANT_CRON_SESSION", "A2ASSISTANT_GATEWAY_SESSION", "A2ASSISTANT_INTERACTIVE"):
         monkeypatch.delenv(var, raising=False)
-    monkeypatch.setenv("HERMES_EXEC_ASK", "1")
-    monkeypatch.setenv("HERMES_SESSION_KEY", SESSION)
+    monkeypatch.setenv("A2ASSISTANT_EXEC_ASK", "1")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_KEY", SESSION)
     monkeypatch.setattr(approval_mod, "_human_decision",
                         lambda *a, **k: pytest.fail("unanswerable run reached the human approval gate"))
     approval_mod._session_approved.pop(SESSION, None)
-    yield lambda platform: monkeypatch.setenv("HERMES_SESSION_PLATFORM", platform)
+    yield lambda platform: monkeypatch.setenv("A2ASSISTANT_SESSION_PLATFORM", platform)
     approval_mod.unregister_gateway_notify(SESSION)
 
 

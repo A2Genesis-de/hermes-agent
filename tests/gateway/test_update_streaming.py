@@ -1,6 +1,6 @@
 """Tests for /update live streaming, prompt forwarding, and gateway IPC.
 
-Tests the new --gateway mode for hermes update, including:
+Tests the new --gateway mode for a2assistant update, including:
 - _gateway_prompt() file-based IPC
 - _watch_update_progress() output streaming and prompt detection
 - Message interception for update prompt responses
@@ -72,7 +72,7 @@ class TestGatewayPrompt:
         thread = threading.Thread(target=write_response)
         thread.start()
 
-        with patch.dict(os.environ, {"HERMES_HOME": str(hermes_home)}):
+        with patch.dict(os.environ, {"A2ASSISTANT_HOME": str(hermes_home)}):
             from hermes_cli.update_cmd import _gateway_prompt
             result = _gateway_prompt("Restore? [Y/n]", "y", timeout=5.0)
 
@@ -87,7 +87,7 @@ class TestGatewayPrompt:
 # ---------------------------------------------------------------------------
 
 class TestUpdateCommandGatewayFlag:
-    """Verify the gateway spawns hermes update --gateway."""
+    """Verify the gateway spawns a2assistant update --gateway."""
 
     @pytest.mark.asyncio
     @pytest.mark.platforms("linux")

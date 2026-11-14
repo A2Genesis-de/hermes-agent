@@ -138,11 +138,11 @@ def _sibling_adoption(account, monkeypatch, tmp_path):
     """Another profile signed in (account in the shared store); this one adopts it on next use."""
     import os
     from hermes_cli import anon_auth, auth_nous
-    mine, sibling = os.environ["HERMES_HOME"], tmp_path / "sibling-profile"
+    mine, sibling = os.environ["A2ASSISTANT_HOME"], tmp_path / "sibling-profile"
     sibling.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(sibling))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(sibling))
     auth_nous._write_shared_nous_state(account, renewal=False)
-    monkeypatch.setenv("HERMES_HOME", mine)
+    monkeypatch.setenv("A2ASSISTANT_HOME", mine)
     anon_auth.ensure_portal_identity(explicit=True)
 
 
@@ -267,16 +267,16 @@ def test_a_retry_not_yet_due_sends_nothing(portal):
 def test_two_profiles_sharing_one_guest_claim_once(portal, monkeypatch, tmp_path):
     from hermes_cli import anon_auth, guest_handoff
     import os
-    first = os.environ["HERMES_HOME"]
+    first = os.environ["A2ASSISTANT_HOME"]
     second = tmp_path / "second-profile"
     second.mkdir()
     anon = _mint_guest()
-    monkeypatch.setenv("HERMES_HOME", str(second))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(second))
     assert anon_auth.ensure_portal_identity(explicit=True)["anon_token"] == anon   # adopts the guest
 
-    monkeypatch.setenv("HERMES_HOME", first)
+    monkeypatch.setenv("A2ASSISTANT_HOME", first)
     _persist(_account())
-    monkeypatch.setenv("HERMES_HOME", str(second))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(second))
     anon_auth.ensure_portal_identity(explicit=True)      # adopts the account, replacing the guest
 
     assert len(portal.claims) == 1

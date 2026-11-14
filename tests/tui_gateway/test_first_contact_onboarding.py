@@ -29,11 +29,11 @@ def _session(agent, history=None):
 
 @pytest.fixture()
 def onboarding_home(monkeypatch, tmp_path):
-    """A HERMES_HOME whose config.yaml offers profile builds (the default mode)."""
+    """A A2ASSISTANT_HOME whose config.yaml offers profile builds (the default mode)."""
     (tmp_path / "config.yaml").write_text(
         safe_dump({"onboarding": {"profile_build": "ask"}})
     )
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     return tmp_path
 
 

@@ -40,7 +40,7 @@ _sleep = time.sleep
 _monotonic = time.monotonic
 
 _SYNC_INTERVAL_SECONDS = 5.0
-_FORCE_SYNC_ENV = "HERMES_FORCE_FILE_SYNC"
+_FORCE_SYNC_ENV = "A2ASSISTANT_FORCE_FILE_SYNC"
 # Synced-state key no stat result equals (see _plan_sync): forces a content check next sync.
 _RACY_SYNC_KEY = (-1, -1, -1, -1)
 
@@ -215,7 +215,7 @@ class FileSyncManager:
 
     def sync(self, *, force: bool = False) -> None:
         """Run a sync cycle: upload changed files, delete removed files. Rate-limited to once
-        per ``sync_interval`` unless *force* or ``HERMES_FORCE_FILE_SYNC=1``. Transactional:
+        per ``sync_interval`` unless *force* or ``A2ASSISTANT_FORCE_FILE_SYNC=1``. Transactional:
         state is committed only if ALL operations succeed; on failure it rolls back so the
         next cycle retries everything."""
         with self._transaction_lock:
@@ -485,7 +485,7 @@ class FileSyncManager:
                          upload_only_host_paths: set[str] | None = None) -> str | None:
         """Infer a host path for a new remote file by matching path prefixes: an existing
         remote->host pair whose parent directory prefixes *remote_path* gets the same
-        substitution (``/root/.hermes/skills/b.md`` -> ``~/.hermes/skills/b.md``)."""
+        substitution (``/root/.hermes/skills/b.md`` -> ``~/.a2assistant/skills/b.md``)."""
         upload_only_host_paths = upload_only_host_paths or set()
         for host, remote in file_mapping or []:
             if self._is_upload_only_host_path(host, upload_only_host_paths):

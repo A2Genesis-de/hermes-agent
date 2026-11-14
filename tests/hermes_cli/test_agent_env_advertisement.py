@@ -1,4 +1,4 @@
-"""Tests for the AI_AGENT / HERMES_AGENT harness-attribution env vars.
+"""Tests for the AI_AGENT / A2ASSISTANT_AGENT harness-attribution env vars.
 
 Port of earendil-works/pi#7493: entry points advertise the agent harness to
 child processes via the cross-agent ``AI_AGENT`` standard plus a
@@ -13,7 +13,7 @@ The terminal backends additionally export both vars inside every wrapped
 shell command (``BaseEnvironment._wrap_command``) so the marker reaches
 REMOTE backends (Docker/SSH, remote plugin backends) whose exec
 environment does not inherit the Hermes process env, and survives the
-cross-session leak guard that strips ``HERMES_SESSION_*`` from subprocess
+cross-session leak guard that strips ``A2ASSISTANT_SESSION_*`` from subprocess
 envs in engaged multi-session hosts.
 """
 
@@ -29,17 +29,17 @@ HARNESS_ID = "hermes-agent"
 class TestAdvertiseAgentEnv:
     def test_sets_both_vars_when_unset(self, monkeypatch):
         monkeypatch.delenv("AI_AGENT", raising=False)
-        monkeypatch.delenv("HERMES_AGENT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_AGENT", raising=False)
         _advertise_agent_env()
         assert os.environ["AI_AGENT"] == HARNESS_ID
-        assert os.environ["HERMES_AGENT"] == "true"
+        assert os.environ["A2ASSISTANT_AGENT"] == "true"
 
     def test_does_not_clobber_outer_harness(self, monkeypatch):
         monkeypatch.setenv("AI_AGENT", "pi")
-        monkeypatch.delenv("HERMES_AGENT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_AGENT", raising=False)
         _advertise_agent_env()
         assert os.environ["AI_AGENT"] == "pi"
-        assert os.environ["HERMES_AGENT"] == "true"
+        assert os.environ["A2ASSISTANT_AGENT"] == "true"
 
 
 
@@ -61,10 +61,10 @@ class TestWrapCommandAdvertisesHarness:
 
     def test_shell_sets_default_and_preserves_outer(self):
         """Run the wrapped script through real bash both ways."""
-        wrapped = self._wrap('echo "AI=$AI_AGENT HERMES=$HERMES_AGENT"')
+        wrapped = self._wrap('echo "AI=$AI_AGENT HERMES=$A2ASSISTANT_AGENT"')
 
         clean_env = {k: v for k, v in os.environ.items()
-                     if k not in ("AI_AGENT", "HERMES_AGENT")}
+                     if k not in ("AI_AGENT", "A2ASSISTANT_AGENT")}
         out = subprocess.run(
             ["bash", "-c", wrapped], capture_output=True, text=True,
             env=clean_env, timeout=30,
@@ -72,7 +72,7 @@ class TestWrapCommandAdvertisesHarness:
         )
         assert f"AI={HARNESS_ID} HERMES=true" in out.stdout
 
-        outer_env = dict(clean_env, AI_AGENT="pi", HERMES_AGENT="false")
+        outer_env = dict(clean_env, AI_AGENT="pi", A2ASSISTANT_AGENT="false")
         out = subprocess.run(
             ["bash", "-c", wrapped], capture_output=True, text=True,
             env=outer_env, timeout=30,

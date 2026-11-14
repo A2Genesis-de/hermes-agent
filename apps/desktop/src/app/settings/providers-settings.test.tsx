@@ -48,7 +48,7 @@ const { $activeGatewayProfile, $profiles } = await import('@/store/profile')
 
 function provider(id: string, loggedIn: boolean, patch: Partial<OAuthProvider> = {}): OAuthProvider {
   return {
-    cli_command: `hermes auth add ${id}`,
+    cli_command: `a2assistant auth add ${id}`,
     disconnectable: true,
     docs_url: '',
     flow: 'device_code',

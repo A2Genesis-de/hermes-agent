@@ -399,7 +399,7 @@ def test_a_completion_from_another_home_never_builds_an_owned_checkout(tmp_path,
 
     root = tmp_path / "checkout"
     (root / ".git").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "other-home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "other-home"))
     entered = []
     monkeypatch.setattr(source_completion, "_complete_locked", lambda *a, **k: entered.append(a))
     holder = subprocess.Popen([sys.executable, str(_script(tmp_path, _HOLDER)), str(REPO_ROOT), str(root),
@@ -422,7 +422,7 @@ def test_a_live_legacy_profile_claim_is_honored(tmp_path, monkeypatch):
     root = tmp_path / "root"
     profile = root / "profiles" / "work"
     profile.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
     legacy = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"], stdin=subprocess.DEVNULL)
     try:
         (profile / ".hermes-update-in-progress").write_text(f"{legacy.pid}\n{int(time.time())}\n")
@@ -530,7 +530,7 @@ Path(sys.argv[3]).write_text(str(child.pid), encoding="utf-8")
 
 @posix_only
 def test_a_refusal_over_a_dead_updaters_lock_uses_the_held_wording(tmp_path):
-    """m6: `hermes update`, launch repair and source completion refuse through the lock's
+    """m6: `a2assistant update`, launch repair and source completion refuse through the lock's
     holder record. Its updater is dead and a child it started holds the lock: say so, never
     name the dead process."""
     from hermes_cli import update_lock

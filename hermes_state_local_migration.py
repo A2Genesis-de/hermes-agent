@@ -47,7 +47,7 @@ def client_label(source):
 def client_history_row(row):
     """A chat a client app wrote under its own label before ``session.create`` took only surfaces.
 
-    The pre-authority ``hermes serve`` stored whatever ``source`` a client sent, so phone apps signed
+    The pre-authority ``a2assistant serve`` stored whatever ``source`` a client sent, so phone apps signed
     in through the dashboard login left routeless rows labelled ``mobile``, ``ios`` and the like. They
     are the owner's Desktop-style chats: adopted as ``gui``. A routed row is never one, which keeps a
     plugin platform sharing the label (hermes-mobile registers ``mobile``) on its messaging route."""
@@ -74,7 +74,7 @@ def legacy_account_label(row):
 def login_owned_by(row, subject):
     """Whether *subject* owns the login stamp a served dashboard put on this row.
 
-    Older ``hermes serve`` builds stamped the WS-upgrade login as ``<provider>:<user id>``
+    Older ``a2assistant serve`` builds stamped the WS-upgrade login as ``<provider>:<user id>``
     (tui_gateway/session_transports.py), and the gateway stored a Webapp login as its
     ``auth:v1:[...]`` subject. Hermes is single-user and sign-in is owner-only, so both name the
     machine owner: the host owner's subject adopts them (gateway.owner_identity.same_owner).

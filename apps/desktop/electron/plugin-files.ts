@@ -106,7 +106,7 @@ export type PluginFilesRequest =
 export interface PluginFilesDeps {
   /** Electron's userData dir, read lazily (main sets it before `ready`). */
   userDataDir: () => string
-  /** Hermes homes (the resolved HERMES_HOME and the platform defaults). */
+  /** Hermes homes (the resolved A2ASSISTANT_HOME and the platform defaults). */
   protectedRoots: () => string[]
   trashItem: (target: string) => Promise<void>
   platform?: NodeJS.Platform

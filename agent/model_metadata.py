@@ -243,7 +243,7 @@ def _get_endpoint_metadata_cache_path() -> Path:
 
 def _endpoint_disk_cache_get(normalized: str) -> Optional[dict[str, dict[str, Any]]]:
     """Fresh cross-process memo of a remote ``/models`` probe (same TTL as in-memory): one-shot
-    runs (``hermes -q``, cron) start cold and Nous bypasses the persistent context cache, so
+    runs (``a2assistant -q``, cron) start cold and Nous bypasses the persistent context cache, so
     without this every launch paid the live probe. Local endpoints are never memoized."""
     models = _ttl_memo_get(_get_endpoint_metadata_cache_path(), normalized, _ENDPOINT_MODEL_CACHE_TTL, ts_key="at", value_key="models")
     return models if isinstance(models, dict) else None
@@ -624,7 +624,7 @@ def _skip_persistent_context_cache(base_url: str, provider: str) -> bool:
 
 def _is_codex_route(provider: str, base_url: str, custom_providers: list | None) -> bool:
     """True when the request travels the Codex Responses wire regardless of host: the native
-    ``openai-codex`` provider (also behind a ``HERMES_CODEX_BASE_URL`` / ``model.base_url`` proxy)
+    ``openai-codex`` provider (also behind a ``A2ASSISTANT_CODEX_BASE_URL`` / ``model.base_url`` proxy)
     or a custom entry declaring ``api_mode: codex_responses``. The transport, not the hostname,
     decides which window the model actually gets (#116191)."""
     if (provider or "").strip().lower() == "openai-codex":

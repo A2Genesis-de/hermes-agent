@@ -123,8 +123,9 @@ def tracked_files(repo: Path, tree: str | None) -> list[str]:
 
 
 def known_env_names(repo: Path, tree: str | None) -> set[str]:
-    """Every HERMES_* literal in non-test Python of a tree (the HX002 allow set)."""
-    args = ["grep", "-h", "-o", "-I", "-E", r"HERMES_[A-Z0-9_]+"]
+    """Every A2ASSISTANT_* literal in non-test Python of a tree (the HX002 allow set); a legacy
+    HERMES_* literal of an older tree counts under its renamed name."""
+    args = ["grep", "-h", "-o", "-I", "-E", r"(A2ASSISTANT|HERMES)_[A-Z0-9_]+"]
     if tree is not None:
         args.append(tree)
     args += ["--", "*.py", ":!tests/**", ":!**/tests/**"]
@@ -132,5 +133,6 @@ def known_env_names(repo: Path, tree: str | None) -> set[str]:
     names = set()
     for line in out.splitlines():
         # `git grep <tree>` prefixes "<tree>:" even with -h on some versions.
-        names.add(line.rsplit(":", 1)[-1])
+        name = line.rsplit(":", 1)[-1]
+        names.add("A2ASSISTANT_" + name.removeprefix("HERMES_") if name.startswith("HERMES_") else name)
     return names

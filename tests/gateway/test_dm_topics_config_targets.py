@@ -93,7 +93,7 @@ async def test_topic_setup_does_not_mutate_shared_config_cache(tmp_path, monkeyp
     (home / "config.yaml").write_text(
         "platforms:\n  telegram:\n    extra:\n      dm_topics:\n"
         "      - chat_id: 222\n        topics:\n        - name: WEBSITE\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     adapter = TelegramAdapter(PlatformConfig(enabled=True, token="***", extra={
         "dm_topics": [{"chat_id": 222, "topics": [{"name": "WEBSITE"}]}]}))
     adapter._bot = AsyncMock()
@@ -116,7 +116,7 @@ async def test_reconnect_after_failed_save_reuses_the_created_topic(tmp_path, mo
     (home / "config.yaml").write_text(
         "platforms:\n  telegram:\n    extra:\n      dm_topics:\n"
         "      - chat_id: 222\n        topics:\n        - name: WEBSITE\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     adapter = TelegramAdapter(PlatformConfig(enabled=True, token="***", extra={
         "dm_topics": [{"chat_id": 222, "topics": [{"name": "WEBSITE"}]}]}))
     ids = iter((58890, 58891))
@@ -139,7 +139,7 @@ async def test_reconnect_after_failed_save_keeps_the_topic_listed(tmp_path, monk
     (home / "config.yaml").write_text(
         "platforms:\n  telegram:\n    extra:\n      dm_topics:\n"
         "      - chat_id: 222\n        topics:\n        - name: WEBSITE\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     adapter = TelegramAdapter(PlatformConfig(enabled=True, token="***", extra={
         "dm_topics": [{"chat_id": 222, "topics": [{"name": "WEBSITE"}]}]}))
     adapter._bot = AsyncMock()
@@ -185,7 +185,7 @@ async def test_dm_topics_outside_platforms_telegram_extra_are_set_up(tmp_path, m
     home = tmp_path / "hermes"
     home.mkdir()
     (home / "config.yaml").write_text(config_yaml)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", "123:abc")
     boot_config = load_gateway_config().platforms[Platform.TELEGRAM]
     adapters = []
@@ -210,7 +210,7 @@ async def test_saved_thread_id_wins_over_the_boot_snapshot(tmp_path, monkeypatch
     (home / "config.yaml").write_text(
         "platforms:\n  telegram:\n    extra:\n      dm_topics:\n"
         "      - chat_id: 222\n        topics:\n        - name: WEBSITE\n          thread_id: 200\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     adapter = TelegramAdapter(PlatformConfig(enabled=True, token="***", extra={
         "dm_topics": [{"chat_id": 222, "topics": [{"name": "WEBSITE", "thread_id": 100}]}]}))
     adapter._bot = AsyncMock()

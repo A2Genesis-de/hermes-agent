@@ -31,11 +31,11 @@ ZSHRC = (
 
 @pytest.fixture
 def fake_home(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
-    """Point both ``Path.home()`` and ``HERMES_HOME`` at a throwaway dir."""
+    """Point both ``Path.home()`` and ``A2ASSISTANT_HOME`` at a throwaway dir."""
     home = tmp_path / "home"
     home.mkdir()
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: home))
-    monkeypatch.setenv("HERMES_HOME", str(home / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home / ".hermes"))
     return home
 
 

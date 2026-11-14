@@ -23,7 +23,7 @@ def test_launchers_forward_arguments_and_export_payload_environment(tmp_path):
         "import json, os, sys\n"
         "def main():\n"
         "    print(json.dumps({'argv': sys.argv[1:], 'env': {k: os.environ.get(k) for k in "
-        "['HERMES_NODE', 'HERMES_PYTHON', 'HERMES_RUNTIME_DIR', 'PYTHONPATH', 'PYTHONHOME', 'PYTHONPYCACHEPREFIX']}}))\n",
+        "['A2ASSISTANT_NODE', 'A2ASSISTANT_PYTHON', 'A2ASSISTANT_RUNTIME_DIR', 'PYTHONPATH', 'PYTHONHOME', 'PYTHONPYCACHEPREFIX']}}))\n",
         encoding="utf-8",
     )
     (tmp_path / "json.py").write_text("raise RuntimeError('cwd shadowed stdlib')\n", encoding="utf-8")
@@ -43,9 +43,9 @@ def test_launchers_forward_arguments_and_export_payload_environment(tmp_path):
         data = json.loads(result.stdout)
         assert data["argv"] == ["one two", "$(not-executed)", ""]
         env = data["env"]
-        assert Path(env["HERMES_PYTHON"]).resolve() == Path(sys.executable).resolve()
-        assert Path(env["HERMES_NODE"]) == payload / "tools/node/data/data/com.termux/files/usr/bin/node"
-        assert Path(env["HERMES_RUNTIME_DIR"]) == payload / "tools"
+        assert Path(env["A2ASSISTANT_PYTHON"]).resolve() == Path(sys.executable).resolve()
+        assert Path(env["A2ASSISTANT_NODE"]) == payload / "tools/node/data/data/com.termux/files/usr/bin/node"
+        assert Path(env["A2ASSISTANT_RUNTIME_DIR"]) == payload / "tools"
         assert env["PYTHONPATH"].split(os.pathsep)[0] == str(payload / "app")
         assert env["PYTHONHOME"] is None
         assert not Path(env["PYTHONPYCACHEPREFIX"]).is_relative_to(payload)

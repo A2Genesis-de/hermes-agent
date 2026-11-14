@@ -51,7 +51,7 @@ agent:
         encoding="utf-8",
     )
     root.joinpath("config.yaml").write_text("toolsets:\n  - kanban\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
 
     from hermes_cli import kanban_db as kb
     from hermes_cli import kanban_db_dispatch as kbd
@@ -76,11 +76,11 @@ agent:
     pid = kbd._default_spawn(_make_task(kb, assignee="elias"), str(workspace))
 
     assert pid == 4242
-    assert captured["env"]["HERMES_HOME"] == str(profile)
-    assert captured["env"]["HERMES_KANBAN_TASK"] == "t_spawn_tools"
+    assert captured["env"]["A2ASSISTANT_HOME"] == str(profile)
+    assert captured["env"]["A2ASSISTANT_KANBAN_TASK"] == "t_spawn_tools"
     assert captured["cmd"][-2:] == ["-m", "hermes_cli.kanban_worker_client"]
-    assert captured["env"]["HERMES_KANBAN_RUN_ID"] == "7"
-    assert captured["env"]["HERMES_KANBAN_CLAIM_LOCK"] == "lock"
+    assert captured["env"]["A2ASSISTANT_KANBAN_RUN_ID"] == "7"
+    assert captured["env"]["A2ASSISTANT_KANBAN_CLAIM_LOCK"] == "lock"
 
 
 def test_default_spawn_does_not_pass_mutable_launch_overrides(monkeypatch, tmp_path):
@@ -88,7 +88,7 @@ def test_default_spawn_does_not_pass_mutable_launch_overrides(monkeypatch, tmp_p
     root = tmp_path / ".hermes"
     (root / "profiles" / "elias").mkdir(parents=True)
     root.joinpath("config.yaml").write_text("{}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
 
     from hermes_cli import kanban_db as kb
     from hermes_cli import kanban_db_dispatch as kbd
@@ -127,7 +127,7 @@ def test_default_spawn_resolves_env_passthrough_under_multiplex(monkeypatch, tmp
         "terminal:\n  env_passthrough:\n    - MY_PASSTHROUGH_VAR\n", encoding="utf-8")
     profile.joinpath("config.yaml").write_text("{}\n", encoding="utf-8")
     profile.joinpath(".env").write_text("MY_PASSTHROUGH_VAR=elias-value\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("MY_PASSTHROUGH_VAR", "dispatcher-value")
 
     from agent.secret_scope import set_multiplex_active
@@ -176,10 +176,10 @@ def test_worker_toolsets_come_from_the_assignee_profile_not_the_parent_config(tm
 
     profile = tmp_path / "profiles" / "elias"
     profile.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_KANBAN_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
     monkeypatch.setenv("HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("HERMES_KANBAN_DB", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_DB", raising=False)
     monkeypatch.setattr("hermes_cli.profiles.resolve_profile_env", lambda name: str(profile))
     workspace = tmp_path / "workspace"
     workspace.mkdir()

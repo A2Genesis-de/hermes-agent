@@ -20,7 +20,7 @@ from hermes_cli import gateway_connections_reach as reach
 
 @pytest.fixture
 def home(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     return tmp_path
 
 

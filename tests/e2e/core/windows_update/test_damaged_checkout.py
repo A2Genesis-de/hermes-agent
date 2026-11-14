@@ -2,8 +2,8 @@
 
 Failure class: a damaged checkout strands the fleet. A killed update or a sync tool can leave
 ``.git`` in place with ``HEAD`` gone; git then says "not a git repository" to every command.
-``hermes update`` pauses the running gateway before it fetches, so the fetch failure used to
-leave the gateway stopped with a promise that "the next `hermes` command restarts them", which no
+``a2assistant update`` pauses the running gateway before it fetches, so the fetch failure used to
+leave the gateway stopped with a promise that "the next `a2assistant` command restarts them", which no
 command kept while ``HEAD`` stayed unreadable. The user's way out is rerunning the installer, which
 moves the damaged checkout aside and clones fresh.
 """
@@ -54,7 +54,7 @@ def journey(tmp_path_factory):
 def test_update_names_the_damaged_checkout_and_its_repair(journey: Journey) -> None:
     m, run = journey.machine, journey["update"]
     assert run.returncode != 0 and "damaged" in run.stdout and "install.ps1" in run.stdout, fail_with(
-        m, f"hermes update on a checkout git rejects did not name the damage and the installer repair "
+        m, f"a2assistant update on a checkout git rejects did not name the damage and the installer repair "
            f"(rc={run.returncode})", run)
 
 
@@ -73,4 +73,4 @@ def test_rerunning_the_installer_repairs_the_checkout(journey: Journey) -> None:
         m, f"rerunning install.ps1 over the damaged checkout did not repair it (rc={reinstall.returncode}, "
            f"parked={[p.name for p in parked]}, head={head!r})", reinstall)
     assert update.returncode == 0, fail_with(
-        m, f"hermes update after the installer repair exited {update.returncode}", update)
+        m, f"a2assistant update after the installer repair exited {update.returncode}", update)

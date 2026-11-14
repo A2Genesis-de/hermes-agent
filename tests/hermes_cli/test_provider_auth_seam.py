@@ -1,7 +1,7 @@
-"""OAuth-shaped model-provider plugins are first-class in `hermes auth` (#116408).
+"""OAuth-shaped model-provider plugins are first-class in `a2assistant auth` (#116408).
 
-The seam: ``ProviderProfile.auth_handler``. These tests drive the real ``hermes auth`` argparse
-surface against a plugin discovered from an isolated HERMES_HOME, so they fail if the dispatch is
+The seam: ``ProviderProfile.auth_handler``. These tests drive the real ``a2assistant auth`` argparse
+surface against a plugin discovered from an isolated A2ASSISTANT_HOME, so they fail if the dispatch is
 dropped, reordered after the built-in paths, or the registry stops admitting non-api-key profiles.
 """
 
@@ -51,7 +51,7 @@ register_provider(ProviderProfile(name="__NAME__", auth_type="oauth_external",
 
 
 def _rediscover() -> None:
-    """Point the next profile lookup at the (new) HERMES_HOME user plugin dir.
+    """Point the next profile lookup at the (new) A2ASSISTANT_HOME user plugin dir.
 
     Only the discovery flag is cleared: bundled plugin modules stay in
     ``sys.modules`` (so their profiles stay registered) while the user dir is
@@ -67,7 +67,7 @@ def _rediscover() -> None:
 
 @pytest.fixture
 def install_provider(tmp_path, monkeypatch):
-    """Write a model-provider plugin into an isolated HERMES_HOME and discover it."""
+    """Write a model-provider plugin into an isolated A2ASSISTANT_HOME and discover it."""
     installed: list[str] = []
 
     def _install(name: str = "fake-auth", *, with_handler: bool = True) -> Path:
@@ -82,7 +82,7 @@ def install_provider(tmp_path, monkeypatch):
             source = source.replace(", auth_handler=handler", "")
         (plugin_dir / "__init__.py").write_text(source, encoding="utf-8")
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
         monkeypatch.setenv("FAKE_AUTH_LOG", str(tmp_path / "auth-log.jsonl"))
         _rediscover()
         installed.append(name)
@@ -102,7 +102,7 @@ def install_provider(tmp_path, monkeypatch):
 
 
 def _parse_auth_args(argv: list[str]) -> argparse.Namespace:
-    """Parse `hermes auth <argv>` through the real subcommand parser."""
+    """Parse `a2assistant auth <argv>` through the real subcommand parser."""
     from hermes_cli.subcommands.auth import build_auth_parser
 
     parser = argparse.ArgumentParser()
@@ -132,7 +132,7 @@ def _log(tmp_path: Path) -> list[dict]:
     ],
 )
 def test_oauth_plugin_owns_every_auth_action(tmp_path, install_provider, capsys, argv, expected):
-    """An oauth_external plugin registers and `hermes auth <action>` reaches its handler, args included,
+    """An oauth_external plugin registers and `a2assistant auth <action>` reaches its handler, args included,
     before any built-in path (nothing printed, nothing written to the pool)."""
     install_provider()
 
@@ -168,8 +168,8 @@ def test_oauth_plugin_without_handler_fails_loud_and_builtins_are_untouched(tmp_
 
 def test_external_process_plugin_relogin_hint_never_names_a_failing_auth_add(install_provider, monkeypatch):
     """An ``external_process`` plugin with no ``auth_handler`` (its vendor CLI owns sign-in) must not be
-    told to run ``hermes auth add <slug> --type oauth``: that exact command fails loud with "ships no
-    auth_handler". The hint points at ``hermes model``, whose external-process flow runs the CLI login."""
+    told to run ``a2assistant auth add <slug> --type oauth``: that exact command fails loud with "ships no
+    auth_handler". The hint points at ``a2assistant model``, whose external-process flow runs the CLI login."""
     plugin_dir = install_provider("cli-owned", with_handler=False)
     init = plugin_dir / "__init__.py"
     init.write_text(init.read_text(encoding="utf-8").replace(
@@ -185,9 +185,9 @@ def test_external_process_plugin_relogin_hint_never_names_a_failing_auth_add(ins
         auth_command(_parse_auth_args(["add", "cli-owned", "--type", "oauth"]))
     assert "ships no auth_handler" in str(excinfo.value)
 
-    assert oauth_relogin_command("cli-owned") == "hermes model"
+    assert oauth_relogin_command("cli-owned") == "a2assistant model"
     assert "auth add" not in relogin_command_hint("cli-owned")
     # Handler-shipping plugins and built-ins keep their `hermes auth add` command.
     install_provider("fake-auth")
-    assert oauth_relogin_command("fake-auth") == "hermes auth add fake-auth --type oauth"
-    assert oauth_relogin_command("nous") == "hermes portal"
+    assert oauth_relogin_command("fake-auth") == "a2assistant auth add fake-auth --type oauth"
+    assert oauth_relogin_command("nous") == "a2assistant portal"

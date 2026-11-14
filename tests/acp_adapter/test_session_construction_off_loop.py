@@ -129,7 +129,7 @@ def test_import_memory_provider_module_imports_without_constructing(tmp_path, mo
     monkeypatch.syspath_prepend(str(tmp_path / "plugins"))
     monkeypatch.setattr(memory_plugins, "_NATIVE_WARM_IMPORTS", ("_warm_native",), raising=False)
     sys.modules.pop("_warm_native_marker", None)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(memory_plugins, "_external_source_dirs", lambda: [tmp_path / "plugins"])
     sys.modules.pop("_warmprov_marker", None)
     sys.modules.pop("_warmprov_registered", None)

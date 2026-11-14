@@ -205,7 +205,7 @@ def _resolve_platform_config(platform_name, config):
 
 def _not_configured_error(platform_name, platform, entry):
     """Name the resolved home and what each credential source held, so the user edits the file this
-    process actually read (a hardcoded ``~/.hermes`` does not exist on a Windows or profile home)."""
+    process actually read (a hardcoded ``~/.a2assistant`` does not exist on a Windows or profile home)."""
     from agent.secret_scope import load_env_file
     from gateway.config import _getenv
     from hermes_constants import get_hermes_home
@@ -280,7 +280,7 @@ def _home_chat_id(config, platform, platform_name):
     home_env = f"{platform_name.upper()}_HOME_CHANNEL"
     return None, None, (f"No home channel set for {platform_name} to determine where to send the message. "
                   f"Either specify a channel directly with '{platform_name}:CHANNEL_NAME', "
-                  f"or set a home channel via: hermes config set {home_env} <channel_id>")
+                  f"or set a home channel via: a2assistant config set {home_env} <channel_id>")
 
 
 def _mirror_sent_message(platform_name, chat_id, mirror_text, thread_id):
@@ -290,8 +290,8 @@ def _mirror_sent_message(platform_name, chat_id, mirror_text, thread_id):
         from gateway.session_context import get_session_env
         return bool(mirror_to_session(
             platform_name, chat_id, mirror_text, thread_id=thread_id,
-            source_label=get_session_env("HERMES_SESSION_PLATFORM", "cli"),
-            user_id=get_session_env("HERMES_SESSION_USER_ID", "") or None))
+            source_label=get_session_env("A2ASSISTANT_SESSION_PLATFORM", "cli"),
+            user_id=get_session_env("A2ASSISTANT_SESSION_USER_ID", "") or None))
     except Exception:
         return False
 
@@ -314,10 +314,10 @@ def _describe_media_for_mirror(media_files):
 def _maybe_skip_cron_duplicate_send(platform_name: str, chat_id: str, thread_id: str | None):
     """Skip redundant cron send_message calls when the scheduler will auto-deliver there."""
     from gateway.session_context import get_session_env
-    auto_platform = get_session_env("HERMES_CRON_AUTO_DELIVER_PLATFORM", "").strip().lower()
-    auto_chat_id = get_session_env("HERMES_CRON_AUTO_DELIVER_CHAT_ID", "").strip()
+    auto_platform = get_session_env("A2ASSISTANT_CRON_AUTO_DELIVER_PLATFORM", "").strip().lower()
+    auto_chat_id = get_session_env("A2ASSISTANT_CRON_AUTO_DELIVER_CHAT_ID", "").strip()
     if not (auto_platform and auto_chat_id and auto_platform == platform_name and auto_chat_id == str(chat_id)
-            and (get_session_env("HERMES_CRON_AUTO_DELIVER_THREAD_ID", "").strip() or None) == thread_id):
+            and (get_session_env("A2ASSISTANT_CRON_AUTO_DELIVER_THREAD_ID", "").strip() or None) == thread_id):
         return None
     target_label = f"{platform_name}:{chat_id}" + (f":{thread_id}" if thread_id is not None else "")
     return {"success": True, "skipped": True, "reason": "cron_auto_delivery_duplicate_target", "target": target_label,

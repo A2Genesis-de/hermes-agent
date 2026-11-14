@@ -123,8 +123,8 @@ class SessionResumeTooLargeError(ValueError):
         super().__init__(
             f"This session is too long to reload safely ({message_count} messages; limit {limit}). "
             "Start a fresh chat and keep a copy with the dashboard Sessions page's Export action or "
-            "`hermes sessions export --format md --session-id <id>` (neither is capped), or raise the limit "
-            "with `hermes config set sessions.max_resume_messages 0`."
+            "`a2assistant sessions export --format md --session-id <id>` (neither is capped), or raise the limit "
+            "with `a2assistant config set sessions.max_resume_messages 0`."
         )
 
 
@@ -200,7 +200,7 @@ _READ_BUSY_TIMEOUT_S = 5.0
 
 def _default_db_path() -> Path:
     """Default state DB path at CALL time: a re-pointed ``DEFAULT_DB_PATH`` wins, else
-    ``get_hermes_home()`` is resolved fresh (a runtime HERMES_HOME redirect works regardless of import)."""
+    ``get_hermes_home()`` is resolved fresh (a runtime A2ASSISTANT_HOME redirect works regardless of import)."""
     return DEFAULT_DB_PATH if DEFAULT_DB_PATH != _IMPORT_DEFAULT_DB_PATH else get_hermes_home() / "state.db"
 
 
@@ -216,7 +216,7 @@ def _ensure_test_isolation(db_path: Path) -> None:
     (env OR ancestry) resolves a production DB.
 
     Env alone is not enough: a child spawned with a rebuilt environment loses ``PYTEST_*`` and
-    ``HERMES_HOME`` together, which is precisely the state in which it writes to production (#82770).
+    ``A2ASSISTANT_HOME`` together, which is precisely the state in which it writes to production (#82770).
     """
     if _STATE_DB_GUARD_BYPASS or os.environ.get(_STATE_DB_GUARD_BYPASS_ENV) or not _in_test_context():
         return
@@ -235,9 +235,9 @@ def _ensure_test_isolation(db_path: Path) -> None:
             raise RuntimeError(
                 "live-system guard: test attempted to open production "
                 f"state.db at {resolved} (under real A2Assistant root {root}). "
-                "Tests must run against a temporary HERMES_HOME — pass an "
+                "Tests must run against a temporary A2ASSISTANT_HOME — pass an "
                 "explicit tmp db_path or let the hermetic conftest redirect "
-                "HERMES_HOME. If this test genuinely needs the live database, mark it with "
+                "A2ASSISTANT_HOME. If this test genuinely needs the live database, mark it with "
                 "@pytest.mark.live_system_guard_bypass — or, for a spawned "
                 f"child process, export {_STATE_DB_GUARD_BYPASS_ENV}=1 in "
                 "its environment."
@@ -257,7 +257,7 @@ def _secure_state_db_files(db_path: Path, *, create_main: bool = False) -> None:
     connection to the same database. A lock-losing close in one process lets a
     sibling's connection take the shared-memory DMS exclusively at its own
     close, checkpoint, and unlink the sidecars while long-lived holders
-    (gateway, desktop ``hermes serve``) keep using the deleted inodes.
+    (gateway, desktop ``a2assistant serve``) keep using the deleted inodes.
     """
     if os.name == "nt":
         return
@@ -389,7 +389,7 @@ def format_session_db_unavailable(
     surfaces (gateway, TUI) get the one-liner; ``details=True`` (the CLI banner) appends a
     ``Details: <raw cause>`` line for the raw SQLite text. Network filesystems (NFS/SMB/FUSE/ZFS)
     cannot host SQLite's write-ahead log: when the raw cause carries one of those markers the
-    message names the network-drive suspicion, because ``hermes doctor --fix`` cannot repair a
+    message names the network-drive suspicion, because ``a2assistant doctor --fix`` cannot repair a
     mount — only moving the file can."""
     from hermes_constants import profile_cli_selector
 
@@ -432,7 +432,7 @@ def _close_time_checkpoint_configurable() -> bool:
 
 
 def divert_session_transcript_jsonl(session_id: str, messages) -> Optional[Path]:
-    """Append pending messages to HERMES_HOME/sessions/<id>.jsonl (state.db was replaced under a
+    """Append pending messages to A2ASSISTANT_HOME/sessions/<id>.jsonl (state.db was replaced under a
     live process). Returns the path, or None if nothing to write."""
     sid = str(session_id or "").strip()
     if not sid or not messages:
@@ -786,8 +786,8 @@ class SessionDB(
         msg = (
             f"state.db was empty or damaged ({zsize} bytes) and has been {where}; A2Assistant started with a "
             "fresh, empty session database. To bring old sessions back, run "
-            f"`hermes sessions recover --source {qpath or self.db_path} --inspect-only`, or restore a "
-            "snapshot with `/snapshot list` then `/snapshot restore <id>` (terminal `hermes` chat only)."
+            f"`a2assistant sessions recover --source {qpath or self.db_path} --inspect-only`, or restore a "
+            "snapshot with `/snapshot list` then `/snapshot restore <id>` (terminal `a2assistant` chat only)."
         )
         logger.error(msg)
         _set_last_init_error(msg)
@@ -1360,7 +1360,7 @@ class SessionDB(
             "state.db %s reported structural corruption outside the FTS "
             "indexes (%s); quarantining this handle: no further writes, no "
             "automatic reopen, no explicit WAL checkpoint at close. Stop the "
-            "gateway and run `hermes sessions recover --source %s --inspect-only`.", self.db_path, exc,
+            "gateway and run `a2assistant sessions recover --source %s --inspect-only`.", self.db_path, exc,
             self.db_path,
         )
         err = self._corrupt_error()
@@ -1564,7 +1564,7 @@ class SessionDB(
                     logger.warning(
                         "Skipping the close-time WAL checkpoint for %s: this "
                         "handle observed %s. Take a snapshot of state.db, -wal and -shm "
-                        "before restarting, then run `hermes sessions recover --source %s --inspect-only`.",
+                        "before restarting, then run `a2assistant sessions recover --source %s --inspect-only`.",
                         self.db_path, quarantine_reason, self.db_path,
                     )
                 elif not self.read_only and not generation_lost:  # PASSIVE, not TRUNCATE (see docstring)
@@ -1695,7 +1695,7 @@ class SessionDB(
         ``'kanban'``): the transcript of a worker run, not a human conversation (#68779).
 
         Both columns are checked: ``source`` is live routing state the dispatcher tags
-        (``HERMES_SESSION_SOURCE=kanban``) and the legacy retag rewrites, while immutable
+        (``A2ASSISTANT_SESSION_SOURCE=kanban``) and the legacy retag rewrites, while immutable
         ``created_source`` survives later surface flips. The lineage is the VERIFIED
         compression chain (``_resume_lineage_ids``) — exactly the rows a resume loads — so a
         worker transcript stays kanban-owned across rotations, while a delegate/branch child

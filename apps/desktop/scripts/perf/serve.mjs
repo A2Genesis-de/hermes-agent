@@ -2,7 +2,7 @@
 // can attach the harness (`pnpm run perf`) or DevTools to it. Ctrl-C tears it
 // down and removes its temp dirs.
 //
-//   pnpm run perf:serve                # :9222, temp HERMES_HOME + user-data-dir
+//   pnpm run perf:serve                # :9222, temp A2ASSISTANT_HOME + user-data-dir
 //   PERF_PORT=9333 pnpm run perf:serve # custom CDP port
 //
 // This is the isolation seam: because it uses its own --user-data-dir the

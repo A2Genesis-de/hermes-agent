@@ -768,7 +768,7 @@ class SearchMixin:
         return f"\\( {terms} \\) -prune"
 
     def _root_under_hidden_dir(self, path: str) -> bool:
-        """True when the search root or any ancestor is dot-named (``~/.hermes/skills``)."""
+        """True when the search root or any ancestor is dot-named (``~/.a2assistant/skills``)."""
         root = _normalized_filename_search_root(self.env, path or ".", self.cwd)
         return any(part.startswith(".") and part not in (".", "..") for part in root.replace("\\", "/").split("/"))
 

@@ -1,7 +1,7 @@
 """Checkpoint-enablement resolution for TUI-created agents (issue #79625).
 
-Desktop sessions (``hermes serve`` → TUI gateway) never set ``HERMES_TUI_CHECKPOINTS``
-(that env var is only set by the ``hermes --tui --checkpoints`` CLI path), so agent
+Desktop sessions (``a2assistant serve`` → TUI gateway) never set ``A2ASSISTANT_TUI_CHECKPOINTS``
+(that env var is only set by the ``a2assistant --tui --checkpoints`` CLI path), so agent
 creation previously gated filesystem checkpointing on the env var alone and silently
 ignored ``checkpoints.enabled`` in config.yaml. These helpers resolve enablement the
 way the messaging gateway does (``gateway/run.py`` ``_checkpoint_agent_kwargs``):
@@ -32,12 +32,12 @@ def _load_checkpoints_enabled(cfg: dict | None = None) -> bool:
 def resolve_checkpoints_enabled(cfg: dict | None = None) -> bool:
     """Resolve checkpoint enablement with the env-var override first.
 
-    ``HERMES_TUI_CHECKPOINTS`` (set by ``hermes --tui --checkpoints``) is the
+    ``A2ASSISTANT_TUI_CHECKPOINTS`` (set by ``a2assistant --tui --checkpoints``) is the
     explicit opt-in and wins when present; otherwise fall back to the
     ``checkpoints`` config section (issue #79625 — the desktop backend never
     sets the env var, so config was being silently ignored).
     """
-    env_val = os.environ.get("HERMES_TUI_CHECKPOINTS")
+    env_val = os.environ.get("A2ASSISTANT_TUI_CHECKPOINTS")
     if env_val is not None:
         return is_truthy_value(env_val)
     return _load_checkpoints_enabled(cfg)
@@ -54,7 +54,7 @@ def undo_rollback_hint_for(session: dict, target_message: dict, kept_history: li
     """``/undo``'s changed-files line for a sidecar session (``tools/checkpoint_undo_hint.py``): the same
     manager, cwd and container refusal its ``rollback.*`` methods use. None: no line.
 
-    The store is the SESSION's profile's (``_resolve_checkpoint_base`` reads the bound HERMES_HOME), so the
+    The store is the SESSION's profile's (``_resolve_checkpoint_base`` reads the bound A2ASSISTANT_HOME), so the
     whole read runs under that profile's runtime scope: an RPC thread otherwise holds the launch profile's."""
     mgr = getattr(session.get("agent"), "_checkpoint_mgr", None)
     if mgr is None or not mgr.enabled:

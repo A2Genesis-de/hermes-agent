@@ -16,7 +16,7 @@ def home(tmp_path, monkeypatch):
     hermes_home = tmp_path / ".hermes"
     hermes_home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv("ALIAS_HOST_KEY", "sk-alias-env-secret")
     (hermes_home / "config.yaml").write_text(
         "model:\n  provider: custom\n  base_url: http://127.0.0.1:1/v1\n  default: model-main\n"

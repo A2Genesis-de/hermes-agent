@@ -1,4 +1,4 @@
-"""Git worktree isolation for ``hermes -w`` sessions: create, classify, prune.
+"""Git worktree isolation for ``a2assistant -w`` sessions: create, classify, prune.
 
 Every git call goes through ``_git``/``_git_out``/``_git_quiet`` (UTF-8 text, captured,
 bounded timeout). Classification helpers fail SAFE toward "preserve". ``cli`` re-exports
@@ -390,7 +390,7 @@ def _setup_worktree(repo_root: str | None = None, sync_base: bool = True,
     repo_root = repo_root or _git_repo_root()
     if not repo_root:
         _cprint("\033[31m✗ --worktree requires being inside a git repository.\033[0m")
-        print("  cd into your project repo first, then run hermes -w")
+        print("  cd into your project repo first, then run a2assistant -w")
         return None
 
     wt_name = ((name and re.sub(r"[^A-Za-z0-9._-]+", "-", name).strip("-._")[:40])
@@ -923,7 +923,7 @@ def _worktree_lock_is_live(repo_root: str, worktree_path: str, timeout: int = 10
     its terminal (SIGHUP skips the exit re-lock) still keeps the tree while a resumable session's
     row cwd is inside it. A classic ``-w`` row's cwd is the repo root: its tree is only recorded,
     and a reaped clean one is recreated on resume. Fails SAFE toward "live", including a
-    ``hermes`` reason this version cannot parse.
+    ``a2assistant`` reason this version cannot parse.
     """
     try:
         found, reason = _worktree_lock_reason(repo_root, worktree_path, timeout)
@@ -1170,7 +1170,7 @@ def _prune_stale_worktree_trees(repo_root: str, max_age_hours: int) -> None:
 
     if preserved_stale:
         logger.warning("Preserving %d worktree(s) older than 7 days with unmerged work "
-                       "(run `hermes worktree prune` to review and reclaim): %s",
+                       "(run `a2assistant worktree prune` to review and reclaim): %s",
                        len(preserved_stale), ", ".join(sorted(preserved_stale)))
 
     _prune_orphaned_branches(repo_root, protect=kept_branches)
@@ -1185,8 +1185,8 @@ def _warn_worktree_footprint(repo_root: str) -> None:
         count, size_mb = worktrees_summary(repo_root, size_below_count=10)
         if count >= 10 or (size_mb or 0) >= 5120:
             size_txt = f" ({size_mb / 1024:.1f}GB)" if size_mb else ""
-            logger.warning(".worktrees/ holds %d tree(s)%s — run `hermes worktree list` "
-                           "to audit and `hermes worktree prune` to reclaim safely.", count, size_txt)
+            logger.warning(".worktrees/ holds %d tree(s)%s — run `a2assistant worktree list` "
+                           "to audit and `a2assistant worktree prune` to reclaim safely.", count, size_txt)
     except Exception:
         logger.debug("worktree summary failed", exc_info=True)
 

@@ -604,7 +604,7 @@ export async function fetchRegistrySessionRows(
         return
       }
 
-      // SSH, remote, and cloud hosts share one HERMES_HOME across their
+      // SSH, remote, and cloud hosts share one A2ASSISTANT_HOME across their
       // profile descriptors. Read the aggregate once through the first
       // connected backend and preserve the profile labels returned by it.
       const shared = source.backends[0]
@@ -936,7 +936,7 @@ export async function fetchRemoteProfileSessions(
 ): Promise<SessionListResponse> {
   const params = new URLSearchParams(searchParams)
   // #64999: a per-profile override can point at a MULTI-profile backend — one
-  // `hermes serve` hosting several profiles — and an unscoped /api/sessions
+  // `a2assistant serve` hosting several profiles — and an unscoped /api/sessions
   // reads whichever profile the backend process was launched under. Name the
   // scope so the rows provably belong to it; the remote's own stamps then
   // carry the authoritative identity (main.ts no longer relabels).
@@ -1717,7 +1717,7 @@ export async function fetchAllProfilesAggregatePerProfile(
 
 /** Which registry connection the primary session aggregate reads: the registry id stamped on a
  *  remote primary's descriptor, or this device when the descriptor is a local backend. A remote
- *  primary with no registry id (`HERMES_DESKTOP_REMOTE_URL`) or an unreadable descriptor is
+ *  primary with no registry id (`A2ASSISTANT_DESKTOP_REMOTE_URL`) or an unreadable descriptor is
  *  `null`: its rows stay untagged rather than being sent to a local backend that lacks them.
  *  `resolve` must be passive, so a sidebar refresh never spawns or dials for it. */
 export async function primaryAggregateConnectionId(resolve: () => Promise<unknown>): Promise<null | string> {

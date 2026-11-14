@@ -20,7 +20,7 @@ import { loadNativeTokenSet, persistNativeTokenSet } from './native-token-store'
 // Desktop (this module) and the Webapp's Python server (hermes_cli/gateway_connections.py)
 // keep ONE saved-gateways list. Existing Desktop users must keep everything on the move.
 const repo = path.resolve(import.meta.dirname, '../../..')
-const python = process.env.HERMES_PYTHON || 'python3'
+const python = process.env.A2ASSISTANT_PYTHON || 'python3'
 
 const fixture = JSON.parse(
   fs.readFileSync(path.join(repo, 'tests/fixtures/gateway_connections/normalize_cases.json'), 'utf8')
@@ -331,7 +331,7 @@ test('the Python writer and this module share one file, one lock and each otherâ
   const seen = store.read()
   store.write({ ...seen, connections: [...seen.connections, { id: 'desk', kind: 'ssh', label: 'Desk', host: 'd' }] })
 
-  const env = { HERMES_HOME: root, HOME: dir, PATH: process.env.PATH, PYTHONPATH: repo }
+  const env = { A2ASSISTANT_HOME: root, HOME: dir, PATH: process.env.PATH, PYTHONPATH: repo }
 
   const script = [
     'from hermes_cli import gateway_connections as g',

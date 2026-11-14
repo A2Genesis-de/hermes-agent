@@ -24,7 +24,7 @@ pytestmark = pytest.mark.platforms("windows")  # live Windows background-executo
 
 @pytest.fixture()
 def registry(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes-home"))
     import tools.process_registry as pr
 
     reg = pr.ProcessRegistry()

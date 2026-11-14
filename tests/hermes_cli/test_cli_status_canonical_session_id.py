@@ -3,8 +3,8 @@
 Main printed the ``YYYYMMDD_HHMMSS_<hex>`` id it minted itself. Under the one gateway the
 session row's only id is the canonical ``local-`` + sha256 receipt identity (``local_identity``);
 no legacy alias exists to print. ``/status`` shows that full id because it is the value every
-other surface uses for the same session: the exit epilogue's ``hermes --resume <id>``, the TUI
-and gateway ``/status``, ``hermes sessions list`` and ``state.db``. A shortened or reformatted
+other surface uses for the same session: the exit epilogue's ``a2assistant --resume <id>``, the TUI
+and gateway ``/status``, ``a2assistant sessions list`` and ``state.db``. A shortened or reformatted
 id would be one more spelling that a user copies and the resolver may not accept.
 """
 
@@ -43,7 +43,7 @@ def test_status_prints_the_full_canonical_id_that_resume_accepts(tmp_path, monke
     assert "T16 canonical id" in text
 
     # The printed id is what `hermes --resume <id>` takes, unshortened and unchanged.
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from hermes_cli import main as hermes_main
 
     monkeypatch.setattr(hermes_main, "get_hermes_home", lambda: tmp_path, raising=False)

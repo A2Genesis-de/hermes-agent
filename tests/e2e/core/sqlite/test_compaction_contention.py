@@ -132,7 +132,7 @@ def rig(request, tmp_path_factory):
     for home in (ch.hermes_home, tui_home / ".hermes"):
         cfg = home / "config.yaml"
         cfg.write_text(cfg.read_text(encoding="utf-8").replace(ctx, "  context_length: 64000\n"), encoding="utf-8")
-    yield Rig(ch, server, aux, {"HOME": str(tui_home), "HERMES_HOME": str(tui_home / ".hermes")})
+    yield Rig(ch, server, aux, {"HOME": str(tui_home), "A2ASSISTANT_HOME": str(tui_home / ".hermes")})
     ch.shutdown()
     server.stop()
 

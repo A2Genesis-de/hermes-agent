@@ -1,5 +1,5 @@
 """Tests for kanban DB corruption repair, backup retention, WAL checkpointing,
-and the ``hermes kanban repair`` CLI verb."""
+and the ``a2assistant kanban repair`` CLI verb."""
 
 from __future__ import annotations
 
@@ -203,7 +203,7 @@ def test_dispatch_tick_runs_wal_checkpoint_at_interval(tmp_path, monkeypatch):
     interval elapses the next tick checkpoints again."""
     db_path = tmp_path / "kanban.db"
     _build_board_db(db_path, tasks=1)
-    monkeypatch.setenv("HERMES_KANBAN_DB", str(db_path))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_DB", str(db_path))
     # Fresh per-path clock so previous tests can't have claimed the slot.
     monkeypatch.setattr(kbc, "_LAST_WAL_CHECKPOINT", {})
 
@@ -243,7 +243,7 @@ def test_dispatch_tick_runs_wal_checkpoint_at_interval(tmp_path, monkeypatch):
 # ---------------------------------------------------------------------------
 
 def _run_kanban_cli(argv: list[str]) -> int:
-    """Drive the real argparse surface exactly like `hermes kanban …`."""
+    """Drive the real argparse surface exactly like `a2assistant kanban …`."""
     import argparse
 
     from hermes_cli import kanban as kc
@@ -257,10 +257,10 @@ def _run_kanban_cli(argv: list[str]) -> int:
 
 @pytest.fixture
 def cli_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME so kanban_db_path() resolves inside tmp_path."""
+    """Isolated A2ASSISTANT_HOME so kanban_db_path() resolves inside tmp_path."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     return home
 

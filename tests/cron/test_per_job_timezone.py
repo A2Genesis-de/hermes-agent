@@ -34,8 +34,8 @@ DAILY_9AM = "0 9 * * *"
 
 @pytest.fixture
 def la_profile(monkeypatch):
-    """Configure the profile zone the way production does: ``HERMES_TIMEZONE`` + cache reset."""
-    monkeypatch.setenv("HERMES_TIMEZONE", "America/Los_Angeles")
+    """Configure the profile zone the way production does: ``A2ASSISTANT_TIMEZONE`` + cache reset."""
+    monkeypatch.setenv("A2ASSISTANT_TIMEZONE", "America/Los_Angeles")
     hermes_time.reset_cache()
     yield LA
     hermes_time.reset_cache()
@@ -44,7 +44,7 @@ def la_profile(monkeypatch):
 @pytest.fixture
 def cron_store(tmp_path, monkeypatch):
     """Isolated store + a frozen clock the test moves explicitly."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     class Clock:
         instant = datetime(2026, 10, 22, 12, 0, tzinfo=NY)

@@ -300,7 +300,7 @@ def new_env_var(tree: ast.Module, ctx: Ctx) -> Iterable[int]:
     for node in ast.walk(tree):
         read = _env_read_name(node)
         names = [read] if read else _env_write_names(node)
-        if any(n.startswith("HERMES_") and n not in ctx.known_env for n in names):
+        if any(n.startswith("A2ASSISTANT_") and n not in ctx.known_env for n in names):
             yield getattr(node, "lineno", 0)
 
 

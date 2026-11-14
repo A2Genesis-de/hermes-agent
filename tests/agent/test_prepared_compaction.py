@@ -137,7 +137,7 @@ def test_config_flag_reaches_the_compressor_through_the_loader(tmp_path, monkeyp
     home = tmp_path / "profile"
     home.mkdir()
     (home / "config.yaml").write_text("compression:\n  prepare_ahead: true\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     assert _parse_compression_config(agent, load_config_readonly()).prepare_ahead is True
 
 
@@ -658,7 +658,7 @@ def test_turn_that_crosses_the_trigger_splices_the_summary_prepared_during_its_t
     from run_agent import AIAgent
 
     if prepare_ahead:
-        Path(os.environ["HERMES_HOME"], "config.yaml").write_text(
+        Path(os.environ["A2ASSISTANT_HOME"], "config.yaml").write_text(
             "compression:\n  prepare_ahead: true\n", encoding="utf-8",
         )
     tool_defs = [{"type": "function", "function": {

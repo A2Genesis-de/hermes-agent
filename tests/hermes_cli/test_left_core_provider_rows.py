@@ -25,7 +25,7 @@ ACME = lcm.LeftCoreFeature(
 @pytest.fixture(autouse=True)
 def _fresh(monkeypatch):
     monkeypatch.setattr(lcm, "_attempted", set())
-    for name in ("HERMES_INFERENCE_PROVIDER", "COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN", "ACME_CLI_PATH"):
+    for name in ("A2ASSISTANT_INFERENCE_PROVIDER", "COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN", "ACME_CLI_PATH"):
         monkeypatch.delenv(name, raising=False)
     import hermes_cli.memory_provider_migration as mpm
     monkeypatch.setattr(mpm, "catalog_source", lambda name: name)  # never the network
@@ -58,7 +58,7 @@ def _home(tmp_path: Path, *, env: str = "", config: str = "", auth: dict | None 
     ("delegation:\n  fallback_providers:\n    - provider: copilot\n      model: gpt-5.4\n", "", None, None),
     ("moa:\n  presets:\n    mine:\n      reference_models:\n        - provider: copilot\n          model: gpt-5.4\n"
      "      aggregator:\n        provider: nous\n        model: hermes-4\n", "", None, None),
-    ("", "HERMES_INFERENCE_PROVIDER=copilot\n", None, None),
+    ("", "A2ASSISTANT_INFERENCE_PROVIDER=copilot\n", None, None),
     ("", "", {"active_provider": "copilot"}, None),
     ("", "", None, [{"id": "j1", "provider": "copilot", "model": "gpt-5.4"}]),
     ("cron:\n  model: gpt-5.4\n  model_provider: copilot\n", "", None, None),
@@ -89,8 +89,8 @@ def test_copilot_credentials_alone_are_not_use(tmp_path, config, env, auth):
 
 def test_process_env_provider_counts_only_for_the_launch_home(tmp_path, monkeypatch):
     home = _home(tmp_path, config="model:\n  provider: nous\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_INFERENCE_PROVIDER", "copilot")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_INFERENCE_PROVIDER", "copilot")
     assert lcm.copilot_in_use(home) is False
     assert lcm.copilot_in_use(home, process_env=True) is True
 
@@ -111,7 +111,7 @@ _GH_ONLY = {"credential_pool": {"copilot": [{"source": "gh_cli", "label": "gh au
 def test_relogin_notice_only_for_a_copilot_home_without_a_token_the_plugin_reads(tmp_path, config, env, auth,
                                                                                   notice):
     text = lcm.copilot_relogin_notice(_home(tmp_path, config=config, env=env, auth=auth))
-    assert ("hermes auth add copilot" in text) is notice
+    assert ("a2assistant auth add copilot" in text) is notice
 
 
 def test_gh_only_home_is_told_to_log_in_on_every_migration_outcome(tmp_path):
@@ -123,20 +123,20 @@ def test_gh_only_home_is_told_to_log_in_on_every_migration_outcome(tmp_path):
         return {"ok": True}
 
     assert lcm.migrate_home(home, install=install, say=said.append) == ["github-copilot"]
-    assert "✓ GitHub Copilot moved out of core" in said[0] and "run `hermes auth add copilot`" in said[0]
+    assert "✓ GitHub Copilot moved out of core" in said[0] and "run `a2assistant auth add copilot`" in said[0]
     other = _home(tmp_path / "b", config="model:\n  provider: copilot\n", auth=_GH_ONLY)
     said.clear()
     lcm.migrate_home(other, install=lambda name: {"ok": False, "error": "network down"}, say=said.append)
-    assert "could not be installed automatically" in said[0] and "run `hermes auth add copilot`" in said[0]
+    assert "could not be installed automatically" in said[0] and "run `a2assistant auth add copilot`" in said[0]
 
 
 def test_update_reads_the_launch_homes_exported_token_for_the_relogin_notice(tmp_path, monkeypatch):
-    """`hermes update` from a shell that exports GH_TOKEN: the launch home's agent will read it, so no
+    """`a2assistant update` from a shell that exports GH_TOKEN: the launch home's agent will read it, so no
     "sign in again" notice; a sibling profile never sees the launch shell's env."""
     import pm.plugins_state as ps
     launch, other = (_home(tmp_path / name, config="model:\n  provider: copilot\n").rename(tmp_path / name / name)
                      for name in ("launch", "other"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("GH_TOKEN", "gho_exported")
     monkeypatch.setattr(ps, "dependency_homes", lambda: [launch, other])
     monkeypatch.setattr(lcm, "_home_consent", lambda home: True)
@@ -148,8 +148,8 @@ def test_update_reads_the_launch_homes_exported_token_for_the_relogin_notice(tmp
     lcm.migrate_all_homes(say=said.append)
     by_home = {h: " ".join(m for m in said if lcm._home_label(h) in m) for h in (launch, other)}
     assert "✓ GitHub Copilot moved out of core" in by_home[launch]
-    assert "run `hermes auth add copilot`" not in by_home[launch]
-    assert "run `hermes auth add copilot`" in by_home[other]
+    assert "run `a2assistant auth add copilot`" not in by_home[launch]
+    assert "run `a2assistant auth add copilot`" in by_home[other]
 
 
 # ── generic seams through a fake row ─────────────────────────────────────────────────────────────
@@ -159,7 +159,7 @@ def test_update_reads_the_launch_homes_exported_token_for_the_relogin_notice(tmp
 def acme_row(monkeypatch, tmp_path):
     monkeypatch.setattr(lcm, "LEFT_CORE", (ACME,))
     home = _home(tmp_path, config="model:\n  provider: acme\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     import providers
     monkeypatch.setattr(providers, "get_provider_profile", lambda name: None)
     return home
@@ -174,11 +174,11 @@ def test_unknown_left_core_provider_names_the_install_on_every_surface(acme_row)
         resolve_provider("acme-acp")
     for text in (str(err.value), str(_unknown_provider_exit("acme")), _unknown_provider_message("ACME")):
         assert "Acme LLM moved out of core into the 'acme-llm' plugin" in text
-        assert "hermes plugins install acme-llm" in text
+        assert "a2assistant plugins install acme-llm" in text
     (acme_row / "plugins" / "acme-llm").mkdir(parents=True)
     (acme_row / "config.yaml").write_text("model:\n  provider: acme\nplugins:\n  disabled: [acme-llm]\n",
                                           encoding="utf-8")
-    assert "hermes plugins enable acme-llm" in lcm.provider_install_hint("acme")  # installed but disabled
+    assert "a2assistant plugins enable acme-llm" in lcm.provider_install_hint("acme")  # installed but disabled
     assert lcm.provider_install_hint("other") == ""
 
 
@@ -192,7 +192,7 @@ def test_a_provider_plugin_that_failed_to_load_gets_its_error_not_enable(acme_ro
     (plugin / "__init__.py").write_text("from acme_sdk import client\n", encoding="utf-8")
     (acme_row / "config.yaml").write_text("model:\n  provider: acme\n" + listed, encoding="utf-8")
     hint = lcm.provider_install_hint("acme")
-    assert "ModuleNotFoundError: No module named 'acme_sdk'" in hint and "hermes plugins update acme-llm" in hint
+    assert "ModuleNotFoundError: No module named 'acme_sdk'" in hint and "a2assistant plugins update acme-llm" in hint
     assert "enable" not in hint
 
 
@@ -231,11 +231,11 @@ def test_copilot_launch_names_stay_refused_and_its_base_url_writable(tmp_path, m
     from hermes_cli.config import validate_env_var_name_for_write
     import providers
     home = _home(tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(providers, "list_providers", list)  # no profile registered: plugin not loaded
     if plugin_dir:
         (home / "plugins" / "github-copilot").mkdir(parents=True)
-    for name in ("HERMES_COPILOT_ACP_COMMAND", "HERMES_COPILOT_ACP_ARGS", "COPILOT_CLI_PATH"):
+    for name in ("A2ASSISTANT_COPILOT_ACP_COMMAND", "A2ASSISTANT_COPILOT_ACP_ARGS", "COPILOT_CLI_PATH"):
         with pytest.raises(ValueError, match="denylist"):
             validate_env_var_name_for_write(name)
     validate_env_var_name_for_write("COPILOT_ACP_BASE_URL")
@@ -312,7 +312,7 @@ def test_a_request_rejected_at_the_rows_host_names_the_install(acme_row, monkeyp
             api_kwargs=None, api_messages=[], messages=[], conversation_history=None, api_call_count=1,
             approx_tokens=10, provider="custom", base_url=base_url, model="m")
         return "\n".join(printed)
-    assert "hermes plugins install acme-llm" in reject("https://api.eu.acme.test/v1")
+    assert "a2assistant plugins install acme-llm" in reject("https://api.eu.acme.test/v1")
     assert "acme-llm" not in reject("https://api.other.test/v1")
     import providers
     monkeypatch.setattr(providers, "get_provider_profile", lambda name: object())  # the plugin is loaded

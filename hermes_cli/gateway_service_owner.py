@@ -1,14 +1,14 @@
 """Who may write a gateway service definition (systemd unit, launchd plist).
 
-A service definition pins the ``HERMES_HOME`` its gateway runs with. Service names are derived from the
+A service definition pins the ``A2ASSISTANT_HOME`` its gateway runs with. Service names are derived from the
 home (bare / profile name / path hash), and two homes can still resolve to the same name: a custom root's
-``<root>/profiles/<name>`` takes the same ``hermes-gateway-<name>`` unit as ``~/.hermes/profiles/<name>``.
+``<root>/profiles/<name>`` takes the same ``a2assistant-gateway-<name>`` unit as ``~/.a2assistant/profiles/<name>``.
 Every gateway boot refreshes "its" unit, so a scratch or E2E gateway started from such a home rewrote the
 real install's unit to point at the scratch directory, and the real gateway failed on its next restart.
 
 The rule: a definition that pins a home is written only by a process acting for that home. Uninstall
 already refused a unit pinning another home (``_systemd_unit_belongs_to_current_home``); the writers now
-refuse the same way. ``hermes gateway install --force-unit-path`` is the explicit repoint.
+refuse the same way. ``a2assistant gateway install --force-unit-path`` is the explicit repoint.
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from xml.parsers.expat import ExpatError
 
 
 def pinned_home(definition_path: Path) -> str | None:
-    """``HERMES_HOME`` pinned by the systemd unit or launchd plist at *definition_path*, or None."""
+    """``A2ASSISTANT_HOME`` pinned by the systemd unit or launchd plist at *definition_path*, or None."""
     if definition_path.suffix == ".plist":
         try:
             with definition_path.open("rb") as fh:
@@ -29,7 +29,7 @@ def pinned_home(definition_path: Path) -> str | None:
         except (OSError, ValueError, ExpatError):  # unreadable / not a plist: pins nobody
             return None
         env = data.get("EnvironmentVariables") if isinstance(data, dict) else None
-        value = env.get("HERMES_HOME") if isinstance(env, dict) else None
+        value = env.get("A2ASSISTANT_HOME") if isinstance(env, dict) else None
         return (str(value).strip() or None) if value is not None else None
     from hermes_cli import gateway as gw
     return gw._hermes_home_pinned_by_unit(definition_path)
@@ -43,9 +43,9 @@ def _resolve(raw: str | Path) -> Path | None:
 
 
 def service_home_for_unit(unit_path: Path, system: bool) -> Path:
-    """The ``HERMES_HOME`` this process acts for when it writes the systemd unit at *unit_path*.
+    """The ``A2ASSISTANT_HOME`` this process acts for when it writes the systemd unit at *unit_path*.
 
-    User scope: its own home. System scope: an explicit ``HERMES_HOME`` remapped to the unit's ``User=``
+    User scope: its own home. System scope: an explicit ``A2ASSISTANT_HOME`` remapped to the unit's ``User=``
     account the way ``generate_systemd_unit`` pins it; with none (``sudo`` strips it, HOME=/root), the
     unit's own pinned home, which is the only thing naming the install being operated on. Pure: it never
     adopts the unit's home into ``os.environ``, so a check on this value compares caller and unit.
@@ -54,7 +54,7 @@ def service_home_for_unit(unit_path: Path, system: bool) -> Path:
 
     if not system:
         return gw.get_hermes_home()
-    if not os.environ.get("HERMES_HOME", "").strip():
+    if not os.environ.get("A2ASSISTANT_HOME", "").strip():
         pinned = pinned_home(unit_path) if unit_path.exists() else None
         return Path(pinned).expanduser() if pinned else gw.get_hermes_home()
     user = gw._read_systemd_user_from_unit(unit_path)
@@ -68,7 +68,7 @@ def service_home_for_unit(unit_path: Path, system: bool) -> Path:
 
 
 def definition_belongs_to_home(definition_path: Path, home: Path, action: str) -> bool:
-    """False (with guidance printed) when the existing definition pins a ``HERMES_HOME`` other than *home*.
+    """False (with guidance printed) when the existing definition pins a ``A2ASSISTANT_HOME`` other than *home*.
 
     A missing definition, or one that pins no home (hand-written, pre-pinning), belongs to nobody else.
     """
@@ -77,10 +77,10 @@ def definition_belongs_to_home(definition_path: Path, home: Path, action: str) -
     raw = pinned_home(definition_path)
     if raw is None or _resolve(raw) == _resolve(home):
         return True
-    print(f"✗ Refusing to {action} {definition_path}: it runs HERMES_HOME={raw}, "
-          f"but this process has HERMES_HOME={home}.")
+    print(f"✗ Refusing to {action} {definition_path}: it runs A2ASSISTANT_HOME={raw}, "
+          f"but this process has A2ASSISTANT_HOME={home}.")
     print("  That file is another install's gateway. Use that install, or pass --force-unit-path")
-    print("  to `hermes gateway install` if you really mean to repoint it at this home.")
+    print("  to `a2assistant gateway install` if you really mean to repoint it at this home.")
     return False
 
 
@@ -99,9 +99,9 @@ def unit_belongs_to_caller(unit_path: Path, system: bool, action: str, run_as_us
 
 
 def foreign_systemd_unit_home(system: bool) -> str | None:
-    """``HERMES_HOME`` of the unit at this scope when it belongs to ANOTHER install, else None.
+    """``A2ASSISTANT_HOME`` of the unit at this scope when it belongs to ANOTHER install, else None.
 
-    A throwaway ``HOME`` used to resolve the bare ``hermes-gateway`` name (its ``.hermes`` looked native) and
+    A throwaway ``HOME`` used to resolve the bare ``a2assistant-gateway`` name (its ``.hermes`` looked native) and
     reach the account's real unit — user scope through the account-anchored unit dir, system scope
     because system units are global. Naming now follows the account home, but two homes can still share
     a name (a custom root's ``profiles/<name>``, a pre-pinning unit), so every systemd verb asks this.
@@ -137,27 +137,27 @@ def refuse_foreign_systemd_unit(action: str, system: bool) -> None:
         return
     gw.print_error(
         f"Refusing to {action} {gw.get_service_name()}: that {gw._service_scope_label(system)} unit runs "
-        f"HERMES_HOME={unit_home}, but this process has HERMES_HOME={gw.get_hermes_home()}.\n"
-        f"It belongs to another A2Assistant install. Run this from that install's HERMES_HOME."
+        f"A2ASSISTANT_HOME={unit_home}, but this process has A2ASSISTANT_HOME={gw.get_hermes_home()}.\n"
+        f"It belongs to another A2Assistant install. Run this from that install's A2ASSISTANT_HOME."
     )
     sys.exit(1)
 
 
 def refuse_foreign_launchd_plist(verb: str) -> None:
     """The launchd half of ``refuse_foreign_systemd_unit``: exit 1 rather than start/stop/restart/remove a
-    LaunchAgent pinning another HERMES_HOME. (Windows task names derive from LOCALAPPDATA, not HOME.)"""
+    LaunchAgent pinning another A2ASSISTANT_HOME. (Windows task names derive from LOCALAPPDATA, not HOME.)"""
     from hermes_cli import gateway as gw
     if not definition_belongs_to_home(gw.get_launchd_plist_path(), gw.get_hermes_home(), verb):
         sys.exit(1)
 
 
 def service_definition_homes(definition: str) -> list[str]:
-    """Every HERMES_HOME a gateway service definition sets: systemd ``Environment=``, launchd
+    """Every A2ASSISTANT_HOME a gateway service definition sets: systemd ``Environment=``, launchd
     ``EnvironmentVariables``, the Windows ``gateway.cmd`` ``set`` line and the ``gateway.vbs`` env item."""
     import re
-    homes = re.findall(r'HERMES_HOME=([^"\r\n]+)', definition)
-    homes += re.findall(r"<key>HERMES_HOME</key>\s*<string>(.*?)</string>", definition, flags=re.DOTALL)
-    homes += re.findall(r'Item\("HERMES_HOME"\)\s*=\s*"([^"\r\n]+)"', definition)
+    homes = re.findall(r'A2ASSISTANT_HOME=([^"\r\n]+)', definition)
+    homes += re.findall(r"<key>A2ASSISTANT_HOME</key>\s*<string>(.*?)</string>", definition, flags=re.DOTALL)
+    homes += re.findall(r'Item\("A2ASSISTANT_HOME"\)\s*=\s*"([^"\r\n]+)"', definition)
     return homes
 
 
@@ -170,7 +170,7 @@ def service_definition_launchers(definition: str) -> list[str]:
 
 
 def temp_home_in_service_definition(definition: str) -> str | None:
-    """Temp-dir HERMES_HOME baked into a systemd unit / launchd plist, or None. A temp home means a
+    """Temp-dir A2ASSISTANT_HOME baked into a systemd unit / launchd plist, or None. A temp home means a
     test/E2E harness generated it; installing it leaves the gateway "running" but deaf to every platform."""
     import tempfile
     candidates = service_definition_homes(definition)
@@ -189,13 +189,13 @@ def temp_home_in_service_definition(definition: str) -> str | None:
 
 
 def refuse_temp_home_service_write(definition: str, kind: str) -> bool:
-    """Refuse (with guidance) when a service definition carries a temp HERMES_HOME."""
+    """Refuse (with guidance) when a service definition carries a temp A2ASSISTANT_HOME."""
     temp_home = temp_home_in_service_definition(definition)
     if temp_home is None:
         return False
-    print(f"✗ Refusing to write the gateway {kind}: HERMES_HOME resolves to a temporary directory ({temp_home}).")
+    print(f"✗ Refusing to write the gateway {kind}: A2ASSISTANT_HOME resolves to a temporary directory ({temp_home}).")
     print(
-        "  This usually means a test/E2E environment exported HERMES_HOME. "
+        "  This usually means a test/E2E environment exported A2ASSISTANT_HOME. "
         "Unset it (or run from a clean shell) and retry."
     )
     return True

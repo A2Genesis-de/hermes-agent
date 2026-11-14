@@ -57,7 +57,7 @@ secrets:
         text=True,
         timeout=120,
         cwd=REPO_ROOT,
-        env={**os.environ, "HERMES_HOME": str(home), "BWS_ACCESS_TOKEN": ""},
+        env={**os.environ, "A2ASSISTANT_HOME": str(home), "BWS_ACCESS_TOKEN": ""},
         check=False,
     )
     assert result.returncode == 0, result.stderr
@@ -132,7 +132,7 @@ def test_update_probe_children_skip_external_secret_sources(tmp_path):
          "from hermes_cli.update_cmd_validation import _validate_critical_modules_import\n"
          "print('PROBE=' + repr(_validate_critical_modules_import(__import__('os').getcwd())))"],
         capture_output=True, text=True, timeout=180, cwd=REPO_ROOT,
-        env={**os.environ, "HERMES_HOME": str(home)},
+        env={**os.environ, "A2ASSISTANT_HOME": str(home)},
         check=False,
     )
     assert result.returncode == 0, result.stderr

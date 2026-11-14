@@ -51,7 +51,7 @@ def resolve_relay_scope_cwds(
         try:
             from gateway.session_context import get_session_env
 
-            session_key = get_session_env("HERMES_SESSION_KEY", "")
+            session_key = get_session_env("A2ASSISTANT_SESSION_KEY", "")
             for key in dict.fromkeys(key for key in (session_key, session_id) if key):
                 if recorded := _recorded_cwd(key):
                     session_cwd = recorded

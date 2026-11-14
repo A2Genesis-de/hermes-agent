@@ -37,8 +37,8 @@ CONCURRENT_BUDGET = BLOCK_SECONDS / 2
 
 @pytest.fixture()
 def profile_dir(tmp_path, monkeypatch) -> Path:
-    """A real profile directory under a throwaway HERMES_HOME."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    """A real profile directory under a throwaway A2ASSISTANT_HOME."""
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from hermes_cli import profiles as profiles_mod
 
     d = profiles_mod.get_profile_dir("demo")

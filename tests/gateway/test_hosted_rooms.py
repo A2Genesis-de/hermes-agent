@@ -1308,9 +1308,9 @@ def test_default_db_path_never_names_the_master_session_store(tmp_path, monkeypa
     profile_home = root / "profiles" / "bot1"
     profile_home.mkdir(parents=True)
 
-    monkeypatch.setenv("HERMES_HOME", str(profile_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
     from_profile = rooms.default_db_path()
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     from_root = rooms.default_db_path()
 
     assert from_profile == from_root, "one coordination file per install"

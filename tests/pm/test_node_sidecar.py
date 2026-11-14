@@ -58,9 +58,9 @@ def test_real_npm_uses_paired_node_with_empty_ambient_path(tmp_path, monkeypatch
     (node_bin / "node").symlink_to(node)
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setenv("PATH", "")
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
     context = Runner("npm", compose_env([
         {"PATH": [str(node_bin)]}, {"PATH": [str(npm_bin)]},
     ]))
@@ -100,7 +100,7 @@ def test_real_npm_uses_paired_node_with_empty_ambient_path(tmp_path, monkeypatch
 
 def test_on_demand_sidecar_install_respects_lazy_refusal(tmp_path, monkeypatch):
     (tmp_path / "package.json").write_text('{}')
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
     binary = tmp_path / ("npm.cmd" if os.name == "nt" else "npm")
     binary.write_text("process boundary fixture")
     binary.chmod(0o755)

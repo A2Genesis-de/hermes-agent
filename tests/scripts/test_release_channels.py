@@ -112,8 +112,8 @@ def test_unknown_channel_created_over_http_retains_identity_and_immutable_reques
             reader.resolve("not-registered-in-code")
         record = pub.create("not-registered-in-code")
         assert reader.resolve(record["name"]).manifest is None
-        one = pub.allocate(record["name"], "a" * 40, "1.2.3", {"HERMES_DATA_DIR_SUFFIX": "-a"})
-        two = pub.allocate(record["name"], "a" * 40, "1.2.3", {"HERMES_DATA_DIR_SUFFIX": "-b"})
+        one = pub.allocate(record["name"], "a" * 40, "1.2.3", {"A2ASSISTANT_DATA_DIR_SUFFIX": "-a"})
+        two = pub.allocate(record["name"], "a" * 40, "1.2.3", {"A2ASSISTANT_DATA_DIR_SUFFIX": "-b"})
         assert one["identity"] == two["identity"] == record["identity"]
         assert one["buildId"] != two["buildId"]
         assert one["sequence"] < two["sequence"]

@@ -3,7 +3,7 @@
 The doctor module drives cua-driver's stable ``health_report`` MCP tool over
 stdio JSON-RPC and renders the structured response. Most of the surface is
 about parsing what cua-driver hands back, plus the exit-code contract
-downstream consumers (CI / `hermes update`) rely on:
+downstream consumers (CI / `a2assistant update`) rely on:
 
 * Exit 0 when overall == "ok"
 * Exit 1 when overall in ("degraded", "failed") — at least one check
@@ -158,7 +158,7 @@ class TestDoctorExitCodes:
             code = doctor.run_doctor()
         assert code == 2
         err = capsys.readouterr().err
-        assert "Access is denied" in err and "HERMES_CUA_DRIVER_CMD" in err
+        assert "Access is denied" in err and "A2ASSISTANT_CUA_DRIVER_CMD" in err
 
     def test_protocol_error_exits_2(self, capsys):
         """An empty stdout response (driver crashed during handshake) is a
@@ -274,19 +274,19 @@ class TestDriverCmdResolution:
 
     def test_explicit_driver_cmd_arg_wins(self, tmp_path, monkeypatch):
         explicit = self._executable(tmp_path / "custom" / "cua-driver")
-        monkeypatch.setenv("HERMES_CUA_DRIVER_CMD", str(self._executable(tmp_path / "env" / "cua-driver")))
+        monkeypatch.setenv("A2ASSISTANT_CUA_DRIVER_CMD", str(self._executable(tmp_path / "env" / "cua-driver")))
 
         assert self._inspected_binary(driver_cmd=str(explicit)) == explicit
 
     def test_env_var_used_when_no_arg_given(self, tmp_path, monkeypatch):
         from_env = self._executable(tmp_path / "env" / "cua-driver")
-        monkeypatch.setenv("HERMES_CUA_DRIVER_CMD", str(from_env))
+        monkeypatch.setenv("A2ASSISTANT_CUA_DRIVER_CMD", str(from_env))
 
         assert self._inspected_binary() == from_env
 
     def test_doctor_inspects_the_pm_selected_driver_not_path(self, tmp_path, monkeypatch):
         """Doctor must diagnose the driver the runtime invokes: PM's pin, not a PATH copy."""
-        monkeypatch.delenv("HERMES_CUA_DRIVER_CMD", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_CUA_DRIVER_CMD", raising=False)
         monkeypatch.setenv("PATH", str(self._executable(tmp_path / "bin" / "cua-driver").parent))
 
         assert self._inspected_binary() == Path("/pm/store/cua-driver")

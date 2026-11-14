@@ -1,5 +1,5 @@
 """Tests for ``_prompt_api_key`` — the shared Keep/Replace/Clear menu used by
-``hermes setup`` / ``hermes model`` when an API key already exists in ``.env``.
+``a2assistant setup`` / ``a2assistant model`` when an API key already exists in ``.env``.
 
 Regression coverage for #16394: the wizard used to silently skip the key prompt
 when any value was present (even malformed junk), leaving users stuck.
@@ -18,7 +18,7 @@ def profile_env(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / ".env").write_text("")
     return home
 

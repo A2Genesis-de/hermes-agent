@@ -1,4 +1,4 @@
-"""Tests for hermes backup and import commands."""
+"""Tests for a2assistant backup and import commands."""
 
 import json
 import os
@@ -59,7 +59,7 @@ def _advance_backup_clock(seconds: float = 1.1) -> None:
 
 
 def _make_hermes_tree(root: Path) -> None:
-    """Create a realistic ~/.hermes directory structure for testing."""
+    """Create a realistic ~/.a2assistant directory structure for testing."""
     (root / "config.yaml").write_text("model:\n  provider: openrouter\n")
     (root / ".env").write_text("OPENROUTER_API_KEY=sk-test-123\n")
     for db_name in ("memory_store.db", "hermes_state.db"):
@@ -194,7 +194,7 @@ class TestShouldExclude:
 
     def test_excludes_desktop_emergency_state_db_baks(self):
         """The desktop updater's pre-flight drops timestamped
-        state.db.pre-update-emergency-*.bak files at the HERMES_HOME root —
+        state.db.pre-update-emergency-*.bak files at the A2ASSISTANT_HOME root —
         backup artifacts in the same class as backups/, so a full backup
         must not re-ship them."""
         from hermes_cli.backup import _should_exclude
@@ -246,7 +246,7 @@ class TestIterBackupFiles:
         assert not any(s.startswith("hermes-agent") for s in selected)
 
     def test_prunes_browser_use_cli_profiles_at_home_roots_only(self, tmp_path):
-        """The Browser Use CLI backend writes ``HERMES_HOME/browser_profiles/`` (underscore) — a
+        """The Browser Use CLI backend writes ``A2ASSISTANT_HOME/browser_profiles/`` (underscore) — a
         live Chromium user-data dir holding Login Data / Cookies. It must never enter an archive,
         at the root or under ``profiles/<name>/``; a skill's same-named dir is user data (#117346)."""
         from hermes_cli.backup import _iter_backup_files
@@ -340,7 +340,7 @@ class TestBackup:
         hermes_home.mkdir()
         _make_hermes_tree(hermes_home)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_dir = tmp_path / "external-drive"
@@ -371,7 +371,7 @@ class TestBackup:
         hermes_home.mkdir()
         _make_hermes_tree(hermes_home)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_zip = hermes_home / "backups" / "pre-update-test.zip"
@@ -398,7 +398,7 @@ class TestBackup:
 
 
     def test_skips_symlinked_files(self, tmp_path, monkeypatch):
-        """Backup must not dereference symlinks and leak files outside HERMES_HOME."""
+        """Backup must not dereference symlinks and leak files outside A2ASSISTANT_HOME."""
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         _make_hermes_tree(hermes_home)
@@ -406,7 +406,7 @@ class TestBackup:
         outside.write_text("outside secret\n")
         _symlink_file_or_skip(hermes_home / "skills" / "outside-link.txt", outside)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_zip = tmp_path / "backup.zip"
@@ -438,7 +438,7 @@ class TestBackup:
         snap_id = create_quick_snapshot(hermes_home=hermes_home)
         assert snap_id and (hermes_home / _QUICK_SNAPSHOTS_DIR / snap_id / "state.db").exists()
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         out_zip = tmp_path / "backup.zip"
         run_backup(Namespace(output=str(out_zip)))
@@ -492,7 +492,7 @@ class TestImport:
 
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         calls = []
@@ -516,7 +516,7 @@ class TestImport:
 
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         calls = []
@@ -539,7 +539,7 @@ class TestImport:
         and prints the manual fallback."""
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         import hermes_cli.gateway as gateway_mod
@@ -588,7 +588,7 @@ class TestImport:
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("model: live\n")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         return hermes_home
 
@@ -697,7 +697,7 @@ class TestImport:
         hermes_home = tmp_path / ".hermes"
         locked = hermes_home / "skills" / "demo"
         locked.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -743,7 +743,7 @@ class TestImport:
         the same way the root profile's is."""
         hermes_home = tmp_path / ".hermes"
         (hermes_home / "profiles" / "coder").mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         live_state = '{"gateway_state": "running"}'
@@ -773,7 +773,7 @@ class TestImport:
         written over the target's."""
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         # Live runtime files belonging to the target's own processes.
@@ -811,7 +811,7 @@ class TestImport:
         """Secret files must end up at 0600 after restore (zipfile drops mode bits)."""
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -845,7 +845,7 @@ class TestRoundTrip:
         src_home.mkdir(parents=True)
         _make_hermes_tree(src_home)
 
-        monkeypatch.setenv("HERMES_HOME", str(src_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(src_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "source")
 
         # Backup
@@ -858,7 +858,7 @@ class TestRoundTrip:
         # Import into a different location
         dst_home = tmp_path / "dest" / ".hermes"
         dst_home.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(dst_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(dst_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path / "dest")
 
         run_import(Namespace(zipfile=str(out_zip), force=True))
@@ -954,7 +954,7 @@ class TestBackupEdgeCases:
         unreadable.chmod(0)
         if os.access(unreadable, os.R_OK):
             pytest.skip("running as root: chmod 0 does not make the file unreadable")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         from hermes_cli.backup import _RUN_BACKUP_PREFIX, run_backup
         from hermes_cli.main import cmd_backup
@@ -982,7 +982,7 @@ class TestBackupEdgeCases:
         (hermes_home / "__pycache__").mkdir()
         (hermes_home / "__pycache__" / "foo.pyc").write_bytes(b"\x00")
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         args = Namespace(output=str(tmp_path / "out.zip"))
@@ -1005,7 +1005,7 @@ class TestBackupEdgeCases:
         old_file.write_text("old data")
         os.utime(old_file, (0, 0))
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         out_zip = tmp_path / "out.zip"
@@ -1036,7 +1036,7 @@ class TestImportEdgeCases:
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         (hermes_home / "config.yaml").write_text("existing\n")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -1095,11 +1095,11 @@ def _break_member(monkeypatch, failing_member: str) -> None:
 
 
 class TestImportAtomicWrites:
-    """`hermes import` must never leave a user's file truncated.
+    """`a2assistant import` must never leave a user's file truncated.
 
     The pre-fix code did ``open(target, "wb")`` then ``dst.write(src.read())``,
     which zeroes the existing file *before* any replacement bytes exist. These
-    tests pin the invariant for both restore branches: the HERMES_HOME branch
+    tests pin the invariant for both restore branches: the A2ASSISTANT_HOME branch
     and the ``_external/`` branch that writes into third-party configs under
     the user's home.
     """
@@ -1115,7 +1115,7 @@ class TestImportAtomicWrites:
         hermes_home.mkdir()
         original = "model: original\napi_key: keep-me\n"
         (hermes_home / "config.yaml").write_text(original)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -1131,7 +1131,7 @@ class TestImportAtomicWrites:
         assert list(hermes_home.glob(".config.yaml.*")) == []
 
     def test_failed_external_member_leaves_existing_file_intact(self, tmp_path, monkeypatch):
-        """Same invariant on the `_external/` branch, which writes outside HERMES_HOME."""
+        """Same invariant on the `_external/` branch, which writes outside A2ASSISTANT_HOME."""
         dst_home = tmp_path / "dst"
         dst_home.mkdir()
         hermes_home = dst_home / ".hermes"
@@ -1147,7 +1147,7 @@ class TestImportAtomicWrites:
             "_external/.honcho/config.json": '{"peer":"replacement"}',
         })
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: dst_home)
         _break_member(monkeypatch, "_external/.honcho/config.json")
 
@@ -1174,7 +1174,7 @@ class TestImportAtomicWrites:
         link = hermes_home / "config.yaml"
         link.symlink_to(real)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -1202,7 +1202,7 @@ class TestImportAtomicWrites:
         link = honcho / "config.json"
         link.symlink_to(real)
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: dst_home)
 
         zip_path = tmp_path / "backup.zip"
@@ -1230,7 +1230,7 @@ class TestImportAtomicWrites:
         target = hermes_home / "config.yaml"
         target.write_text("model: original\n")
         os.chmod(target, 0o644)
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -1247,15 +1247,15 @@ class TestImportAtomicWrites:
         """A root-run import must not re-own the user's files to root.
 
         ``os.replace`` swaps in a temp file owned by the *writing* user, so a
-        ``sudo hermes import`` onto a user-owned (or Docker/NAS volume-owned)
-        HERMES_HOME would hand every restored file to root. The uid/gid is
+        ``sudo a2assistant import`` onto a user-owned (or Docker/NAS volume-owned)
+        A2ASSISTANT_HOME would hand every restored file to root. The uid/gid is
         forced so the assertion does not require running as root.
         """
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
         target = hermes_home / "config.yaml"
         target.write_text("model: original\n")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -1287,7 +1287,7 @@ class TestImportAtomicWrites:
         target.write_text("model: original\n")
         os.chmod(target, 0o644)
         expected_mode = target.stat().st_mode & 0o777
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -1322,7 +1322,7 @@ class TestImportAtomicWrites:
         file whose contents now come from the zip.  Whoever produced the
         archive would then get whatever that file executes as.  The other
         ``utils`` writers can preserve the full mode safely because they
-        re-serialize content this process produced; ``hermes import`` is the
+        re-serialize content this process produced; ``a2assistant import`` is the
         one write path where the bytes are untrusted, and it is also the path
         that documents ``sudo`` use for owner preservation.
 
@@ -1337,7 +1337,7 @@ class TestImportAtomicWrites:
         os.chmod(target, 0o6755)
         if stat.S_IMODE(target.stat().st_mode) != 0o6755:
             pytest.skip("filesystem refuses setuid/setgid on a user-owned file")
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         zip_path = tmp_path / "backup.zip"
@@ -1394,7 +1394,7 @@ class TestProfileRestoration:
         """Import doesn't create wrappers for profile dirs without config."""
         hermes_home = tmp_path / ".hermes"
         hermes_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         wrapper_dir = tmp_path / ".local" / "bin"
@@ -1507,7 +1507,7 @@ class TestSafeCopyDb:
 class TestQuickSnapshot:
     @pytest.fixture
     def hermes_home(self, tmp_path):
-        """Create a fake HERMES_HOME with critical state files."""
+        """Create a fake A2ASSISTANT_HOME with critical state files."""
         home = tmp_path / ".hermes"
         home.mkdir()
         (home / "config.yaml").write_text("model:\n  provider: openrouter\n")
@@ -1871,7 +1871,7 @@ class TestFailedZipMemberRecovery:
 
 
 class TestPreUpdateBackup:
-    """Tests for create_pre_update_backup — the auto-backup ``hermes update``
+    """Tests for create_pre_update_backup — the auto-backup ``a2assistant update``
     runs before touching anything."""
 
 
@@ -1885,7 +1885,7 @@ class TestPreUpdateBackup:
 
     def test_backup_contents_match_full_backup(self, hermes_home):
         """Pre-update backup should include the same user data that
-        ``hermes backup`` would, and should exclude the same directories."""
+        ``a2assistant backup`` would, and should exclude the same directories."""
         from hermes_cli.backup import create_pre_update_backup
         out = create_pre_update_backup(hermes_home=hermes_home)
         assert out is not None
@@ -1905,7 +1905,7 @@ class TestPreUpdateBackup:
         assert "gateway.pid" not in names
 
     def test_pre_update_zip_does_not_nest_the_pre_update_snapshot(self, hermes_home):
-        """``hermes update`` in ``full`` mode takes the quick snapshot *before*
+        """``a2assistant update`` in ``full`` mode takes the quick snapshot *before*
         the full zip, so the zip walk sees the snapshot it just made. It must
         skip it — otherwise every pre-update zip ships state.db twice."""
         from hermes_cli.backup import (
@@ -1955,7 +1955,7 @@ class TestPreUpdateBackup:
 
 
     def test_skips_symlinked_files(self, hermes_home, tmp_path):
-        """Pre-update backups must not dereference symlinks outside HERMES_HOME."""
+        """Pre-update backups must not dereference symlinks outside A2ASSISTANT_HOME."""
         from hermes_cli.backup import create_pre_update_backup
 
         outside = tmp_path / "outside-secret.txt"
@@ -1981,7 +1981,7 @@ class TestRunPreUpdateBackup:
         root.mkdir()
         _make_hermes_tree(root)
         # Point HERMES_HOME at the temp dir so config + backup paths resolve here
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
         # Make Path.home() point at tmp_path for anything that uses it
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
         # Config reads resolve HERMES_HOME dynamically and their caches are
@@ -2040,7 +2040,7 @@ class TestRunPreUpdateBackup:
 
 class TestPreMigrationBackup:
     """Tests for create_pre_migration_backup — the auto-backup
-    ``hermes import-agent openclaw`` runs before mutating ~/.hermes/."""
+    ``hermes import-agent openclaw`` runs before mutating ~/.a2assistant/."""
 
     @pytest.fixture
     def hermes_home(self, tmp_path):
@@ -2052,7 +2052,7 @@ class TestPreMigrationBackup:
 
     def test_restorable_with_hermes_import(self, hermes_home, tmp_path):
         """The zip produced by pre-migration backup must be a valid Hermes
-        backup — `hermes import` should accept it."""
+        backup — `a2assistant import` should accept it."""
         from hermes_cli.backup import create_pre_migration_backup, _validate_backup_zip
         out = create_pre_migration_backup(hermes_home=hermes_home)
         assert out is not None
@@ -2083,7 +2083,7 @@ class TestPreMigrationBackup:
 # ---------------------------------------------------------------------------
 
 class TestRestoreCronJobsIfEmptied:
-    """`hermes update` config migration can leave cron/jobs.json valid-but-empty,
+    """`a2assistant update` config migration can leave cron/jobs.json valid-but-empty,
     silently dropping every scheduled job. `restore_cron_jobs_if_emptied` is the
     post-migration safety net that restores from the pre-update snapshot."""
 
@@ -2484,7 +2484,7 @@ class TestMemoryProviderExternalPaths:
         outside.mkdir(exist_ok=True)
         (outside / "leak.json").write_text('{"secret":1}')
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         import hermes_cli.backup as backup_mod
@@ -2503,7 +2503,7 @@ class TestMemoryProviderExternalPaths:
         outside.rmdir()
 
     def test_import_restores_external_to_home_relative_location(self, tmp_path, monkeypatch):
-        """_external/ members restore to ~/<relpath>, not under HERMES_HOME,
+        """_external/ members restore to ~/<relpath>, not under A2ASSISTANT_HOME,
         and credential-shaped files get 0600."""
         dst_home = tmp_path / "dst"
         dst_home.mkdir()
@@ -2517,7 +2517,7 @@ class TestMemoryProviderExternalPaths:
             zf.writestr("state.db", "")
             zf.writestr("_external/.honcho/config.json", '{"peer":"bob"}')
 
-        monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
         monkeypatch.setattr(Path, "home", lambda: dst_home)
 
         from hermes_cli.backup import run_import
@@ -2538,7 +2538,7 @@ class TestMemoryProviderExternalPaths:
 
 
 class TestImportHonorsHermesHomeOverride:
-    """`hermes import` must restore into the home the command runs under.
+    """`a2assistant import` must restore into the home the command runs under.
 
     Resolving the target through get_default_hermes_root() maps a profile
     home (<root>/profiles/<name>) back to <root>: the import then overwrites
@@ -2560,7 +2560,7 @@ class TestImportHonorsHermesHomeOverride:
         return zip_path
 
     def test_import_targets_named_profile_home(self, tmp_path, monkeypatch):
-        """HERMES_HOME=<root>/profiles/<name> must restore INTO the profile,
+        """A2ASSISTANT_HOME=<root>/profiles/<name> must restore INTO the profile,
         not into <root> (which would clobber the live root config)."""
         root = tmp_path / "hermes-root"
         profile = root / "profiles" / "coder"
@@ -2568,7 +2568,7 @@ class TestImportHonorsHermesHomeOverride:
         # Live root config that must survive untouched.
         (root / "config.yaml").write_text("model:\n  provider: openai\n")
 
-        monkeypatch.setenv("HERMES_HOME", str(profile))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
         from hermes_constants import get_hermes_home
 
         assert get_hermes_home() == profile
@@ -2600,7 +2600,7 @@ class TestImportHonorsHermesHomeOverride:
         native_default.mkdir()
         (native_default / "config.yaml").write_text("model:\n  provider: openai\n")
 
-        monkeypatch.setenv("HERMES_HOME", str(sandbox))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(sandbox))
 
         import argparse
 
@@ -2634,7 +2634,7 @@ class TestImportHonorsHermesHomeOverride:
         """Restoring into the default home keeps the auto-install behavior."""
         native_default = tmp_path / "native-default"
         native_default.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(native_default))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(native_default))
 
         import argparse
 
@@ -2695,7 +2695,7 @@ def _write_session_db(path: Path, sessions: int, messages_per_session: int) -> N
 
 
 class TestImportLiveSessionDatabase:
-    """`hermes import` must not swap the inode of a database Hermes holds open.
+    """`a2assistant import` must not swap the inode of a database Hermes holds open.
 
     Publishing state.db with a rename leaves any live gateway/dashboard/WebUI
     connection reading and writing the unlinked inode, so its sessions vanish
@@ -2709,7 +2709,7 @@ class TestImportLiveSessionDatabase:
     def _prepare(self, tmp_path, monkeypatch, live=(3, 4), backup=(2, 2)):
         home = tmp_path / ".hermes"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         live_db = home / "state.db"
@@ -2794,7 +2794,7 @@ class TestImportLiveSessionDatabase:
 
         home = tmp_path / ".hermes"
         home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
         staged = tmp_path / "backup-state.db"

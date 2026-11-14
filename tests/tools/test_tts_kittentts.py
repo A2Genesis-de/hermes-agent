@@ -8,7 +8,7 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def clean_env(monkeypatch):
-    for key in ("HERMES_SESSION_PLATFORM",):
+    for key in ("A2ASSISTANT_SESSION_PLATFORM",):
         monkeypatch.delenv(key, raising=False)
 
 
@@ -89,7 +89,7 @@ class TestDispatcherBranch:
         """When provider=kittentts but package missing, return JSON error with setup hint."""
         import sys
         monkeypatch.setitem(sys.modules, "kittentts", None)
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         from tools.tts_tool import text_to_speech_tool
 

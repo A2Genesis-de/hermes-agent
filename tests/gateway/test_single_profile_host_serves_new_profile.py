@@ -26,7 +26,7 @@ def standalone_host(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     (home / "profiles").mkdir(parents=True)
     (home / "config.yaml").write_text("model: {default: m}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     # The migration preflight's service-manager probes: nothing else on this host runs a gateway.

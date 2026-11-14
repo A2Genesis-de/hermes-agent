@@ -14,7 +14,7 @@ from hermes_state_runtime import begin_runtime_epoch, claim_session_input, settl
 
 def test_lost_ack_reconciles_frozen_delivery_once(tmp_path, monkeypatch):
     from cron import scheduler_authority, delivery_queue
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {}, 'platform_toolsets': {'cli': []}})
     with jobs.use_cron_store(tmp_path / 'cron'):
         job = jobs.create_job(prompt='original', schedule='every 1h', deliver='telegram:123')
@@ -71,7 +71,7 @@ def test_failed_manual_run_exits_nonzero(monkeypatch):
 
 
 def _owner(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {}, 'platform_toolsets': {'cli': []}})
     db = SessionDB(tmp_path / 'state.db')
     runner = SimpleNamespace(_draining=False, session_store=SessionStore(tmp_path / 'sessions', GatewayConfig()), adapters={})
@@ -97,7 +97,7 @@ def test_recovered_receipt_settles_the_departed_firers_execution_row(tmp_path, m
         firer = subprocess.run([sys.executable, '-c', (
             'import sys; from cron.executions import create_execution, mark_execution_running;'
             f'r = create_execution({job["id"]!r}, source="direct"); mark_execution_running(r["id"]);'
-            'print(r["id"])')], env={**os.environ, 'HERMES_HOME': str(tmp_path)},
+            'print(r["id"])')], env={**os.environ, 'A2ASSISTANT_HOME': str(tmp_path)},
             capture_output=True, text=True, check=True, timeout=60)
         fire = firer.stdout.strip().splitlines()[-1]
         assert executions.get_execution(fire)['status'] == 'running'

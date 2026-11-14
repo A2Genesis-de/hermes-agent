@@ -5,7 +5,7 @@ import subprocess
 
 
 def test_show_status_all_does_not_print_firecrawl_key_value(monkeypatch, capsys, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     sentinel = "NONSECRET_SENTINEL_VALUE_DO_NOT_PRINT_123456"
     monkeypatch.setenv("FIRECRAWL_API_KEY", sentinel)
 
@@ -68,7 +68,7 @@ def _base_xai_mocks(monkeypatch, tmp_path):
 
 
 class TestShowStatusXaiOAuth:
-    """xAI OAuth row in hermes status."""
+    """xAI OAuth row in a2assistant status."""
 
     # ------------------------------------------------------------------
     # Logged-in branch
@@ -144,14 +144,14 @@ class TestShowStatusXaiOAuth:
 
 
 def test_show_status_reports_gateway_session_last_activity(monkeypatch, capsys, tmp_path):
-    """hermes status should surface freshest gateway last_active (#72016)."""
+    """a2assistant status should surface freshest gateway last_active (#72016)."""
     from hermes_cli import status as status_mod
     import hermes_cli.auth as auth_mod
     import hermes_cli.gateway as gateway_mod
     import hermes_state
     import time
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(status_mod, "get_env_path", lambda: tmp_path / ".env", raising=False)
     monkeypatch.setattr(status_mod, "get_hermes_home", lambda: tmp_path, raising=False)
     monkeypatch.setattr(status_mod, "load_config", lambda: {"model": "gpt-5.4"}, raising=False)
@@ -198,7 +198,7 @@ def _status_args(*argv):
 def test_status_defaults_to_summary_and_full_or_all_prints_every_section(monkeypatch, capsys, tmp_path):
     from hermes_cli import model_switch
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(model_switch, "list_authenticated_providers", lambda **_: [{"name": "Acme AI"}])
 
     show_status(_status_args())
@@ -215,7 +215,7 @@ def test_platform_rows_follow_the_gateway_verdict_not_check_fn(monkeypatch, caps
     import gateway.config as gateway_config
     from gateway.platform_registry import platform_registry
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     entries = [SimpleNamespace(name=n, label=n.title(), check_fn=lambda: True) for n in ("telegram", "discord")]
     monkeypatch.setattr(platform_registry, "plugin_entries", lambda: entries)
     monkeypatch.setattr(gateway_config, "load_gateway_config", lambda: SimpleNamespace(

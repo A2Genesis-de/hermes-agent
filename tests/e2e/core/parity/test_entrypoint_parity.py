@@ -1,6 +1,6 @@
 """Entrypoint parity matrix (issue classes C19 + C15).
 
-One fixture HERMES_HOME (shell hook + plugin hook on ``pre_llm_call``, AGENTS.md,
+One fixture A2ASSISTANT_HOME (shell hook + plugin hook on ``pre_llm_call``, AGENTS.md,
 a skill, a memory entry, a stdio MCP server that spawns a grandchild, the custom
 provider pointed at the recording fake, a disabled toolset) and ONE scripted turn
 per entrypoint: the fake model calls the MCP canary tool, then answers.
@@ -19,7 +19,7 @@ Desktop/gateway/ACP/cron" class:
 * after the surface's normal shutdown no MCP server / grandchild survives. For the
   gateway-client surfaces (``-z``, ``chat -q``, ``acp``, ``cron run``) the turn runs
   in the profile's ``gateway run`` daemon, which outlives the client by design;
-  their normal shutdown is client exit + ``hermes gateway stop``.
+  their normal shutdown is client exit + ``a2assistant gateway stop``.
 
 ``PARITY_TABLE_OUT=<path>`` appends a markdown row per entrypoint (REPORT.md table).
 """

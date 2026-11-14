@@ -43,7 +43,7 @@ def test_policy_selects_surface_and_isolates_cwd(tmp_path):
 @pytest.mark.asyncio
 async def test_launch_options_reach_the_owner_frozen_and_hooks_consented(tmp_path, monkeypatch):
     """`-s/--skills`, `--checkpoints`, `--pass-session-id`, `--accept-hooks` (and an exported
-    HERMES_ACCEPT_HOOKS=1, which the TUI forwards) were refused by session.create, so no session
+    A2ASSISTANT_ACCEPT_HOOKS=1, which the TUI forwards) were refused by session.create, so no session
     could be created with them. They are this session's creation policy, applied by the owner."""
     import json
     from types import SimpleNamespace
@@ -61,8 +61,8 @@ async def test_launch_options_reach_the_owner_frozen_and_hooks_consented(tmp_pat
     (home / 'skills' / 'launch-fixture').mkdir(parents=True)
     (home / 'skills' / 'launch-fixture' / 'SKILL.md').write_text(
         '---\nname: launch-fixture\ndescription: fixture\n---\n\nLAUNCH_SKILL_BODY\n')
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.delenv('HERMES_ACCEPT_HOOKS', raising=False)
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
+    monkeypatch.delenv('A2ASSISTANT_ACCEPT_HOOKS', raising=False)
     hook = tmp_path / 'hook.sh'
     hook.write_text('#!/bin/sh\nexit 0\n')
     cfg = {'platform_toolsets': {'cli': []}, 'hooks': {'pre_tool_call': [{'command': str(hook)}]}}
@@ -114,7 +114,7 @@ def test_launch_policy_reaches_real_turn_runner(tmp_path):
     state.mkdir()
     from tests.gateway.fixtures.local_recovery_probe import child_env
     env = child_env()
-    env.update(HOME=str(home), USERPROFILE=str(home), HERMES_HOME=str(state), PYTHONPATH=str(repo))
+    env.update(HOME=str(home), USERPROFILE=str(home), A2ASSISTANT_HOME=str(state), PYTHONPATH=str(repo))
     result = subprocess.run([sys.executable, str(Path(__file__).parent / 'fixtures' / 'session_policy_peer.py')],
                             cwd=repo, env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=130, check=False)
     assert result.returncode == 0, result.stdout + '\n' + result.stderr
@@ -151,7 +151,7 @@ def test_provider_override_drops_the_previous_providers_route(tmp_path):
     from gateway.session_policy import build_policy
     cfg = {'model': {'default': 'deepseek-chat', 'provider': 'deepseek',
                      'base_url': 'https://api.deepseek.com/v1', 'api_mode': 'chat_completions',
-                     'key_env': 'HERMES_CUSTOM_QWENAI_API_KEY'}}
+                     'key_env': 'A2ASSISTANT_CUSTOM_QWENAI_API_KEY'}}
     policy = build_policy(dict(cwd=str(tmp_path), model='mimo-v2.6-flash', provider='xiaomi'), cfg)
     assert policy.config()['model'] == {'default': 'deepseek-chat', 'provider': 'xiaomi'}
     # A provider change plus an explicit URL still drops the replaced provider's wire protocol
@@ -284,7 +284,7 @@ def test_bare_pick_of_a_shadowed_custom_entry_keeps_the_profiles_route(tmp_path,
 
 def test_unlimited_max_turns_spellings_create_an_uncapped_session(tmp_path):
     """`--max-turns 0` / -1 / none / unlimited meant "no cap" before the gateway cutover: session.create
-    freezes them as the unlimited budget, and `hermes chat` sends 0 instead of dropping it as falsy."""
+    freezes them as the unlimited budget, and `a2assistant chat` sends 0 instead of dropping it as falsy."""
     import argparse
     import sys
     from gateway.session_policy import build_policy
@@ -369,7 +369,7 @@ def test_frozen_route_keeps_its_endpoint_after_live_config_edit(tmp_path, monkey
     from hermes_cli.config_effective import load_user_config_effective
     home = tmp_path / 'home'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
 
     def write(url, key):
         (home / 'config.yaml').write_text(json.dumps(
@@ -397,7 +397,7 @@ def test_frozen_bare_custom_route_keeps_its_endpoint_pool_and_launch_key_wins(tm
     from hermes_cli.config_effective import load_user_config_effective
     home = tmp_path / 'home'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     url = 'http://127.0.0.1:1/v1'
     (home / 'config.yaml').write_text(json.dumps(
         {'model': {'provider': 'custom', 'base_url': url, 'api_key': 'sk-frozen-config', 'default': 'm'}}))
@@ -429,7 +429,7 @@ def _frozen_fixture_routes(tmp_path, monkeypatch, *launches):
     from hermes_cli.config_effective import load_user_config_effective
     home = tmp_path / 'home'
     home.mkdir()
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
 
     def write(url):
         (home / 'config.yaml').write_text(json.dumps({'model': {'provider': 'fixture', 'default': 'm'},
@@ -488,7 +488,7 @@ def test_lazy_info_reports_the_free_tier_pinned_model(tmp_path, monkeypatch):
 
 
 def test_run_budget_is_a_frozen_launch_option(tmp_path):
-    """`hermes chat --run-budget N` (main: AIAgent(run_budget_seconds=N)): frozen as the session's
+    """`a2assistant chat --run-budget N` (main: AIAgent(run_budget_seconds=N)): frozen as the session's
     agent.run_budget_seconds; the profile's own value applies without the flag; junk is refused."""
     from gateway.session_policy import build_policy
     from hermes_state_runtime import RuntimeStoreError
@@ -512,7 +512,7 @@ def test_run_budget_passes_the_session_create_contract():
 
 
 def test_verbose_is_a_frozen_launch_option(tmp_path):
-    """`hermes chat -v` (main: AIAgent(quiet_mode=False)): the session agent's status lines are not quieted."""
+    """`a2assistant chat -v` (main: AIAgent(quiet_mode=False)): the session agent's status lines are not quieted."""
     from gateway.session_policy import build_policy
     from hermes_state_runtime import RuntimeStoreError
     assert build_policy(dict(cwd=str(tmp_path), verbose=True), {}).verbose is True

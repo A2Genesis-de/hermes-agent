@@ -27,7 +27,7 @@ async def probe(peer, creator):
     from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
     from tests.gateway.test_normal_runtime_boot import control
 
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['A2ASSISTANT_HOME'])
     register_provider(StubAuthProvider())
     process_ownership.reserve([home])
     runner = GatewayRunner()
@@ -195,7 +195,7 @@ def main():
     thread.start()
     url = f'http://127.0.0.1:{peer.server_port}/v1'
     os.environ.update(OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['A2ASSISTANT_HOME'])
     (home / 'config.yaml').write_text(json.dumps({
         'gateway': {'multiplex_profiles': False},
         'dashboard': {'public_url': 'https://gateway.example.test'},

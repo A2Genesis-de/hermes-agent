@@ -30,9 +30,9 @@ def test_xvnc_never_sends_the_holders_clipboard_to_watchers(tmp_path):
             (bindir / tool).symlink_to(real)
     env = {
         "PATH": str(bindir), "HOME": str(tmp_path),
-        "HERMES_BD_PROFILE": "t", "HERMES_BD_DISPLAY_NUM": "99",
-        "HERMES_BD_SOCKET": str(tmp_path / "rfb.sock"), "HERMES_BD_XAUTH": str(tmp_path / "Xauthority"),
-        "HERMES_BD_ENV_FILE": str(tmp_path / "env"), "HERMES_BD_CONFIG_HOME": str(tmp_path / "xdg"),
+        "A2ASSISTANT_BD_PROFILE": "t", "A2ASSISTANT_BD_DISPLAY_NUM": "99",
+        "A2ASSISTANT_BD_SOCKET": str(tmp_path / "rfb.sock"), "A2ASSISTANT_BD_XAUTH": str(tmp_path / "Xauthority"),
+        "A2ASSISTANT_BD_ENV_FILE": str(tmp_path / "env"), "A2ASSISTANT_BD_CONFIG_HOME": str(tmp_path / "xdg"),
     }
     subprocess.run(["bash", str(LAUNCHER)], env=env, check=True, stdin=subprocess.DEVNULL, capture_output=True, timeout=30)
     argv = argv_log.read_text(encoding="utf-8-sig").split("\n")

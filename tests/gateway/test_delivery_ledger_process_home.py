@@ -56,10 +56,10 @@ def launch_home(request, tmp_path, monkeypatch):
     root = tmp_path / "root"
     (root / "profiles" / "research").mkdir(parents=True)
     if request.param == "hermes-home-env":
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     else:
         # A default gateway run in the foreground has no HERMES_HOME at all.
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: root)
     return root
 

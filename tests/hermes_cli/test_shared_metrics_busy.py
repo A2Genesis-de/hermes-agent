@@ -247,7 +247,7 @@ def test_an_auto_resumed_chat_counts_toward_its_owning_profiles_peak(tmp_path, m
     monkeypatch.setattr(busy, "_peaks", {})
     monkeypatch.setattr(busy, "_now", lambda: DAY1)
     launch, beta = tmp_path / "launch", tmp_path / "beta"
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     runner, _adapter = make_restart_runner()
     runner.session_authorities = []
     runner._resolve_profile_home_for_source = lambda source: beta

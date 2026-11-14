@@ -1,6 +1,6 @@
 """Plugin hooks fired from a launch-profile turn see a bound profile scope under multiplexing.
 
-Regression for #118538: routed turns bind ``_profile_runtime_scope(home)`` (HERMES_HOME override +
+Regression for #118538: routed turns bind ``_profile_runtime_scope(home)`` (A2ASSISTANT_HOME override +
 secrets + terminal policy), but the launch profile's own turns went through
 ``launch_profile_runtime_scope`` / ``_profile_runtime_scope_tokens(None)`` which bound secrets and
 terminal policy only. Under multiplexing an unset override is the fail-closed "unbound context"
@@ -39,7 +39,7 @@ def two_homes(tmp_path, monkeypatch):
             f"plugins:\n  enabled: [stub]\n  entries:\n    stub:\n      settings:\n        x: {tag}\n",
             encoding="utf-8")
         (home / ".env").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(server, "_hermes_home", launch)
     monkeypatch.setattr(server, "_served_profile_homes", set())
     monkeypatch.setattr(lpp, "_snapshot", None)

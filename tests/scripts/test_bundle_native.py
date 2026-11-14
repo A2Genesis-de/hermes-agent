@@ -30,7 +30,7 @@ def test_bundle_stages_git_tree_and_runs_native_children_before_manifest(tmp_pat
     from tests.pm._fixtures import _wheel, stage_host_python
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path / "home")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     output = tmp_path / "payload"
     canonical = tmp_path / "canonical"
     lock, target = native._lockfile(), native.current_target()
@@ -117,7 +117,7 @@ def test_bundle_stages_git_tree_and_runs_native_children_before_manifest(tmp_pat
     canonical_before = {name: tree_digest(canonical / facts.get(name)["entry"]) for name in selected}
     canonical_facts = (canonical / "facts.json").read_bytes()
     env = {**os.environ, "UV_OFFLINE": "1", "UV_PYTHON_DOWNLOADS": "never",
-           "UV_CACHE_DIR": str(tmp_path / "cache"), "HERMES_PAYLOAD_VERSION": "9.9.9"}
+           "UV_CACHE_DIR": str(tmp_path / "cache"), "A2ASSISTANT_PAYLOAD_VERSION": "9.9.9"}
     subprocess.run([uv, "lock", "--python", sys.executable], cwd=repo, env=env, check=True, capture_output=True)
     subprocess.run(["git", "init", str(repo)], check=True, capture_output=True)
     subprocess.run(["git", "add", "."], cwd=repo, check=True)
@@ -165,7 +165,7 @@ def test_bundle_stages_git_tree_and_runs_native_children_before_manifest(tmp_pat
         return result
 
     monkeypatch.setattr(pm, "build_environment", build)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(user_store))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(user_store))
     monkeypatch.setenv("UV_CACHE_DIR", str(tmp_path / "cache"))
     prepared = native.prepare_native(out=output, ref="HEAD", source=repo, cache=tmp_path / "cache", tools=canonical, env=env)
     assert {name: tree_digest(canonical / facts.get(name)["entry"]) for name in selected} == canonical_before
@@ -255,7 +255,7 @@ def test_bundle_stages_git_tree_and_runs_native_children_before_manifest(tmp_pat
     from pm.install import venv_is_current
     with monkeypatch.context() as patch:
         # The desktop app points the bundled backend's store at the payload's tools dir.
-        patch.setenv("HERMES_RUNTIME_DIR", str(output / "tools"))
+        patch.setenv("A2ASSISTANT_RUNTIME_DIR", str(output / "tools"))
         patch.setattr("pm.paths.repo_root", lambda: output / "hermes-agent")
         assert venv_is_current(project_root=output / "hermes-agent")
     for name in stale:
@@ -278,7 +278,7 @@ def test_bundle_stages_git_tree_and_runs_native_children_before_manifest(tmp_pat
     command = "bin/probe.exe" if os.name == "nt" else "bin/probe"
     assert manifest["runtime"]["commands"] == {"probe": command}
     feature_file = output / "enabled-features.json"
-    assert os.environ["HERMES_RUNTIME_DIR"] == str(user_store)
+    assert os.environ["A2ASSISTANT_RUNTIME_DIR"] == str(user_store)
 
     moved = tmp_path / "installed elsewhere"
     output.rename(moved)
@@ -303,7 +303,7 @@ def test_bundle_stages_git_tree_and_runs_native_children_before_manifest(tmp_pat
     assert native._stage_native(args) == 1
     assert not (output / "manifest.json").exists()
     assert feature_file.read_bytes() == before
-    assert os.environ["HERMES_RUNTIME_DIR"] == str(user_store)
+    assert os.environ["A2ASSISTANT_RUNTIME_DIR"] == str(user_store)
 
     from pm.package import InstallError
     def fail_build(**kwargs):
@@ -311,7 +311,7 @@ def test_bundle_stages_git_tree_and_runs_native_children_before_manifest(tmp_pat
     monkeypatch.setattr(pm, "build_environment", fail_build)
     assert native._stage_native(args) == 1
     assert not (output / "manifest.json").exists()
-    assert os.environ["HERMES_RUNTIME_DIR"] == str(user_store)
+    assert os.environ["A2ASSISTANT_RUNTIME_DIR"] == str(user_store)
 
     (repo / "pm/lock.json").write_text("{}", encoding="utf-8")
     subprocess.run(["git", "add", "pm/lock.json"], cwd=repo, check=True)
@@ -640,8 +640,8 @@ def test_native_dispatch_isolates_process_state_on_real_child_failure(tmp_path, 
     # Compiler provisioning has its own native test; this probe must stop
     # at the invalid revision without installing tools on a developer host.
     monkeypatch.setattr("pm.native_build.prepare_windows_environment", lambda **kwargs: dict(kwargs["env"]))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "user-home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "user-tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "user-home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "user-tools"))
     before = dict(os.environ)
     out = tmp_path / "output"
     assert native.stage_native(SimpleNamespace(out=str(out), ref="missing-build-test-ref", cache=tmp_path / "cache")) != 0
@@ -675,7 +675,7 @@ def test_native_dispatch_child_environment(tmp_path, monkeypatch, cache_source, 
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path / "host")
     monkeypatch.setattr("pm.native_build.prepare_windows_environment", lambda **kwargs: dict(kwargs["env"]))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "user"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "user"))
     monkeypatch.delenv("UV_CACHE_DIR", raising=False)
     ambient = tmp_path / "ambient"
     if cache_source != "default":
@@ -712,8 +712,8 @@ def test_native_dispatch_child_environment(tmp_path, monkeypatch, cache_source, 
         assert env["HOME"] == env["USERPROFILE"] != str(tmp_path / "host")
         assert {key: env[key] for key in compilers} == compilers
         assert Path(env["UV_CACHE_DIR"]) == cache
-        assert Path(env["HERMES_RUNTIME_DIR"]) == out / "tools"
-        assert Path(env["HERMES_HOME"]) == homes[-1] / ".hermes"
+        assert Path(env["A2ASSISTANT_RUNTIME_DIR"]) == out / "tools"
+        assert Path(env["A2ASSISTANT_HOME"]) == homes[-1] / ".hermes"
     assert (cache / "reused").read_text(encoding="utf-8-sig") == "xx"
     assert all(not home.exists() for home in homes)
     assert dict(os.environ) == before

@@ -1,4 +1,4 @@
-// A tab opened before `hermes update` rebuilt the SPA still references the old
+// A tab opened before `a2assistant update` rebuilt the SPA still references the old
 // hashed chunks; the rebuild deleted them, so the first lazy page it opens 404s
 // and React unmounts the whole app (blank page). A reload picks up the new
 // index.html, which is served no-store.

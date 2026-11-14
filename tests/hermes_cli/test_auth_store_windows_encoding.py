@@ -27,12 +27,12 @@ from hermes_cli import auth
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    """Point HERMES_HOME at a tmp dir so we never touch the real auth store.
+    """Point A2ASSISTANT_HOME at a tmp dir so we never touch the real auth store.
 
     Required because ``_auth_file_path()`` has a seat belt that refuses to
-    resolve to the real user's ~/.hermes/auth.json under pytest.
+    resolve to the real user's ~/.a2assistant/auth.json under pytest.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     return tmp_path
 
 
@@ -215,7 +215,7 @@ class TestAuthJsonSiblingReaders:
         # The shared-store path has a seat belt that refuses to resolve to the
         # real user's store under pytest; pin it to a tmp dir explicitly.
         shared_dir = tmp_path / "shared"
-        monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(shared_dir))
+        monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(shared_dir))
 
         payload = {
             "refresh_token": "rt",

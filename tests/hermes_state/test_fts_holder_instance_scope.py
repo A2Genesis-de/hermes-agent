@@ -2,8 +2,8 @@
 
 Field-verified 2026-09-07 on a production host running TWO independent
 Hermes instances: a main gateway (user ``ubuntu``,
-HERMES_HOME=/home/ubuntu/.hermes) and a demo gateway (user ``demo``,
-HERMES_HOME=/home/demo/.hermes).  The demo gateway runs as another user, so
+A2ASSISTANT_HOME=/home/ubuntu/.hermes) and a demo gateway (user ``demo``,
+A2ASSISTANT_HOME=/home/demo/.hermes).  The demo gateway runs as another user, so
 its ``/proc/<pid>/fd`` table is unreadable from the main instance and the
 holder scan falls back to ``/proc/<pid>/cmdline`` + ``_looks_like_hermes``.
 The demo process's argv matches the Hermes patterns exactly, so the fallback
@@ -14,7 +14,7 @@ across 6 gateway restarts, the ``fts_stale`` breadcrumb never cleared, and
 FTS self-repair stayed permanently disabled.
 
 PR #92419 fixed substring false positives (journalctl/grep mentioning
-hermes); a genuine second instance with a DIFFERENT HERMES_HOME is still
+hermes); a genuine second instance with a DIFFERENT A2ASSISTANT_HOME is still
 misjudged on current main (issue #92401).
 
 Behavior contract: an uninspectable holder identified only by argv must be
@@ -162,7 +162,7 @@ class TestUninspectableHolderInstanceScope:
         """argv[0] is the SHARED install binary, so it cannot prove a hold of profile b's store.
 
         Every hermes process on a normal host runs ``<root>/venv/bin/hermes``; counting that token
-        as proof made ``hermes -p other chat -q`` an uninspectable holder of every OTHER profile's
+        as proof made ``a2assistant -p other chat -q`` an uninspectable holder of every OTHER profile's
         state.db, deferring its FTS rebuild and auto-VACUUM for as long as the sibling lived
         (#92401, inside a single install). The process's own ``-p``/``--profile`` selection decides.
         """
@@ -225,7 +225,7 @@ class TestUninspectableHolderInstanceScope:
         assert hermes_state_holders.foreign_state_db_holders(db_path) == []
 
     def test_custom_home_is_not_dismissed_by_the_install_location(self, tmp_path, monkeypatch):
-        """A store at a custom HERMES_HOME is SERVED BY the binary under ``~/.hermes``.
+        """A store at a custom A2ASSISTANT_HOME is SERVED BY the binary under ``~/.a2assistant``.
 
         Dismissing on that argv[0] admitted auto-VACUUM and the FTS rebuild under the live
         multiplexer that holds the store. argv[0] locates the install, never the home.

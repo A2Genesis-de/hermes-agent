@@ -30,7 +30,7 @@ def test_arbitrary_user_uid_rejected(
     )
     combined = r.stdout + r.stderr
     # Must mention the remediation env vars
-    assert "HERMES_UID" in combined or "PUID" in combined, (
+    assert "A2ASSISTANT_UID" in combined or "PUID" in combined, (
         f"rejection message missing remediation guidance: {combined[-500:]}"
     )
 

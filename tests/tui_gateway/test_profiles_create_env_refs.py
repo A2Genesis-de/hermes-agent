@@ -24,7 +24,7 @@ def test_new_bot_config_keeps_launch_env_refs_not_their_values(tmp_path, monkeyp
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     for name, value in _SECRETS.items():
         monkeypatch.setenv(name, value)
     (home / "config.yaml").write_text(

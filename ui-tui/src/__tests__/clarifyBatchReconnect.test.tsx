@@ -76,9 +76,9 @@ let home = ''
 
 beforeEach(() => {
   home = mkdtempSync(join(tmpdir(), 'ink-clarify-batch-reconnect-'))
-  vi.stubEnv('HERMES_HOME', home)
-  delete process.env.HERMES_TUI_GATEWAY_URL
-  delete process.env.HERMES_TUI_SIDECAR_URL
+  vi.stubEnv('A2ASSISTANT_HOME', home)
+  delete process.env.A2ASSISTANT_TUI_GATEWAY_URL
+  delete process.env.A2ASSISTANT_TUI_SIDECAR_URL
   ;(globalThis as { WebSocket?: unknown }).WebSocket = FakeWebSocket as unknown as typeof WebSocket
   FakeWebSocket.serve = frame =>
     frame.method === 'runtime.describe'

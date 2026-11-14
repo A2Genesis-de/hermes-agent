@@ -18,8 +18,8 @@ def test_release_channel_never_compares_main_or_reuses_main_cache(tmp_path, monk
     root = tmp_path / "source"
     root.mkdir()
     (root / ".git").mkdir()
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
-    monkeypatch.delenv("HERMES_REVISION", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(root))
+    monkeypatch.delenv("A2ASSISTANT_REVISION", raising=False)
     monkeypatch.setattr("hermes_cli.config.get_project_root", lambda: root)
     head = "a" * 40
     target = "b" * 40

@@ -37,7 +37,7 @@ def held(tmp_path):
     from hermes_cli import plugins
     from hermes_state import SessionDB
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     opened = []
 
     def run(script, plugin_body=None, server_cls=FakeLLMServer, **kwargs):

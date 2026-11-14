@@ -281,7 +281,7 @@ test('a dead owner with a LIVE delegate keeps the marker live (C1 rule 6)', asyn
 
   const live = await readLiveUpdateMarker(home)
 
-  assert.ok(live, 'a killed hand-off script must not hide a still-running hermes update')
+  assert.ok(live, 'a killed hand-off script must not hide a still-running a2assistant update')
   assert.equal(live!.pid, delegate.pid)
   delegate.kill('SIGKILL')
   await new Promise(resolve => delegate.once('exit', resolve))
@@ -434,7 +434,7 @@ test('the hand-off counts as started only when a real legacy script process take
   const startedAt = Math.floor(Date.now() / 1000)
 
   // A real old-style "script": waits, then claims the marker in its own name,
-  // echoing HERMES_UPDATE_STARTED_AT on line 2.
+  // echoing A2ASSISTANT_UPDATE_STARTED_AT on line 2.
   const script = spawn(
     process.execPath,
     [

@@ -41,9 +41,9 @@ def test_nonmatching_flag_runs_finish():
 from cron import lifecycle_guard as guard
 
 for command in (
-    "rclone lsf $HOME/.hermes --recursive --files-only " + "--exclude " * 58,
+    "rclone lsf $HOME/.a2assistant --recursive --files-only " + "--exclude " * 58,
     "hermes " + "--quiet " * 1000,
-    "hermes -p default " + "--quiet " * 1000 + "gateway status",
+    "a2assistant -p default " + "--quiet " * 1000 + "gateway status",
     "hermes " + ("--option" + " " * 100 + "value " ) * 58,
 ):
     assert guard.contains_gateway_lifecycle_command(command) is False

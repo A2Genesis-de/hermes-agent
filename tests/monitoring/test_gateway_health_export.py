@@ -44,7 +44,7 @@ def test_resource_attributes_are_allowlisted_and_sanitized():
     from agent.monitoring.otlp_exporter import _safe_resource_attributes
 
     attrs = _safe_resource_attributes({
-        "service.name": "hermes-gateway",
+        "service.name": "a2assistant-gateway",
         "service.instance.id": "install-1",
         "deployment.environment.name": "staging",
         "user.email": "user@example.com",
@@ -53,7 +53,7 @@ def test_resource_attributes_are_allowlisted_and_sanitized():
     })
 
     assert attrs == {
-        "service.name": "hermes-gateway",
+        "service.name": "a2assistant-gateway",
         "service.instance.id": attrs["service.instance.id"],
         "deployment.environment.name": "staging",
     }
@@ -178,7 +178,7 @@ def test_start_gateway_health_export_reports_otlp_unavailable_when_sdk_missing(m
 
 def test_install_id_persists_across_calls(tmp_path, monkeypatch):
     """A minted install id must survive restarts (service.instance.id continuity)."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text("{}\n")
 
     import hermes_cli.config as cfg_mod

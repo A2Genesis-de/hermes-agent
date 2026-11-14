@@ -83,7 +83,7 @@ _DOTENV_LOCK = threading.RLock()
 # the same token for its own /api probes). They are never .env configuration, so a persisted value in
 # ~/.hermes/.env must not replace an injected one — the parent would then 401 against its own child
 # (#115955). A value an earlier dotenv pass published is still reloaded normally.
-_SPAWN_CREDENTIAL_KEYS: frozenset[str] = frozenset({"HERMES_DASHBOARD_SESSION_TOKEN"})
+_SPAWN_CREDENTIAL_KEYS: frozenset[str] = frozenset({"A2ASSISTANT_DASHBOARD_SESSION_TOKEN"})
 
 # Behavioral routing keys a parent Hermes process injects into child env that silently redirect a profile
 # onto the wrong provider path; these — and ONLY these — are scrubbed at startup when absent from the
@@ -92,7 +92,7 @@ _SPAWN_CREDENTIAL_KEYS: frozenset[str] = frozenset({"HERMES_DASHBOARD_SESSION_TO
 # Providers that left core keep theirs listed on their ``LEFT_CORE`` row (``profile_env``), read statically:
 # this runs before provider discovery, and with the plugin absent nothing else names them.
 _PROFILE_MANAGED_ENV_KEYS: frozenset[str] = frozenset({
-    "HERMES_ACP_AUTH_METHOD", "HERMES_ACP_AUTO_APPROVE",
+    "A2ASSISTANT_ACP_AUTH_METHOD", "A2ASSISTANT_ACP_AUTO_APPROVE",
 }) | profile_env_names()
 
 
@@ -222,7 +222,7 @@ def _hydrate_profile_secret_sources(home: Path) -> dict[str, str]:
         if op_env.exists():
             for _name, _value in load_env_file(op_env).items():
                 local_env.setdefault(_name, _value)
-        local_env["HERMES_HOME"] = str(home)
+        local_env["A2ASSISTANT_HOME"] = str(home)
         env_before = dict(local_env)
         report = apply_all(cfg, home, environ=local_env)
     except Exception:
@@ -341,7 +341,7 @@ def _sanitize_loaded_credentials() -> None:
             "rich-text editor, or web page that substituted lookalike\n"
             "  Unicode glyphs for ASCII letters. If authentication fails "
             "(e.g. \"API key not valid\"), re-copy the key from the\n"
-            "  provider's dashboard and run `hermes setup` (or edit the "
+            "  provider's dashboard and run `a2assistant setup` (or edit the "
             ".env file in a plain-text editor).",
             file=sys.stderr,
         )
@@ -426,7 +426,7 @@ def _load_dotenv_with_fallback(
 
     ``load_pass`` groups the layered files of one ``load_hermes_dotenv`` call: within a pass a later layer
     (project, managed) still sees the earlier layer's output, as it always did; only OTHER passes' output
-    is peeled. A bare call (``hermes send``'s direct reload) is its own pass."""
+    is peeled. A bare call (``a2assistant send``'s direct reload) is its own pass."""
     assignments = _parse_dotenv_file(path)
     with _DOTENV_LOCK:
         if load_pass is None:
@@ -646,7 +646,7 @@ def load_hermes_dotenv(
     project_env: str | os.PathLike | None = None,
     load_external_secrets: bool = True,
 ) -> list[Path]:
-    """Load Hermes env files: ``~/.hermes/.env`` overrides stale shell exports; project ``.env`` is a dev
+    """Load Hermes env files: ``~/.a2assistant/.env`` overrides stale shell exports; project ``.env`` is a dev
     fallback that only fills gaps when the user env exists (and overrides shell vars when it does not)."""
     from agent.safe_worker_policy import worker_config_snapshot
 
@@ -769,7 +769,9 @@ def load_hermes_dotenv(
     # cron standalone runs) call load_hermes_dotenv() repeatedly and used to flip the effective backend back
     # to the stale .env value mid-session (#29186, #67323).
     _reapply_terminal_config_bridge(home_path)
+    from hermes_constants import adopt_legacy_env
 
+    adopt_legacy_env(os.environ)
     return loaded
 
 
@@ -850,7 +852,7 @@ def _refuse_protected_env_from_sources(report, backend=None, environ_before=None
     Exits (the backend is unusable), even when the pre-existing value won.
 
     *backend* is the backend selected BEFORE the sources ran: judging by the backend selected after
-    them would let a source that writes ``HERMES_CONFIG_BACKEND=file`` switch remote mode off and
+    them would let a source that writes ``A2ASSISTANT_CONFIG_BACKEND=file`` switch remote mode off and
     disarm this very check. The selector itself is never a source's to change, under any backend:
     a source's write to it is reverted in *env* (the mapping the sources wrote into; default
     ``os.environ``) to its *environ_before* value before anything else.
@@ -1079,7 +1081,7 @@ def _load_secrets_config(home_path: Path) -> dict:
 
 
 def _process_hermes_home() -> Path:
-    """The HERMES_HOME the running process was launched under.
+    """The A2ASSISTANT_HOME the running process was launched under.
 
     Must be the *true* process home, ignoring any context-local
     ``set_hermes_home_override`` a per-request task has installed. Both
@@ -1100,7 +1102,7 @@ def _process_hermes_home() -> Path:
 
     ``hermes_constants.get_routing_process_hermes_home()`` is the override-immune
     resolver built for exactly this; delegate to it. It is also immune to a host
-    that mirrors the served profile into the live ``HERMES_HOME`` env var
+    that mirrors the served profile into the live ``A2ASSISTANT_HOME`` env var
     (``pin_process_hermes_home``): without that, the mirrored profile satisfied
     the guard above and bridged ITS ``terminal.*`` into the shared env.
     """
@@ -1109,4 +1111,4 @@ def _process_hermes_home() -> Path:
 
         return get_routing_process_hermes_home()
     except Exception:
-        return Path.home() / ".hermes"
+        return Path.home() / ".a2assistant"

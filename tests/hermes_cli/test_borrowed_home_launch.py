@@ -48,8 +48,8 @@ def _checkout(tmp_path, monkeypatch, *, parent: Path | None = None) -> Path:
     # ``%LOCALAPPDATA%\hermes`` (``Path.home`` only backs an unset ``LOCALAPPDATA``), and no
     # ``LOCALAPPDATA`` value spells ``<tmp>/.hermes``, so pin the default itself.
     monkeypatch.setattr(hermes_constants, "_get_platform_default_hermes_home", lambda: tmp_path / ".hermes")
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
-    monkeypatch.delenv("HERMES_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_RUNTIME_DIR", raising=False)
     root = (parent or tmp_path / ".hermes") / "hermes-agent"
     root.mkdir(parents=True)
     (root / ".git").mkdir()
@@ -67,7 +67,7 @@ def _state(data_root: Path, checkout: Path) -> Path:
 
 def _home(monkeypatch, path: Path) -> Path:
     path.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(path))
     return path
 
 
@@ -92,7 +92,7 @@ def test_a_borrowers_own_dependency_state_never_makes_it_the_owner(tmp_path, mon
     custom = tmp_path / "data" / "h"
     root = _checkout(tmp_path, monkeypatch, parent=custom)
     _state(custom, root)
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     assert owning_home_root(root) == custom
 
     _state(tmp_path / ".hermes", root)  # the borrowing launch's own sync
@@ -102,8 +102,8 @@ def test_a_borrowers_own_dependency_state_never_makes_it_the_owner(tmp_path, mon
 
 def test_a_borrower_holding_the_checkout_never_becomes_its_owner(tmp_path, monkeypatch):
     """`install.sh --dir <dir>` puts the default root's checkout in <dir>. Launching it with
-    HERMES_HOME=<dir> borrows, and still borrows after that root's own sync leaves state --
-    even when an explicit sync points HERMES_RUNTIME_DIR at <dir>'s own store."""
+    A2ASSISTANT_HOME=<dir> borrows, and still borrows after that root's own sync leaves state --
+    even when an explicit sync points A2ASSISTANT_RUNTIME_DIR at <dir>'s own store."""
     import os
 
     import pm
@@ -138,11 +138,11 @@ def test_a_borrower_holding_the_checkout_never_becomes_its_owner(tmp_path, monke
     (borrowed / ("python.exe" if os.name == "nt" else "bin/python3")).touch()
     (holder / "tools" / "facts.json").write_text(json.dumps(
         {"schema": 1, "packages": {"python": {"version": "fixture", "entry": borrowed.name}}}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(holder / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(holder / "tools"))
     monkeypatch.setattr(_launchers, "expose_cli", lambda *args, **kwargs: {"ok": True})
     assert venv_sync.sync(root)["ok"]
     assert {path: Path(path).read_bytes() for path in published} == published
-    monkeypatch.delenv("HERMES_RUNTIME_DIR")
+    monkeypatch.delenv("A2ASSISTANT_RUNTIME_DIR")
     assert owning_home_root(root) == default
 
 
@@ -197,7 +197,7 @@ def test_the_owner_still_owes_and_runs_its_tail(tmp_path, monkeypatch, completio
 
     root = _checkout(tmp_path, monkeypatch)
     facts = _state(tmp_path / ".hermes", root)
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     facts.unlink()
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: facts.is_file())
     monkeypatch.setattr(pm, "sync_venv", lambda *a, **kw: facts.write_text("{}", encoding="utf-8"))

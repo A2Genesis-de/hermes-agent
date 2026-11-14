@@ -24,7 +24,7 @@ Pins, station, and volume use plugin-scoped local storage.
 SDK, backend, dependency, or registry changes are needed.
 
 The same plain-ESM file can be loaded through the runtime plugin door at
-`$HERMES_HOME/desktop-plugins/radio/plugin.js` for development. Do not install
+`$A2ASSISTANT_HOME/desktop-plugins/radio/plugin.js` for development. Do not install
 that duplicate alongside the bundled version. Layout styles use Hermes theme
 tokens and are removed on disable. Playback, timers, and audio nodes are also
 released. Closing the window stops playback; there is no background audio

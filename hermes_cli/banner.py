@@ -7,6 +7,7 @@ import shutil
 import sys
 import threading
 from pathlib import Path
+from hermes_cli.service_names import home_checkout_dir
 from hermes_cli import source_check
 # Historical updater import (tests/compat/old_updater_surface.json). In-tree callers use the owner.
 from hermes_cli.source_check import _github_compare_behind
@@ -107,7 +108,7 @@ _UNCACHED = object()  # compute() result that must not be memoized
 def _memo(cache_name: str, compute):
     """Return the cached value under module global ``cache_name``, computing (and storing) it once.
 
-    Not consulted under a routed profile (HERMES_HOME override): every memo here is derived from the
+    Not consulted under a routed profile (A2ASSISTANT_HOME override): every memo here is derived from the
     launch home (its skills tree, its checkout), and the TUI gateway calls these per profile."""
     from hermes_constants import get_hermes_home_override
     if get_hermes_home_override() is not None:
@@ -146,12 +147,12 @@ def get_available_skills() -> dict[str, list[str]]:
 def _resolve_repo_dir() -> Optional[Path]:
     """The active Hermes git checkout, or None if this isn't a git install.
 
-    Prefers the running code's location: ``$HERMES_HOME/hermes-agent/`` may be a stale copy
+    Prefers the running code's location: ``$A2ASSISTANT_HOME/hermes-agent/`` may be a stale copy
     carried over by ``--clone-all``.
     """
     repo_dir = Path(__file__).parent.parent.resolve()
     if not (repo_dir / ".git").exists():
-        repo_dir = get_hermes_home() / "hermes-agent"
+        repo_dir = home_checkout_dir(get_hermes_home())
     return repo_dir if (repo_dir / ".git").exists() else None
 
 
@@ -502,8 +503,8 @@ def _mcp_failed_line(name: str, transport: str, error: Optional[str]) -> str:
     exact next command, so 'failed' is never the whole story."""
     from rich.markup import escape
     reason = escape(" ".join(str(error or "").split())[:120]) or "no details recorded"
-    next_cmd = (f"hermes mcp login {name}" if re.search(r"\b401\b|unauthori[sz]ed", reason, re.IGNORECASE)
-                else f"hermes mcp test {name}")
+    next_cmd = (f"a2assistant mcp login {name}" if re.search(r"\b401\b|unauthori[sz]ed", reason, re.IGNORECASE)
+                else f"a2assistant mcp test {name}")
     return (f"[red]{name}[/] [dim]({transport})[/] [red]— could not connect:[/] {reason} "
             f"[dim]— run `{next_cmd}`[/]")
 
@@ -601,11 +602,11 @@ def _banner_left_lines(model: str, cwd: str, session_id, context_length, provide
         lines.append(f"[{accent}]MoA: {_short_label(model)}[/]{agg_str}{ctx_str}{nous_str}")
     elif not (model or "").strip() or (model or "").strip().lower() == "unknown":
         # Unconfigured install: the clearest place to say what is wrong and how to fix it.
-        lines.append(f"[bold red]no model configured[/] [dim {dim}]— run /model or hermes setup[/]")
+        lines.append(f"[bold red]no model configured[/] [dim {dim}]— run /model or a2assistant setup[/]")
     else:
         model_short = model.split("/")[-1].removesuffix(".gguf")
         lines.append(f"[{accent}]{_short_label(model_short)}[/]{ctx_str}{nous_str}")
-    if os.getenv("HERMES_YOLO_MODE"):
+    if os.getenv("A2ASSISTANT_YOLO_MODE"):
         lines.append(f"[bold red]⚠ YOLO mode[/] [dim {dim}]— all approval prompts bypassed[/]")
     lines.append(f"[dim {dim}]{cwd}[/]")
     if session_id:

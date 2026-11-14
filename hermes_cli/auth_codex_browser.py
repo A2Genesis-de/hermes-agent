@@ -1,6 +1,6 @@
 """OpenAI Codex browser login: authorization-code + PKCE on a loopback listener (opt-in).
 
-``hermes auth add openai-codex --browser`` (or ``auth.codex_login_flow: browser``) sends the
+``a2assistant auth add openai-codex --browser`` (or ``auth.codex_login_flow: browser``) sends the
 system browser to OpenAI's authorize endpoint and receives the code on
 ``http://localhost:1455/auth/callback`` — the redirect URI fixed by the public Codex client
 registration, so the port is not negotiable. Organizations that disable the device-code grant can

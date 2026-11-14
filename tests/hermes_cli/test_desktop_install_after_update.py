@@ -1,6 +1,6 @@
-"""``hermes update`` refreshes the installed macOS ``Hermes.app`` from the rebuilt bundle (#52339).
+"""``a2assistant update`` refreshes the installed macOS ``Hermes.app`` from the rebuilt bundle (#52339).
 
-``hermes desktop --build-only`` only packages into ``apps/desktop/release/``; Finder launches the
+``a2assistant desktop --build-only`` only packages into ``apps/desktop/release/``; Finder launches the
 copy in ``/Applications``. These pin the contract of ``_install_rebuilt_macos_bundles``: a stale
 or missing installed copy is (re)installed, a current one and a running one are never touched, and
 a failed swap leaves the previous bundle launchable. Which paths count as installed is decided by
@@ -66,7 +66,7 @@ def _patch_sigs(monkeypatch, summaries):
     monkeypatch.setattr(main_desktop, "_macos_signature_summary", lambda codesign, app: summaries(app))
 
 
-def _publisher_sig(app, team="TEAM0123", ident="com.nousresearch.hermes", verified=True):
+def _publisher_sig(app, team="TEAM0123", ident="de.a2genesis.a2assistant", verified=True):
     return {"team": team, "identifier": ident, "verified": verified}
 
 
@@ -148,7 +148,7 @@ def test_matching_publisher_signing_swaps(rebuilt, tmp_path, monkeypatch):
 def test_adhoc_installed_still_swaps(rebuilt, tmp_path, monkeypatch):
     """Ad-hoc installs (the local development flow) keep swapping regardless of rebuild sig."""
     stale = _bundle(tmp_path / "Applications", b"stale")
-    sigs = {stale: {"team": None, "identifier": "com.nousresearch.hermes", "verified": True}}
+    sigs = {stale: {"team": None, "identifier": "de.a2genesis.a2assistant", "verified": True}}
     _patch_sigs(monkeypatch, lambda app: sigs.get(app))
 
     installed, problems = main_desktop._install_rebuilt_macos_bundles(rebuilt, [stale], running=set())
@@ -182,7 +182,7 @@ def test_recorded_app_that_went_missing_comes_back_until_gui_uninstall(rebuilt, 
 
     home = tmp_path / "hermes-home"
     (home / "hermes-agent").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(hermes_main, "PROJECT_ROOT", home / "hermes-agent")
     (rebuilt / "Contents" / "Resources" / "install-stamp.json").write_text('{"updateMechanism": "self"}', encoding="utf-8")
     app = tmp_path / "Applications" / "Hermes.app"

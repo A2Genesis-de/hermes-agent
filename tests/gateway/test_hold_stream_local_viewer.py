@@ -28,7 +28,7 @@ async def _local_turn(*, hold, monkeypatch):
     import gateway.run as gateway_run
     from hermes_cli import plugins
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     authority = MagicMock()
     authority.sessions = {"sid": MagicMock()}
     authority.db.get_session.return_value = {"runtime_generation": 1}

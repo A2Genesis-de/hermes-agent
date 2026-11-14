@@ -22,7 +22,7 @@ export const zhHantDesktopCommands = {
   processesHeader: (count: string) => `背景程序（${count}）：`,
   configHeader: '設定（顯示、核准、貼上與語音設定；其他內容不顯示）：',
   configDefaults: '（預設值）',
-  configFooter: '請在「設定」中變更，或在閘道主機上用 `hermes config edit` 編輯 config.yaml。',
+  configFooter: '請在「設定」中變更，或在閘道主機上用 `a2assistant config edit` 編輯 config.yaml。',
   historyHeader: (count: string) => `對話紀錄（${count} 則訊息）：`,
   historyEmpty: '還沒有訊息。',
   historyYou: '你',
@@ -36,9 +36,9 @@ export const zhHantDesktopCommands = {
   saveDialogTitle: '儲存對話',
   savedTo: (path: string) => `對話已儲存到 ${path}`,
   saveCancelled: '未儲存（已取消）。',
-  exportRemote: '/export 會從閘道主機打包設定檔，而閘道主機不是這台電腦。請在該主機上執行 `hermes profile export`。',
+  exportRemote: '/export 會從閘道主機打包設定檔，而閘道主機不是這台電腦。請在該主機上執行 `a2assistant profile export`。',
   importRemote:
-    '/import 會在閘道主機上安裝設定檔，而閘道主機不是這台電腦。請在該主機上執行 `hermes profile import <archive>`。',
+    '/import 會在閘道主機上安裝設定檔，而閘道主機不是這台電腦。請在該主機上執行 `a2assistant profile import <archive>`。',
   timestampsUsage: '用法：/timestamps [on|off|status]',
   timestampsOn: '時間戳記：開（僅此視窗；在 config.yaml 中設定 display.timestamps 以保留）',
   timestampsOff: '時間戳記：關（僅此視窗；在 config.yaml 中設定 display.timestamps 以保留）'

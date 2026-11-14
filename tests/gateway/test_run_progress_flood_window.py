@@ -67,7 +67,7 @@ class FourToolAgent:
 
 
 async def _run(monkeypatch, tmp_path, retry_after, adapter=None, agent_cls=FourToolAgent):
-    monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
+    monkeypatch.setenv("A2ASSISTANT_TOOL_PROGRESS_MODE", "all")
     fake_run_agent = types.ModuleType("run_agent")
     fake_run_agent.AIAgent = agent_cls
     monkeypatch.setitem(sys.modules, "run_agent", fake_run_agent)

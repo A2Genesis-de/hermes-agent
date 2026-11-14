@@ -11,7 +11,7 @@ import tools.mcp_tool_discovery
 def test_banner_snapshot_accepts_bom_without_weakening_freshness(tmp_path, monkeypatch):
     import json
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(banner, "get_git_banner_state", lambda: None)
     monkeypatch.setattr(banner, "get_available_skills", lambda: {"notes": ["café"]})
     tools = [{"function": {"name": "read_file"}}]
@@ -37,7 +37,7 @@ def test_cprint_falls_back_to_plain_print_when_prompt_toolkit_has_no_console(cap
 
 def test_empty_model_shows_no_model_configured(tmp_path, monkeypatch):
     """The banner prints before credentials resolve; with no model it says so rather than guessing."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir()
     with (
         patch.object(model_tools, "check_tool_availability", return_value=([], [])),

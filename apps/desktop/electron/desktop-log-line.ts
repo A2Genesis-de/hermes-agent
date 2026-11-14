@@ -4,7 +4,7 @@
  *
  * The stamp is local time in the `YYYY-MM-DD HH:MM:SS,mmm` shape of Python's
  * default `asctime` (agent.log, gui.log, errors.log), so every file in `logs/`
- * reads on one clock and `hermes logs desktop --since` can parse these lines.
+ * reads on one clock and `a2assistant logs desktop --since` can parse these lines.
  * See #84405 for why lines carry a stamp at all.
  */
 

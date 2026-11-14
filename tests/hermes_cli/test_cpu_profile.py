@@ -12,8 +12,8 @@ REPO = Path(__file__).resolve().parents[2]
 
 
 def _run(args: list[str], hermes_home: Path, **extra_env: str) -> subprocess.CompletedProcess:
-    env = {k: v for k, v in os.environ.items() if not k.startswith(("HERMES_", "TERMUX_"))}
-    env.update({"HERMES_HOME": str(hermes_home), "PYTHONPATH": str(REPO), **extra_env})
+    env = {k: v for k, v in os.environ.items() if not k.startswith(("A2ASSISTANT_", "TERMUX_"))}
+    env.update({"A2ASSISTANT_HOME": str(hermes_home), "PYTHONPATH": str(REPO), **extra_env})
     return subprocess.run(
         [sys.executable, *args], cwd=REPO, env=env, capture_output=True, text=True, timeout=120, check=False)
 
@@ -90,7 +90,7 @@ def test_termux_interactive_fast_launch_still_writes_the_profile(tmp_path: Path)
         "main.cmd_chat = lambda args: None  # the interactive REPL needs a TTY\n"
         f"sys.argv = ['hermes', '--cpu-profile', {str(target)!r}]\n"
         "assert main._try_termux_fast_cli_launch()\n"
-        "assert os.environ.get('HERMES_DEFER_AGENT_STARTUP') == '1'  # lazy start kept\n"
+        "assert os.environ.get('A2ASSISTANT_DEFER_AGENT_STARTUP') == '1'  # lazy start kept\n"
     )
 
     result = _run(["-c", code], hermes_home, TERMUX_VERSION="0.118")

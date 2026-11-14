@@ -39,12 +39,12 @@ on CLI, Telegram, Discord, or any platform.
 Run the setup script with Python from the Hermes environment, not an unrelated
 system Python. `--install-deps` syncs Hermes' declared Google extra through PM;
 after syncing, restart Hermes and rerun the OAuth command. If Hermes is not
-importable, use `hermes setup` first rather than installing packages with pip.
+importable, use `a2assistant setup` first rather than installing packages with pip.
 
 Define a shorthand first:
 
 ```bash
-GSETUP="python ${HERMES_HOME:-$HOME/.hermes}/skills/productivity/google-workspace/scripts/setup.py"
+GSETUP="python ${A2ASSISTANT_HOME:-$HOME/.a2assistant}/skills/productivity/google-workspace/scripts/setup.py"
 ```
 
 ### Step 0: Check if already set up
@@ -131,7 +131,7 @@ $GSETUP --auth-url --services all --format json
 ```
 
 This returns JSON with an `auth_url` field and also saves the exact URL to
-`~/.hermes/google_oauth_last_url.txt`.
+`~/.a2assistant/google_oauth_last_url.txt`.
 
 Agent rules for this step:
 - Extract the `auth_url` field and send that exact URL to the user as a single line.
@@ -165,9 +165,9 @@ Should print `AUTHENTICATED`. Setup is complete — token refreshes automaticall
 
 ### Notes
 
-- Token is stored at `~/.hermes/google_token.json` and auto-refreshes.
-- Pending OAuth session state/verifier are stored temporarily at `~/.hermes/google_oauth_pending.json` until exchange completes.
-- If `gws` is installed, `google_api.py` points it at the same `~/.hermes/google_token.json` credentials file. Users do not need to run a separate `gws auth login` flow.
+- Token is stored at `~/.a2assistant/google_token.json` and auto-refreshes.
+- Pending OAuth session state/verifier are stored temporarily at `~/.a2assistant/google_oauth_pending.json` until exchange completes.
+- If `gws` is installed, `google_api.py` points it at the same `~/.a2assistant/google_token.json` credentials file. Users do not need to run a separate `gws auth login` flow.
 - To revoke: `$GSETUP --revoke`
 
 ## Usage
@@ -175,7 +175,7 @@ Should print `AUTHENTICATED`. Setup is complete — token refreshes automaticall
 All commands go through the API script. Set `GAPI` as a shorthand:
 
 ```bash
-GAPI="python ${HERMES_HOME:-$HOME/.hermes}/skills/productivity/google-workspace/scripts/google_api.py"
+GAPI="python ${A2ASSISTANT_HOME:-$HOME/.a2assistant}/skills/productivity/google-workspace/scripts/google_api.py"
 ```
 
 ### Gmail

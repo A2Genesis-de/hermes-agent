@@ -1,3 +1,5 @@
+import '../../shared/src/node/adopt-legacy-env.mjs'
+
 import { readFileSync } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
@@ -15,7 +17,7 @@ import { spawnWslgLaunch } from './wslg-launch-process'
 // Start-Process) must not keep the system proxy the update's children were given.
 restoreUserProxyEnv(process.env)
 
-// `hermes desktop` asks this binary whether Chromium's namespace sandbox starts under the host's
+// `a2assistant desktop` asks this binary whether Chromium's namespace sandbox starts under the host's
 // AppArmor policy (#130177). Chromium creates its sandboxed zygote before any JS runs, so reaching
 // this line answers yes; exit before any window, single-instance lock, backend or relaunch.
 if (process.argv.includes('--hermes-sandbox-probe')) {
@@ -24,11 +26,11 @@ if (process.argv.includes('--hermes-sandbox-probe')) {
 
 // Run before main creates windows/IME integrations or spawns resident helpers.
 // Closing Hermes cannot release a CWD inherited by an out-of-tree process.
-releasePackagedWorkingDirectory(app.isPackaged || Boolean(process.env.HERMES_DESKTOP_IS_PACKAGED))
+releasePackagedWorkingDirectory(app.isPackaged || Boolean(process.env.A2ASSISTANT_DESKTOP_IS_PACKAGED))
 
 function configuredElectronFlags(env: NodeJS.ProcessEnv): string[] {
   // Resolve the home exactly like main.ts does, through the shared resolver:
-  // HERMES_DATA_DIR_SUFFIX channel installs and profiles/-rooted HERMES_HOME
+  // A2ASSISTANT_DATA_DIR_SUFFIX channel installs and profiles/-rooted A2ASSISTANT_HOME
   // values must pick the same config.yaml before the relaunch and inside the
   // app, or desktop.electron_flags silently never reaches the relaunch.
   const home = resolveDesktopHermesHome({

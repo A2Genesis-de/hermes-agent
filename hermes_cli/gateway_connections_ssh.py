@@ -1,4 +1,4 @@
-"""Gateway SSH connections: a ControlMaster tunnel to a remote ``hermes serve``.
+"""Gateway SSH connections: a ControlMaster tunnel to a remote ``a2assistant serve``.
 
 Server-side port of Desktop's SSH attach path (``apps/desktop/electron/ssh-connection.ts`` +
 ``remote-lifecycle.ts``). ``ensure_tunnel`` opens (or reuses) a ControlMaster to the registry

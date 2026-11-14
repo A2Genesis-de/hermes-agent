@@ -54,10 +54,10 @@ def test_apply_model_switch_does_not_leak_process_env():
             self.provider = kw["new_provider"]
 
     env_keys = (
-        "HERMES_MODEL",
-        "HERMES_INFERENCE_MODEL",
-        "HERMES_TUI_PROVIDER",
-        "HERMES_INFERENCE_PROVIDER",
+        "A2ASSISTANT_MODEL",
+        "A2ASSISTANT_INFERENCE_MODEL",
+        "A2ASSISTANT_TUI_PROVIDER",
+        "A2ASSISTANT_INFERENCE_PROVIDER",
     )
 
     sess_b = {

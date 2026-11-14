@@ -36,7 +36,7 @@ _memory_surface_flags: ContextVar[Optional[tuple[bool, bool]]] = ContextVar("mem
 
 
 def get_memory_dir() -> Path:
-    """Profile-scoped memories dir, resolved per call (HERMES_HOME may switch after import)."""
+    """Profile-scoped memories dir, resolved per call (A2ASSISTANT_HOME may switch after import)."""
     return get_hermes_home() / "memories"
 
 

@@ -176,7 +176,7 @@ def _resolve_budget_fallback(
     # inherits ``HERMES_KANBAN_TASK`` via os.environ but exhausting ITS budget must not
     # close the parent's run and release its claim (#112817).
     _kanban_task = (
-        os.environ.get("HERMES_KANBAN_TASK")
+        os.environ.get("A2ASSISTANT_KANBAN_TASK")
         if budget_exhausted and is_dispatcher_owned_worker_context() else None
     )
     # If running as a kanban worker, signal the dispatcher that the worker could not complete (rather than

@@ -40,11 +40,11 @@ async def _connect(tmp_path, monkeypatch, *, native=True, config=None):
     if config:
         (home / "config.yaml").write_text(config, encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", str(home))
     monkeypatch.setattr(server, "_db", None)
     monkeypatch.setattr("gateway.run._hermes_home", home)
-    for name in ("HERMES_DESKTOP", "HERMES_DASHBOARD_SESSION_TOKEN"):
+    for name in ("A2ASSISTANT_DESKTOP", "A2ASSISTANT_DASHBOARD_SESSION_TOKEN"):
         monkeypatch.delenv(name, raising=False)
     store = SessionStore(home / "sessions", GatewayConfig())
     runner = SimpleNamespace(_session_db=store._db, session_store=store, _draining=False, adapters={},
@@ -297,7 +297,7 @@ async def test_a_chat_opened_on_the_trial_moves_to_the_provider_the_user_connect
 async def test_a_desktop_boot_that_could_not_record_the_install_tries_again_on_the_next_connection(
         tmp_path, monkeypatch):
     """The gateway outlives app launches. A first boot whose install record failed (a locked
-    config.yaml) is retried when the Desktop next connects, as the per-launch ``hermes serve`` did."""
+    config.yaml) is retried when the Desktop next connects, as the per-launch ``a2assistant serve`` did."""
     from hermes_cli import free_tier_bootstrap, onboarding_run
     from tui_gateway import server
     attempts = []

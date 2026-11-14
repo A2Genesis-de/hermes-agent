@@ -64,21 +64,25 @@ reads. Size ratchets: functions CC ≤ 20, ≤ 300 lines; files ≤ 2,000 lines
 Area guides: `agent/`, `hermes_cli/`, `gateway/`, `tools/`, `plugins/`, `tui_gateway/`, `web/`,
 `apps/desktop/`, `skills/`, `cron/`, `tests/`, `pm/`, `hermes_platform/` (each has `AGENTS.md`).
 
-User state: `~/.hermes/config.yaml` (settings), `.env` (secrets only), `logs/`; always through
-`get_hermes_home()` / `display_hermes_home()`, never a hard-coded `~/.hermes`.
+User state: `~/.a2assistant/config.yaml` (settings), `.env` (secrets only), `logs/`; always through
+`get_hermes_home()` / `display_hermes_home()`, never a hard-coded home. Env vars are `A2ASSISTANT_*`
+(legacy `HERMES_*` adopted and mirrored by `hermes_constants.adopt_legacy_env`; remove one with
+`unset_env`). User-facing names come from `hermes_constants.py` (via `hermes_cli/branding.py`), `hermes_cli/service_names.py` and
+`apps/shared/src/product-names.mjs` (see `docs/knowledge/rename.md`).
 
 ## AI interface
 
 A2Assistant is itself an agent: it consumes MCP servers (MCP client) and exposes an
 OpenAI-compatible API server (`gateway/platforms/api_server.py`), ACP (`acp_adapter/`) and the
-`hermes` CLI. No separate MCP server is offered, because other agents reach it through the API
+`a2assistant` CLI. No separate MCP server is offered, because other agents reach it through the API
 server, Telegram or the CLI.
 
 ## Project rules
 
-- Internal product, no upstream sync. Internal identifiers stay as they are until a dedicated
-  rename step: command `hermes` (alias `a2assistant`), `~/.hermes`, `HERMES_*`, bundle id
-  `com.nousresearch.hermes`, LaunchAgent `ai.hermes.gateway`, keychain services.
+- Internal product, no upstream sync. User-facing names are A2Assistant's (`a2assistant`,
+  `~/.a2assistant`, `A2ASSISTANT_*`, `de.a2genesis.a2assistant[.gateway]`); Python packages, module
+  and file names keep their Hermes names. New code never hard-codes `hermes`, `~/.hermes` or
+  `HERMES_*`.
 - No runtime contact to Nous Research or Hermes infrastructure. Updates and links point at
   `A2Genesis-de/a2assistant` (`hermes_cli/repository.py`, `apps/shared/src/repository.ts`).
 - Keep only what the deployment uses (see `docs/knowledge/index.md` § Usage); new integrations
@@ -89,9 +93,9 @@ server, Telegram or the CLI.
 - One process serves many profiles: code outside a turn binds the profile scope explicitly
   (`gateway/AGENTS.md` § Profile scope).
 - Machine facts and executable lookup go through `hermes_platform`.
-- Dependencies carry upper bounds; after editing `pyproject.toml` run `hermes pm lock`; never raw pip.
+- Dependencies carry upper bounds; after editing `pyproject.toml` run `a2assistant pm lock`; never raw pip.
 - Core never imports a specific bundled plugin; plugins use the published API
   (`hermes_cli/data/plugin_api.json`); `scripts/boundary_lint.py` guards new crossings.
-- Tests: `scripts/run_tests.sh`, behaviour contracts, never write to `~/.hermes/`.
+- Tests: `scripts/run_tests.sh`, behaviour contracts, never write to the real home.
 - Commits in English; work on branches, merge to `main`, never force-push `main` (the MacBook
-  fast-forwards it with `hermes update`).
+  fast-forwards it with `a2assistant update`).

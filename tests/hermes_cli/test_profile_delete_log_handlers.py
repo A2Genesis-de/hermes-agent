@@ -1,6 +1,6 @@
 """Profile deletion must release the profile-routed log handlers this process holds (#112538).
 
-A long-lived multiplex process (the Desktop's ``hermes serve`` backend) routes records to every
+A long-lived multiplex process (the Desktop's ``a2assistant serve`` backend) routes records to every
 served profile's ``logs/*.log`` through ``_ProfileRoutingFileHandler``, which lazily opens one
 rotating handler per home. On Windows that handler is ``ConcurrentRotatingFileHandler`` and keeps
 ``logs/.__<name>.lock`` open, so ``delete_profile`` run inside that process fails ``rmtree`` with
@@ -25,7 +25,7 @@ def routed_profile(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(profiles, "_cleanup_gateway_service", lambda *_: None)
     monkeypatch.setattr(profiles, "_maybe_unregister_gateway_service", lambda *_: None)
     monkeypatch.setattr(profiles, "_stop_profile_backends", lambda *_: None)

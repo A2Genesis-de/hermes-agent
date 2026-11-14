@@ -1,8 +1,8 @@
-"""Real ``hermes serve`` backend + WebSocket JSON-RPC clients for the terminal lane E2E suites.
+"""Real ``a2assistant serve`` backend + WebSocket JSON-RPC clients for the terminal lane E2E suites.
 
 One backend per test module: a real ``python -m hermes_cli.main serve --port 0`` subprocess (the
 exact argv Desktop spawns, see ``apps/desktop/electron/backend-command.ts``) with an isolated
-HOME/HERMES_HOME, no inherited provider credentials, and only the recording fake LLM provider
+HOME/A2ASSISTANT_HOME, no inherited provider credentials, and only the recording fake LLM provider
 configured. Clients speak the Desktop wire protocol over ``/api/ws`` (newline JSON-RPC,
 ``gateway.ready`` on accept, ``client.capabilities`` to answer server→client requests), so every
 event, lease, reaper and approval path is the production one.
@@ -29,7 +29,7 @@ from websockets.sync.client import connect as ws_connect
 from tests.fakes.fake_llm_provider import FakeLLMServer, write_hermes_home
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-READY_RE = re.compile(r"HERMES_BACKEND_READY port=(\d+)")
+READY_RE = re.compile(r"A2ASSISTANT_BACKEND_READY port=(\d+)")
 
 
 class RpcError(AssertionError):
@@ -75,20 +75,20 @@ def _minimal_env(home: Path, hermes_home: Path, token: str, extra: dict[str, str
     tmpdir = home.parent / "tmp"
     tmpdir.mkdir(parents=True, exist_ok=True)
     env.update(
-        HOME=str(home), HERMES_HOME=str(hermes_home), PYTHONPATH=str(REPO_ROOT),
-        TMPDIR=str(tmpdir), HERMES_DASHBOARD_SESSION_TOKEN=token, PYTHONUNBUFFERED="1",
+        HOME=str(home), A2ASSISTANT_HOME=str(hermes_home), PYTHONPATH=str(REPO_ROOT),
+        TMPDIR=str(tmpdir), A2ASSISTANT_DASHBOARD_SESSION_TOKEN=token, PYTHONUNBUFFERED="1",
         NO_COLOR="1",
         # The child's HOME *is* the sandbox, so its "real" root (expanduser('~')/.hermes) is the tmp
         # home and the pytest-ancestry live-DB guard would refuse every open. The guard exists to keep
         # tests off the operator's state.db; Backend.start() asserts the sandbox is outside it.
-        HERMES_STATE_DB_GUARD_BYPASS="1",
+        A2ASSISTANT_STATE_DB_GUARD_BYPASS="1",
     )
     env.update(extra or {})
     return env
 
 
 class Backend:
-    """One real ``hermes serve`` process wired to a :class:`FakeLLMServer`."""
+    """One real ``a2assistant serve`` process wired to a :class:`FakeLLMServer`."""
 
     def __init__(self, root: Path, responder, *, extra_config: str = "", env: dict[str, str] | None = None,
                  aux=None) -> None:
@@ -121,12 +121,12 @@ class Backend:
 
         def ready() -> int | None:
             if proc.poll() is not None:
-                raise AssertionError(f"hermes serve exited {proc.returncode} before ready:\n{self.logs()}")
+                raise AssertionError(f"a2assistant serve exited {proc.returncode} before ready:\n{self.logs()}")
             match = READY_RE.search((self.root / "serve.stdout.log").read_text(errors="replace"))
             return int(match.group(1)) if match else None
 
         try:
-            self.port = poll_until(ready, timeout=timeout, interval=0.1, what="HERMES_BACKEND_READY")
+            self.port = poll_until(ready, timeout=timeout, interval=0.1, what="A2ASSISTANT_BACKEND_READY")
         except BaseException:
             self.stop()
             raise

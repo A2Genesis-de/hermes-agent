@@ -18,7 +18,7 @@ def test_local_dm_cannot_fall_back_to_a_cli_turn(tmp_path, monkeypatch, capsys):
 def test_legacy_relay_requires_identity_without_spawning(monkeypatch, tmp_path):
     import tui_gateway.server as srv
     calls = []
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr('subprocess.run', lambda *a, **kw: calls.append(a))
     result = srv._methods['bot_relay.deliver'](1, {'profile': 'default', 'message': 'hello'})
     assert result['error']['data']['reason'] == 'invalid_params', result

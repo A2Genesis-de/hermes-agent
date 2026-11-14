@@ -17,7 +17,7 @@ from datetime import UTC
 
 class TestGatewayPidState:
     def test_write_pid_file_records_gateway_metadata(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         status.write_pid_file()
 
@@ -36,7 +36,7 @@ class TestGatewayPidState:
         """
         import pytest
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         # First write wins.
         status.write_pid_file()
@@ -53,7 +53,7 @@ class TestGatewayPidState:
 
 
     def test_runtime_lock_claims_and_releases_liveness(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         assert status.is_gateway_runtime_lock_active() is False
         assert status.acquire_gateway_runtime_lock() is True
@@ -65,7 +65,7 @@ class TestGatewayPidState:
 
 
     def test_get_running_pid_cached_invalidates_when_pid_file_changes(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         status._clear_running_pid_cache()
 
         pid_path = tmp_path / "gateway.pid"
@@ -102,7 +102,7 @@ class TestGatewayPidState:
 
 
     def test_get_running_pid_falls_back_to_live_lock_record(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         pid_path = tmp_path / "gateway.pid"
         pid_path.write_text(json.dumps({
             "pid": 99999,
@@ -139,11 +139,11 @@ class TestGatewayPidState:
     def test_gateway_identity_files_use_process_home_not_context_override(
         self, tmp_path, monkeypatch
     ):
-        """Regression: pid/lock/state files must use process-level HERMES_HOME.
+        """Regression: pid/lock/state files must use process-level A2ASSISTANT_HOME.
 
         When a profile context override is active (e.g., during session dispatch
         for a named profile), gateway identity files should still be written to
-        the process-level HERMES_HOME, not the profile's directory.  See #56986.
+        the process-level A2ASSISTANT_HOME, not the profile's directory.  See #56986.
         """
         from hermes_constants import set_hermes_home_override, reset_hermes_home_override
 
@@ -151,7 +151,7 @@ class TestGatewayPidState:
         process_home.mkdir()
         profile_home = tmp_path / "profiles" / "cfo"
         profile_home.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(process_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(process_home))
 
         # Simulate a profile context override being active during write.
         token = set_hermes_home_override(str(profile_home))
@@ -168,7 +168,7 @@ class TestGatewayPidState:
         assert payload["pid"] == os.getpid()
 
         # Cleanup for atexit hooks.
-        monkeypatch.setenv("HERMES_HOME", str(process_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(process_home))
         (process_home / "gateway.pid").unlink(missing_ok=True)
 
     def test_unscoped_live_identity_mismatch_never_unlinks_active_files(
@@ -177,7 +177,7 @@ class TestGatewayPidState:
         """A live PID behind a HELD lock is not stale-cleanup authority, even unscoped: an
         identity rejection (a matcher lagging a launcher shape) must not unlink the live
         gateway's gateway.pid/gateway.lock (#125610, #123109)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         record = {
             "pid": 4242, "kind": "hermes-gateway", "start_time": 123,
             "argv": ["python", "-m", "hermes_cli.main", "gateway", "run"],
@@ -201,7 +201,7 @@ class TestGatewayPidState:
     ):
         """A live gateway.pid that names ANOTHER home's gateway is poison inside this home and goes
         on refusal (#89315); the HELD gateway.lock is the holder's and stays (#125610)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         record = {
             "pid": 4242, "kind": "hermes-gateway", "start_time": 123,
             "argv": ["python", "-m", "hermes_cli.main", "gateway", "run"],
@@ -245,7 +245,7 @@ class TestScopedGatewayPidQuery:
 
     def test_scoped_query_reports_live_foreign_profile_pid(self, tmp_path, monkeypatch):
         # The serve process polls from the DEFAULT home; the live wiki record must still count.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default-home"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "default-home"))
         profile_dir, pid_path, _ = self._write_scoped_profile(tmp_path)
         monkeypatch.setattr(status, "is_gateway_runtime_lock_active", lambda lock: True)
         monkeypatch.setattr(status, "_pid_exists", lambda pid: True)
@@ -260,7 +260,7 @@ class TestScopedGatewayPidQuery:
 
     def test_scoped_query_still_cleans_dead_pid_record(self, tmp_path, monkeypatch):
         # A dead PID's stale record is still cleanup-unlinked, scoped or not.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "default-home"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "default-home"))
         profile_dir, pid_path, _ = self._write_scoped_profile(tmp_path)
         monkeypatch.setattr(status, "is_gateway_runtime_lock_active", lambda lock: True)
         monkeypatch.setattr(status, "_pid_exists", lambda pid: False)
@@ -274,7 +274,7 @@ class TestScopedGatewayPidQuery:
 
 class TestGatewayRuntimeStatus:
     def test_clear_profile_platforms_preserves_primary_entries(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "gateway_state.json").write_text(
             json.dumps({
                 "platforms": {
@@ -296,7 +296,7 @@ class TestGatewayRuntimeStatus:
     def test_clear_profile_platforms_and_write_are_one_atomic_update(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "gateway_state.json").write_text(
             json.dumps({
                 "platforms": {
@@ -328,7 +328,7 @@ class TestGatewayRuntimeStatus:
         # therefore stamped with the writer's (pid, start_time) identity —
         # the same PID-reuse fingerprint the liveness checks use — so
         # ownership is exact equality, not clock heuristics.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         status.write_runtime_status(platform="telegram", platform_state="connected")
 
@@ -341,7 +341,7 @@ class TestGatewayRuntimeStatus:
     def test_clear_profile_platforms_repairs_malformed_platforms(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "gateway_state.json").write_text(
             json.dumps({"platforms": ["not", "a", "mapping"]}),
             encoding="utf-8",
@@ -354,7 +354,7 @@ class TestGatewayRuntimeStatus:
 
     def test_write_runtime_status_overwrites_stale_pid_on_restart(self, tmp_path, monkeypatch):
         """Regression: setdefault() preserved stale PID from previous process (#1631)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         # Simulate a previous gateway run that left a state file with a stale PID
         state_path = tmp_path / "gateway_state.json"
@@ -379,7 +379,7 @@ class TestGatewayRuntimeStatus:
 
         Per-profile Docker supervision: ``coder``'s gateway died leaving a
         ``gateway_state=running`` record at PID 139.  The OS then recycled 139
-        onto the live *default* gateway (``hermes gateway run``).  The recorded
+        onto the live *default* gateway (``a2assistant gateway run``).  The recorded
         ``start_time`` is absent (older state file), so the start-time PID-reuse
         guard does not catch it.  Without the profile scope the live command
         line still ``looks_like_gateway`` and ``coder`` is wrongly reported up.
@@ -396,7 +396,7 @@ class TestGatewayRuntimeStatus:
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: None)
         # PID 139 is now the live DEFAULT gateway (bare, no -p coder).
         monkeypatch.setattr(
-            status, "_read_process_cmdline", lambda pid: "hermes gateway run --replace"
+            status, "_read_process_cmdline", lambda pid: "a2assistant gateway run --replace"
         )
 
         assert (
@@ -419,9 +419,9 @@ class TestGatewayRuntimeStatus:
         monkeypatch.setattr(status, "_pid_exists", lambda pid: True)
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 1000)
         for cmdline in (
-            "hermes -p coder gateway run --replace",
+            "a2assistant -p coder gateway run --replace",
             "/opt/hermes/.venv/bin/hermes --profile coder gateway run --replace",
-            "hermes_home=/opt/data/profiles/coder hermes gateway run --replace",
+            "hermes_home=/opt/data/profiles/coder a2assistant gateway run --replace",
         ):
             monkeypatch.setattr(status, "_read_process_cmdline", lambda pid, c=cmdline: c)
             assert (
@@ -436,36 +436,36 @@ class TestGatewayRuntimeStatus:
         (#100817), while a foreign ``-p coder`` keeps being rejected."""
         default_home = Path("/opt/hermes-data")
         for cmdline in (
-            "hermes --profile default gateway run --replace --external-supervisor",
+            "a2assistant --profile default gateway run --replace --external-supervisor",
             "/opt/hermes/.venv/bin/hermes -p default gateway run",
         ):
             assert status._command_line_belongs_to_profile(cmdline, default_home) is True, cmdline
-        assert status._command_line_belongs_to_profile("hermes -p coder gateway run", default_home) is False
+        assert status._command_line_belongs_to_profile("a2assistant -p coder gateway run", default_home) is False
 
     def test_command_line_belongs_to_profile_normalizes_separators(self):
-        """A Windows argv renders HERMES_HOME with backslashes while the
+        """A Windows argv renders A2ASSISTANT_HOME with backslashes while the
         profile's Path may carry forward slashes (and, on Windows, vice
         versa).  The separator difference must not defeat the match."""
         home = Path("c:/opt/data/profiles/coder")
-        cmdline = r"hermes_home=c:\opt\data\profiles\coder hermes gateway run --replace"
+        cmdline = r"hermes_home=c:\opt\data\profiles\coder a2assistant gateway run --replace"
         assert status._command_line_belongs_to_profile(cmdline, home) is True
 
     def test_command_line_belongs_to_profile_rejects_sibling_homes(self):
-        """A substring test let ``HERMES_HOME=/root/profiles/ops2`` satisfy the ``ops`` profile's
+        """A substring test let ``A2ASSISTANT_HOME=/root/profiles/ops2`` satisfy the ``ops`` profile's
         predicate, so a stale state record could borrow the sibling's live gateway identity (same
         shape as the ``-p ops`` vs ``-p ops-2`` token rule) -- on the named AND the default branch
         (#115031). An exact or absent assignment still matches."""
         home = Path("/fixture/profiles/ops")
         for cmdline in (
-            "HERMES_HOME=/fixture/profiles/ops2 hermes gateway run",
-            "HERMES_HOME=/fixture/profiles/ops-backup hermes gateway run",
-            "HERMES_HOME=/fixture/profiles/ops/2 hermes gateway run",
+            "A2ASSISTANT_HOME=/fixture/profiles/ops2 a2assistant gateway run",
+            "A2ASSISTANT_HOME=/fixture/profiles/ops-backup a2assistant gateway run",
+            "A2ASSISTANT_HOME=/fixture/profiles/ops/2 a2assistant gateway run",
         ):
             assert not status._command_line_belongs_to_profile(cmdline, home), cmdline
         default_home = Path("/opt/hermes-data")
-        assert not status._command_line_belongs_to_profile("HERMES_HOME=/opt/hermes-data2 hermes gateway run", default_home)
-        assert status._command_line_belongs_to_profile("HERMES_HOME=/opt/hermes-data hermes gateway run", default_home)
-        assert status._command_line_belongs_to_profile("hermes gateway run", default_home)
+        assert not status._command_line_belongs_to_profile("A2ASSISTANT_HOME=/opt/hermes-data2 a2assistant gateway run", default_home)
+        assert status._command_line_belongs_to_profile("A2ASSISTANT_HOME=/opt/hermes-data a2assistant gateway run", default_home)
+        assert status._command_line_belongs_to_profile("a2assistant gateway run", default_home)
 
     def test_command_line_belongs_to_profile_matches_own_home_spellings_only(self):
         """Token-bounded value AND name: quoted values (ps/wmic re-quoting) and a trailing separator
@@ -473,23 +473,23 @@ class TestGatewayRuntimeStatus:
         embeds the name inside another token and is not an assignment."""
         home = Path("/opt/data/profiles/coder with space")
         assert status._command_line_belongs_to_profile(
-            'hermes_home="/opt/data/profiles/coder with space" hermes gateway run', home)
+            'hermes_home="/opt/data/profiles/coder with space" a2assistant gateway run', home)
         # /proc and psutil hand argv back space-joined, so an unquoted value with a space is cut at
         # the space by the token parser; the whole-home literal match must still claim it.
         assert status._command_line_belongs_to_profile(
-            "HERMES_HOME=/opt/data/profiles/coder with space hermes gateway run", home)
+            "A2ASSISTANT_HOME=/opt/data/profiles/coder with space a2assistant gateway run", home)
         assert status._command_line_belongs_to_profile(
-            r"HERMES_HOME=C:\Users\John Doe\.hermes hermes gateway run", Path(r"C:\Users\John Doe\.hermes"))
+            r"A2ASSISTANT_HOME=C:\Users\John Doe\.hermes a2assistant gateway run", Path(r"C:\Users\John Doe\.hermes"))
         assert not status._command_line_belongs_to_profile(
-            "HERMES_HOME=/opt/data/profiles/coder with spaces hermes gateway run", home)
+            "A2ASSISTANT_HOME=/opt/data/profiles/coder with spaces a2assistant gateway run", home)
         home = Path("/fixture/profiles/ops")
-        assert status._command_line_belongs_to_profile("HERMES_HOME=/fixture/profiles/ops/ hermes gateway run", home)
-        assert status._command_line_belongs_to_profile("HERMES_HOME=/opt/hermes-data/ hermes gateway run", Path("/opt/hermes-data"))
-        assert not status._command_line_belongs_to_profile("FOO=hermes_home=/fixture/profiles/ops hermes gateway run", home)
+        assert status._command_line_belongs_to_profile("A2ASSISTANT_HOME=/fixture/profiles/ops/ a2assistant gateway run", home)
+        assert status._command_line_belongs_to_profile("A2ASSISTANT_HOME=/opt/hermes-data/ a2assistant gateway run", Path("/opt/hermes-data"))
+        assert not status._command_line_belongs_to_profile("FOO=hermes_home=/fixture/profiles/ops a2assistant gateway run", home)
 
 
     def test_write_runtime_status_explicit_none_clears_stale_fields(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         status.write_runtime_status(
             gateway_state="startup_failed",
@@ -522,7 +522,7 @@ class TestGatewayRuntimeStatus:
         ``connected`` write, not only the watcher's. A gateway restart after an escalation stamps
         ``connected`` from the startup path / adapter, which left the flag sticky for weeks on a
         healthy Telegram record."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         status.write_runtime_status(
             platform="telegram", platform_state="retrying", needs_attention=True,
             retrying_since="2026-08-30T07:53:47+00:00",
@@ -549,7 +549,7 @@ class TestRuntimeStatusBackgroundWriter:
     def test_blocked_write_does_not_block_publish_and_burst_coalesces(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         write_started = threading.Event()
         release_write = threading.Event()
         publish_returned = threading.Event()
@@ -607,7 +607,7 @@ class TestRuntimeStatusBackgroundWriter:
     def test_sync_write_can_bound_a_blocked_persistence_wait(
         self, tmp_path, monkeypatch
     ):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         write_started = threading.Event()
         release_write = threading.Event()
 
@@ -627,7 +627,7 @@ class TestRuntimeStatusBackgroundWriter:
             release_write.set()
         assert writer.flush(timeout=2.0)
     def test_write_runtime_status_records_platform_metrics(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         status.write_runtime_status(
             platform="api_server",
@@ -805,7 +805,7 @@ class TestScopedLocks:
         assert lock_path.read_text(encoding="utf-8") == "\n"
 
     def test_acquire_scoped_lock_rejects_live_other_process(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "telegram-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
@@ -832,7 +832,7 @@ class TestScopedLocks:
         succeeds) but belongs to a completely different program.  The lock
         must be treated as stale.
         """
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "telegram-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
@@ -869,7 +869,7 @@ class TestScopedLocks:
         freshly built record has a real fingerprint. Requiring equality made
         the gateway report its own PID as a foreign token squatter.
         """
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "discord-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
@@ -901,7 +901,7 @@ class TestScopedLocks:
 
     def test_release_scoped_lock_allows_null_disk_start_time(self, tmp_path, monkeypatch):
         """#81468: release must not no-op when disk start_time is null."""
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "discord-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
@@ -924,7 +924,7 @@ class TestScopedLocks:
         psutil transient) while the live process now reports a different value.
         Since the PID is ours, start_time equality is not required.
         """
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "discord-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
@@ -952,7 +952,7 @@ class TestScopedLocks:
         os.replace() hits FileNotFoundError (winner already claimed the stale
         file) and the winner's FRESH lock must survive: the loser must fall
         through to O_EXCL and lose, not clobber it like the old unlink() did."""
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "telegram-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         stale_record = {
@@ -991,7 +991,7 @@ class TestScopedLocks:
 
 
     def test_acquire_scoped_lock_replaces_stale_record(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_path = tmp_path / "locks" / "telegram-bot-token-2bb80d537b1da3e3.lock"
         lock_path.parent.mkdir(parents=True, exist_ok=True)
         lock_path.write_text(json.dumps({
@@ -1012,7 +1012,7 @@ class TestScopedLocks:
 
 
     def test_release_all_scoped_locks_can_target_single_owner(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
         lock_dir = tmp_path / "locks"
         lock_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1040,8 +1040,8 @@ class TestScopedLocks:
 
     def test_acquire_scoped_lock_stamps_profile_label(self, tmp_path, monkeypatch):
         """OOF-3: scoped locks are machine-global — record which profile owns them."""
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "profiles" / "lead-gen-outreach"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "profiles" / "lead-gen-outreach"))
 
         acquired, _existing = status.acquire_scoped_lock(
             "telegram-bot-token", "secret", metadata={"platform": "telegram"}
@@ -1056,8 +1056,8 @@ class TestScopedLocks:
 
     def test_acquire_scoped_lock_omits_profile_when_not_inferable(self, tmp_path, monkeypatch):
         """No label for unrecognizable custom homes — field omitted, not null."""
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "some-custom-dir"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "some-custom-dir"))
         monkeypatch.setattr(status, "_profile_label_for_home", lambda home: None)
 
         acquired, _ = status.acquire_scoped_lock("telegram-bot-token", "secret")
@@ -1084,11 +1084,11 @@ class TestScopedLockOwnerLabel:
         )
 
     def test_profile_label_for_root_home_is_default(self, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", "/opt/data")
+        monkeypatch.setenv("A2ASSISTANT_HOME", "/opt/data")
         assert status._profile_label_for_home("/opt/data") == "default"
 
     def test_profile_label_for_unknown_layout_is_none(self, monkeypatch):
-        monkeypatch.delenv("HERMES_HOME", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
         assert status._profile_label_for_home("/somewhere/else") is None
 
     def test_profile_label_rejects_invalid_directory_names(self, tmp_path):
@@ -1138,7 +1138,7 @@ class TestTakeoverMarker:
     """
 
     def test_write_marker_records_target_identity(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 42)
 
         ok = status.write_takeover_marker(target_pid=12345)
@@ -1166,7 +1166,7 @@ class TestTakeoverMarker:
         misclassified as an unexpected UNKNOWN exit. With start_time
         unavailable we fall back to PID equality alone, bounded by the TTL.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         # Simulate Windows: no start_time available for any PID.
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: None)
 
@@ -1182,8 +1182,8 @@ class TestTakeoverMarker:
 
 
     def test_write_marker_records_replacer_hermes_home(self, tmp_path, monkeypatch):
-        """The marker stamps the replacer's HERMES_HOME for cross-profile guard (#29092)."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        """The marker stamps the replacer's A2ASSISTANT_HOME for cross-profile guard (#29092)."""
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 42)
 
         status.write_takeover_marker(target_pid=12345)
@@ -1193,12 +1193,12 @@ class TestTakeoverMarker:
 
     def test_consume_rejects_marker_from_different_profile(self, tmp_path, monkeypatch):
         """Regression (#29092): a marker written by a gateway under a DIFFERENT
-        HERMES_HOME must be rejected even when PID + start_time coincidentally
-        match — otherwise two profile services sharing a default ~/.hermes flap
+        A2ASSISTANT_HOME must be rejected even when PID + start_time coincidentally
+        match — otherwise two profile services sharing a default ~/.a2assistant flap
         each other in an infinite SIGTERM/Restart loop. The mismatched marker is
         left in place so the profile it was actually meant for can consume it.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 100)
         marker_path = tmp_path / ".gateway-takeover.json"
         from datetime import datetime, timezone
@@ -1223,7 +1223,7 @@ class TestTakeoverMarker:
         ``replacer_hermes_home`` field; an absent field is treated as same-home so
         single-profile setups and mixed old/new deployments keep working.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 100)
         marker_path = tmp_path / ".gateway-takeover.json"
         from datetime import datetime, timezone
@@ -1262,7 +1262,7 @@ class TestScopedLockTakeover:
         replacer_home = tmp_path / "replacer"
         target_home = tmp_path / "target"
         replacer_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(replacer_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(replacer_home))
         record = self._owner_record(target_home)
 
         alive = iter([True, True, False])
@@ -1327,7 +1327,7 @@ class TestPlannedStopMarker:
     """Tests for intentional service/manual gateway stop markers."""
 
     def test_write_marker_records_target_identity(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 42)
 
         ok = status.write_planned_stop_marker(target_pid=12345)
@@ -1351,13 +1351,13 @@ class TestPlannedStopMarker:
         ``_get_process_start_time`` returns None on macOS / native Windows
         (no ``/proc/<pid>/stat``). The planned-stop watcher only runs there,
         so if the authoritative consume required a non-None start_time match
-        it would always return False — and ``hermes gateway stop`` would be
+        it would always return False — and ``a2assistant gateway stop`` would be
         misclassified as an unexpected ``UNKNOWN`` exit, exit 1, and revived
         by the service manager (the very crash loop #34597 set out to fix).
         With start_time unavailable on BOTH sides we fall back to PID
         equality alone, bounded by the marker TTL.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         # Simulate Windows: no start_time available for any PID.
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: None)
 
@@ -1382,7 +1382,7 @@ class TestPlannedStopMarker:
         unavailable. When both sides report one (Linux), a mismatch must
         still reject — otherwise PID reuse could resurrect a stale marker.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         monkeypatch.setattr(status, "_get_process_start_time", lambda pid: 100)
         status.write_planned_stop_marker(target_pid=os.getpid())
 
@@ -1456,7 +1456,7 @@ class TestActiveAgentsTurnBoundaryWrite:
     not clobber it."""
 
     def test_active_agents_only_write_preserves_gateway_state(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         # Lifecycle transition sets running.
         status.write_runtime_status(gateway_state="running", active_agents=0)
@@ -1506,7 +1506,7 @@ class TestGatewayBusyDerivation:
 
 class TestRespawnStormBreaker:
     def test_no_storm_under_threshold(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         for _ in range(5):
             result = status.record_start_and_check_storm(
                 max_starts=5, window_s=120.0
@@ -1516,7 +1516,7 @@ class TestRespawnStormBreaker:
 
 class TestLaunchdPlistRespawnGovernance:
     def test_plist_has_throttle_interval(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         from hermes_cli.gateway import generate_launchd_plist
 
         plist = generate_launchd_plist()
@@ -1535,7 +1535,7 @@ class TestLaunchdPlistRespawnGovernance:
         from gateway.restart import LAUNCHD_GUI_EXIT_TIMEOUT_CLAMP_S, LAUNCHD_STOP_CLEANUP_RESERVE_S
         from hermes_cli.gateway import generate_launchd_plist
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         plist = generate_launchd_plist()
         m = re.search(r"<key>ExitTimeOut</key>\s*<integer>(\d+)</integer>", plist)
         assert m, plist
@@ -1546,7 +1546,7 @@ class TestLaunchdPlistRespawnGovernance:
 class TestPermissionErrorOnLockFile:
     @pytest.mark.platforms("linux")
     def test_inaccessible_lock_is_not_deleted_or_treated_as_absence(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         lock = tmp_path / "gateway.lock"
         lock.write_text("existing owner")
         # The owner is live (its gateway.pid names a running process). Without one, an unreadable
@@ -1567,7 +1567,7 @@ class TestPermissionErrorOnLockFile:
 
     @pytest.mark.platforms("linux")
     def test_runtime_lock_does_not_follow_symlink(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         target = tmp_path / "unrelated"
         target.write_text("unchanged")
         (tmp_path / "gateway.lock").symlink_to(target)
@@ -1625,7 +1625,7 @@ class TestRuntimeStatusUpdatedAtContract:
         string|null contract every emit surface relies on."""
         from datetime import datetime
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
         status.write_runtime_status(gateway_state="running")
 
@@ -1679,7 +1679,7 @@ class TestResolveGatewayLiveness:
         permissions error must not turn into a 500.
         """
         # Empty rendezvous dir: no host gateway owns the role, so the multiplexer rung stays quiet.
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path))
 
         def _boom(*a, **k):
             raise RuntimeError("probe exploded")
@@ -1701,7 +1701,7 @@ class TestResolveGatewayLiveness:
         """Gateway identity files live in the per-profile home.
 
         The status readers resolve process-level paths and deliberately
-        ignore the HERMES_HOME contextvar override (#56986), so the profile
+        ignore the A2ASSISTANT_HOME contextvar override (#56986), so the profile
         directory must be threaded through explicitly or a scoped request
         silently reports a DIFFERENT profile's gateway (#71211).
         """
@@ -1786,7 +1786,7 @@ def test_strict_gateway_identity_rejects_reused_pid(tmp_path, monkeypatch):
 def test_strict_gateway_identity_adopts_held_lock_when_pid_file_is_gone(tmp_path, monkeypatch):
     """A held lock whose record validates against the live process IS the gateway's identity: a
     --replace relaunch (or a launch-service gateway, #110166) leaves gateway.lock without
-    gateway.pid, and raising there aborted every following `hermes update` (#123430)."""
+    gateway.pid, and raising there aborted every following `a2assistant update` (#123430)."""
     pid_path = tmp_path / "gateway.pid"
     lock_path = tmp_path / "gateway.lock"
     record = {"pid": 123, "start_time": 10.0, "kind": "hermes-gateway",
@@ -1814,7 +1814,7 @@ def test_pid_record_names_the_entry_point_under_an_inline_launcher(tmp_path, mon
 
     entry = types.SimpleNamespace(__file__="/opt/Hermes Agent/hermes-agent/hermes_cli/main.py")
     monkeypatch.setitem(status.sys.modules, "hermes_cli.main", entry)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(status.sys, "argv", ["-c", "gateway", "run"])
     record = status._build_pid_record()
     assert record["argv"] == [entry.__file__, "gateway", "run"]
@@ -1824,7 +1824,7 @@ def test_pid_record_names_the_entry_point_under_an_inline_launcher(tmp_path, mon
 def test_retained_gateway_state_keeps_watchdog_degraded_like_startup_failed():
     """A watchdog-stamped ``degraded`` of a dead process is a current failure under the same rule as
     ``startup_failed`` (#113372): kept while the operator wants the gateway running, ``stopped`` once
-    ``hermes gateway stop`` records the intent. The startup-time ``degraded`` (retryable platforms, no
+    ``a2assistant gateway stop`` records the intent. The startup-time ``degraded`` (retryable platforms, no
     watchdog exit_reason) of a dead process is just ``stopped``."""
     watchdog = {"gateway_state": "degraded", "exit_reason": "loop_liveness_watchdog"}
     assert status.retained_gateway_state(watchdog) == "degraded"

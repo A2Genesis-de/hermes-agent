@@ -20,7 +20,7 @@ def mux_runner(tmp_path, monkeypatch):
     (home / "profiles" / "sec").mkdir(parents=True)
     (home / "profiles" / "nobot").mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     default_bot, sec_bot = object(), object()
     runner = object.__new__(GatewayRunner)
     runner.adapters = {Platform.TELEGRAM: default_bot}

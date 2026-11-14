@@ -26,7 +26,7 @@ LIVE_CONTROL = {"action", "subagent_id", "message"}
 def _clean_queue_and_context(monkeypatch):
     import gateway.session_context as sc
 
-    monkeypatch.delenv("HERMES_SINGLE_QUERY_SESSION", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SINGLE_QUERY_SESSION", raising=False)
     yield
     for var in sc._VAR_MAP.values():
         var.set(sc._UNSET)

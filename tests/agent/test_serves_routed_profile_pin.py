@@ -1,7 +1,7 @@
-"""A host that mirrors the served profile into HERMES_HOME must not flip launch-home identity.
+"""A host that mirrors the served profile into A2ASSISTANT_HOME must not flip launch-home identity.
 
 Hermes WebUI serves several profiles from one process and, for legacy readers, mirrors the active
-turn's profile into ``os.environ["HERMES_HOME"]`` while also installing the context-local override.
+turn's profile into ``os.environ["A2ASSISTANT_HOME"]`` while also installing the context-local override.
 Every "is this task routed / is this the launch home" decision that compared the override with the
 live env var then saw the served home as the launch home: MCP connections were keyed by bare name
 (shared across profiles), the launch residue was never stripped from the served profile's child env,
@@ -47,7 +47,7 @@ def homes(tmp_path, monkeypatch):
     served = tmp_path / "profiles" / "served"
     launch.mkdir()
     served.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(hermes_constants, "_PINNED_PROCESS_HERMES_HOME", None)
     return launch, served
 
@@ -57,7 +57,7 @@ def test_pinned_launch_home_survives_a_mirrored_hermes_home(homes, monkeypatch, 
     launch, served = homes
     routed = ROUTED[decision]
     hermes_constants.pin_process_hermes_home(launch)
-    monkeypatch.setenv("HERMES_HOME", str(served))  # the host's per-turn mirror
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(served))  # the host's per-turn mirror
 
     assert routed(served) is True
     assert routed(launch) is False
@@ -73,10 +73,10 @@ def test_unpinned_or_cleared_pin_keeps_hermes_home_semantics(homes, monkeypatch,
     launch, served = homes
     routed = ROUTED[decision]
     for _ in ("never pinned", "pinned then cleared"):
-        monkeypatch.setenv("HERMES_HOME", str(launch))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
         assert routed(served) is True
         assert routed(launch) is False
-        monkeypatch.setenv("HERMES_HOME", str(served))  # mirrored: the env var IS the launch home
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(served))  # mirrored: the env var IS the launch home
         assert routed(served) is False
         hermes_constants.pin_process_hermes_home(launch)
         hermes_constants.pin_process_hermes_home(None)

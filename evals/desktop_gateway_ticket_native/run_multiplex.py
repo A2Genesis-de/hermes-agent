@@ -64,7 +64,7 @@ def main():
             directory.mkdir(parents=True, mode=0o700, exist_ok=True)
         env = {key: value for key, value in os.environ.items() if key.upper() in {
             'PATH', 'DISPLAY', 'WAYLAND_DISPLAY', 'XDG_RUNTIME_DIR', 'XAUTHORITY', 'LD_LIBRARY_PATH', 'LANG', 'TZ'}}
-        env.update(HOME=str(home), USERPROFILE=str(home), HERMES_HOME=str(state),
+        env.update(HOME=str(home), USERPROFILE=str(home), A2ASSISTANT_HOME=str(state),
                    XDG_CONFIG_HOME=str(home / '.config'), XDG_CACHE_HOME=str(home / '.cache'),
                    TEMP=str(base / 'tmp'), TMP=str(base / 'tmp'), TMPDIR=str(base / 'tmp'),
                    PYTHONPATH=str(REPO), PYTHONUNBUFFERED='1', PYTHONUTF8='1', PYTHONIOENCODING='utf-8')

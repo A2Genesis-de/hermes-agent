@@ -24,7 +24,7 @@ _LOCK_WAIT_SECONDS = 30 * 60
 STALE_MARKER = ".hermes-stale"
 # A packaged bundle (the Nix package), like HERMES_WEB_DIST for the dashboard: the packager
 # builds it, so Hermes serves it as it is and never builds or marks it.
-DIST_ENV = "HERMES_WEBAPP_DIST"
+DIST_ENV = "A2ASSISTANT_WEBAPP_DIST"
 
 
 class WebappBuildError(RuntimeError):
@@ -48,7 +48,7 @@ def mark_webapp_stale(project_root: Path) -> bool:
     dist = webapp_dist_dir(project_root)
     if packaged_webapp_dist() is not None or not (dist / "index.html").is_file():
         return False
-    (dist / STALE_MARKER).write_text("hermes update could not rebuild this bundle\n", encoding="utf-8")
+    (dist / STALE_MARKER).write_text("a2assistant update could not rebuild this bundle\n", encoding="utf-8")
     return True
 
 
@@ -99,7 +99,7 @@ def prepare_webapp_renderer(
     """Return a verified browser renderer, serializing concurrent builds.
 
     ``explicit`` (a requested build) may install dependencies even when lazy
-    installs are disabled, like ``hermes desktop --build-only``.
+    installs are disabled, like ``a2assistant desktop --build-only``.
     """
     from hermes_cli.source_build import build_source_webapp, source_build_env, source_product_current
 

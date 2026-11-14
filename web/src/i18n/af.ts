@@ -101,7 +101,7 @@ export const af: Translations = {
   status: {
     actionFailed: "Aksie het misluk",
     actionFinished: "Voltooi",
-    actionFinishedOwed: "Bygewerk, maar nog uitstaande (voer `hermes update` weer uit om klaar te maak)",
+    actionFinishedOwed: "Bygewerk, maar nog uitstaande (voer `a2assistant update` weer uit om klaar te maak)",
     actions: "Aksies",
     agent: "Agent",
     activeSessions: "Aktiewe Sessies",
@@ -337,7 +337,7 @@ export const af: Translations = {
       "Gestoor — herbegin die gateway om die verandering toe te pas.",
     forceReinstall: "Forseer herinstallasie (skrap eers bestaande gids)",
     headline:
-      "Ontdek, installeer, aktiveer en werk A2Assistant-inproppe op (`hermes plugins` ekwivalent).",
+      "Ontdek, installeer, aktiveer en werk A2Assistant-inproppe op (`a2assistant plugins` ekwivalent).",
     identifierLabel: "Git-URL of owner/repo",
     inactive: "onaktief",
     installBtn: "Installeer",
@@ -354,8 +354,8 @@ export const af: Translations = {
     providersHint:
       "Skryf memory.provider (leeg = ingebou) en context.engine na config.yaml. Tree volgende sessie in werking.",
     refreshDashboard: "Herskandeer dashboard-uitbreidings",
-    removeConfirm: "Verwyder hierdie inprop uit ~/.hermes/plugins/?",
-    removeHint: "Slegs gebruiker-geïnstalleerde inproppe onder ~/.hermes/plugins kan verwyder word.",
+    removeConfirm: "Verwyder hierdie inprop uit ~/.a2assistant/plugins/?",
+    removeHint: "Slegs gebruiker-geïnstalleerde inproppe onder ~/.a2assistant/plugins kan verwyder word.",
     rescanHeading: "SPA-inprop-register",
     rescanHint: "Herskandeer ná die byvoeg van lêers op skyf sodat die dashboard-sybalk nuwe manifeste optel.",
     runtimeHeading: "Gateway-looptyd (YAML-inproppe)",
@@ -376,7 +376,7 @@ export const af: Translations = {
     all: "Alles",
     categories: "Kategorieë",
     filters: "Filters",
-    noSkills: "Geen vaardighede gevind nie. Vaardighede word gelaai uit ~/.hermes/skills/",
+    noSkills: "Geen vaardighede gevind nie. Vaardighede word gelaai uit ~/.a2assistant/skills/",
     noSkillsMatch: "Geen vaardighede stem ooreen met jou soektog of filter nie.",
     skillCount: "{count} vaardighe{s}id",
     resultCount: "{count} resulta{s}at",
@@ -390,7 +390,7 @@ export const af: Translations = {
   },
 
   config: {
-    configPath: "~/.hermes/config.yaml",
+    configPath: "~/.a2assistant/config.yaml",
     filters: "Filters",
     sections: "Afdelings",
     exportConfig: "Voer konfigurasie uit as JSON",

@@ -56,7 +56,7 @@ import { fileURLToPath } from 'node:url';
  *   installer's stage registers one (install.sh --include-desktop
  *   builds the app but registers nothing), so these legs pair with a
  *   desktop-installer install; hermes-desktop-app-update starts the app
- *   via `hermes desktop`, which every install method provides on every
+ *   via `a2assistant desktop`, which every install method provides on every
  *   OS that ships the desktop app. Both then update through the app's
  *   own Update button.
  * @typedef {'linux' | 'windows' | 'macos'} Os
@@ -159,7 +159,7 @@ export const SPEC = {
       // Settings -> About -> "Update now", app launched from the installed
       // exe (the entry point the desktop installer created).
       { method: 'open-app-update' },
-      // Same button, app launched via `hermes desktop`.
+      // Same button, app launched via `a2assistant desktop`.
       { method: 'hermes-desktop-app-update' },
     ],
   },
@@ -191,7 +191,7 @@ export const SPEC = {
       { method: 'installer-script+desktop' },
       { method: 'hermes-update' },
       // No desktop installer and no packaged desktop artifact exist for
-      // linux, so there is no open-app-update; `hermes desktop` is always
+      // linux, so there is no open-app-update; `a2assistant desktop` is always
       // the source-mode path (build apps/desktop from the checkout, launch
       // electron) and is the one app surface a linux install has.
       { method: 'hermes-desktop-app-update' },
@@ -282,7 +282,7 @@ const ROUTE_OSES = /** @type {Record<string, Os[]>} */ ({
 });
 
 /**
- * The pull_request subset: the script install updated by `hermes update`, on every OS,
+ * The pull_request subset: the script install updated by `a2assistant update`, on every OS,
  * from the two starts that catch a regression before it ships -- the newest release
  * updating to the PR (the jump every user makes next) and the PR updating to a synthetic
  * NEXT (the updater the PR itself ships). One leg per {os, start} worth its runner:

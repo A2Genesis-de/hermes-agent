@@ -37,7 +37,7 @@ def _jwt(label):
 def _home(home, label):
     home.mkdir(parents=True, exist_ok=True)
     (home / "config.yaml").write_text("model:\n  provider: nous\n  default: fixture-model\n")
-    (home / ".env").write_text(f"HERMES_PORTAL_BASE_URL=https://{label}-portal.invalid\n")
+    (home / ".env").write_text(f"A2ASSISTANT_PORTAL_BASE_URL=https://{label}-portal.invalid\n")
     (home / "auth.json").write_text(json.dumps({"version": 1, "providers": {"nous": {
         "access_token": _jwt(label), "refresh_token": f"{label}-refresh",
         "expires_at": "2999-01-01T00:00:00+00:00", "scope": "inference:invoke", "client_id": "fixture-client",
@@ -61,11 +61,11 @@ def gateway(tmp_path, monkeypatch):
     launch, b = tmp_path / "launch", tmp_path / "launch" / "profiles" / "b"
     _home(launch, "launch")
     _home(b, "b")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared-auth"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(tmp_path / "shared-auth"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    for key in ("HERMES_PORTAL_BASE_URL", "NOUS_PORTAL_BASE_URL", "NOUS_INFERENCE_BASE_URL",
-                "HERMES_DEV_BILLING_FIXTURE", "HERMES_DEV_SUBSCRIPTION_FIXTURE", "HERMES_DEV_CREDITS_FIXTURE"):
+    for key in ("A2ASSISTANT_PORTAL_BASE_URL", "NOUS_PORTAL_BASE_URL", "NOUS_INFERENCE_BASE_URL",
+                "A2ASSISTANT_DEV_BILLING_FIXTURE", "A2ASSISTANT_DEV_SUBSCRIPTION_FIXTURE", "A2ASSISTANT_DEV_CREDITS_FIXTURE"):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setattr(launch_profile_policy, "_snapshot", None)
     monkeypatch.setattr(server, "_hermes_home", str(launch))

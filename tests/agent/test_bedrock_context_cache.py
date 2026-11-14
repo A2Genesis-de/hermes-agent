@@ -23,7 +23,7 @@ from agent.context_compressor import ContextCompressor
 
 @pytest.fixture(autouse=True)
 def isolated_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     mm._BEDROCK_PROBE_FAILURE_CACHE.clear()
     monkeypatch.setattr(ba, "resolve_bedrock_region", lambda: "us-east-1")
     yield tmp_path
@@ -99,7 +99,7 @@ def test_failure_memo_retry_scope_and_expiry(isolated_home, monkeypatch, base_ur
     elif retry == "profile":
         new_home = isolated_home / "other-profile"
         new_home.mkdir()
-        monkeypatch.setenv("HERMES_HOME", str(new_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(new_home))
     else:
         base_url = "https://bedrock-runtime.us-east-1.amazonaws.com/other"
     assert mm.get_model_context_length(model, provider="bedrock", base_url=base_url) == 96_000

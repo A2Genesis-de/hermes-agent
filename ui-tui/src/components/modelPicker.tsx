@@ -495,7 +495,7 @@ export function ModelPicker({
             setFilter('')
           }
 
-          // Other auth types: no-op (warning shown tells them to run hermes model)
+          // Other auth types: no-op (warning shown tells them to run a2assistant model)
           return
         }
 

@@ -26,7 +26,7 @@ use crate::update::UPDATE_EXIT_CONCURRENT;
 /// <pid>
 /// <started_at unix seconds>
 /// ct:<owner process creation time, unix seconds, 3 decimals>
-/// delegate:<pid> ct:<ct>          (optional; written by `hermes update` / the hand-off scripts)
+/// delegate:<pid> ct:<ct>          (optional; written by `a2assistant update` / the hand-off scripts)
 /// run:<id>                        (optional; the Desktop update run, A7 rule 6)
 /// ```
 ///
@@ -40,12 +40,12 @@ use crate::update::UPDATE_EXIT_CONCURRENT;
 /// (a live v2 owner is live however long it runs) and a recycled pid is not
 /// mistaken for the original owner.
 ///
-/// The marker is also the cross-process update lock: `hermes update` claims
+/// The marker is also the cross-process update lock: `a2assistant update` claims
 /// the same file so a dashboard-spawned update and this updater can't mutate
 /// one checkout at the same time. `acquire` therefore publishes its claim
 /// exclusively (a fully written tmp file hard-linked onto the path) and
 /// REFUSES when a live foreign owner holds it — the pre-fix clobber is what
-/// let a dashboard `hermes update` keep running while install-mode bootstrap
+/// let a dashboard `a2assistant update` keep running while install-mode bootstrap
 /// rewrote the tree underneath it.
 pub(crate) struct UpdateMarkerGuard {
     path: PathBuf,
@@ -512,7 +512,7 @@ fn empty_marker_age(path: &Path) -> Option<Duration> {
 
 /// Read the marker (under its mutex) and report a live holder, if any; a dead marker is
 /// removed. Test-only view of `inspect_marker_locked`; the install root is the marker's
-/// `hermes-agent` sibling, as in production (`<HERMES_HOME>/hermes-agent`).
+/// `hermes-agent` sibling, as in production (`<A2ASSISTANT_HOME>/hermes-agent`).
 #[cfg(test)]
 fn live_marker_owner(path: &Path) -> Option<MarkerOwner> {
     let _mutex = lock_marker(path).ok()?;
@@ -527,7 +527,7 @@ fn live_marker_owner(path: &Path) -> Option<MarkerOwner> {
 /// our creation time, never just a pid a previous process also had.
 ///
 /// Liveness of anything else is deliberately NOT consulted: the exit-2 self-heal below needs
-/// exactly one fact — is this our claim — because a `hermes update` child that refuses over
+/// exactly one fact — is this our claim — because a `a2assistant update` child that refuses over
 /// OUR claim is a handoff-recognition failure in a stale checkout, not a concurrent update.
 fn marker_owned_by_self(path: &Path) -> bool {
     let Some(record) = std::fs::read(path).ok().and_then(|raw| parse_marker(&raw)) else {
@@ -1074,7 +1074,7 @@ impl UpdateMarkerGuard {
     /// already-removed (or handed-over) marker.
     ///
     /// A7 rule 5 under the marker mutex (`release_decision`): our claim is removed regardless of
-    /// delegate lines, except that a LIVE `hermes update` delegate inherits it (the marker is
+    /// delegate lines, except that a LIVE `a2assistant update` delegate inherits it (the marker is
     /// rewritten with that delegate as owner) instead of losing it.
     pub(crate) fn complete(&self) {
         if !self.claimed {

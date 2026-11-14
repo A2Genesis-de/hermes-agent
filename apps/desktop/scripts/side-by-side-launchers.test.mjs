@@ -11,7 +11,7 @@ const { appExecutionAliasExtensions } = msix
 test('the Store bundler rejects nonstable selectors before platform tools or staging', () => {
   for (const args of [['--commit', 'a'.repeat(40)], ['--tag', 'v0.28.0+canary.20260818T000000Z']]) {
     const result = spawnSync(process.execPath, [path.resolve(import.meta.dirname, '../../../scripts/bundle-store-msixbundle.mjs'), ...args], {
-      encoding: 'utf8', env: { ...process.env, HERMES_BUILD_COMMIT: '', HERMES_PAYLOAD_TAG: '' }
+      encoding: 'utf8', env: { ...process.env, A2ASSISTANT_BUILD_COMMIT: '', A2ASSISTANT_PAYLOAD_TAG: '' }
     })
     assert.notEqual(result.status, 0)
     assert.match(result.stderr, /Unknown option.*commit|requires a stable release tag/)

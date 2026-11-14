@@ -80,7 +80,7 @@ def test_pip_mirror_update_restages_pm_runtime_through_the_mirror(inst):
 @pytest.mark.allow_network  # S.prefetch seeds the mirror with the pinned npm tarball
 def test_npm_registry_mirror_serves_pm_npm_download(inst):
     """``~/.npmrc`` names the mirror; the npm tool's store entry is missing, so
-    `hermes pm install npm` has to fetch its pinned tarball: from the mirror, never from
+    `a2assistant pm install npm` has to fetch its pinned tarball: from the mirror, never from
     registry.npmjs.org."""
     tool = S.installed_tool(inst, "npm")
     version = tool["version"]
@@ -115,7 +115,7 @@ def test_npm_registry_mirror_serves_pm_npm_download(inst):
 @pytest.mark.allow_network  # S.prefetch seeds the mirror with the pinned pnpm tarballs
 def test_npm_registry_mirror_serves_both_pm_pnpm_downloads(inst):
     """pnpm is two npm-hosted archives (the native executable, then the launcher whose dist/ it
-    needs): with ``~/.npmrc`` naming the mirror, `hermes pm install pnpm` fetches both from it,
+    needs): with ``~/.npmrc`` naming the mirror, `a2assistant pm install pnpm` fetches both from it,
     never from registry.npmjs.org."""
     from pm.lock import Lockfile
     from pm.store import current_target

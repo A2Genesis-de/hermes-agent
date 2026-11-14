@@ -1,8 +1,8 @@
 """Gateway control socket — the gateway-owned local coordination surface: a local-only socket answering
 versioned JSON verbs (``identify``, ``status``, ``resolve-profile``, ``session-ticket``, ...). A connectable socket with a well-formed ``identify``
 answer IS liveness — no PID-reuse heuristics. Never a TCP port: filesystem/pipe ACLs are the auth
-boundary. POSIX: ``$HERMES_HOME/gateway.sock`` (or a temp-dir socket + ``gateway.sock.path`` pointer
-file when the home path exceeds ``sun_path`` or its filesystem refuses sockets); Windows: named pipe ``\\\\.\\pipe\\hermes-gateway-<hash>``.
+boundary. POSIX: ``$A2ASSISTANT_HOME/gateway.sock`` (or a temp-dir socket + ``gateway.sock.path`` pointer
+file when the home path exceeds ``sun_path`` or its filesystem refuses sockets); Windows: named pipe ``\\\\.\\pipe\\a2assistant-gateway-<hash>``.
 Wire contract: ONE request per connection — one JSON line in, one out, then the server closes.
 Consumers PREFER the socket and fall back to the state-file/scan layer when it doesn't answer.
 """
@@ -49,8 +49,8 @@ def _home_hash(home: Path) -> str:
 
 
 def windows_pipe_name(home: Path) -> str:
-    """Per-HERMES_HOME named pipe path (Windows transport)."""
-    return rf"\\.\pipe\hermes-gateway-{_home_hash(home)}"
+    """Per-A2ASSISTANT_HOME named pipe path (Windows transport)."""
+    return rf"\\.\pipe\a2assistant-gateway-{_home_hash(home)}"
 
 
 def _fits_sun_path(path: Path) -> bool:
@@ -148,7 +148,7 @@ def _detect_supervisor() -> str:
     from gateway.restart import launchd_job_label
     if sys.platform == "darwin" and (launchd_job_label(env) or env.get("LAUNCHD_SOCKET")):
         return "launchd"
-    if env.get("HERMES_DESKTOP_MANAGED"):
+    if env.get("A2ASSISTANT_DESKTOP_MANAGED"):
         return "desktop"
     return "external" if "--external-supervisor" in sys.argv else "manual"
 

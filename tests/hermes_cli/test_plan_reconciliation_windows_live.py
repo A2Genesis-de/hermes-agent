@@ -5,7 +5,7 @@ Real processes with real Hermes-shaped argv, real inventory collection
 reconciliation. No mocks on the components under test.
 
  1. Spawn a real process with a `gateway run` command line registered as the
-    profile gateway (state file in a temp HERMES_HOME) — real
+    profile gateway (state file in a temp A2ASSISTANT_HOME) — real
     collect_runtime_inventory() must verify and find it, classify
     supervisor=manual, mechanism id 'manual' (machine id, not display string).
  2. Reconcile with bookkeeping that MISSES it -> unaccounted + escalation.
@@ -49,7 +49,7 @@ def _argv_visible(pid: int, marker: str) -> bool:
 def test_plan_reconciliation_live_windows(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     # Real live process standing in for a manual gateway. The inventory's
     # state-file fallback proves identity through live_gateway_pid_for_home,

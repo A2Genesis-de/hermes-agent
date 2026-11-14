@@ -77,7 +77,7 @@ class TestSessionIsolationKeying:
 
         root = hermes_constants._get_platform_default_hermes_home()  # conftest's per-test native root
         root.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(root))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
         assert terminal_tool._resolve_container_task_id("tui:sess-1") == "default"
 
     def test_persistent_false_keys_by_session(self, monkeypatch):

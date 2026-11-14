@@ -1,5 +1,5 @@
 """Served-profile isolation of local browsers: one process serving profile A, then B, then A again must hand
-each profile its OWN Chromium (profile dir under that profile's HERMES_HOME), and A's browser again on the
+each profile its OWN Chromium (profile dir under that profile's A2ASSISTANT_HOME), and A's browser again on the
 return trip, never B's (#110032). Runs the real session layer + launcher against a fake Chromium binary."""
 
 from __future__ import annotations

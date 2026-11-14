@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from hermes_constants import unset_env
 import contextlib
 import importlib
 import json
@@ -382,7 +383,7 @@ def _resolve_direct_command(hermes_path: str) -> list[str]:
 
 def _spawn_env(payload: dict[str, Any]) -> dict[str, str]:
     """The serve's environment. A Desktop dev build's renderer is an http origin the backend trusts
-    only from the HERMES_DESKTOP_DEV_SERVER it inherits, so the payload's ``devServer`` is handed
+    only from the A2ASSISTANT_DESKTOP_DEV_SERVER it inherits, so the payload's ``devServer`` is handed
     down exactly as the POSIX spawn command does; without one the variable is not set at all."""
     dev_server = str(payload.get("devServer") or "")
     if len(dev_server) > 2048 or any(ch in dev_server for ch in "\x00\r\n"):
@@ -390,9 +391,9 @@ def _spawn_env(payload: dict[str, Any]) -> dict[str, str]:
     env = dict(os.environ)
     env.pop("VIRTUAL_ENV", None)
     env.pop("PYTHONPATH", None)
-    env.pop("HERMES_DESKTOP_DEV_SERVER", None)
+    unset_env(env, "DESKTOP_DEV_SERVER")
     if dev_server:
-        env["HERMES_DESKTOP_DEV_SERVER"] = dev_server
+        env["A2ASSISTANT_DESKTOP_DEV_SERVER"] = dev_server
     return env
 
 

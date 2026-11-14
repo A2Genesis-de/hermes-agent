@@ -29,7 +29,7 @@ moa:
 """.strip(),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     calls = []
 
     def fake_call_llm(**kwargs):
@@ -105,7 +105,7 @@ moa:
 """.strip(),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     agent = AIAgent(
         api_key="moa-virtual-provider",
@@ -166,7 +166,7 @@ moa:
 """.strip(),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     agent = AIAgent(
         api_key="moa-virtual-provider",
@@ -241,7 +241,7 @@ moa:
 """.strip(),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     agent = AIAgent(
         api_key="moa-virtual-provider",
@@ -479,7 +479,7 @@ def test_max_iterations_summary_keeps_the_data_use_requirement_on_every_moa_slot
         "      aggregator:\n        provider: nous\n        model: agg-model\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     calls = []
 
     def fake_call_llm(**kwargs):
@@ -1149,7 +1149,7 @@ moa:
 """.strip(),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     interrupted_outputs = [
         (

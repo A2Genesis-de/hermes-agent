@@ -86,7 +86,7 @@ async function spawnFixture(launcher: 'setsid' | 'nohup', owned: boolean): Promi
   const bin: string = path.join(root, 'bin')
   const shell: string = (await exec('command -v sh', { shell: 'sh' })).stdout.trim()
   const localPath = (remotePath: string): string => remotePath.replace(/^~/, root)
-  const env: NodeJS.ProcessEnv = { HOME: root, HERMES_HOME: path.join(root, '.hermes'), PATH: bin, LANG: 'C.UTF-8' }
+  const env: NodeJS.ProcessEnv = { HOME: root, A2ASSISTANT_HOME: path.join(root, '.hermes'), PATH: bin, LANG: 'C.UTF-8' }
 
   const run = async (command: string): Promise<{ stdout: string; stderr: string }> => shellExec(command, { shell, env })
 
@@ -142,7 +142,7 @@ async function spawnFixture(launcher: 'setsid' | 'nohup', owned: boolean): Promi
 import json,os,signal,time
 from pathlib import Path
 pid=os.getpid()
-mutex=Path(os.environ['HERMES_HOME'])/'.hermes-update-in-progress.lock'
+mutex=Path(os.environ['A2ASSISTANT_HOME'])/'.hermes-update-in-progress.lock'
 identity=mutex.stat()
 fds=[]
 for fd in range(3,256):

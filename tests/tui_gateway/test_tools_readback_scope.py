@@ -35,8 +35,8 @@ def two_homes(tmp_path, monkeypatch):
     worker = root / "profiles" / "work"
     _pin(root, LAUNCH_PIN)
     _pin(worker, WORKER_PIN)
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.delenv("HERMES_TUI_TOOLSETS", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
+    monkeypatch.delenv("A2ASSISTANT_TUI_TOOLSETS", raising=False)
     monkeypatch.setattr(server, "_hermes_home", root)
     from agent import secret_scope
     monkeypatch.setattr(secret_scope, "_MULTIPLEX_ACTIVE", True)

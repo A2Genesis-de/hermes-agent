@@ -30,7 +30,7 @@ def _watch(marker: Path) -> tuple[list[str], object]:
 def home(tmp_path, monkeypatch) -> Path:
     path = tmp_path / "home"
     path.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(path))
     return path
 
 

@@ -29,7 +29,7 @@ def hermes_root(monkeypatch, tmp_path):
     """A custom Hermes root, served through one of its named profiles."""
     root = tmp_path / "hermes"
     (root / "profiles" / "work").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "work"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root / "profiles" / "work"))
     return root
 
 

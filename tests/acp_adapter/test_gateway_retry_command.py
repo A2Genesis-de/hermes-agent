@@ -40,7 +40,7 @@ class LossyResume(SlashWire):
 
 @contextlib.asynccontextmanager
 async def _editor(tmp_path, monkeypatch, wire_class=SlashWire):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     executed = []
 

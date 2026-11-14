@@ -24,7 +24,7 @@ def root(tmp_path, monkeypatch) -> Path:
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", str(home))
     monkeypatch.setattr(server, "_db", None)
     monkeypatch.setattr("agent.onboarding_facts.read_facts", lambda **kw: FACTS)
@@ -112,7 +112,7 @@ def test_only_a_chat_with_a_run_in_progress_gets_the_onboarding_toolset(root):
 
 
 def test_an_unrestricted_chat_with_a_run_keeps_every_tool_and_gets_setup_beat(root):
-    """HERMES_TUI_TOOLSETS=all loads None, which selects no session-gated toolset (onboarding is one)."""
+    """A2ASSISTANT_TUI_TOOLSETS=all loads None, which selects no session-gated toolset (onboarding is one)."""
     from model_tools import _select_tool_names
     db = server._get_db()
     db.create_session("onb", "desktop")
@@ -386,7 +386,7 @@ def test_the_onboarding_facts_are_read_in_the_default_profile(root, client, monk
     (work / "skills").mkdir(parents=True)
     (work / "config.yaml").write_text("model: {}\n", encoding="utf-8")
     monkeypatch.setattr(server, "_hermes_home", str(work))
-    monkeypatch.setenv("HERMES_HOME", str(work))  # a backend launched with -p work
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(work))  # a backend launched with -p work
     monkeypatch.setitem(server._methods, "prompt.submit", lambda rid, params: {"result": {}})  # launch db is work's
     homes = []
     monkeypatch.setattr("agent.onboarding_facts.read_facts", lambda **kw: (homes.append(get_hermes_home()), FACTS)[1])

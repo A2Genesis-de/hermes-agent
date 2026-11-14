@@ -57,7 +57,7 @@ def _after_tool_call(base):
 def _prepared(monkeypatch, tmp_path, fanout="user_turn"):
     home = tmp_path / ".hermes"
     _config(home, fanout)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     ref_runs = []
     _install_fake_llm(monkeypatch, ref_runs)
 

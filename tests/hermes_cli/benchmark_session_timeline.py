@@ -17,7 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
 def main():
     with tempfile.TemporaryDirectory(prefix="hermes-timeline-bench-") as directory:
-        os.environ["HERMES_HOME"] = directory
+        os.environ["A2ASSISTANT_HOME"] = directory
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
         from hermes_state import SessionDB

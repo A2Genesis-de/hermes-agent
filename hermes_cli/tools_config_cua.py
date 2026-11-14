@@ -46,7 +46,7 @@ def _post_setup_no_window_flags(*, streams_to_console: bool = False) -> int:
 
 
 def _cua_driver_cmd() -> str:
-    return os.environ.get("HERMES_CUA_DRIVER_CMD", "").strip() or "cua-driver"
+    return os.environ.get("A2ASSISTANT_CUA_DRIVER_CMD", "").strip() or "cua-driver"
 
 
 def _cua_version_summary(raw: str, *, limit: int = 120) -> str:
@@ -111,12 +111,12 @@ def install_cua_driver(upgrade: bool = False, show_installer_progress: bool = Tr
     """
     from pm import ensure
 
-    override = os.environ.get("HERMES_CUA_DRIVER_CMD", "").strip()
+    override = os.environ.get("A2ASSISTANT_CUA_DRIVER_CMD", "").strip()
     binary = _resolved_cua_driver_cmd()
     fresh_install = binary is None
     if override:
         if not binary:
-            return _fail(f"    HERMES_CUA_DRIVER_CMD does not resolve to an executable: {override}",
+            return _fail(f"    A2ASSISTANT_CUA_DRIVER_CMD does not resolve to an executable: {override}",
                          "    Fix or unset the override before running computer-use install.")
     else:
         if show_installer_progress:
@@ -132,8 +132,8 @@ def install_cua_driver(upgrade: bool = False, show_installer_progress: bool = Tr
     _CUA_DRIVER_CONTRACT_CACHE.clear()
     contract = _cua_driver_contract_status(binary)
     if not contract.get("ready"):
-        hint = ("    Update the binary selected by HERMES_CUA_DRIVER_CMD, or unset the override."
-                if override else "    Run: hermes computer-use doctor")
+        hint = ("    Update the binary selected by A2ASSISTANT_CUA_DRIVER_CMD, or unset the override."
+                if override else "    Run: a2assistant computer-use doctor")
         return _fail("    cua-driver runtime contract is unusable: "
                      f"{contract.get('reason') or 'unknown error'}.", hint)
     if sys.platform == "win32" and not _repair_cua_driver_autostart_windows(
@@ -267,4 +267,4 @@ def _print_cua_platform_notes(is_windows: bool, is_linux: bool, *, fresh_install
                     else "    Grant macOS permissions if not done yet:")
         _print_info("      System Settings > Privacy & Security > Accessibility")
         _print_info("      System Settings > Privacy & Security > Screen Recording")
-        _print_info("    Allow CuaDriver.app; run `hermes computer-use permissions grant` for guidance.")
+        _print_info("    Allow CuaDriver.app; run `a2assistant computer-use permissions grant` for guidance.")

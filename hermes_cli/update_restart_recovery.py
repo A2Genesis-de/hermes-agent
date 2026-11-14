@@ -26,12 +26,12 @@ covers both and an abort can strand either one (#92145):
 - **gateway profiles**, relaunched through the existing per-profile
   ``hermes_cli.main -p <profile> gateway restart`` command; and
 - **``hermes-serve*`` systemd units**, restarted directly through
-  ``systemctl``.  ``hermes serve`` is not a gateway profile and has no
+  ``systemctl``.  ``a2assistant serve`` is not a gateway profile and has no
   per-profile relaunch command, but it is the runtime that hosts
   ``tui_gateway.server``: the process the original report saw answering every
   chat turn with an ``ImportError`` for a symbol that existed on disk.  The
   unit family is enumerated from systemd itself rather than from the update
-  inventory, so a manually launched or Desktop-owned ``hermes serve`` — which
+  inventory, so a manually launched or Desktop-owned ``a2assistant serve`` — which
   has no relaunch authority — can never enter this path.
 
 Serve-unit identity is always ``<scope>/<unit>`` (``user/hermes-serve``,
@@ -56,8 +56,8 @@ import time
 from collections.abc import Callable, Iterable, Mapping
 from typing import Any
 
-_RECOVERY_ENV = "HERMES_UPDATE_RESTART_RECOVERY"
-_GATEWAY_MARKERS = ("_HERMES_GATEWAY", "HERMES_GATEWAY", "HERMES_GATEWAY_MODE")
+_RECOVERY_ENV = "A2ASSISTANT_UPDATE_RESTART_RECOVERY"
+_GATEWAY_MARKERS = ("_HERMES_GATEWAY", "A2ASSISTANT_GATEWAY", "A2ASSISTANT_GATEWAY_MODE")
 _PROFILE_RESTART_TIMEOUT = 90
 _VERIFY_TIMEOUT = 15
 from hermes_constants import PROFILE_ID_RE as _PROFILE_ID_RE
@@ -91,10 +91,10 @@ def _succeeded(result: Any) -> bool:
 
 
 def _launch_profile() -> str:
-    """Profile this recovery process was launched as: ``<root>/profiles/<name>`` in ``HERMES_HOME`` names it,
+    """Profile this recovery process was launched as: ``<root>/profiles/<name>`` in ``A2ASSISTANT_HOME`` names it,
     anything else is the default profile. Mirrors ``hermes_cli.profiles.profile_root_for_env_home`` without
     importing it — this module stays stdlib-only at import time."""
-    home = os.environ.get("HERMES_HOME", "").strip()
+    home = os.environ.get("A2ASSISTANT_HOME", "").strip()
     if home:
         path = os.path.normpath(home)
         if os.path.basename(os.path.dirname(path)) == "profiles":
@@ -147,9 +147,11 @@ def _run_profile_restart(profile: str, *, run: Callable[..., Any]) -> bool:
 
 def _systemd_unit_candidates(profile: str) -> tuple[str, ...]:
     """Unit names the existing systemd gateway lifecycle produces per profile."""
+    from hermes_cli.service_names import gateway_systemd_unit
+
     if profile == "default":
-        return ("hermes-gateway.service", "gateway.service", "gateway-default.service")
-    return (f"hermes-gateway-{profile}.service", f"gateway-{profile}.service")
+        return (f"{gateway_systemd_unit()}.service", "gateway.service", "gateway-default.service")
+    return (f"{gateway_systemd_unit(profile)}.service", f"gateway-{profile}.service")
 
 
 def _systemd_verified_active(profile: str, *, run: Callable[..., Any]) -> bool:
@@ -169,7 +171,7 @@ def _host_state_dir() -> str:
     This module imports no Hermes code at runtime — importing the freshly pulled tree is exactly
     what aborted the phase that calls us — so the rule is duplicated here rather than shared.
     """
-    override = os.environ.get("HERMES_GATEWAY_LOCK_DIR")
+    override = os.environ.get("A2ASSISTANT_GATEWAY_LOCK_DIR")
     if override:
         return override
     state_home = os.environ.get("XDG_STATE_HOME") or ""
@@ -359,7 +361,7 @@ def restart_serve_units(
     """Restart every active ``hermes-serve*``/``hermes-dashboard*`` systemd unit from this process.
 
     Units are enumerated from systemd, never from the update inventory, so a manually launched or
-    Desktop-owned ``hermes serve`` (no unit) structurally cannot be touched here.
+    Desktop-owned ``a2assistant serve`` (no unit) structurally cannot be touched here.
     """
     skipped_qualified, skipped_legacy = _normalized_skips(skip_units)
     # (scope, base unit) -> replaced?  The same unit name in the user and the system

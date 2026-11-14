@@ -301,13 +301,13 @@ class TestVerifierEnabled:
 
     @pytest.mark.parametrize("value", ["0", "FALSE", "off"])
     def test_env_disables(self, monkeypatch, value):
-        monkeypatch.setenv("HERMES_FILE_MUTATION_VERIFIER", value)
+        monkeypatch.setenv("A2ASSISTANT_FILE_MUTATION_VERIFIER", value)
         agent = _bare_agent()
         assert agent._file_mutation_verifier_enabled() is False
 
     def test_config_value_disables(self, monkeypatch):
         """``display.file_mutation_verifier: false`` turns the verifier off."""
-        monkeypatch.delenv("HERMES_FILE_MUTATION_VERIFIER", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_FILE_MUTATION_VERIFIER", raising=False)
         agent = _bare_agent()
 
         import hermes_cli.config as _cfg_mod

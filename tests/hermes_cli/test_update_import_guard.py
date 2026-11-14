@@ -1,4 +1,4 @@
-"""Tests for the post-update *import* guard in ``hermes update``.
+"""Tests for the post-update *import* guard in ``a2assistant update``.
 
 ``tree_syntax_error`` only parses files, so it cannot detect a
 partially-updated tree: when one package is refreshed and a sibling is not,

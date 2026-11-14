@@ -33,7 +33,7 @@ def _home(home, label, *, expired):
     home.mkdir(parents=True)
     (home / "config.yaml").write_text("model:\n  provider: nous\n  default: fixture-model\n")
     (home / ".env").write_text(
-        f"HERMES_PORTAL_BASE_URL=https://{label}-portal.invalid\n"
+        f"A2ASSISTANT_PORTAL_BASE_URL=https://{label}-portal.invalid\n"
         f"NOUS_INFERENCE_BASE_URL=https://{label}-inference.invalid/v1\n"
     )
     (home / "auth.json").write_text(json.dumps({"version": 1, "providers": {"nous": {
@@ -51,16 +51,16 @@ def runtime(request, tmp_path, monkeypatch):
     secondary = launch / "profiles" / "secondary"
     _home(launch, "launch", expired=request.param)
     _home(secondary, "secondary", expired=request.param)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared-auth"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(tmp_path / "shared-auth"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
 
     from agent import billing_usage, billing_view, secret_scope, subscription_view
     from hermes_cli import auth, nous_account, nous_billing
     from tui_gateway import launch_profile_policy, server
 
-    for key in ("HERMES_PORTAL_BASE_URL", "NOUS_PORTAL_BASE_URL", "NOUS_INFERENCE_BASE_URL",
-                "HERMES_DEV_BILLING_FIXTURE", "HERMES_DEV_SUBSCRIPTION_FIXTURE", "HERMES_DEV_CREDITS_FIXTURE"):
+    for key in ("A2ASSISTANT_PORTAL_BASE_URL", "NOUS_PORTAL_BASE_URL", "NOUS_INFERENCE_BASE_URL",
+                "A2ASSISTANT_DEV_BILLING_FIXTURE", "A2ASSISTANT_DEV_SUBSCRIPTION_FIXTURE", "A2ASSISTANT_DEV_CREDITS_FIXTURE"):
         monkeypatch.delenv(key, raising=False)
     monkeypatch.setattr(launch_profile_policy, "_snapshot", None)
     monkeypatch.setattr(server, "_hermes_home", str(launch))
@@ -132,7 +132,7 @@ def _call(server, method, params):
 def test_reads_keep_scope_and_route_every_request(runtime, caplog, monkeypatch, method, profile):
     params = {} if profile == "launch" else {"profile": "secondary"}
     # A sibling's later ambient edit must not override the frozen launch scope or the selected profile.
-    monkeypatch.setenv("HERMES_PORTAL_BASE_URL", "https://ambient-other.invalid")
+    monkeypatch.setenv("A2ASSISTANT_PORTAL_BASE_URL", "https://ambient-other.invalid")
     monkeypatch.setenv("NOUS_INFERENCE_BASE_URL", "https://ambient-other-inference.invalid/v1")
     ambient = dict(os.environ)
     with caplog.at_level(logging.WARNING):
@@ -192,7 +192,7 @@ def test_step_up_binds_the_profile_before_starting_the_external_flow(runtime, mo
 
     seen = []
     def external_device_flow(**kwargs):
-        seen.append((get_hermes_home(), get_secret("HERMES_PORTAL_BASE_URL")))
+        seen.append((get_hermes_home(), get_secret("A2ASSISTANT_PORTAL_BASE_URL")))
         return True
     monkeypatch.setattr(auth, "step_up_nous_billing_scope", external_device_flow)
     result = _call(runtime.server, "billing.step_up", {} if profile == "launch" else {"profile": profile})

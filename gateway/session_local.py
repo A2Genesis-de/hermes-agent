@@ -220,13 +220,13 @@ def profile_env_scope(home=None):
 
 def project_plugins_warning(policy):
     """The plain notice for a session whose client opted into project plugins (its forwarded
-    ``HERMES_ENABLE_PROJECT_PLUGINS``) in a folder that has some: the gateway never loads them."""
+    ``A2ASSISTANT_ENABLE_PROJECT_PLUGINS``) in a folder that has some: the gateway never loads them."""
     from pathlib import Path
     from utils import is_truthy_value
     # The client's folder is a path on this host only for a client the gateway proved local.
     env = policy.client_env() if policy is not None and not policy.client_env_remote else None
     folder = Path(policy.cwd) / '.hermes' / 'plugins' if env else None
-    if not env or not is_truthy_value(env.get('HERMES_ENABLE_PROJECT_PLUGINS')) or not folder.is_dir():
+    if not env or not is_truthy_value(env.get('A2ASSISTANT_ENABLE_PROJECT_PLUGINS')) or not folder.is_dir():
         return None
     try:
         if not any(folder.iterdir()):
@@ -234,7 +234,7 @@ def project_plugins_warning(policy):
     except OSError:  # an unlistable folder skips the optional notice, never the session
         return None
     return (f'project plugins in {folder} are not loaded: the gateway that runs A2Assistant sessions does not '
-            'load ./.hermes/plugins, so HERMES_ENABLE_PROJECT_PLUGINS has no effect here.')
+            'load ./.hermes/plugins, so A2ASSISTANT_ENABLE_PROJECT_PLUGINS has no effect here.')
 
 
 def create_local_session(authority, actor, params, *, trusted_policy=None, trusted_secrets=None, skills_prompt=None,

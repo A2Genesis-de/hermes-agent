@@ -1,6 +1,6 @@
 """One client attach: find (or start) the profile's owner, then mint its single-use session ticket.
 
-Shared by ``hermes gateway attach`` (any local client) and Ink's ``ui-tui/scripts/gateway_bootstrap.py``.
+Shared by ``a2assistant gateway attach`` (any local client) and Ink's ``ui-tui/scripts/gateway_bootstrap.py``.
 The ticket is a credential for the one process that dials: never log it, never put it in a repr.
 """
 from __future__ import annotations
@@ -18,10 +18,10 @@ if TYPE_CHECKING:
 # otherwise resolve every later chat's, Desktop window's and cron job's board to this terminal's
 # launch-time board instead of the profile's `kanban/current`.
 CLIENT_LAUNCH_ENV = (
-    "HERMES_MODEL", "HERMES_INFERENCE_MODEL", "HERMES_TUI_PROVIDER", "HERMES_INFERENCE_PROVIDER",
-    "HERMES_TUI_TOOLSETS", "HERMES_TUI_SKILLS", "HERMES_CWD", "TERMINAL_CWD", "HERMES_YOLO",
-    "HERMES_ACCEPT_HOOKS", "HERMES_TUI_CHECKPOINTS", "HERMES_TUI_PASS_SESSION_ID", "HERMES_KANBAN_BOARD",
-    "HERMES_TUI_CLIENT_ENV",
+    "A2ASSISTANT_MODEL", "A2ASSISTANT_INFERENCE_MODEL", "A2ASSISTANT_TUI_PROVIDER", "A2ASSISTANT_INFERENCE_PROVIDER",
+    "A2ASSISTANT_TUI_TOOLSETS", "A2ASSISTANT_TUI_SKILLS", "A2ASSISTANT_CWD", "TERMINAL_CWD", "A2ASSISTANT_YOLO",
+    "A2ASSISTANT_ACCEPT_HOOKS", "A2ASSISTANT_TUI_CHECKPOINTS", "A2ASSISTANT_TUI_PASS_SESSION_ID", "A2ASSISTANT_KANBAN_BOARD",
+    "A2ASSISTANT_TUI_CLIENT_ENV",
 )
 # A plain attach only asks the control socket; it never waits for a start.
 DISCOVER_TIMEOUT = 5.0
@@ -70,7 +70,7 @@ def attach_gateway(home: str | Path, *, start: bool, recover: bool = False, time
 
     ``start`` ensures the owner (a client's first launch); otherwise this only discovers it, except
     ``recover``, which re-ensures whenever the owner is not ready: crashed, ended by its idle exit,
-    stopped with ``hermes gateway stop``, or an older Hermes's gateway (ensure replaces that one). A
+    stopped with ``a2assistant gateway stop``, or an older Hermes's gateway (ensure replaces that one). A
     restart's after-turn wait is attachable as it is (#139041). ``timeout`` bounds an ensure; a
     discovery waits at most ``DISCOVER_TIMEOUT`` of it. A daemon this starts ends itself once idle.
     A failed mint (control socket I/O, a refused or changed grant) raises ``TicketUnavailable``.

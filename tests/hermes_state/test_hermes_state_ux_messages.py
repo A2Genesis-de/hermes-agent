@@ -30,7 +30,7 @@ def test_db_unavailable_commands_are_pinned_to_the_failing_profile(monkeypatch, 
     profile whose store failed, like the table's actions do."""
     from hermes_constants import profile_cli_selector
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes" / "profiles" / "research"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes" / "profiles" / "research"))
     selector = profile_cli_selector()
     assert selector.strip()
     hermes_state._set_last_init_error(None)
@@ -41,7 +41,7 @@ def test_db_unavailable_commands_are_pinned_to_the_failing_profile(monkeypatch, 
     finally:
         hermes_state._set_last_init_error(None)
     for text in (no_cause, network):
-        assert f"`hermes {selector}doctor`" in text and "`hermes doctor`" not in text
+        assert f"`hermes {selector}doctor`" in text and "`a2assistant doctor`" not in text
         assert "{profile_arg}" not in text
 
 
@@ -64,7 +64,7 @@ def test_db_unavailable_details_line_carries_raw_cause_only_below_the_lead():
 
 def test_db_unavailable_network_drive_cause_does_not_offer_doctor_fix():
     """A locking-protocol failure means the DB sits on a network filesystem that
-    cannot host SQLite's WAL; `hermes doctor --fix` cannot repair a mount, so it
+    cannot host SQLite's WAL; `a2assistant doctor --fix` cannot repair a mount, so it
     must not be the offered action (only moving the file helps)."""
     hermes_state._set_last_init_error("OperationalError: locking protocol")
     try:

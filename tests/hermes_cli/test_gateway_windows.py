@@ -182,7 +182,7 @@ def test_spawn_detached_marks_primary_breakaway_success(monkeypatch, tmp_path, c
     monkeypatch.setattr(
         gateway_windows,
         "_build_gateway_argv",
-        lambda home=None: (argv, cwd, {"HERMES_GATEWAY_DETACHED": "1"}),
+        lambda home=None: (argv, cwd, {"A2ASSISTANT_GATEWAY_DETACHED": "1"}),
     )
     monkeypatch.setattr("hermes_cli.config.get_hermes_home", lambda: tmp_path)
     monkeypatch.setattr(gateway_windows.subprocess, "Popen", fake_popen)
@@ -223,7 +223,7 @@ def test_spawn_detached_warns_and_marks_no_breakaway_fallback(
         lambda home=None: (
             argv,
             cwd,
-            {"HERMES_GATEWAY_DETACHED": "1", "SECRET_SENTINEL": "do-not-log"},
+            {"A2ASSISTANT_GATEWAY_DETACHED": "1", "SECRET_SENTINEL": "do-not-log"},
         ),
     )
     monkeypatch.setattr("hermes_cli.config.get_hermes_home", lambda: tmp_path)
@@ -387,7 +387,7 @@ def test_gateway_vbs_script_is_console_less(monkeypatch):
     assert "hermes_cli.main" in content
     assert "gateway run" in content
     assert ", 0, False" in content  # hidden window, detached/async
-    for var in ("HERMES_HOME", "PYTHONIOENCODING", "HERMES_GATEWAY_DETACHED", "VIRTUAL_ENV", "PYTHONPATH"):
+    for var in ("A2ASSISTANT_HOME", "PYTHONIOENCODING", "A2ASSISTANT_GATEWAY_DETACHED", "VIRTUAL_ENV", "PYTHONPATH"):
         assert var in content
     assert "--profile" in content and "work" in content
     assert content.endswith("\r\n")
@@ -470,7 +470,7 @@ def test_scheduled_task_install_removes_startup_entries_that_would_double_launch
 
 
 def test_reconcile_leaves_one_autostart_mechanism(monkeypatch, tmp_path):
-    """#80569: what `hermes update` and `hermes doctor --fix` run. Beside a registered task every
+    """#80569: what `a2assistant update` and `a2assistant doctor --fix` run. Beside a registered task every
     Startup entry is redundant; with no task a legacy .cmd next to the .vbs is. After reconcile
     nothing is redundant and exactly one mechanism remains."""
     startup, _script = _startup_with_fallback_and_legacy_entries(monkeypatch, tmp_path)
@@ -589,7 +589,7 @@ def test_status_names_and_uninstall_removes_pre_suffix_launchers(monkeypatch, tm
 
 
 def test_secondary_profile_leaves_default_profiles_bare_launchers_alone(monkeypatch, tmp_path, capsys):
-    """The bare ``Hermes_Gateway`` task and Startup entry are the LIVE identity of the default ``~/.hermes``
+    """The bare ``Hermes_Gateway`` task and Startup entry are the LIVE identity of the default ``~/.a2assistant``
     profile. From a secondary profile they are a sibling install, not this home's pre-suffix stray:
     ``uninstall`` / ``install --force`` must issue no ``schtasks /Delete`` and unlink nothing."""
     startup, home, default_home = tmp_path / "Startup", tmp_path / "profiles" / "work", tmp_path / "default"
@@ -651,7 +651,7 @@ _PRE_HARDENING_TASK_XML = """<?xml version="1.0" encoding="UTF-16"?>
 
 def test_scheduled_task_drift_names_missing_hardening_leaves(monkeypatch):
     """A pre-hardening registration is reported leaf by leaf, and the report is what
-    ``hermes gateway status`` prints together with the ``hermes gateway install`` repair hint."""
+    ``a2assistant gateway status`` prints together with the ``a2assistant gateway install`` repair hint."""
     launcher = Path(r"C:\Users\me\.hermes\gateway-service\Hermes_Gateway.vbs")
     template = gateway_windows._build_scheduled_task_xml("Hermes_Gateway", launcher, r"PC\me")
     drift = gateway_windows.compare_scheduled_task_drift(_PRE_HARDENING_TASK_XML, template)
@@ -668,7 +668,7 @@ def test_scheduled_task_drift_names_missing_hardening_leaves(monkeypatch):
     monkeypatch.setattr("builtins.print", lambda *a, **k: printed.append(" ".join(map(str, a))))
     gateway_windows._print_scheduled_task_drift("Hermes_Gateway")
     assert printed[0].startswith("⚠ Scheduled Task registration predates the current template (missing: RestartOnFailure")
-    assert "hermes gateway install" in printed[1]
+    assert "a2assistant gateway install" in printed[1]
 
 
 def test_scheduled_task_drift_is_silent_when_aligned_or_unqueryable(monkeypatch):
@@ -725,8 +725,8 @@ def test_reconcile_scheduled_task_reregisters_only_on_drift(monkeypatch, tmp_pat
 def _arrange_uninstalled_start(monkeypatch):
     """start() with no Scheduled Task / Startup entry; returns (install_calls, spawn_count)."""
     installs, spawns = [], []
-    monkeypatch.delenv("HERMES_GATEWAY_INSTALL_START_ON_LOGIN", raising=False)
-    monkeypatch.delenv("HERMES_NONINTERACTIVE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_GATEWAY_INSTALL_START_ON_LOGIN", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_NONINTERACTIVE", raising=False)
     monkeypatch.setattr(gateway_windows, "_assert_windows", lambda: None)
     monkeypatch.setattr(gateway_windows, "_print_start_attestation_warning", lambda: None)
     monkeypatch.setattr(gateway_windows, "_gateway_pids", list)
@@ -741,7 +741,7 @@ def _arrange_uninstalled_start(monkeypatch):
 
 
 def test_stdin_interactive_only_when_isatty_and_a_console_answers_get_console_mode():
-    """Windows CRT isatty() is True for the NUL device (`hermes gateway start < NUL`, stdin=DEVNULL), so
+    """Windows CRT isatty() is True for the NUL device (`a2assistant gateway start < NUL`, stdin=DEVNULL), so
     isatty alone must not open the prompt; off Windows (no console-mode fact) isatty decides (#113977)."""
     assert gateway_windows._stdin_is_interactive(isatty=True, console_mode_ok=False) is False   # NUL
     assert gateway_windows._stdin_is_interactive(isatty=True, console_mode_ok=True) is True     # console
@@ -759,7 +759,7 @@ def test_start_with_nul_stdin_starts_the_gateway_but_never_installs_login_persis
     gateway_windows.start()
 
     assert installs == [] and spawns == [1]
-    assert "hermes gateway install" in capsys.readouterr().out
+    assert "a2assistant gateway install" in capsys.readouterr().out
 
 
 def test_start_with_captured_stdout_never_asks_even_on_a_console_stdin(monkeypatch, capsys):
@@ -773,11 +773,11 @@ def test_start_with_captured_stdout_never_asks_even_on_a_console_stdin(monkeypat
     gateway_windows.start()
 
     assert installs == [] and spawns == [1]
-    assert "hermes gateway install" in capsys.readouterr().out
+    assert "a2assistant gateway install" in capsys.readouterr().out
 
 
 def test_start_without_tty_starts_the_gateway_but_never_installs_login_persistence(monkeypatch, capsys):
-    """`hermes gateway start < /dev/null` must not answer the persistence question with a default Yes
+    """`a2assistant gateway start < /dev/null` must not answer the persistence question with a default Yes
     (#113977); it starts the gateway once and points at the explicit install command."""
     installs, spawns = _arrange_uninstalled_start(monkeypatch)
     monkeypatch.setattr(setup, "is_interactive_stdin", lambda: False)
@@ -787,12 +787,12 @@ def test_start_without_tty_starts_the_gateway_but_never_installs_login_persisten
 
     assert installs == [] and spawns == [1]
     out = capsys.readouterr().out
-    assert "hermes gateway install" in out and "did not complete" not in out
+    assert "a2assistant gateway install" in out and "did not complete" not in out
 
 
 def test_start_on_tty_hands_both_answers_to_install_and_honours_the_env_opt_out(monkeypatch):
     """Yes → one install() carrying start_now+start_on_login (install spawns; start() must not spawn
-    again). HERMES_GATEWAY_INSTALL_START_ON_LOGIN=0 → no question, no install, a plain start."""
+    again). A2ASSISTANT_GATEWAY_INSTALL_START_ON_LOGIN=0 → no question, no install, a plain start."""
     installs, spawns = _arrange_uninstalled_start(monkeypatch)
     monkeypatch.setattr(setup, "is_interactive_stdin", lambda: True)
     monkeypatch.setattr(setup, "prompt_yes_no", lambda *a, **k: True)
@@ -801,7 +801,7 @@ def test_start_on_tty_hands_both_answers_to_install_and_honours_the_env_opt_out(
     assert installs == [{"force": False, "start_now": True, "start_on_login": True}] and spawns == []
 
     installs.clear()
-    monkeypatch.setenv("HERMES_GATEWAY_INSTALL_START_ON_LOGIN", "0")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_INSTALL_START_ON_LOGIN", "0")
     monkeypatch.setattr(setup, "prompt_yes_no", lambda *a, **k: pytest.fail("env override must skip the prompt"))
     gateway_windows.start()
     assert installs == [] and spawns == [1]

@@ -240,18 +240,18 @@ def _heal_cooked_mode_drift(fd: int) -> bool:
 def _detect_light_mode_uncached() -> bool:
     """The detection ladder documented above; may raise (caller maps errors to dark)."""
     from cli import _FALSE_RE, _LIGHT_DEFAULT_TERM_PROGRAMS, _TRUE_RE, _luminance_from_hex, _query_osc11_background
-    for var in ("HERMES_LIGHT", "HERMES_TUI_LIGHT"):
+    for var in ("A2ASSISTANT_LIGHT", "A2ASSISTANT_TUI_LIGHT"):
         v = (os.environ.get(var) or "").strip().lower()
         if _TRUE_RE.match(v):
             return True
         if _FALSE_RE.match(v):
             return False
-    theme = (os.environ.get("HERMES_TUI_THEME") or "").strip().lower()
+    theme = (os.environ.get("A2ASSISTANT_TUI_THEME") or "").strip().lower()
     if theme == "light":
         return True
     if theme == "dark":
         return False
-    bg_lum = _luminance_from_hex(os.environ.get("HERMES_TUI_BACKGROUND") or "")
+    bg_lum = _luminance_from_hex(os.environ.get("A2ASSISTANT_TUI_BACKGROUND") or "")
     if bg_lum is not None:
         return bg_lum >= 0.5
     last = (os.environ.get("COLORFGBG") or "").strip().split(";")[-1]
@@ -937,7 +937,7 @@ def _build_compact_banner() -> str:
         tiny_line = _skin.get_branding("agent_name", "A2Assistant") if _skin else "A2Assistant"
     line1 = t("cli.render.banner_tagline", name=tiny_line)
 
-    if os.environ.get("HERMES_FAST_STARTUP_BANNER") == "1":
+    if os.environ.get("A2ASSISTANT_FAST_STARTUP_BANNER") == "1":
         from hermes_cli import __release_date__ as _release_date
         from hermes_cli.version_info import get_version_info
 

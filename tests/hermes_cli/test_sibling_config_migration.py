@@ -1,10 +1,10 @@
 """Fleet-wide config migration (#91277 Phase 2 — #20438/#54926/#79048 class).
 
-`hermes update` migrated only the active profile's config.yaml; sibling
+`a2assistant update` migrated only the active profile's config.yaml; sibling
 profiles silently drifted config versions until their gateway hit a config
 the new code couldn't read. `_migrate_sibling_profile_configs()` runs the
 same non-interactive safe migration for every sibling home, scoped via the
-context-local HERMES_HOME override.
+context-local A2ASSISTANT_HOME override.
 
 These tests use REAL config files on disk and the REAL migration pipeline —
 only the profile-root location is pointed at tmp_path.
@@ -176,7 +176,7 @@ def test_sibling_step_notices_reach_the_update_output(monkeypatch, tmp_path, cap
     work.mkdir(parents=True)
     (work / "config.yaml").write_text("_config_version: 51\nbrowser:\n  backend: off\n", encoding="utf-8")
     _setup(monkeypatch, tmp_path, active)
-    monkeypatch.setenv("HERMES_HOME", str(active))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(active))
     monkeypatch.setattr(update_cmd_config, "_restore_snapshot_safety_nets", lambda _sid: None)
     monkeypatch.setattr("hermes_cli.config.get_missing_env_vars", lambda **_: [])
     monkeypatch.setattr("hermes_cli.config.get_missing_config_fields", lambda: [{"key": "display.new_option"}])
@@ -187,6 +187,6 @@ def test_sibling_step_notices_reach_the_update_output(monkeypatch, tmp_path, cap
     profile_line = out.index("Profile 'work': config format updated (v51")
     notice = out.index("removed browser.backend: off")
     assert profile_line < notice
-    assert "`browser` toolset in `hermes tools`" in out[notice:]
+    assert "`browser` toolset in `a2assistant tools`" in out[notice:]
     assert "display.new_option" not in out[profile_line:]
     assert "backend" not in (yaml.safe_load((work / "config.yaml").read_text()).get("browser") or {})

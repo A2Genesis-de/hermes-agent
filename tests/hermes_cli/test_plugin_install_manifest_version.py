@@ -51,7 +51,7 @@ def test_install_accepts_every_loader_supported_manifest_version(
         {"name": "demo", "version": "1.0.0", "manifest_version": manifest_version},
     )
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     target, manifest, name = plugins_cmd._install_plugin_core(repo.as_uri(), force=False)
 
@@ -75,7 +75,7 @@ def test_manifest_version_above_shared_support_is_refused_cleanly(
         },
     )
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     with pytest.raises(
         plugins_cmd.PluginOperationError,
@@ -95,7 +95,7 @@ def test_a_linked_plugin_slot_is_already_installed_not_a_bad_manifest(monkeypatc
     monkeypatch.setattr(plugins_cmd, "_scan_on_install_enabled", lambda: False)
     repo = _plugin_repo(tmp_path, {"name": "demo", "version": "1.0.0"})
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "plugins").mkdir(parents=True)
     (tmp_path / "elsewhere").mkdir()
     (home / "plugins" / "demo").symlink_to(tmp_path / "elsewhere", target_is_directory=True)

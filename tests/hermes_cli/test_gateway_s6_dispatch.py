@@ -1,7 +1,7 @@
 """Tests for the Phase 4 s6 dispatch helper in hermes_cli.gateway.
 
 `_dispatch_via_service_manager_if_s6` decides whether a
-`hermes gateway start/stop/restart` invocation should be routed to
+`a2assistant gateway start/stop/restart` invocation should be routed to
 the in-container S6ServiceManager instead of falling through to the
 host systemd/launchd/windows code path.
 """
@@ -139,8 +139,8 @@ def test_redirect_falls_back_when_sleep_missing(
         "hermes_cli.gateway._block_until_terminated",
         lambda: block_calls.append(True),
     )
-    monkeypatch.delenv("HERMES_S6_SUPERVISED_CHILD", raising=False)
-    monkeypatch.delenv("HERMES_GATEWAY_NO_SUPERVISE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_S6_SUPERVISED_CHILD", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_GATEWAY_NO_SUPERVISE", raising=False)
 
     # Must not raise FileNotFoundError — that was the #36208 crash.
     result = gw._maybe_redirect_run_to_s6_supervision(_Args())
@@ -159,8 +159,8 @@ def _armed_watchdog(monkeypatch: pytest.MonkeyPatch):
     import hermes_startup_watchdog as sw
 
     monkeypatch.delenv(sw.ENV_STARTUP_WATCHDOG, raising=False)
-    monkeypatch.delenv("HERMES_S6_SUPERVISED_CHILD", raising=False)
-    monkeypatch.delenv("HERMES_GATEWAY_NO_SUPERVISE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_S6_SUPERVISED_CHILD", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_GATEWAY_NO_SUPERVISE", raising=False)
     monkeypatch.setattr("hermes_cli.gateway._profile_suffix", lambda: "")
     sw._reset_for_tests()
     handle = sw.arm_startup_watchdog(timeout_s=3600)
@@ -240,13 +240,13 @@ class _UnregisteredRecorder(_CallRecorder):
 
 
 def _arrange(monkeypatch, tmp_path, mgr, *, profile: str, seed_soul: bool):
-    """Force the s6 branch and make ``tmp_path`` the shared HERMES_HOME the slot maps back to."""
+    """Force the s6 branch and make ``tmp_path`` the shared A2ASSISTANT_HOME the slot maps back to."""
     from hermes_cli import gateway as gw
     from hermes_cli import service_manager as sm
 
     monkeypatch.setattr(sm, "detect_service_manager", lambda: "s6")
     monkeypatch.setattr(sm, "get_service_manager", lambda: mgr)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     profile_dir = tmp_path / "profiles" / profile
     profile_dir.mkdir(parents=True)
     if seed_soul:

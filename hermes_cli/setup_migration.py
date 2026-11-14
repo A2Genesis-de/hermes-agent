@@ -1,4 +1,4 @@
-"""Post-import section-skip logic: after ``hermes setup`` imported another agent's settings, each
+"""Post-import section-skip logic: after ``a2assistant setup`` imported another agent's settings, each
 section that is already configured shows its summary and offers to skip (setup.py re-exports the
 names it uses; setup helpers are imported lazily so test patches apply)."""
 

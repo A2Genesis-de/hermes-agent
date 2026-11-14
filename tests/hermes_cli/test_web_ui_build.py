@@ -14,7 +14,7 @@ from tests.hermes_cli.test_source_build import source_checkout, source_products,
 @pytest.fixture(autouse=True)
 def _isolated_hermes_home(tmp_path, monkeypatch):
     """Keep web-build-stamp writes inside the test's tmp dir, never the real home."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "_hermes_home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "_hermes_home"))
 
 
 def _touch(path: Path, offset: float = 0.0) -> None:

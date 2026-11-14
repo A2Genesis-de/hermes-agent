@@ -35,7 +35,7 @@ def restore_snapshot_command(cli, parts):
     chat = store is not None and getattr(cli, "_gateway_session_open", False)
     # A remote gateway's state is not on this host: its chat restores this host's own snapshot offline,
     # as before, and keeps the remote connection open.
-    gateway = chat and not os.environ.get("HERMES_TUI_GATEWAY_URL", "").strip()
+    gateway = chat and not os.environ.get("A2ASSISTANT_TUI_GATEWAY_URL", "").strip()
     try:
         # An invalid/missing target must not take a working gateway offline.
         if gateway and quick_snapshot_dir(snap_id) is not None:
@@ -87,7 +87,7 @@ def _pause_owner(home, control_home, identity):
         accepted = pause_acked(pause_gateway_for_update(control_home, timeout=8), identity)
     if not accepted:
         # Stopping the host gateway would take down every profile it multiplexes.
-        retry = (f"Park the profile with `hermes -p {home.name} gateway stop` and retry."
+        retry = (f"Park the profile with `a2assistant -p {home.name} gateway stop` and retry."
                  if satellite else "Stop the gateway and retry.")
         raise GatewayClientError(f"Gateway refused the snapshot maintenance handoff; nothing was restored. {retry}")
     return ours

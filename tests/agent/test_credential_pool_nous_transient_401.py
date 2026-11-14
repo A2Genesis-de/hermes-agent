@@ -45,8 +45,8 @@ def _count_refresh_posts(monkeypatch) -> list[str]:
 
 def test_forced_refresh_never_adopts_the_bearer_that_just_failed(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(tmp_path / "shared"))
     _seed(hermes_home, _invoke_jwt(seconds=2000), "rt-old")
     pool = load_pool("nous")  # this process's pool row: the older key
     (entry,) = pool.entries()
@@ -90,8 +90,8 @@ class _Agent:
 
 def test_one_refresh_per_episode_then_bounded_backoff(tmp_path, monkeypatch):
     hermes_home = tmp_path / "hermes"
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(tmp_path / "shared"))
     key = _invoke_jwt(seconds=3000)
     _seed(hermes_home, key, "rt-seed")
     pool = load_pool("nous")

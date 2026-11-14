@@ -5,8 +5,8 @@ identity, each accepting only its own randomly minted key. ``check_routing`` is 
 invariant every scenario shares: a request on a host the scenario did not select, or a
 selected host receiving any bearer other than its own, is a credential leak.
 
-Hermes itself runs for real in child processes (``hermes chat -q`` / ``hermes -z`` /
-``python -m tui_gateway.entry``) with HOME and HERMES_HOME inside the test's tmp dir,
+Hermes itself runs for real in child processes (``a2assistant chat -q`` / ``a2assistant -z`` /
+``python -m tui_gateway.entry``) with HOME and A2ASSISTANT_HOME inside the test's tmp dir,
 every credential/endpoint env var stripped, and only these fake hosts configured.
 """
 
@@ -47,7 +47,7 @@ def assert_routing(problems: list[str], ctx: str) -> None:
 
 # Env that could route or authenticate a child Hermes outside the fake fleet.
 _STRIP_SUFFIXES = ("_API_KEY", "_TOKEN", "_BASE_URL", "_SECRET", "_ACCESS_KEY", "_KEY_ID")
-_STRIP_PREFIXES = ("HERMES_", "OPENAI", "ANTHROPIC", "OPENROUTER", "AWS_", "AZURE_", "GOOGLE_",
+_STRIP_PREFIXES = ("A2ASSISTANT_", "OPENAI", "ANTHROPIC", "OPENROUTER", "AWS_", "AZURE_", "GOOGLE_",
                    "GEMINI", "PYTEST_", "NOUS_", "XAI_", "LLM_", "CUSTOM_")
 
 
@@ -61,12 +61,12 @@ def hermetic_env(home: Path, hermes_home: Path | None = None, proxy: str | None 
            if not (k.endswith(_STRIP_SUFFIXES) or k.startswith(_STRIP_PREFIXES))}
     env.update(
         HOME=str(home),
-        HERMES_HOME=str(hermes_home or home / ".hermes"),
+        A2ASSISTANT_HOME=str(hermes_home or home / ".hermes"),
         PYTHONPATH=str(REPO_ROOT),
         NO_COLOR="1",
         TERM="dumb",
         # A pytest-descendant child treats $HOME/.hermes/state.db as production; that HOME is ours.
-        HERMES_STATE_DB_GUARD_BYPASS="1",
+        A2ASSISTANT_STATE_DB_GUARD_BYPASS="1",
     )
     for var in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "NO_PROXY", "http_proxy", "https_proxy", "all_proxy", "no_proxy"):
         env.pop(var, None)
@@ -288,7 +288,7 @@ class RunResult:
 
 def run_hermes(argv: list[str], home: Path, *, hermes_home: Path | None = None, proxy: str | None = None,
                timeout: float = 240.0) -> RunResult:
-    """Run the real ``hermes`` entry point in its own process group; kill only that group."""
+    """Run the real ``a2assistant`` entry point in its own process group; kill only that group."""
     start = time.monotonic()
     proc = subprocess.Popen(
         [sys.executable, "-m", "hermes_cli.main", *argv],

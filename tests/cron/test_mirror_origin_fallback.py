@@ -156,7 +156,7 @@ class TestFallbackMirrorEndToEnd:
             "cron:\n  mirror_delivery: true\n"
             "platforms:\n  telegram:\n    enabled: true\n    token: xoxb-test\n"
         )
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
         send_calls = []
 

@@ -50,13 +50,13 @@ class TestBootstrapSelector:
 
     @pytest.fixture(autouse=True)
     def fresh_bootstrap(self, home, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
         monkeypatch.setattr(cb, "_BOOTSTRAPPED", False)
 
     @pytest.mark.parametrize("shell, dotenv, expected", [
-        ("bogus", "HERMES_CONFIG_BACKEND=file\n", "file"),        # stale shell value, .env says file
-        ("bogus", "HERMES_CONFIG_BACKEND=\n", "file"),            # explicit empty value resets
-        (None, "HERMES_CONFIG_BACKEND=bogus\n", "bogus"),         # .env-only value selects it
+        ("bogus", "A2ASSISTANT_CONFIG_BACKEND=file\n", "file"),        # stale shell value, .env says file
+        ("bogus", "A2ASSISTANT_CONFIG_BACKEND=\n", "file"),            # explicit empty value resets
+        (None, "A2ASSISTANT_CONFIG_BACKEND=bogus\n", "bogus"),         # .env-only value selects it
         ("bogus", "OTHER=1\n", "bogus"),                          # absent key keeps the shell value
     ])
     def test_dotenv_selector(self, home, monkeypatch, shell, dotenv, expected):
@@ -158,13 +158,13 @@ class _RecordingBackend(cb.FileBackend):
 
 @pytest.fixture
 def recording(monkeypatch, tmp_path):
-    """A fresh HERMES_HOME with a config.yaml and every config read/write recorded."""
+    """A fresh A2ASSISTANT_HOME with a config.yaml and every config read/write recorded."""
     from hermes_cli import config as config_mod
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / "config.yaml").write_text(
         "# hand-tuned\nmodel:\n  default: my-model\nsecrets:\n  sources: []\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     for cache in (config_mod._LOAD_CONFIG_CACHE, config_mod._RAW_CONFIG_CACHE):
         cache.clear()
     backend = _RecordingBackend()

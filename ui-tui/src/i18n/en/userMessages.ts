@@ -4,7 +4,7 @@
 //
 // Every slash command cited here exists in ui-tui/src/app/slash/commands
 // (/logs, /retry, /model, /update, /resume, /sessions, /quit, /compress,
-// /skills, /setup) and `hermes doctor` is a real subcommand — keep them as-is.
+// /skills, /setup) and `a2assistant doctor` is a real subcommand — keep them as-is.
 
 export const userMessagesEn = {
   userMessages: {
@@ -22,14 +22,14 @@ export const userMessagesEn = {
         `A2Assistant stopped (exit code ${code}) and could not be restarted. Your chat is saved.`,
       gaveUpReconnect:
         'A2Assistant keeps trying to reconnect in the background and reopens this chat when it succeeds; if it does not, type /resume.',
-      gaveUpLogs: 'Type /logs for the full log, or /quit and run `hermes doctor` to check the install.',
+      gaveUpLogs: 'Type /logs for the full log, or /quit and run `a2assistant doctor` to check the install.',
       gaveUpActivity: 'A2Assistant stopped · /logs for details',
       /** `{0}` = seconds until the next attempt. */
       reconnecting: (secs: string) => `retrying in ${secs}s`,
       /** `{0}` = seconds until the next attempt, `{1}` = attempt number. */
       reconnectingAttempt: (secs: string, attempt: string) => `retrying in ${secs}s (attempt ${attempt})`,
       slowStart:
-        'A2Assistant is taking longer than usual to start. Still waiting… If it never connects: /logs shows the last backend output; /quit and run `hermes doctor`.',
+        'A2Assistant is taking longer than usual to start. Still waiting… If it never connects: /logs shows the last backend output; /quit and run `a2assistant doctor`.',
       slowStartStatus: 'still starting…',
       stderrProblem: 'Something went wrong inside A2Assistant · /logs for details',
       /** `{0}` = the Python exception class name (e.g. `ValueError`). */
@@ -46,7 +46,7 @@ export const userMessagesEn = {
       /** `{0}` = the JSON-RPC method name the backend does not serve. Not a version claim. */
       methodUnavailable: (method: string) => `This A2Assistant backend does not provide ${method}, so that was not done.`,
       versionSkew:
-        'The terminal UI and the A2Assistant backend are out of sync (different versions). Run /update, or exit and run `hermes update`, then start the TUI again.',
+        'The terminal UI and the A2Assistant backend are out of sync (different versions). Run /update, or exit and run `a2assistant update`, then start the TUI again.',
       sessionNotFound:
         'This chat is no longer attached to the backend (it was idle or the backend restarted). Your history is saved: type /resume to reopen it.',
       /** The owner refused a control on a chat whose launch API key changed or was removed. */
@@ -103,7 +103,7 @@ export const userMessagesEn = {
         localRuntimeUnavailable: {
           title: 'The local model server is not running',
           hint: 'Try /retry once it is up, or switch with /model.',
-          hintNoRetry: 'Start the local model server (A2Assistant desktop app, or `hermes model` → Local models), or switch with /model.'
+          hintNoRetry: 'Start the local model server (A2Assistant desktop app, or `a2assistant model` → Local models), or switch with /model.'
         },
         modelNotFound: {
           title: 'The model provider does not know this model',

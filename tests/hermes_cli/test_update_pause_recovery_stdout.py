@@ -1,6 +1,6 @@
 """Startup recovery never writes to the stdout of the command it runs ahead of.
 
-``update_pause_record.recover()`` resumes gateways an interrupted update paused before ANY ``hermes``
+``update_pause_record.recover()`` resumes gateways an interrupted update paused before ANY ``a2assistant``
 command (``--json`` ones included) and prints its own notices to stderr; the Windows resume path it
 calls must do the same. Real resume entry point; seams are the Windows dispatch and the tree gate's
 verdict (a torn checkout), so the deferral notice is what gets printed.

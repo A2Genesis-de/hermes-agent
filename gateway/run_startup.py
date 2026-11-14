@@ -89,12 +89,12 @@ class GatewayStartupMixin:
     @staticmethod
     def _log_agent_budget() -> None:
         """Report the ENFORCED per-turn budget: ``agent.max_turns`` is bridged into
-        ``HERMES_MAX_ITERATIONS`` before this runs, so the env slot already carries the config value;
+        ``A2ASSISTANT_MAX_ITERATIONS`` before this runs, so the env slot already carries the config value;
         resolve it the same way the turn loop does (``none``/``unlimited`` spellings included) instead of
         ``int()`` on the raw string with an invented ``500`` default (#116888)."""
         from hermes_cli.config import TURN_LIMIT_UNLIMITED, resolve_turn_limit
-        limit = resolve_turn_limit(os.getenv("HERMES_MAX_ITERATIONS"))
-        logger.info("Agent budget: max_iterations=%s (agent.max_turns from config.yaml, else the HERMES_MAX_ITERATIONS bridge)",
+        limit = resolve_turn_limit(os.getenv("A2ASSISTANT_MAX_ITERATIONS"))
+        logger.info("Agent budget: max_iterations=%s (agent.max_turns from config.yaml, else the A2ASSISTANT_MAX_ITERATIONS bridge)",
                     "unlimited" if limit == TURN_LIMIT_UNLIMITED else limit)
 
     # A configured platform failed non-retryably this boot and is parked: every "we are serving"
@@ -117,7 +117,7 @@ class GatewayStartupMixin:
         if not (self._external_drain_active or self._draining or not self._running):
             self._update_runtime_status(self._serving_state())
         logger.error(
-            "%s is parked after a non-retryable error (fix it, then `hermes gateway restart`). The gateway "
+            "%s is parked after a non-retryable error (fix it, then `a2assistant gateway restart`). The gateway "
             "is DEGRADED — it serves local clients and cron with no messaging platform. %s: %s",
             adapter.platform.value, adapter.fatal_error_code or "unknown",
             adapter.fatal_error_message or "unknown error",
@@ -790,7 +790,7 @@ class GatewayStartupMixin:
         ledgered)."""
         from gateway.run import _float_env
         resumed = ledgered = 0
-        max_age = max(60 * 60, int(max(1.0, _float_env("HERMES_AGENT_TIMEOUT", 1800)) * 2))
+        max_age = max(60 * 60, int(max(1.0, _float_env("A2ASSISTANT_AGENT_TIMEOUT", 1800)) * 2))
         with _log_suppressed(logging.WARNING, "Crash-left reply recovery on startup failed: %s"):
             ledgered = await self._ledger_crash_left_replies(max_age)
         with _log_suppressed(logging.WARNING, "Exact active-turn recovery on startup failed: %s"):
@@ -983,7 +983,7 @@ class GatewayStartupMixin:
         # so this line is the source of truth for the process lifetime.
         with suppress(Exception):
             # Redaction status: ON by default (#17691).
-            _redact_raw = os.getenv("HERMES_REDACT_SECRETS", "true")
+            _redact_raw = os.getenv("A2ASSISTANT_REDACT_SECRETS", "true")
             if _redact_raw.lower() in {"1", "true", "yes", "on"}:
                 logger.info(
                     "Secret redaction: ENABLED (tool output, logs, and chat "
@@ -991,7 +991,7 @@ class GatewayStartupMixin:
                 )
             else:
                 logger.warning(
-                    "Secret redaction: DISABLED (HERMES_REDACT_SECRETS=%s). API keys and tokens may appear "
+                    "Secret redaction: DISABLED (A2ASSISTANT_REDACT_SECRETS=%s). API keys and tokens may appear "
                     "verbatim in chat output, session JSONs, and logs. Set security.redact_secrets: true "
                     "in config.yaml to re-enable.", _redact_raw,
                 )
@@ -1026,7 +1026,7 @@ class GatewayStartupMixin:
             _adv_msg = gateway_log_message(detect_compromised())
             if _adv_msg:
                 logger.warning("%s", _adv_msg)
-                logger.warning("Run `hermes doctor` on the gateway host for full remediation steps.")
+                logger.warning("Run `a2assistant doctor` on the gateway host for full remediation steps.")
 
     def _start_log_retired_session_reset(self) -> None:
         """Warn per served profile whose config still declares an idle/daily ``session_reset``,
@@ -1054,7 +1054,7 @@ class GatewayStartupMixin:
                 logger.warning(
                     "Stale systemd unit detected: %s has TimeoutStopSec=%.0fs but drain_timeout=%.0fs "
                     "cron_drain_timeout=%.0fs (expected >=%.0fs). systemd may SIGKILL the gateway "
-                    "mid-drain. Run `hermes gateway install --force` to regenerate the unit, or shorten "
+                    "mid-drain. Run `a2assistant gateway install --force` to regenerate the unit, or shorten "
                     "agent.restart_drain_timeout / agent.cron_drain_timeout.",
                     _alignment.get("unit", "(unknown)"), _alignment["timeout_stop_sec"],
                     _alignment["drain_timeout"],
@@ -1154,7 +1154,7 @@ class GatewayStartupMixin:
 
         The gateway never prompts (register_from_config defaults to ``interactive=False``), even
         when a hidden console makes stdin look like a TTY, so consent must come from the allowlist,
-        --accept-hooks, HERMES_ACCEPT_HOOKS, or hooks_auto_accept: true; ``accept_hooks=False`` lets
+        --accept-hooks, A2ASSISTANT_ACCEPT_HOOKS, or hooks_auto_accept: true; ``accept_hooks=False`` lets
         register_from_config resolve env + config.
         Never raises (logged at ``level``).
         """
@@ -1470,7 +1470,7 @@ class GatewayStartupMixin:
                 self._startup_parked_platforms = True
                 logger.error(
                     "%d configured platform(s) failed to start and are parked (fix the reported error, "
-                    "then `hermes gateway restart`): %s. The gateway is DEGRADED — it serves the "
+                    "then `a2assistant gateway restart`): %s. The gateway is DEGRADED — it serves the "
                     "remaining platform(s) with those unserved.",
                     len(startup_nonretryable_errors), "; ".join(startup_nonretryable_errors),
                 )
@@ -1487,7 +1487,7 @@ class GatewayStartupMixin:
             self._startup_parked_platforms = True
             logger.error(
                 "%d configured platform(s) failed to start and are parked (fix the reported error, then "
-                "`hermes gateway restart`): %s. The gateway is DEGRADED — it serves local clients and "
+                "`a2assistant gateway restart`): %s. The gateway is DEGRADED — it serves local clients and "
                 "cron with no messaging platform.",
                 len(startup_nonretryable_errors), "; ".join(startup_nonretryable_errors),
             )

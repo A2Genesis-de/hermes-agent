@@ -1,6 +1,6 @@
 """Boot recovery must replay a routed profile's spooled transcript backlog (#123584).
 
-``_get_flush_dir`` follows the active HERMES_HOME, and a routed turn on a multiplexed gateway runs
+``_get_flush_dir`` follows the active A2ASSISTANT_HOME, and a routed turn on a multiplexed gateway runs
 inside its profile's scope, so a transcript backlog spooled while that profile's store is unwritable
 lands in ``profiles/<name>/pending_messages/``. Boot recovery only scanned the launch home, and the
 runtime drain keys on an in-memory set that a restart empties: after a restart nothing read those
@@ -30,7 +30,7 @@ def multiplex_homes(tmp_path, monkeypatch):
     profile = root / "profiles" / "work"
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}\n", encoding="utf-8")  # identity marker
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     # Resolve state.db through get_hermes_home(), as production does (see the sibling suite).
     monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", hermes_state._IMPORT_DEFAULT_DB_PATH)
     ss.set_multiplex_active(True)

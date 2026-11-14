@@ -134,7 +134,7 @@ class TestCronCommandLifecycle:
 class TestUnverifiedDeliveryVisibility:
     """An evidence-free live-adapter ack (Slack/Matrix/Mattermost bare
     ``SendResult(success=True)``) is accepted as delivered, but the UNVERIFIED
-    state must be visible in ``hermes cron list`` and ``hermes cron doctor``,
+    state must be visible in ``a2assistant cron list`` and ``a2assistant cron doctor``,
     not only in a WARNING log line."""
 
     def _seed(self):
@@ -186,7 +186,7 @@ class TestCronDoctor:
         assert job["id"] in out
         assert "last run failed: Provider returned error" in out
         assert "was not delivered (telegram timeout)" in out
-        assert "hermes cron edit" in out
+        assert "a2assistant cron edit" in out
         assert "script not found" in out
 
     def test_doctor_reports_healthy_jobs(self, tmp_cron_dir, capsys):
@@ -220,7 +220,7 @@ class TestCronDoctor:
         out = capsys.readouterr().out
         assert rc == 1
         assert "was not delivered (telegram timeout)" in out
-        assert "hermes cron edit" in out
+        assert "a2assistant cron edit" in out
         assert "last run failed" not in out
         assert "unknown error" not in out
 
@@ -363,7 +363,7 @@ def test_cron_create_failure_returns_nonzero(monkeypatch, capsys):
 
 
 class TestCronRunBackgroundDispatch:
-    """`hermes cron run` must not report 'failed' when the run was dispatched
+    """`a2assistant cron run` must not report 'failed' when the run was dispatched
     to the background delegation worker.
 
     The CLI process inherits the gateway/desktop session env, so a manual run
@@ -539,7 +539,7 @@ class TestStatusSurfacesDeadScheduler:
         # so an unrelated host record can never make this profile look served. (Superseded by the
         # tests/conftest.py hook in #118097 once that lands.)
         lock_dir.mkdir(exist_ok=True)
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(lock_dir))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(lock_dir))
         monkeypatch.setattr("hermes_cli.gateway.find_gateway_pids", list)
         monkeypatch.setattr(
             "hermes_cli.gateway.named_profile_served_by_running_multiplexer", lambda: None

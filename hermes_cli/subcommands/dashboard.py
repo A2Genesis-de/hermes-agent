@@ -1,4 +1,4 @@
-"""``hermes dashboard`` / ``hermes serve`` subcommand parsers.
+"""``a2assistant dashboard`` / ``a2assistant serve`` subcommand parsers.
 
 ``dashboard`` is the browser web UI; ``serve`` is the same gateway, headless —
 what the desktop app and remote backends run. ``serve`` also skips the web UI
@@ -64,7 +64,7 @@ def build_serve_parser(
 ) -> argparse.ArgumentParser:
     """Build the standalone parser used by the lean ``serve`` dispatch path."""
     parser = argparse.ArgumentParser(
-        prog="hermes serve",
+        prog="a2assistant serve",
         description="Run the A2Assistant backend server - the JSON-RPC/WebSocket gateway the "
             "desktop app and remote clients connect to. Headless: it never opens "
             "a browser UI.",

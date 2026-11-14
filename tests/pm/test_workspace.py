@@ -343,7 +343,7 @@ def test_classify_network_failure_stays_generic():
 
 
 def test_core_only_generation_carries_no_release_age_cutoff(layout):
-    """A core-only install (hermes update) is a frozen sync: the cutoff there only gates the build
+    """A core-only install (a2assistant update) is a frozen sync: the cutoff there only gates the build
     tools uv fetches, and a mirror without upload times rejects every one of them (#135589)."""
     tmp, core, _, _ = layout
     manifest = core / "pyproject.toml"

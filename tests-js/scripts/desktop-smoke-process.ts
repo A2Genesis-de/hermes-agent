@@ -53,7 +53,7 @@ export function readInstallationCommit(root: string, origin: 'source' | 'bundled
   // The install drivers export their real git: a fresh-machine leg takes every
   // git off PATH so the product must provision its own, which this observer
   // must not depend on.
-  const git: string = process.env.HERMES_E2E_REAL_GIT || 'git'
+  const git: string = process.env.A2ASSISTANT_E2E_REAL_GIT || 'git'
 
   const commit = origin === 'source' ? nativeText(git, ['-C', root, 'rev-parse', 'HEAD'])
     : z.object({ payload: z.literal('bundled'), commit: z.string() }).parse(
@@ -69,7 +69,7 @@ const SYNTHETIC_NEXT_MARKER = '.hermes-e2e-next'
 
 /** The commit a reused packaged app may still report for an installed source checkout.
  *
- * `hermes update` keeps the packaged app when no desktop build input changed, and that app keeps
+ * `a2assistant update` keeps the packaged app when no desktop build input changed, and that app keeps
  * naming the commit it was built from (hermes_cli/desktop_build_reuse.py). The harness can prove
  * that case only for the synthetic NEXT commit, whose sole change is one marker file: there the
  * parent is the commit the app may report. Any other installed commit, and any bundled install,
@@ -79,7 +79,7 @@ export function reusedDesktopBuildCommit(root: string, origin: 'source' | 'bundl
     return undefined
   }
 
-  const git: string = process.env.HERMES_E2E_REAL_GIT || 'git'
+  const git: string = process.env.A2ASSISTANT_E2E_REAL_GIT || 'git'
   const parents = nativeText(git, ['-C', root, 'rev-list', '--parents', '-n', '1', installed]).split(/\s+/).slice(1)
 
   if (parents.length !== 1) {
@@ -213,7 +213,7 @@ function processStartTime(pid: number): number | null {
 }
 
 const gatewayStateSchema = z.object({
-  pid: z.number().int().positive(), kind: z.literal('hermes-gateway'),
+  pid: z.number().int().positive(), kind: z.literal('a2assistant-gateway'),
   gateway_state: z.string(), start_time: z.number().nullable().optional(),
   code_sha: z.string().nullable().optional(),
 }).passthrough()
@@ -239,8 +239,8 @@ function gatewayIncarnationMatches(pid: number, recorded: number | null | undefi
   return started !== null && Math.abs(started - recorded / 100) < 2
 }
 
-/** The running canonical gateway (`hermes gateway run`) recorded for `homes`. Desktop reaches a
- * local backend through `hermes gateway ensure`, which attaches to that daemon or starts it
+/** The running canonical gateway (`a2assistant gateway run`) recorded for `homes`. Desktop reaches a
+ * local backend through `a2assistant gateway ensure`, which attaches to that daemon or starts it
  * detached, so it is neither an Electron descendant nor a `serve` spawn-ledger record. */
 function canonicalGateways(homes: string[], processes: NativeProcess[]): Map<number, string | undefined> {
   return new Map([...new Set(homes)].flatMap((home: string): Array<[number, string | undefined]> => {
@@ -273,9 +273,9 @@ export function localBackendProcess(port: number, electronPid: number, hermesHom
 
   if (hermesHome) {
     // The product writes one machine-root ledger for every profile, and the app
-    // reads it at its own resolved root (`main.ts` -> `spawnLedgerPath(HERMES_HOME)`,
+    // reads it at its own resolved root (`main.ts` -> `spawnLedgerPath(A2ASSISTANT_HOME)`,
     // where a `<root>/profiles/<name>` home resolves to `<root>`).
-    const ledgerRoot = resolveDesktopHermesHome({ home: os.homedir(), env: { HERMES_HOME: hermesHome } })
+    const ledgerRoot = resolveDesktopHermesHome({ home: os.homedir(), env: { A2ASSISTANT_HOME: hermesHome } })
     // A named profile is served by the root's multiplexer; a standalone one by its own gateway.
     gateways = canonicalGateways([hermesHome, ledgerRoot], processes)
 
@@ -331,13 +331,13 @@ export function localBackendProcess(port: number, electronPid: number, hermesHom
     backend.cwd = fs.readlinkSync(`/proc/${backend.pid}/cwd`)
     backend.command = fs.readFileSync(`/proc/${backend.pid}/cmdline`, 'utf8').split('\0').filter(Boolean).map((arg: string): string => JSON.stringify(arg)).join(' ')
     backend.sourceRoot = fs.readFileSync(`/proc/${backend.pid}/environ`, 'utf8').split('\0')
-      .find((entry: string): boolean => entry.startsWith('HERMES_PYTHON_SRC_ROOT='))?.slice('HERMES_PYTHON_SRC_ROOT='.length)
+      .find((entry: string): boolean => entry.startsWith('A2ASSISTANT_PYTHON_SRC_ROOT='))?.slice('A2ASSISTANT_PYTHON_SRC_ROOT='.length)
   } else if (process.platform === 'darwin') {
     backend.command = nativeText('ps', ['-p', String(backend.pid), '-o', 'args='])
     backend.cwd = nativeText('/usr/sbin/lsof', ['-a', '-p', String(backend.pid), '-d', 'cwd', '-Fn'])
       .split('\n').find((line: string): boolean => line.startsWith('n'))?.slice(1)
     const environment = nativeText('ps', ['eww', '-p', String(backend.pid), '-o', 'args='])
-    backend.sourceRoot = psEnvValue(environment, 'HERMES_PYTHON_SRC_ROOT')
+    backend.sourceRoot = psEnvValue(environment, 'A2ASSISTANT_PYTHON_SRC_ROOT')
     backend.pythonPath = psEnvValue(environment, 'PYTHONPATH')
     backend.virtualEnv = psEnvValue(environment, 'VIRTUAL_ENV')
   }
@@ -414,7 +414,7 @@ export function assertBackendOrigin(backend: BackendProcess, root: string, origi
     if (backend.sourceRoot !== undefined) {
       if (!sameTree(backend.sourceRoot)) {
         throw new Error('Source backend listener imports a different source tree'
-          + ` (HERMES_PYTHON_SRC_ROOT=${backend.sourceRoot}, expected=${root}, command=${backend.command})`)
+          + ` (A2ASSISTANT_PYTHON_SRC_ROOT=${backend.sourceRoot}, expected=${root}, command=${backend.command})`)
       }
 
       return
@@ -442,7 +442,7 @@ export function assertBackendOrigin(backend: BackendProcess, root: string, origi
 
     if (!sameTree(backend.cwd) && !namesInstallRoot && !usesInstallEnvironment && !appOwnsBackend) {
       throw new Error('Source backend listener imports a different source tree'
-        + ` (cwd=${backend.cwd ?? '(unreadable)'}, HERMES_PYTHON_SRC_ROOT=(unset),`
+        + ` (cwd=${backend.cwd ?? '(unreadable)'}, A2ASSISTANT_PYTHON_SRC_ROOT=(unset),`
         + ` executable=${backend.executable}, expected=${root},`
         + ` appReportedRoot=${evidence.appReportedRoot ?? '(unreported)'}, command=${backend.command})`)
     }

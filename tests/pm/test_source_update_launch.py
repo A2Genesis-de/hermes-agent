@@ -35,9 +35,9 @@ def source_launch(tmp_path, monkeypatch, isolated_python):
     engine = importlib.import_module("pm.install")
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "store"))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "store"))
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(paths, "lockfile_path", lambda: tmp_path / "tool-lock.json")
 
     uv = shutil.which("uv")
@@ -123,7 +123,7 @@ def test_source_python_pin_update_survives_real_gc(source_launch, tmp_path, monk
     _launchers.ensure_install_launchers(root, root / ".hermes" / "bin")
     command = _launchers.installation_command(root, module="source_probe")
     (site_packages(selected_venv(root)) / "selected_probe.py").write_text("VALUE = 'A'\n")
-    child_env = {**os.environ, "HERMES_DISABLE_LAZY_INSTALLS": "1"}
+    child_env = {**os.environ, "A2ASSISTANT_DISABLE_LAZY_INSTALLS": "1"}
     before = subprocess.run(command, env=child_env, capture_output=True, text=True, timeout=30, check=False)
     assert before.returncode == 0, before.stderr
     assert json.loads(before.stdout)["executable"] == str(old_python)
@@ -500,7 +500,7 @@ def test_failed_launch_completion_degrades_to_a_warning(source_launch, tmp_path,
         assert _receipts(tmp_path) == before_receipts, "a metadata query attempted a dependency sync"
     else:
         assert "source-update completion failed" in result.stderr
-        assert "hermes update" in result.stderr
+        assert "a2assistant update" in result.stderr
 
 
 @pytest.mark.platforms("posix")
@@ -545,7 +545,7 @@ def test_completion_retry_backoff_and_cap(tmp_path, monkeypatch):
 @pytest.mark.platforms("posix")
 def test_capped_completion_attempts_leave_marker_for_explicit_update(source_launch, tmp_path, capsys):
     """Past the retry cap a launch must NOT re-run the tail; it keeps the pending marker
-    and points the operator at `hermes update` instead of burning another doomed attempt."""
+    and points the operator at `a2assistant update` instead of burning another doomed attempt."""
     root, store_python, _ = source_launch
     from hermes_cli.venv_sync import (
         _completion_attempts_path,
@@ -565,7 +565,7 @@ def test_capped_completion_attempts_leave_marker_for_explicit_update(source_laun
     assert venv_sync.prepare_launch(root, []) == store_python
     out = capsys.readouterr().err
     assert "could not be finished automatically" in out
-    assert "hermes update" in out
+    assert "a2assistant update" in out
     assert completion_pending_path(root).is_file(), "the owed completion is still recorded"
     assert not (tmp_path / "completion-calls").exists(), "a capped launch re-ran the tail"
 

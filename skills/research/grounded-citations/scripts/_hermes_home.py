@@ -1,4 +1,4 @@
-"""Resolve HERMES_HOME for standalone skill scripts.
+"""Resolve A2ASSISTANT_HOME for standalone skill scripts.
 
 Skill scripts may run outside the Hermes process (system Python, nix env,
 CI) where ``hermes_constants`` is not importable.  This module provides the
@@ -18,6 +18,6 @@ try:
 except (ModuleNotFoundError, ImportError):
 
     def get_hermes_home() -> Path:
-        """Return the Hermes home directory (default: ``~/.hermes``)."""
-        val = os.environ.get("HERMES_HOME", "").strip()
+        """Return the Hermes home directory (default: ``~/.a2assistant``)."""
+        val = os.environ.get("A2ASSISTANT_HOME", "").strip()
         return Path(val) if val else Path.home() / ".hermes"

@@ -1,7 +1,7 @@
 """Cua-driver backend (macOS, Windows, Linux): MCP over stdio to `cua-driver`. The async `mcp` SDK runs on a
 background loop (``cua_backend_session``); the same tool surface works on all three platforms, and per-host gaps
-(no DISPLAY, missing AT-SPI, TCC) surface via `hermes computer-use doctor` instead of failing silently. Install
-with `hermes computer-use install`. The macOS path uses private SkyLight SPIs that can break on OS updates.
+(no DISPLAY, missing AT-SPI, TCC) surface via `a2assistant computer-use doctor` instead of failing silently. Install
+with `a2assistant computer-use install`. The macOS path uses private SkyLight SPIs that can break on OS updates.
 Siblings: ``cua_backend_driver`` (binary/contract), ``cua_backend_capture`` + ``cua_backend_input``
 (mixins), ``cua_backend_parse``, ``cua_backend_session`` (bridge + session + CLI fallback), ``cua_backend_daemon``
 (private daemon + macOS app identity). Siblings look this module's config/policy helpers up lazily."""
@@ -242,8 +242,8 @@ def _empty_discovery_reason() -> str:
         return "no DISPLAY is set — X11/XWayland is not reachable from this process"
     if sys.platform == "darwin":  # headless Mac / asleep panel: ScreenCaptureKit has 0 shareable displays while TCC looks fine
         return ("window discovery returned no windows; on macOS this usually means no shareable display (headless Mac or "
-                "panel asleep) — wake the display or attach a monitor/HDMI dummy, then run `hermes computer-use doctor`")
-    return "window discovery returned no windows; run `hermes computer-use doctor` (display reachability, AX capability)"
+                "panel asleep) — wake the display or attach a monitor/HDMI dummy, then run `a2assistant computer-use doctor`")
+    return "window discovery returned no windows; run `a2assistant computer-use doctor` (display reachability, AX capability)"
 
 class CuaDriverBackend(_CaptureMixin, _InputMixin, ComputerUseBackend):
     """Default computer-use backend. Cross-platform via cua-driver MCP."""
@@ -291,8 +291,8 @@ class CuaDriverBackend(_CaptureMixin, _InputMixin, ComputerUseBackend):
             contract = cua_driver_runtime_contract_status()
         if not contract.get("ready"):
             raise RuntimeError(f"cua-driver is not ready: {contract.get('reason') or 'runtime contract is incomplete'}. "
-                               + ("Update the binary selected by HERMES_CUA_DRIVER_CMD or remove that override."
-                                  if os.environ.get(_CUA_DRIVER_CMD_ENV, "").strip() else "Run `hermes computer-use install` to repair it."))
+                               + ("Update the binary selected by A2ASSISTANT_CUA_DRIVER_CMD or remove that override."
+                                  if os.environ.get(_CUA_DRIVER_CMD_ENV, "").strip() else "Run `a2assistant computer-use install` to repair it."))
 
         # The MCP client SDK (`mcp`) is an optional dependency (the
         # `computer-use` / `mcp` extras), not part of Hermes' minimal core.

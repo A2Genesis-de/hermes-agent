@@ -1,9 +1,9 @@
-"""Quiet ``hermes chat -Q`` helpers: bind this session's key and resume nested notifies.
+"""Quiet ``a2assistant chat -Q`` helpers: bind this session's key and resume nested notifies.
 
-Bot Mode delivers a local DM as ``hermes -p <bot> chat -Q --query-file``. Interactive
+Bot Mode delivers a local DM as ``a2assistant -p <bot> chat -Q --query-file``. Interactive
 chat binds ``set_current_session_key(self.session_id)`` around the turn; the quiet
 path did not, so a nested ``message_agent`` notify inherited the dispatcher's
-``HERMES_SESSION_KEY`` and never woke the recipient. Quiet also printed and exited
+``A2ASSISTANT_SESSION_KEY`` and never woke the recipient. Quiet also printed and exited
 after one turn, so a nested teammate reply that finished during the one-shot linger
 was never injected as a follow-up.
 """
@@ -32,7 +32,7 @@ KANBAN_WORKER_EXIT_TRAILER = "[kanban-worker-exit] rc="
 
 def exit_single_query(code: int) -> None:
     """``sys.exit(code)`` for a one-shot turn; a Kanban worker first writes the exit trailer to its log."""
-    if os.environ.get("HERMES_KANBAN_TASK"):
+    if os.environ.get("A2ASSISTANT_KANBAN_TASK"):
         with contextlib.suppress(Exception):
             # stderr: stdout may be the ``--stream-json`` record stream, and the worker log
             # captures both streams.
@@ -46,7 +46,7 @@ def exit_single_query(code: int) -> None:
 # keeps protecting nested ``notify_on_complete`` replies. Popped before the turn runs (same
 # contract as HERMES_TURN_AUTHOR): nothing the turn spawns inherits it, and a nested one-shot
 # never writes over its host's report — the record also carries the writer's pid.
-TURN_REPORT_FILE_ENV = "HERMES_QUIET_TURN_REPORT_FILE"
+TURN_REPORT_FILE_ENV = "A2ASSISTANT_QUIET_TURN_REPORT_FILE"
 
 
 def take_turn_report_path(environ: MutableMapping[str, str] = os.environ) -> str | None:
@@ -89,7 +89,7 @@ REPORTED_TURN_EXIT_GRACE_SECONDS = 2.0
 def run_reported_turn(argv: list, *, env: MutableMapping[str, str], report_path: str, timeout: float,
                       exit_grace: float | None = REPORTED_TURN_EXIT_GRACE_SECONDS, cwd: str | None = None,
                       encoding: str | None = None) -> subprocess.CompletedProcess:
-    """Run one ``hermes chat -Q`` delivery child; *timeout* bounds the TURN, not the process.
+    """Run one ``a2assistant chat -Q`` delivery child; *timeout* bounds the TURN, not the process.
 
     The child records its turn at *report_path* (``write_turn_report``) the moment the turn ends,
     then runs the one-shot exit linger for nested ``notify_on_complete`` replies — bounded by

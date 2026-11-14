@@ -35,7 +35,7 @@ def satellite_home(tmp_path, monkeypatch):
     managed_dir = tmp_path / "managed"
     managed_dir.mkdir()
     monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed_dir))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed_dir))
     managed_scope.invalidate_managed_cache()
     token = set_hermes_home_override(str(sat_home))
     try:

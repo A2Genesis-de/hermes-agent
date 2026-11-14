@@ -92,7 +92,7 @@ def test_abort_recovery_hands_managed_profiles_to_a_fresh_process(monkeypatch):
     # Serve units travel in the same payload so one fresh child covers both
     # runtime families (#92145).
     assert set(payload["serve_units"]) == {"recover", "skip"}
-    assert kwargs["env"]["HERMES_UPDATE_RESTART_RECOVERY"] == "1"
+    assert kwargs["env"]["A2ASSISTANT_UPDATE_RESTART_RECOVERY"] == "1"
 
 
 def test_abort_recovery_does_not_claim_success_when_fresh_process_fails(monkeypatch):
@@ -238,23 +238,23 @@ def test_abort_recovery_records_serve_runtimes_as_skipped_with_reason(monkeypatc
 
 def test_service_matching_is_exact_for_overlapping_profile_names():
     assert update_cmd._gateway_service_matches_profile(
-        "foo", "hermes-gateway-foo.service"
+        "foo", "a2assistant-gateway-foo.service"
     )
     assert not update_cmd._gateway_service_matches_profile(
-        "foo", "hermes-gateway-foobar.service"
+        "foo", "a2assistant-gateway-foobar.service"
     )
     assert update_cmd._gateway_service_matches_profile(
-        "default", "ai.hermes.gateway"
+        "default", "de.a2genesis.a2assistant.gateway"
     )
     assert not update_cmd._gateway_service_matches_profile(
-        "default", "ai.hermes.gateway-foo"
+        "default", "de.a2genesis.a2assistant.gateway-foo"
     )
     # Scope-qualified identities the restart phase may record.
     assert update_cmd._gateway_service_matches_profile(
-        "default", "gui/501/ai.hermes.gateway"
+        "default", "gui/501/de.a2genesis.a2assistant.gateway"
     )
     assert update_cmd._gateway_service_matches_profile(
-        "foo", "user/hermes-gateway-foo.service"
+        "foo", "user/a2assistant-gateway-foo.service"
     )
 
 
@@ -285,7 +285,7 @@ def test_recovery_child_restarts_each_profile_with_a_fresh_main(monkeypatch):
         assert kwargs["capture_output"] is True
         assert kwargs["text"] is True
         assert kwargs["check"] is False
-        assert kwargs["env"]["HERMES_UPDATE_RESTART_RECOVERY"] == "1"
+        assert kwargs["env"]["A2ASSISTANT_UPDATE_RESTART_RECOVERY"] == "1"
         assert "_HERMES_GATEWAY" not in kwargs["env"]
 
 
@@ -298,7 +298,7 @@ def test_recovery_child_verifies_systemd_profiles_via_is_active(monkeypatch):
         calls.append(argv)
         if argv[0].endswith("systemctl"):
             unit = argv[-1]
-            active = unit == "hermes-gateway.service"
+            active = unit == "a2assistant-gateway.service"
             return _Completed(0 if active else 3, stdout="active" if active else "inactive")
         return _Completed(0)
 
@@ -423,13 +423,17 @@ def test_recovery_module_end_to_end_in_a_real_fresh_process(tmp_path):
                 return subprocess.CompletedProcess(argv_list, 0, "", "")
             if argv_list and str(argv_list[0]).endswith("systemctl"):
                 unit = argv_list[-1]
-                if unit == "hermes-gateway.service":
+                if unit == "a2assistant-gateway.service":
                     return subprocess.CompletedProcess(argv_list, 0, "active\\n", "")
                 return subprocess.CompletedProcess(argv_list, 3, "inactive\\n", "")
             return _real_run(argv, *args, **kwargs)
 
 
         subprocess.run = _shim_run
+
+        import hermes_constants
+
+        hermes_constants.legacy_layout_active = lambda: False
         """
     )
     (tmp_path / "sitecustomize.py").write_text(shim, encoding="utf-8")

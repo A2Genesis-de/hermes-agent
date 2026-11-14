@@ -1823,7 +1823,7 @@ DEFAULT_CONFIG = {
             "export_interval_seconds": 60,
             "logs_export_interval_seconds": 5,
             "resource_attributes": {
-                "service.name": "hermes-gateway", "deployment.environment.name": "production"
+                "service.name": "a2assistant-gateway", "deployment.environment.name": "production"
             },
         },
         # OTLP destination. headers_env maps header names to ENVIRONMENT VARIABLE NAMES (never
@@ -2428,7 +2428,7 @@ from hermes_cli.config_defaults_env import OptionalEnvVars, _base_url, _env, _ms
 OPTIONAL_ENV_VARS = OptionalEnvVars({
     # ── Provider (handled in provider selection, not shown in checklists) ──
     "NOUS_BASE_URL": _base_url("Nous Portal"),
-    "HERMES_ANON_API_SECRET": _env(
+    "A2ASSISTANT_ANON_API_SECRET": _env(
         "Shared secret for the Nous free-tier sign-up endpoints while they are in their gated "
         "integration phase (not needed once the gate is removed)",
         "Nous free-tier shared secret (leave empty unless given one)", password=True,
@@ -2574,10 +2574,10 @@ OPTIONAL_ENV_VARS = OptionalEnvVars({
     # HERMES_TOOL_PROGRESS_MODE (deprecated; use display.tool_progress) is intentionally NOT listed:
     # this dict feeds user-facing surfaces (dashboard keys page, setup checklists), so deprecated
     # knobs stay in config._EXTRA_ENV_KEYS only. HERMES_TOOL_PROGRESS is unsupported.
-    "HERMES_PREFILL_MESSAGES_FILE": _setting(
+    "A2ASSISTANT_PREFILL_MESSAGES_FILE": _setting(
         "Path to JSON file with ephemeral prefill messages for few-shot priming",
         "Prefill messages file path", None),
-    "HERMES_EPHEMERAL_SYSTEM_PROMPT": _setting(
+    "A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT": _setting(
         "Ephemeral system prompt injected at API-call time (never persisted to sessions)",
         "Ephemeral system prompt", None),
 })

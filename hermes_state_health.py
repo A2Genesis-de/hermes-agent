@@ -67,7 +67,7 @@ def mark_storage_corrupt(db_path, reason: object) -> None:
     logger.error(
         "state.db at %s is structurally corrupt (%s); session storage is reported as corrupt "
         "until A2Assistant restarts on a recovered or restored file. Stop A2Assistant, then run "
-        "`hermes sessions recover --source %s --inspect-only` or restore a snapshot.",
+        "`a2assistant sessions recover --source %s --inspect-only` or restore a snapshot.",
         db_path, reason, db_path,
     )
 

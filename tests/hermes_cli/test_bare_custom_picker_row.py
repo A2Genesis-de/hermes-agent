@@ -16,7 +16,7 @@ def test_bare_custom_row_survives_switching_away_from_it(monkeypatch):
     vanish from the picker when the session's current provider is a different
     one."""
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", dict)
-    monkeypatch.setattr(providers_mod, "HERMES_OVERLAYS", {})
+    monkeypatch.setattr(providers_mod, "A2ASSISTANT_OVERLAYS", {})
     monkeypatch.setattr(
         "hermes_cli.config.load_config",
         lambda: {
@@ -50,7 +50,7 @@ def test_bare_custom_row_config_fallback_defers_to_matching_named_entry(monkeypa
     """The config-sourced bare row must not duplicate a named custom_providers
     entry that already covers the same base_url (#59702)."""
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", dict)
-    monkeypatch.setattr(providers_mod, "HERMES_OVERLAYS", {})
+    monkeypatch.setattr(providers_mod, "A2ASSISTANT_OVERLAYS", {})
     monkeypatch.setattr(
         "hermes_cli.config.load_config",
         lambda: {
@@ -75,7 +75,7 @@ def test_bare_custom_row_config_fallback_tolerates_legacy_scalar_model(monkeypat
     """A legacy bare-string ``model:`` config value must not crash the picker
     (the ConfigContext loader already tolerates it)."""
     monkeypatch.setattr("agent.models_dev.fetch_models_dev", dict)
-    monkeypatch.setattr(providers_mod, "HERMES_OVERLAYS", {})
+    monkeypatch.setattr(providers_mod, "A2ASSISTANT_OVERLAYS", {})
     monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"model": "gpt-4o"})
 
     providers = list_authenticated_providers(

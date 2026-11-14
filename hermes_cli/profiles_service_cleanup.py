@@ -2,7 +2,7 @@
 the user systemd / launchd arms in ``profiles._cleanup_gateway_service``.
 
 Every registration is keyed on the profile name and starts ``--profile <old>`` with
-``HERMES_HOME`` pinned to a directory that the delete removed or the rename moved, so a
+``A2ASSISTANT_HOME`` pinned to a directory that the delete removed or the rename moved, so a
 survivor crash-loops (KeepAlive / Restart= / Task Scheduler retry) at the next boot or login.
 Callers bind the profile's home (``set_hermes_home_override``) before calling so the
 name-deriving helpers resolve THAT profile, never the ambient one.
@@ -15,21 +15,21 @@ from pathlib import Path
 
 
 def owned_by_profile(definition: Path, profile_dir: Path) -> bool:
-    """False (one-line notice) when *definition* pins another HERMES_HOME. Unit names derive from the
+    """False (one-line notice) when *definition* pins another A2ASSISTANT_HOME. Unit names derive from the
     profile name, and a scratch ``HOME``'s ``profiles/<name>`` resolves the ACCOUNT's real
-    ``hermes-gateway-<name>`` unit (the unit dir is account-anchored): delete/rename then disabled,
+    ``a2assistant-gateway-<name>`` unit (the unit dir is account-anchored): delete/rename then disabled,
     stopped and unlinked a live gateway of another install. Same owner rule as
     ``gateway_service_owner.definition_belongs_to_home``."""
     from hermes_cli.gateway_service_owner import _resolve, pinned_home
     raw = pinned_home(definition)
     if raw is None or _resolve(raw) == _resolve(profile_dir):
         return True
-    print(f"↷ {definition} runs HERMES_HOME={raw}, not {profile_dir}: another install's service, left alone")
+    print(f"↷ {definition} runs A2ASSISTANT_HOME={raw}, not {profile_dir}: another install's service, left alone")
     return False
 
 
 def remove_system_systemd_unit(profile_dir: Path) -> bool:
-    """Remove ``/etc/systemd/system/hermes-gateway-<profile>.service`` when root; otherwise
+    """Remove ``/etc/systemd/system/a2assistant-gateway-<profile>.service`` when root; otherwise
     name the leftover and the exact command, because the profile dir the ``gateway uninstall
     --system`` verb would need to resolve the name from is about to vanish."""
     from hermes_cli import gateway

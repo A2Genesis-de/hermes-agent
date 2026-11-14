@@ -83,7 +83,7 @@ def test_interrupt_hook_observer_sees_the_sessions_profile_a_b_a(tmp_path, monke
     routed.mkdir(parents=True)
     for home in (launch, routed):
         (home / ".env").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(server, "_hermes_home", launch)
     monkeypatch.setattr(lpp, "_snapshot", None)
     seen = []

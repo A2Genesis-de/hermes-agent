@@ -3,7 +3,6 @@
 Provides ``start_gateway()`` (start all configured adapters) and ``GatewayRunner`` (lifecycle).
 Run via ``python -m gateway.run`` or ``python cli.py --gateway``."""
 
-# hermes_bootstrap must be the very first import (UTF-8 stdio on Windows; no-op on POSIX).
 try:
     import hermes_bootstrap
 except ModuleNotFoundError as exc:  # a partial ``hermes update`` can leave the bootstrap unregistered
@@ -200,7 +199,7 @@ def hygiene_compaction_recovered(
 def _hygiene_compression_timeout_message(
     *, total_exhausted: bool, elapsed: float, idle_timeout: float, progress_observed: bool) -> str:
     """Describe the host timeout that actually ended hygiene compression. Chat users cannot edit
-    model config, so the copy names /compress, /new and `hermes doctor`, never a config key or the
+    model config, so the copy names /compress, /new and `a2assistant doctor`, never a config key or the
     raw second counts (those stay in the gateway log)."""
     lead = t("gateway.compress.hygiene_timeout")
     if total_exhausted:
@@ -889,14 +888,14 @@ def _startup_restore_drain_timeout_secs() -> float:
 
     Duplicate-agent safety does NOT depend on it: ``_schedule_resume_pending_sessions`` claims SYNCHRONOUSLY.
     """
-    return _float_env("HERMES_STARTUP_RESTORE_DRAIN_TIMEOUT", _STARTUP_RESTORE_DRAIN_TIMEOUT_SECS_DEFAULT)
+    return _float_env("A2ASSISTANT_STARTUP_RESTORE_DRAIN_TIMEOUT", _STARTUP_RESTORE_DRAIN_TIMEOUT_SECS_DEFAULT)
 
 
 def _startup_warmup_timeout_secs() -> float:
     """Max seconds the boot warm-up (``_warm_turn_prerequisites``) may hold the inbound gate shut.
 
     On timeout the gate opens and the warm-up finishes in the background. Non-positive disables it."""
-    return _float_env("HERMES_STARTUP_WARMUP_TIMEOUT", _STARTUP_WARMUP_TIMEOUT_SECS_DEFAULT)
+    return _float_env("A2ASSISTANT_STARTUP_WARMUP_TIMEOUT", _STARTUP_WARMUP_TIMEOUT_SECS_DEFAULT)
 
 
 def _warm_turn_machinery_sync() -> int:
@@ -1465,7 +1464,7 @@ def _planned_restart_notification_pending() -> bool:
 # Gateway marker so a lazily imported cli.py load_cli_config() doesn't clobber TERMINAL_CWD.
 os.environ["_HERMES_GATEWAY"] = "1"
 
-from hermes_constants import get_hermes_home, get_hermes_home_override, get_process_hermes_home
+from hermes_constants import get_hermes_home, get_hermes_home_override, get_process_hermes_home, unset_env
 # The PROCESS's own home, never an import-time ContextVar: a multiplexed backend (``hermes serve``)
 # first imports this module lazily from a session's agent build, under that session's routed profile
 # override, and the import-time config bridge below would then latch the secondary's terminal.* and
@@ -1480,7 +1479,7 @@ load_hermes_dotenv(hermes_home=_hermes_home, project_env=Path(__file__).resolve(
 
 def _reload_runtime_env_preserving_config_authority() -> None:
     """Reload .env per turn for rotated keys while config.yaml stays authoritative for budgets (else a
-    stale HERMES_MAX_ITERATIONS wins). Multiplex never reloads .env globally: secrets come from the
+    stale A2ASSISTANT_MAX_ITERATIONS wins). Multiplex never reloads .env globally: secrets come from the
     per-turn ``set_secret_scope`` and mutating ``os.environ`` would leak the default profile's keys to
     every profile; it still honors the max_turns bridge."""
     from agent.secret_scope import is_multiplex_active
@@ -1511,8 +1510,8 @@ def _bridge_max_turns_from_config(home: Path) -> None:
 def _current_max_iterations() -> int:
     """Return the per-turn iteration budget after runtime env refresh; ``resolve_turn_limit`` maps
     ``agent.max_turns: none``/``unlimited`` (bridged as a string) to the unlimited sentinel, not an
-    ``int()`` crash. A routed profile (HERMES_HOME override, multiplexed turns) reads ITS
-    ``agent.max_turns`` straight from config: the ``HERMES_MAX_ITERATIONS`` bridge is one process-wide
+    ``int()`` crash. A routed profile (A2ASSISTANT_HOME override, multiplexed turns) reads ITS
+    ``agent.max_turns`` straight from config: the ``A2ASSISTANT_MAX_ITERATIONS`` bridge is one process-wide
     slot holding the launch profile's value, so every secondary would inherit the default's budget."""
     _reload_runtime_env_preserving_config_authority()
     from hermes_cli.config import resolve_turn_limit as _resolve_turn_limit
@@ -1525,7 +1524,7 @@ def _current_max_iterations() -> int:
             cfg = {}
         agent_cfg = cfg.get("agent")
         return _resolve_turn_limit(agent_cfg.get("max_turns") if isinstance(agent_cfg, dict) else None)
-    return _resolve_turn_limit(os.getenv("HERMES_MAX_ITERATIONS"))
+    return _resolve_turn_limit(os.getenv("A2ASSISTANT_MAX_ITERATIONS"))
 
 
 from contextlib import asynccontextmanager as _asynccontextmanager, contextmanager as _contextmanager, suppress
@@ -1555,7 +1554,7 @@ def _multiplex_profile_homes(config: object) -> list[tuple[str, Path]]:
 def _cron_tick_profile_homes(config: object) -> list[tuple[str, Path]]:
     """Profile homes the in-process ticker visits: the served set PLUS the process-active
     profile: ``profiles_to_serve`` lists default + every live named profile, but a ``--profile
-    <name>`` gateway's own profile may sit outside ``profiles/`` (custom HERMES_HOME). One host
+    <name>`` gateway's own profile may sit outside ``profiles/`` (custom A2ASSISTANT_HOME). One host
     process ticks all of them regardless of ``gateway.multiplex_profiles``. Adapter startup
     already skips ``active``."""
     from hermes_cli.profiles import get_active_profile_name, get_profile_dir
@@ -1574,7 +1573,7 @@ def _cron_profile_gate(name: str, home: Path) -> bool:
     """Tick ``home`` this cycle unless ANOTHER gateway process owns it.
 
     Same stand-down the serve/Desktop ticker applies (``hermes_cli/web_server.py``): a host that
-    has not finished converging onto the one host gateway (``hermes gateway migrate --multiplex``)
+    has not finished converging onto the one host gateway (``a2assistant gateway migrate --multiplex``)
     may still run profile B's own gateway, and without this both it and this process race B's
     ``cron/.tick.lock``. The lock stops a simultaneous double-run but not the race: when this
     process wins, B's delivery leaves through ``SharedRouteAdapters``/fail-closed instead of B's
@@ -1789,7 +1788,7 @@ async def _discover_gateway_mcp_tools(config: object) -> None:
     No gateway run can complete a browser OAuth flow (nobody watches its stdout; on Windows its
     DEVNULL stdin even passes ``isatty``), so discovery runs with interactive OAuth suppressed — the
     same gate the CLI's background discovery uses. An expired token then parks the server with an
-    actionable ``hermes mcp login`` warning instead of opening an authorize tab.
+    actionable ``a2assistant mcp login`` warning instead of opening an authorize tab.
     """
     from tools.mcp_oauth import suppress_interactive_oauth
     from tools.mcp_tool_discovery import discover_mcp_tools
@@ -1825,27 +1824,27 @@ _DOCKER_MEDIA_OUTPUT_CONTAINER_PATHS = {"/output", "/outputs"}
 # Internal bridge, not a config source: seed from the canonical default after dotenv so an ambient
 # process/.env value can never control lease safety.
 from hermes_cli.config_defaults import DEFAULT_CONFIG as _DEFAULT_CONFIG
-os.environ["HERMES_TURN_LEASE_TIMEOUT"] = str(_DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"])
+os.environ["A2ASSISTANT_TURN_LEASE_TIMEOUT"] = str(_DEFAULT_CONFIG["agent"]["gateway_turn_lease_timeout"])
 
 # Bridge config.yaml values into env so os.getenv() picks them up. config.yaml unconditionally wins
 # over .env for these keys; a `not in os.environ` guard would let stale .env entries shadow config.
 _AGENT_ENV_BRIDGE = {
-    "gateway_timeout": "HERMES_AGENT_TIMEOUT",
-    "gateway_turn_lease_timeout": "HERMES_TURN_LEASE_TIMEOUT",
-    "gateway_timeout_warning": "HERMES_AGENT_TIMEOUT_WARNING",
-    "gateway_notify_interval": "HERMES_AGENT_NOTIFY_INTERVAL",
-    "session_stall_timeout": "HERMES_SESSION_STALL_TIMEOUT",
-    "restart_drain_timeout": "HERMES_RESTART_DRAIN_TIMEOUT",
-    "cron_drain_timeout": "HERMES_CRON_DRAIN_TIMEOUT",
-    "gateway_auto_continue_freshness": "HERMES_AUTO_CONTINUE_FRESHNESS",
-    "gateway_startup_restore_drain_timeout": "HERMES_STARTUP_RESTORE_DRAIN_TIMEOUT",
-    "gateway_startup_warmup_timeout": "HERMES_STARTUP_WARMUP_TIMEOUT"}
+    "gateway_timeout": "A2ASSISTANT_AGENT_TIMEOUT",
+    "gateway_turn_lease_timeout": "A2ASSISTANT_TURN_LEASE_TIMEOUT",
+    "gateway_timeout_warning": "A2ASSISTANT_AGENT_TIMEOUT_WARNING",
+    "gateway_notify_interval": "A2ASSISTANT_AGENT_NOTIFY_INTERVAL",
+    "session_stall_timeout": "A2ASSISTANT_SESSION_STALL_TIMEOUT",
+    "restart_drain_timeout": "A2ASSISTANT_RESTART_DRAIN_TIMEOUT",
+    "cron_drain_timeout": "A2ASSISTANT_CRON_DRAIN_TIMEOUT",
+    "gateway_auto_continue_freshness": "A2ASSISTANT_AUTO_CONTINUE_FRESHNESS",
+    "gateway_startup_restore_drain_timeout": "A2ASSISTANT_STARTUP_RESTORE_DRAIN_TIMEOUT",
+    "gateway_startup_warmup_timeout": "A2ASSISTANT_STARTUP_WARMUP_TIMEOUT"}
 # config-authoritative knobs for the session-search index (env stays the cross-process carrier).
-_SESSIONS_ENV_BRIDGE = {"search_slow_ms": "HERMES_SEARCH_SLOW_MS"}
+_SESSIONS_ENV_BRIDGE = {"search_slow_ms": "A2ASSISTANT_SEARCH_SLOW_MS"}
 _DISPLAY_ENV_BRIDGE = {
-    "busy_input_mode": "HERMES_GATEWAY_BUSY_INPUT_MODE",
-    "busy_text_mode": "HERMES_GATEWAY_BUSY_TEXT_MODE",
-    "busy_ack_enabled": "HERMES_GATEWAY_BUSY_ACK_ENABLED"}
+    "busy_input_mode": "A2ASSISTANT_GATEWAY_BUSY_INPUT_MODE",
+    "busy_text_mode": "A2ASSISTANT_GATEWAY_BUSY_TEXT_MODE",
+    "busy_ack_enabled": "A2ASSISTANT_GATEWAY_BUSY_ACK_ENABLED"}
 
 
 def _bridge_section_to_env(section: Any, mapping: dict[str, str]) -> None:
@@ -1864,9 +1863,9 @@ def _bridge_max_turns_to_env(agent_cfg: Any) -> None:
         return
     raw = agent_cfg["max_turns"]
     if raw is not None:
-        os.environ["HERMES_MAX_ITERATIONS"] = str(raw)
-    elif "HERMES_MAX_ITERATIONS" in os.environ:
-        del os.environ["HERMES_MAX_ITERATIONS"]
+        os.environ["A2ASSISTANT_MAX_ITERATIONS"] = str(raw)
+    elif "A2ASSISTANT_MAX_ITERATIONS" in os.environ:
+        unset_env(os.environ, "MAX_ITERATIONS")
 
 
 def _bridge_terminal_config_to_env(_terminal_cfg: dict) -> None:
@@ -1964,14 +1963,14 @@ def _bridge_config_to_env(_cfg: dict) -> None:
     _bridge_section_to_env(_display_cfg, _DISPLAY_ENV_BRIDGE)
     # Documented service-manager override: env wins when set (other display bridges stay config-first).
     if (isinstance(_display_cfg, dict) and "busy_steer_ack_enabled" in _display_cfg
-            and "HERMES_GATEWAY_BUSY_STEER_ACK_ENABLED" not in os.environ):
-        os.environ["HERMES_GATEWAY_BUSY_STEER_ACK_ENABLED"] = str(_display_cfg["busy_steer_ack_enabled"])
+            and "A2ASSISTANT_GATEWAY_BUSY_STEER_ACK_ENABLED" not in os.environ):
+        os.environ["A2ASSISTANT_GATEWAY_BUSY_STEER_ACK_ENABLED"] = str(_display_cfg["busy_steer_ack_enabled"])
     _tz_cfg = _cfg.get("timezone", "")
     if _tz_cfg and isinstance(_tz_cfg, str):
-        os.environ["HERMES_TIMEZONE"] = _tz_cfg.strip()
+        os.environ["A2ASSISTANT_TIMEZONE"] = _tz_cfg.strip()
     _security_cfg = _cfg.get("security", {})
     if isinstance(_security_cfg, dict) and _security_cfg.get("redact_secrets") is not None:
-        os.environ["HERMES_REDACT_SECRETS"] = str(_security_cfg["redact_secrets"]).lower()
+        os.environ["A2ASSISTANT_REDACT_SECRETS"] = str(_security_cfg["redact_secrets"]).lower()
     # Media policy uses the shared bridge so standalone entrypoints (`hermes cron run`) match.
     _gateway_cfg = _cfg.get("gateway", {})
     if isinstance(_gateway_cfg, dict):
@@ -1979,11 +1978,11 @@ def _bridge_config_to_env(_cfg: dict) -> None:
         apply_media_policy_env(_cfg)
         _trust_recent_seconds = _gateway_cfg.get("trust_recent_files_seconds")
         if _trust_recent_seconds is not None:
-            os.environ["HERMES_MEDIA_TRUST_RECENT_SECONDS"] = str(_trust_recent_seconds)
+            os.environ["A2ASSISTANT_MEDIA_TRUST_RECENT_SECONDS"] = str(_trust_recent_seconds)
         # platform_connect_timeout is an escape hatch, unlike the bridges above: env WINS if already set.
         if ("platform_connect_timeout" in _gateway_cfg
-                and not os.environ.get("HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()):
-            os.environ["HERMES_GATEWAY_PLATFORM_CONNECT_TIMEOUT"] = str(_gateway_cfg["platform_connect_timeout"])
+                and not os.environ.get("A2ASSISTANT_GATEWAY_PLATFORM_CONNECT_TIMEOUT", "").strip()):
+            os.environ["A2ASSISTANT_GATEWAY_PLATFORM_CONNECT_TIMEOUT"] = str(_gateway_cfg["platform_connect_timeout"])
 
 
 def _load_bridge_config(config_path: Path) -> dict:
@@ -2011,7 +2010,7 @@ if config_exists(_config_path):
             file=sys.stderr)
         print(
             "  Gateway will fall back to .env values, which may not match "
-            "your current config.yaml. Run `hermes doctor` to investigate.",
+            "your current config.yaml. Run `a2assistant doctor` to investigate.",
             file=sys.stderr)
 
 # IPv4 preference must apply before any HTTP clients are created.
@@ -2035,7 +2034,7 @@ try:
 except Exception as _bootstrap_exc:
     print(f"  Warning: deprecation check failed: {_bootstrap_exc}", file=sys.stderr)
 
-os.environ["HERMES_QUIET"] = "1"  # gateway runs quiet: no debug output, cwd used directly
+os.environ["A2ASSISTANT_QUIET"] = "1"  # gateway runs quiet: no debug output, cwd used directly
 
 # HERMES_EXEC_ASK is set in start_gateway(), NOT at import: CLI tools importing this module must not
 # flip interactive sessions into ask-mode (approval prompts would become silent pending_approval).
@@ -2791,8 +2790,8 @@ def _get_channel_override(
 
 def _resolve_hermes_bin() -> Optional[list[str]]:
     """Hermes update/restart argv: the running interpreter's ``python -m hermes_cli.main``
-    (exactly this install), else ``hermes`` on PATH, else None. The module argv must win: a
-    PATH-first lookup lets an attacker-planted ``hermes`` shadow the running install when
+    (exactly this install), else ``a2assistant`` on PATH, else None. The module argv must win: a
+    PATH-first lookup lets an attacker-planted ``a2assistant`` shadow the running install when
     /update or /restart re-execs it (#111569)."""
     try:
         import importlib.util
@@ -2801,7 +2800,8 @@ def _resolve_hermes_bin() -> Optional[list[str]]:
     except Exception:
         pass
     import shutil
-    hermes_bin = shutil.which("hermes")
+    from hermes_cli.service_names import CLI_COMMANDS
+    hermes_bin = next(filter(None, map(shutil.which, CLI_COMMANDS)), None)
     if hermes_bin:
         return [hermes_bin]
     return None
@@ -3322,11 +3322,11 @@ class GatewayRunner(
 
     def _open_session_db_for_active_scope(self, raise_on_error: bool = False) -> Any:
         """AsyncSessionDB for the active profile scope, resolved per access (not in ``__init__``) since
-        ``SessionDB()`` reads the context-local HERMES_HOME; one handle cached per path. Construction
+        ``SessionDB()`` reads the context-local A2ASSISTANT_HOME; one handle cached per path. Construction
         failure enters bounded backoff; ``raise_on_error=True`` (priming) propagates it.
 
         Same per-path cache as ``SessionStore._open_session_db_for_active_scope`` (#88532): ``SessionDB()``
-        resolves ``_default_db_path()`` at call time through the context-local HERMES_HOME override
+        resolves ``_default_db_path()`` at call time through the context-local A2ASSISTANT_HOME override
         installed by ``_profile_runtime_scope``, so resolving per access — instead of once in ``__init__`` —
         is what lets /resume, /title, /history and session search on a multiplexed gateway read the *serving
         profile's* store rather than the root one.
@@ -3852,14 +3852,14 @@ class GatewayRunner(
         unset by default.
         """
         return GatewayRunner._get_or_create_pool(
-            self, "_executor", lambda: _UnboundedThreadExecutor(thread_name_prefix="hermes-gateway"))
+            self, "_executor", lambda: _UnboundedThreadExecutor(thread_name_prefix="a2assistant-gateway"))
 
     def _get_housekeeping_executor(self) -> concurrent.futures.Executor:
         """Return the gateway-owned executor for best-effort session housekeeping."""
         return GatewayRunner._get_or_create_pool(
             self, "_housekeeping_executor",
             lambda: concurrent.futures.ThreadPoolExecutor(
-                max_workers=_HOUSEKEEPING_MAX_WORKERS, thread_name_prefix="hermes-gateway-hk"))
+                max_workers=_HOUSEKEEPING_MAX_WORKERS, thread_name_prefix="a2assistant-gateway-hk"))
 
     @staticmethod
     def _stop_pool(executor) -> list:
@@ -3997,7 +3997,7 @@ class GatewayRunner(
         return None
 
     def _resolve_profile_home_for_source(self, source: SessionSource) -> Path:
-        """Resolve which profile's HERMES_HOME serves this source: the pinned identity's runtime
+        """Resolve which profile's A2ASSISTANT_HOME serves this source: the pinned identity's runtime
         home, else ``source.profile``, then ``_profile_name_for_source`` (sources bypassing
         ``build_source``), then the active profile."""
         from gateway.profile_routing import ProfileRouteRejected
@@ -4017,7 +4017,7 @@ class GatewayRunner(
             if explicit_profile and not profile_exists(name):
                 logger.warning(
                     "Profile %r does not exist for source %s/%s (guild_id=%s), "
-                    "falling back to global HERMES_HOME",
+                    "falling back to global A2ASSISTANT_HOME",
                     explicit_profile, source.platform.value, source.chat_id,
                     getattr(source, "guild_id", None))
                 return get_hermes_home()
@@ -4027,7 +4027,7 @@ class GatewayRunner(
         except Exception:
             logger.warning(
                 "Failed to resolve profile directory for source %s/%s (guild_id=%s), "
-                "falling back to global HERMES_HOME: %s",
+                "falling back to global A2ASSISTANT_HOME: %s",
                 source.platform.value, source.chat_id, getattr(source, "guild_id", None),
                 explicit_profile or "(no profile)", exc_info=True)
             return get_hermes_home()
@@ -4071,11 +4071,11 @@ def _run_planned_stop_watcher(
     stop_event: threading.Event, runner, loop: asyncio.AbstractEventLoop, shutdown_handler, *,
     poll_interval: float = 0.5) -> None:
     """Poll for the planned-stop marker and trigger graceful shutdown (Windows lacks
-    ``add_signal_handler``, so ``hermes gateway stop`` would never drain). Runs everywhere; on POSIX
+    ``add_signal_handler``, so ``a2assistant gateway stop`` would never drain). Runs everywhere; on POSIX
     the signal handler consumes the marker first and ``_running``/``_draining`` guard re-triggers.
 
     On Windows, ``asyncio.add_signal_handler`` raises NotImplementedError for SIGTERM/SIGINT, so the
-    standard signal-driven shutdown path never runs when ``hermes gateway stop`` signals the gateway. The
+    standard signal-driven shutdown path never runs when ``a2assistant gateway stop`` signals the gateway. The
     consequence is that the drain loop is skipped — in-flight agent sessions are killed mid-turn and
     ``resume_pending`` is never set, so the next gateway boot has no idea those sessions need to be
     auto-resumed (issue #33778, v0.13.0 session-resume feature broken on native Windows).
@@ -4424,7 +4424,7 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
     """Return True when ``--replace`` must refuse to signal ``existing_pid``.
     A poisoned/stale PID record can point at another profile's LIVE gateway (cross-profile SIGTERM
     restart loop). Ownership is decided by the persisted identity record ALONE, bound to the live target
-    by exact PID + start-time; live argv can never PROVE ownership (no HERMES_HOME), it is only a
+    by exact PID + start-time; live argv can never PROVE ownership (no A2ASSISTANT_HOME), it is only a
     consistency check. Missing, legacy, conflicting or unprovable identity → refuse (fail closed)."""
     # Multiplex-only: the ONE host gateway serving this profile IS this profile's gateway, whatever
     # home launched it — `hermes -p X gateway run --replace` means "replace the process serving X".
@@ -4489,14 +4489,14 @@ def _replace_target_belongs_to_other_profile(existing_pid: int) -> bool:
             return refuse("pid record predates hermes_home stampings; ownership of PID %s unprovable.",
                           existing_pid)
         if not _same_hermes_home(recorded_home, our_home):
-            return refuse("pid record belongs to a different HERMES_HOME (%s, ours %s). Remove the stale PID "
+            return refuse("pid record belongs to a different A2ASSISTANT_HOME (%s, ours %s). Remove the stale PID "
                           "record or stop the owning profile explicitly.", recorded_home, our_home,
                           level=logging.ERROR)
         # Argv never proves ownership; an explicit contradicting --profile / HERMES_HOME= still refuses.
         live_cmdline = _best_effort(lambda: _read_process_cmdline(existing_pid))
         if live_cmdline and _looks_like_profile_conflict_from_cmdline(live_cmdline, our_home):
             return refuse("target PID %s command line explicitly advertises a different profile than "
-                          "HERMES_HOME %s.", existing_pid, our_home, level=logging.ERROR)
+                          "A2ASSISTANT_HOME %s.", existing_pid, our_home, level=logging.ERROR)
         return False
     except Exception:
         # Destructive action + unknown ownership => fail closed.
@@ -4532,11 +4532,11 @@ def _looks_like_profile_conflict_from_cmdline(command: str, our_home) -> bool:
         return values[-1] if values else None
 
     def _env_home_value() -> Optional[str]:
-        """HERMES_HOME=<path> env-style assignment on the argv, token-exact."""
-        prefix = "HERMES_HOME="
+        """A2ASSISTANT_HOME=<path> env-style assignment on the argv, token-exact."""
+        prefixes = ("A2ASSISTANT_HOME=", "HERMES_HOME=")
         for tok in reversed(tokens):
-            if tok.startswith(prefix):
-                return tok[len(prefix):]
+            if tok.startswith(prefixes):
+                return tok.partition("=")[2]
         return None
 
     def _norm(path: str) -> str:
@@ -4580,7 +4580,7 @@ def _start_gateway_make_restart_signal_handler(runner):
         # systemd's `reload` verb (ExecReload=kill -USR1) lands here too; say so, because operators
         # expect `reload` to mean an in-process config reload, not a drain-and-relaunch (#117267).
         logger.info(
-            "SIGUSR1 received (systemctl reload / hermes gateway restart): performing a graceful "
+            "SIGUSR1 received (systemctl reload / a2assistant gateway restart): performing a graceful "
             "gateway restart — drain active turns, exit, supervisor relaunches. Not an in-process "
             "config reload.")
         runner.request_restart(detached=False, via_service=True)
@@ -4730,7 +4730,7 @@ def _refuse_second_host_gateway(owner) -> None:
         f"   second one (it would double-bind this profile's platforms).\n"
         f"   Fold every profile onto the owner:  {_migrate_command()}\n"
         f"   Or stop the other gateway first, then start this one.\n"
-        f"   Or start one anyway (skips the host-lock check):  hermes gateway run --force\n"
+        f"   Or start one anyway (skips the host-lock check):  a2assistant gateway run --force\n"
         f"   (--replace does not skip this check; it only replaces an owner that serves this profile.)")
     logger.error("Refusing to start a second gateway on this host: %s", who)
     print(message)
@@ -4834,7 +4834,7 @@ async def start_gateway(config: Optional[GatewayConfig] = None, replace: bool = 
 def _guard_corrupt_user_config() -> None:
     """Fail closed when the active profile's config.yaml cannot be parsed: nobody can repair it on this
     surface, and defaults would let provider auto-detection adopt ``.env`` credentials the config never
-    named. Same policy and escape hatch (``HERMES_IGNORE_USER_CONFIG=1``) as ``hermes_cli/main.py``."""
+    named. Same policy and escape hatch (``A2ASSISTANT_IGNORE_USER_CONFIG=1``) as ``hermes_cli/main.py``."""
     from hermes_cli.config import InvalidUserConfigError, require_parseable_user_config
 
     try:
@@ -4853,7 +4853,7 @@ def main():
     # Advertise the harness to children (mirrors _advertise_agent_env in hermes_cli/main.py, inlined to
     # avoid its startup side effects). Value must equal registry id ``hermes-agent`` exactly.
     os.environ.setdefault("AI_AGENT", "hermes-agent")
-    os.environ.setdefault("HERMES_AGENT", "true")
+    os.environ.setdefault("A2ASSISTANT_AGENT", "true")
 
     def _register_identity() -> None:
         # Ledger registration + Windows job-object attach so update-time reapers can identify this gateway.

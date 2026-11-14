@@ -1,9 +1,9 @@
 """The classic CLI's real startup and command dispatch, in a fresh process, recording every plugin
 discovery / execution entry point it reaches (#134889 PLG-7).
 
-``argv[1]`` is the launch: ``oneshot`` (``_prepare_agent_startup``, as ``hermes chat -q`` runs it) or
+``argv[1]`` is the launch: ``oneshot`` (``_prepare_agent_startup``, as ``a2assistant chat -q`` runs it) or
 ``interactive`` (main's fast path: discovery deferred to the first turn). The rest of argv are the
-chat flags (``-t terminal``, ``-s <skill>``). The gateway for ``HERMES_HOME`` must already run, with the probe plugin
+chat flags (``-t terminal``, ``-s <skill>``). The gateway for ``A2ASSISTANT_HOME`` must already run, with the probe plugin
 (a ``pre_command`` hook, a command, a skill and a toolset) loaded. Prints one JSON line.
 """
 import io
@@ -39,7 +39,7 @@ _spy(skill_commands, 'get_plugin_skill_commands')
 
 
 def _add_skill(name):
-    path = Path(os.environ['HERMES_HOME'], 'skills', name)
+    path = Path(os.environ['A2ASSISTANT_HOME'], 'skills', name)
     path.mkdir(parents=True)
     (path / 'SKILL.md').write_text(f'---\nname: {name}\ndescription: Added mid-run\n---\nSay {name.upper()}_BODY.\n')
 
@@ -68,7 +68,7 @@ def main():
     from hermes_cli import main as hermes_main
     args = hermes_main._light_chat_parser().parse_args(['chat', *flags])
     if mode == 'interactive':
-        os.environ['HERMES_DEFER_AGENT_STARTUP'] = '1'
+        os.environ['A2ASSISTANT_DEFER_AGENT_STARTUP'] = '1'
     else:
         hermes_main._prepare_agent_startup(args)
     import cli

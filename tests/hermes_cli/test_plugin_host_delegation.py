@@ -58,7 +58,7 @@ def test_hosted_delegation_provider_extends_schema_and_routes_from_the_host(tmp_
     (empty_bundled / "delegation").symlink_to(Path(__file__).resolve().parents[2] / "plugins" / "delegation",
                                               target_is_directory=True)
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     manager = PluginManager()
     manager.discover_and_load()

@@ -58,8 +58,8 @@ def _make_default_adapter(monkeypatch):
     """Construct an adapter with the production text-batch defaults."""
     from plugins.platforms.telegram.adapter import TelegramAdapter
 
-    monkeypatch.delenv("HERMES_TELEGRAM_TEXT_BATCH_DELAY_SECONDS", raising=False)
-    monkeypatch.delenv("HERMES_TELEGRAM_TEXT_BATCH_SPLIT_DELAY_SECONDS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TELEGRAM_TEXT_BATCH_DELAY_SECONDS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TELEGRAM_TEXT_BATCH_SPLIT_DELAY_SECONDS", raising=False)
     adapter = TelegramAdapter(PlatformConfig(enabled=True, token="test-token"))
     adapter.handle_message = AsyncMock()
     return adapter

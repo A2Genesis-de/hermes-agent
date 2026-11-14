@@ -2,14 +2,14 @@
 
 A bundled ``plugins/memory/<name>`` that becomes a standalone catalog plugin keeps the same provider
 name, the settings it already read, its data directory and tool names, so the migration is only
-"the code now lives under ``HERMES_HOME/plugins/<name>``". Two hooks call :func:`migrate_home`:
+"the code now lives under ``A2ASSISTANT_HOME/plugins/<name>``". Two hooks call :func:`migrate_home`:
 
-* ``hermes update`` — for every profile home that shares the venv (primary; runs where the venv was
+* ``a2assistant update`` — for every profile home that shares the venv (primary; runs where the venv was
   just rebuilt anyway).
 * agent init — when the configured provider cannot be found at all, once per process (Desktop
-  users update through the app and never run ``hermes update`` by hand). After a failed attempt,
+  users update through the app and never run ``a2assistant update`` by hand). After a failed attempt,
   starts skip it for :data:`STARTUP_RETRY_SECONDS`, doubling with each further failure up to
-  :data:`STARTUP_RETRY_MAX_SECONDS` (``hermes update`` always retries): every ``hermes chat``, cron
+  :data:`STARTUP_RETRY_MAX_SECONDS` (``a2assistant update`` always retries): every ``a2assistant chat``, cron
   run and Desktop restart otherwise paid the network round trip again and showed the same failure.
 
 Both install the catalog entry at its reviewed pin through the normal plugin install path (kill
@@ -119,7 +119,7 @@ def _pending_provider(home: Path, *, say: Callable[[str], None]) -> Optional[str
         return None
     if catalog_source(name) is None:
         say(f"  ⚠ Memory provider '{name}' is configured but not installed and not in the plugin catalog. "
-            f"Install it with `hermes plugins install <source>` or change memory.provider.")
+            f"Install it with `a2assistant plugins install <source>` or change memory.provider.")
         return None
     return name
 
@@ -127,13 +127,13 @@ def _pending_provider(home: Path, *, say: Callable[[str], None]) -> Optional[str
 def _install_command(name: str, home: Path) -> str:
     """The exact command that installs *name* into *home*. ``-p`` is dropped only for the default
     home while no sticky profile is set: a bare command run from a shell targets the sticky
-    profile, never the home of the agent (Desktop, gateway, ``hermes -p``) that printed it."""
+    profile, never the home of the agent (Desktop, gateway, ``a2assistant -p``) that printed it."""
     from hermes_cli.profiles import get_active_profile
     from hermes_constants import profile_name_for_home
     profile = profile_name_for_home(home)
     if profile is None or (profile == "default" and get_active_profile() == "default"):
-        return f"hermes plugins install {name}"
-    return f"hermes -p {profile} plugins install {name}"
+        return f"a2assistant plugins install {name}"
+    return f"a2assistant -p {profile} plugins install {name}"
 
 
 def _install_pending(home: Path, name: str, *, install: Callable[[str], dict],
@@ -145,7 +145,7 @@ def _install_pending(home: Path, name: str, *, install: Callable[[str], dict],
     if result.get("ok"):
         say(f"  ✓ Memory provider '{name}' moved out of core — installed its plugin from the catalog "
             f"(memory.provider and your stored memories are unchanged; check its settings with "
-            f"`hermes memory status`).")
+            f"`a2assistant memory status`).")
         return True
     error = str(result.get("error") or "unknown error").rstrip(". ")
     say(f"  ⚠ Memory provider '{name}' moved out of core and could not be installed automatically: "
@@ -171,7 +171,7 @@ def _interactive() -> bool:
 
 
 def _unattended_consent() -> bool:
-    """Without a terminal (Desktop, gateway, ``hermes update`` from a script) nobody can answer the
+    """Without a terminal (Desktop, gateway, ``a2assistant update`` from a script) nobody can answer the
     dependency prompt, so every provider that declares Python deps would fail to migrate. The
     configured ``memory.provider`` plus ``security.allow_lazy_installs`` (read for the active home,
     i.e. the one being migrated) is the same consent that let the bundled provider install its deps
@@ -211,7 +211,7 @@ def _home_label(home: Path) -> str:
 
 
 def migrate_all_homes(*, say: Callable[[str], None] = print) -> list[str]:
-    """``hermes update`` hook: every profile home sharing this venv. Returns installed plugin names.
+    """``a2assistant update`` hook: every profile home sharing this venv. Returns installed plugin names.
 
     Each line names the profile it is about. Homes missing the same provider share one environment,
     so they share one set of dependency answers (#125794): the first install asks, the rest reuse
@@ -258,7 +258,7 @@ def migrate_all_homes(*, say: Callable[[str], None] = print) -> list[str]:
                     break
     except KeyboardInterrupt:
         say("  ⚠ Memory provider migration cancelled. Profiles already migrated keep their plugin; "
-            "run `hermes plugins install <name>` (with `-p <profile>`) for the rest.")
+            "run `a2assistant plugins install <name>` (with `-p <profile>`) for the rest.")
     return installed
 
 

@@ -33,7 +33,7 @@ def _stub_linger_file(monkeypatch, tmp_path, *, exists: bool) -> None:
 def _root_with_system_unit_pinned_home(monkeypatch, tmp_path) -> None:
     """Take the root/system-unit branch of service-name resolution (``_bare_unit_pinned_home``), the
     path that calls ``Path(...).expanduser()`` while rendering the restart hint."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes-home"))
     monkeypatch.setattr(gateway.os, "geteuid", lambda: 0)
     monkeypatch.setattr(gateway, "_hermes_home_pinned_by_unit", lambda _unit_path: str(tmp_path / "system-home"))
 
@@ -160,7 +160,7 @@ class TestEnsureSystemServiceLinger:
 
 
 def test_systemd_install_calls_linger_helper(monkeypatch, tmp_path, capsys):
-    unit_path = tmp_path / "systemd" / "user" / "hermes-gateway.service"
+    unit_path = tmp_path / "systemd" / "user" / "a2assistant-gateway.service"
 
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
     # Non-temp home so the temp-home write guard (which trips on the
@@ -169,7 +169,7 @@ def test_systemd_install_calls_linger_helper(monkeypatch, tmp_path, capsys):
         gateway,
         "generate_systemd_unit",
         lambda system=False, run_as_user=None: (
-            '[Service]\nEnvironment="HERMES_HOME=/home/alice/.hermes"\n'
+            '[Service]\nEnvironment="A2ASSISTANT_HOME=/home/alice/.hermes"\n'
         ),
     )
 
@@ -197,7 +197,7 @@ def test_systemd_install_calls_linger_helper(monkeypatch, tmp_path, capsys):
 def test_systemd_install_targets_linger_at_system_service_user(monkeypatch, tmp_path, user):
     """Fresh --system install enables linger for the unit's User= — root too, since restart-safe
     workers always cross systemd-run --user."""
-    unit_path = tmp_path / "systemd" / "hermes-gateway.service"
+    unit_path = tmp_path / "systemd" / "a2assistant-gateway.service"
     helper_calls = []
 
     monkeypatch.setattr(gateway, "_require_root_for_system_service", lambda action: None)
@@ -222,7 +222,7 @@ def test_systemd_install_targets_linger_at_system_service_user(monkeypatch, tmp_
 @pytest.mark.parametrize("unit_is_current", [True, False])
 def test_existing_system_install_repairs_linger_for_configured_user(monkeypatch, tmp_path, unit_is_current):
     """Re-running install on an affected system service provisions linger for the unit's User=."""
-    unit_path = tmp_path / "systemd" / "hermes-gateway.service"
+    unit_path = tmp_path / "systemd" / "a2assistant-gateway.service"
     unit_path.parent.mkdir(parents=True)
     unit_path.write_text("[Service]\nUser=alice\n", encoding="utf-8")
     helper_calls = []
@@ -245,7 +245,7 @@ def test_existing_system_install_repairs_linger_for_configured_user(monkeypatch,
 def test_systemd_install_repair_path_keeps_linger_guarantee(monkeypatch, tmp_path, system):
     """Repairing a stale unit used to return before the linger step, so an upgraded headless
     user service died at logout (#12863). System scope never touches user linger."""
-    unit_path = tmp_path / "hermes-gateway.service"
+    unit_path = tmp_path / "a2assistant-gateway.service"
     unit_path.write_text("old unit\n", encoding="utf-8")
     monkeypatch.setattr(gateway, "get_systemd_unit_path", lambda system=False: unit_path)
     monkeypatch.setattr(gateway, "systemd_unit_is_current", lambda system=False: False)

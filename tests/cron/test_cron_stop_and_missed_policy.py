@@ -1,6 +1,6 @@
 """Stopping a live cron run (cancel / remove) and the per-job missed-run policy.
 
-Real store, real execution ledger, real cancel markers under a temp HERMES_HOME.
+Real store, real execution ledger, real cancel markers under a temp A2ASSISTANT_HOME.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from cron import jobs
 
 @pytest.fixture
 def home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     with jobs.use_cron_store(tmp_path / "cron"):
         yield tmp_path
 

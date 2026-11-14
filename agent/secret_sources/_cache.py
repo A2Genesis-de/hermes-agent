@@ -50,7 +50,7 @@ class CachedFetch:
 
 
 def resolve_cache_home(home_path: Optional[Path] = None) -> Path:
-    """``home_path`` as resolved by ``load_hermes_dotenv()``, else ``$HERMES_HOME``/``~/.hermes``."""
+    """``home_path`` as resolved by ``load_hermes_dotenv()``, else ``$A2ASSISTANT_HOME``/``~/.a2assistant``."""
     if home_path is None:
         from hermes_constants import get_hermes_home
 

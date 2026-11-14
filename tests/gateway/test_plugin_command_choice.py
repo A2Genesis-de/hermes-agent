@@ -123,7 +123,7 @@ def test_a_local_viewer_answers_the_choice_while_its_slash_exec_waits(tmp_path):
         "model": {"provider": "custom", "default": "m", "base_url": "http://127.0.0.1:9/v1"},
         "platform_toolsets": {"cli": []}, "plugins": {"enabled": ["pick"]}}))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY="loopback-only", PYTHONUNBUFFERED="1", PYTHONDONTWRITEBYTECODE="1")
 
     async def viewer(desc):

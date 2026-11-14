@@ -1,6 +1,6 @@
 """A user-installed memory provider parked in ``plugins.disabled`` must not load.
 
-The Plugins hub / `hermes plugins disable` write the deny-list; ``plugins/memory`` never read it, so
+The Plugins hub / `a2assistant plugins disable` write the deny-list; ``plugins/memory`` never read it, so
 the UI said "disabled" while the provider kept loading at every agent init.
 """
 
@@ -40,7 +40,7 @@ def homes(tmp_path, monkeypatch):
             "name: fakemem-manifest\nkind: exclusive\n", encoding="utf-8"
         )
         (provider_dir / "__init__.py").write_text(_PROVIDER, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(enabled))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(enabled))
     return enabled, disabled
 
 

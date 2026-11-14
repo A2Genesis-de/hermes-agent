@@ -1,7 +1,7 @@
 """OAuth clients a plugin declares in ``plugin.yaml``: Hermes signs in, stores and refreshes the grant.
 
 A plugin that calls a third-party API with the user's own OAuth client (a Google Cloud client, for example)
-declares it under ``oauth:``. ``hermes auth add <plugin>:<id>`` runs the PKCE login of
+declares it under ``oauth:``. ``a2assistant auth add <plugin>:<id>`` runs the PKCE login of
 :mod:`hermes_cli.auth_oauth_pkce_plugin` in a terminal, the grant lives in the active profile's
 ``auth.json`` (section ``plugin_oauth``) and Hermes refreshes it. The plugin calls
 ``credentialed_provider_request(<id>, ...)``: Hermes attaches the bearer for the declared hosts only, so
@@ -169,7 +169,7 @@ def oauth_notice(manifest: Mapping[str, Any]) -> str:
     """Install/show text for the declared clients; empty when the plugin declares none."""
     name = str((manifest or {}).get("name") or "<plugin>")
     return "; ".join(
-        f"Signs in to {c.id} at {_idp_hosts(c)} for {', '.join(c.hosts)} with `hermes auth add {name}:{c.id}` "
+        f"Signs in to {c.id} at {_idp_hosts(c)} for {', '.join(c.hosts)} with `a2assistant auth add {name}:{c.id}` "
         "(A2Assistant stores and refreshes the token; the plugin never receives it)"
         for c in parse_oauth_clients(manifest)[0])
 
@@ -204,7 +204,7 @@ def oauth_admission_problems(manifest: Mapping[str, Any], plugin_dir: Path) -> l
             if name not in declared:
                 problems.append(f"oauth {client.id!r}: {name} must be declared under requires_env or optional_env")
     if clients and plugin_dir.name == "custom":
-        problems.append("a plugin named 'custom' cannot declare oauth: `hermes auth add custom:<name>` is a custom provider")
+        problems.append("a plugin named 'custom' cannot declare oauth: `a2assistant auth add custom:<name>` is a custom provider")
     return problems
 
 
@@ -244,7 +244,7 @@ def _read_grant(key: str) -> Optional[dict]:
 
 
 def forget_plugin_grants(plugin: str) -> None:
-    """Drop every grant of plugin key *plugin* from the active profile (``hermes plugins remove``)."""
+    """Drop every grant of plugin key *plugin* from the active profile (``a2assistant plugins remove``)."""
     from hermes_cli.auth import _auth_store_lock, _load_auth_store, _save_auth_store
 
     with _auth_store_lock():
@@ -364,19 +364,19 @@ def _not_signed_in(message: str):
 
 def _revoked(client: OAuthClient, key: str, code: str):
     return _not_signed_in(f"The {client.id} sign-in for plugin '{key.rsplit(':', 1)[0]}' was revoked ({code}). "
-                          f"Run `hermes auth add {key}` to sign in again.")
+                          f"Run `a2assistant auth add {key}` to sign in again.")
 
 
 def _usable_grant(row: Optional[dict], client: OAuthClient, key: str) -> dict:
     plugin = key.rsplit(":", 1)[0]
     if row is None:
         raise _not_signed_in(f"Not signed in to {client.id} for plugin '{plugin}' in this A2Assistant profile. "
-                             f"Run `hermes auth add {key}`.")
+                             f"Run `a2assistant auth add {key}`.")
     if row.get("dead"):
         raise _revoked(client, key, str(row["dead"]))
     if row.get("fingerprint") != client.fingerprint:
         raise _not_signed_in(f"Plugin '{plugin}' changed its oauth entry '{client.id}' since you signed in. "
-                             f"Run `hermes auth add {key}` to sign in again.")
+                             f"Run `a2assistant auth add {key}` to sign in again.")
     return row
 
 
@@ -450,7 +450,7 @@ def _origins(client: OAuthClient) -> frozenset:
 # ── hermes auth add|status|refresh|logout <plugin>:<id> ────────────────────────────────────────────
 
 def _installed_client(plugin: str, oauth_id: str) -> Optional[tuple[Path, OAuthClient]]:
-    """Resolve *plugin* the way ``hermes plugins show`` does, then its ``oauth:`` entry *oauth_id*."""
+    """Resolve *plugin* the way ``a2assistant plugins show`` does, then its ``oauth:`` entry *oauth_id*."""
     from hermes_cli.plugins_cmd import _find_plugin_entry
 
     entry = _find_plugin_entry(plugin)
@@ -472,7 +472,7 @@ def _cli_add(args: Any, client: OAuthClient, key: str) -> bool:
     from hermes_cli.auth_oauth_pkce_plugin import login
 
     if _unattended():
-        raise SystemExit(f"`hermes auth add {key}` signs you in through a browser; run it in your own terminal, "
+        raise SystemExit(f"`a2assistant auth add {key}` signs you in through a browser; run it in your own terminal, "
                          "not from a gateway, cron job or agent session.")
     secret = " and the client secret" if client.client_secret_env else ""
     print(f"Plugin '{key.rsplit(':', 1)[0]}' signs in to {client.id} at {urlparse(client.authorize_url).hostname}. "
@@ -526,7 +526,7 @@ def _cli_logout(args: Any, client: OAuthClient, key: str) -> bool:
 
 
 def _logout_key(plugin: str, oauth_id: str) -> Optional[str]:
-    """The stored grant key ``hermes auth logout <plugin>:<id>`` means, without parsing the manifest."""
+    """The stored grant key ``a2assistant auth logout <plugin>:<id>`` means, without parsing the manifest."""
     from hermes_cli.plugins_cmd import _find_plugin_entry
 
     entry = _find_plugin_entry(plugin)
@@ -538,7 +538,7 @@ _CLI_ACTIONS = {"add": _cli_add, "status": _cli_status, "refresh": _cli_refresh,
 
 
 def handle_auth_action(action: str, args: Any, provider: str) -> Optional[bool]:
-    """``hermes auth add|status|refresh|logout <plugin>:<id>``; None when *provider* is not a plugin's
+    """``a2assistant auth add|status|refresh|logout <plugin>:<id>``; None when *provider* is not a plugin's
     ``oauth:`` entry (``custom:<name>`` stays the custom-provider pool)."""
     plugin, sep, oauth_id = str(provider or "").partition(":")
     handler = _CLI_ACTIONS.get(action)

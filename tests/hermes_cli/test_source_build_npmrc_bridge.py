@@ -24,7 +24,7 @@ from pm.package import Runner
 def bridge(tmp_path, monkeypatch):
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     for name in list(os.environ):
         if name.upper().startswith("NPM_CONFIG_"):
             monkeypatch.delenv(name)
@@ -167,7 +167,7 @@ def test_values_no_child_environment_can_carry_are_skipped(bridge):
 
 
 def test_hermes_home_npmrc_steers_pm_downloads_as_it_steers_builds(bridge, monkeypatch):
-    """The npm keys documented for ``$HERMES_HOME/npmrc`` reach the source build, so PM's own
+    """The npm keys documented for ``$A2ASSISTANT_HOME/npmrc`` reach the source build, so PM's own
     npm downloads (pinned artifacts, dist-tags) must resolve against the same file."""
     from pm.artifact_mirror import pinned_source
     from pm.index_config import npm_registry

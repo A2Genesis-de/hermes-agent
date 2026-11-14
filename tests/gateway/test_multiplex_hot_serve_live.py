@@ -2,7 +2,7 @@
 
 A profile created under the running multiplexer is served by it without a restart: ``identify``
 lists the new home, a ticket minted for it opens a session owned by this process, and ``profiles/``
-(not the boot-time reservation) is what the next restart reserves — so ``hermes -p new`` finds an
+(not the boot-time reservation) is what the next restart reserves — so ``a2assistant -p new`` finds an
 owner instead of spawning a stray per-profile daemon that would later collide with the
 multiplexer's all-or-nothing reserve. A secondary whose ``state.db`` is unusable parks only itself.
 """
@@ -79,13 +79,13 @@ def mux(tmp_path, peer):
     boot.mkdir(parents=True, mode=0o700)
     (boot / 'config.yaml').write_text(json.dumps(config))
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(root), PYTHONPATH=str(ROOT),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(root), PYTHONPATH=str(ROOT),
                PYTHONUNBUFFERED='1', OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
     return {'root': root, 'boot': boot, 'env': env, 'config': config, 'log': tmp_path / 'gateway.log'}
 
 
 def start_daemon(mux, timeout=90, *, extra_args=()):
-    """Boot the multiplexer the way ``hermes gateway run`` does; the canonical gateway command-line
+    """Boot the multiplexer the way ``a2assistant gateway run`` does; the canonical gateway command-line
     matcher (``gateway.status.looks_like_gateway_command_line``) is what the CLI's liveness probes
     apply to the recorded PID, so the fixture must spawn a recognisable launcher."""
     log = mux['log'].open('a+', encoding='utf-8', errors='replace')
@@ -216,7 +216,7 @@ def kill_recorded_gateway(root, timeout=45):
 
 @pytest.mark.live_system_guard_bypass
 def test_named_profile_ensure_during_multiplexer_downtime_starts_the_multiplexer(mux):
-    """The multiplexer is down (restart/update) and ``hermes -p boot gateway ensure`` runs: the client
+    """The multiplexer is down (restart/update) and ``a2assistant -p boot gateway ensure`` runs: the client
     must start the MULTIPLEXER, never a per-profile daemon (which would answer this client and then
     block the multiplexer's next all-or-nothing reserve with ``Cannot reserve gateway profiles``)."""
     root, env, boot = mux['root'], mux['env'], mux['boot']
@@ -357,7 +357,7 @@ def test_standalone_secondary_stops_without_stopping_host(mux):
     child = None
     try:
         assert served_homes(desc) == {root.resolve()}
-        standalone = {**mux, 'root': boot, 'env': {**mux['env'], 'HERMES_HOME': str(boot)},
+        standalone = {**mux, 'root': boot, 'env': {**mux['env'], 'A2ASSISTANT_HOME': str(boot)},
                       'log': mux['log'].with_name('standalone.log')}
         child, _ = start_daemon(standalone)
         stopped = subprocess.run(

@@ -38,13 +38,13 @@ _TIME_FMT = "%Y-%m-%d %H:%M:%S"
 
 
 def live_transcript_root(home: Optional[Path] = None) -> Path:
-    """Root directory for live transcripts (profile-safe, never ~/.hermes).
+    """Root directory for live transcripts (profile-safe, never ~/.a2assistant).
 
     Pass ``home`` when the caller holds stable parent-owned profile state
     (e.g. the parent agent's SessionDB path). Ambient ``get_hermes_home()``
     consults a ContextVar that raw ``threading.Thread`` boundaries drop, so
     in a multi-profile process an ambient resolve can land transcripts under
-    whatever profile the process-wide ``HERMES_HOME`` names at that moment
+    whatever profile the process-wide ``A2ASSISTANT_HOME`` names at that moment
     (#91996).
     """
     from hermes_constants import get_hermes_dir

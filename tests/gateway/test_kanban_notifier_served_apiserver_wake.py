@@ -105,8 +105,8 @@ def served(tmp_path, monkeypatch):
     (root / "profiles" / "builder" / "config.yaml").write_text("{}\n", encoding="utf-8")
     # A route-only profile owns no API-server credential of its own.
     (root / "profiles" / "builder" / ".env").write_text("", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setenv("HERMES_KANBAN_DB", str(tmp_path / "board.db"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_DB", str(tmp_path / "board.db"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
     return SimpleNamespace(root=root, builder=root / "profiles" / "builder", atlas=root / "profiles" / "atlas")

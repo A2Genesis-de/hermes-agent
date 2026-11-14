@@ -1,7 +1,7 @@
 """Core makes Codex-signed requests for plugins; the token never reaches plugin code.
 
 Real loopback HTTP servers stand in for the provider; a real plugin directory under the test
-HERMES_HOME makes the call, and a fake Codex sign-in is seeded in that home's auth store.
+A2ASSISTANT_HOME makes the call, and a fake Codex sign-in is seeded in that home's auth store.
 """
 
 import base64
@@ -74,7 +74,7 @@ def stubs(monkeypatch):
 
 
 def _home() -> Path:
-    return Path(os.environ["HERMES_HOME"])
+    return Path(os.environ["A2ASSISTANT_HOME"])
 
 
 def _sign_in():
@@ -140,6 +140,6 @@ def test_undeclared_plugin_and_non_plugin_callers_are_refused(stubs):
 
 def test_not_signed_in_names_the_sign_in_command(stubs):
     allowed, _ = stubs
-    with pytest.raises(ppr.ProviderNotSignedIn, match="hermes auth add openai-codex"):
+    with pytest.raises(ppr.ProviderNotSignedIn, match="a2assistant auth add openai-codex"):
         _plugin(declares=True).mint(allowed.url)
     assert allowed.seen == []

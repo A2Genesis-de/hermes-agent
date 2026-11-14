@@ -38,8 +38,8 @@ test('desktop stamp uses the admitted checkout rather than the dispatch SHA', ()
     fs.writeFileSync(path.join(build, 'agent-payload/bin/hermes'), 'launcher fixture')
     fs.writeFileSync(path.join(build, 'agent-payload/manifest.json'), JSON.stringify({ target: 'darwin-arm64', launchers: ['hermes'], runtime }))
     const out = path.join(build, 'install-stamp.json')
-    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GITHUB_') && !key.startsWith('HERMES_PAYLOAD_') && !key.startsWith('HERMES_BUILD_')))
-    Object.assign(env, { GITHUB_SHA: main, GITHUB_REF_NAME: 'main', HERMES_BUILD_COMMIT: feature, HERMES_DESKTOP_VARIANT: 'bundled', HERMES_PAYLOAD_VERSION: '0.28.0' })
+    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GITHUB_') && !key.startsWith('A2ASSISTANT_PAYLOAD_') && !key.startsWith('A2ASSISTANT_BUILD_')))
+    Object.assign(env, { GITHUB_SHA: main, GITHUB_REF_NAME: 'main', A2ASSISTANT_BUILD_COMMIT: feature, A2ASSISTANT_DESKTOP_VARIANT: 'bundled', A2ASSISTANT_PAYLOAD_VERSION: '0.28.0' })
     const run = override => spawnSync(process.execPath, [path.join(scripts, 'write-build-stamp.mjs')], { cwd: temp, env: { ...env, ...override }, encoding: 'utf8', timeout: 30000 })
     const result = run({})
     assert.equal(result.status, 0, result.stderr)
@@ -56,19 +56,19 @@ test('desktop stamp uses the admitted checkout rather than the dispatch SHA', ()
     assert.deepEqual(JSON.parse(fs.readFileSync(path.join(build, 'agent-payload/app/install-stamp.json'), 'utf8')), stamp)
     // A commit bundle records its baked defaults/clears as data so the smoke
     // driver can replay them without running the app.
-    const bundleEnv = { HERMES_HOME: null, HERMES_DATA_DIR_SUFFIX: '-suffix', HERMES_PREVIEW_FULL_CONNECTORS: '1' }
-    assert.equal(run({ HERMES_BUNDLE_ENV_JSON: JSON.stringify(bundleEnv) }).status, 0)
+    const bundleEnv = { A2ASSISTANT_HOME: null, A2ASSISTANT_DATA_DIR_SUFFIX: '-suffix', A2ASSISTANT_PREVIEW_FULL_CONNECTORS: '1' }
+    assert.equal(run({ A2ASSISTANT_BUNDLE_ENV_JSON: JSON.stringify(bundleEnv) }).status, 0)
     assert.deepEqual(JSON.parse(fs.readFileSync(out, 'utf8')).bundleEnv, bundleEnv)
     const before = fs.readFileSync(out)
     git('checkout', '-q', 'main')
     assert.notEqual(run({}).status, 0)
     assert.deepEqual(fs.readFileSync(out), before)
     git('checkout', '-q', 'feature')
-    for (const override of [{ HERMES_BUILD_COMMIT: feature.slice(0, 8) }, { HERMES_BUILD_COMMIT: ` ${feature}` }, { HERMES_PAYLOAD_TAG: 'v1.2.3' }]) {
+    for (const override of [{ A2ASSISTANT_BUILD_COMMIT: feature.slice(0, 8) }, { A2ASSISTANT_BUILD_COMMIT: ` ${feature}` }, { A2ASSISTANT_PAYLOAD_TAG: 'v1.2.3' }]) {
       assert.notEqual(run(override).status, 0)
       assert.deepEqual(fs.readFileSync(out), before)
     }
-    assert.equal(run({ HERMES_BUILD_COMMIT: '', HERMES_PAYLOAD_TAG: 'v1.2.3', GITHUB_SHA: feature }).status, 0)
+    assert.equal(run({ A2ASSISTANT_BUILD_COMMIT: '', A2ASSISTANT_PAYLOAD_TAG: 'v1.2.3', GITHUB_SHA: feature }).status, 0)
     assert.equal(JSON.parse(fs.readFileSync(out, 'utf8')).tag, 'v1.2.3')
     assert.deepEqual(JSON.parse(fs.readFileSync(out, 'utf8')).runtime, runtime)
   } finally {

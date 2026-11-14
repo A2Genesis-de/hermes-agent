@@ -228,9 +228,9 @@ STORAGE_RECOVERY_DOCS_URL = "https://hermes-agent.nousresearch.com/docs/user-gui
 _DELETED_WAL_GENERATION_MSG = (
     "FATAL: session storage stopped writing because another A2Assistant process still holds a deleted "
     "state.db-wal or state.db-shm inode (an old copy of the write-ahead log). Nothing is lost: quit "
-    "every A2Assistant process on this profile (Desktop app, gateway, dashboard, cron), run `hermes doctor` "
+    "every A2Assistant process on this profile (Desktop app, gateway, dashboard, cron), run `a2assistant doctor` "
     "(it names the processes still holding the log), then start A2Assistant again. Do not delete the WAL "
-    "yourself and do not run `hermes doctor --fix` while they are running. "
+    "yourself and do not run `a2assistant doctor --fix` while they are running. "
     f"Guide: {STORAGE_RECOVERY_DOCS_URL} "
     "Detail: the path names a different (or missing) generation than the one this process holds "
     "open; opening or writing through it would mint a second WAL (split-brain). "
@@ -260,7 +260,7 @@ _STATE_DB_CORRUPT_MSG = (
     "FATAL: state.db reported structural corruption (database disk image is "
     "malformed outside the FTS shadow tables) on a live handle; refusing further "
     "writes, automatic reopen, and the close-time WAL checkpoint on this file. "
-    "Stop the gateway, then run `hermes sessions recover --source <state.db> "
+    "Stop the gateway, then run `a2assistant sessions recover --source <state.db> "
     "--inspect-only` or restore a snapshot. Unwritten transcripts are diverted to "
     "sessions/<id>.jsonl (and the gateway pending_messages spool)."
 )

@@ -25,7 +25,7 @@ from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
 def upload_app(tmp_path, monkeypatch):
     home = tmp_path / "hermes-home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setattr(web_server.app.state, "auth_required", True, raising=False)
     monkeypatch.setattr(web_server.app.state, "bound_host", "0.0.0.0", raising=False)

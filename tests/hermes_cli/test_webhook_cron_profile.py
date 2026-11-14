@@ -11,7 +11,7 @@ from hermes_constants import get_hermes_home
 
 @pytest.fixture
 def homes(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(webhook, "_is_webhook_enabled", lambda: True)
     monkeypatch.setattr(webhook, "_get_webhook_base_url", lambda: "http://localhost:8644")
     coder = tmp_path / "profiles" / "coder"
@@ -90,14 +90,14 @@ def test_bare_route_preserves_custom_caller_home(homes, monkeypatch):
     (custom / "cron" / "jobs.json").write_text(json.dumps({"jobs": [
         {"id": "custom-job", "name": "daily"}
     ]}), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(custom))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(custom))
     subscribe()
     assert webhook._load_subscriptions()["route"]["cron_job"] == "custom-job"
     assert not (root / "webhook_subscriptions.json").exists()
 
 
 def _hermes(monkeypatch, *argv):
-    """Run the real ``hermes`` entry point; return the process exit code."""
+    """Run the real ``a2assistant`` entry point; return the process exit code."""
     import sys
     from hermes_cli import main as hermes_main
     monkeypatch.setattr(sys, "argv", ["hermes", *argv])

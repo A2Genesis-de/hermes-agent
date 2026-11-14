@@ -20,7 +20,7 @@ def standalone_host(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     (home / "profiles").mkdir(parents=True)
     (home / "config.yaml").write_text("model: {default: m}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     monkeypatch.setattr(gm, "_installed_services", lambda _home: [])
@@ -235,7 +235,7 @@ async def _native_turn_across_activation(tmp_path, profile_home):
 
 @pytest.mark.asyncio
 async def test_native_launch_turn_in_flight_across_activation_keeps_its_credentials(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setenv("OPENROUTER_API_KEY", "launch-env-key")
     seen = await _native_turn_across_activation(tmp_path, tmp_path)
     assert seen == ["launch-env-key", "launch-env-key"], seen
@@ -243,7 +243,7 @@ async def test_native_launch_turn_in_flight_across_activation_keeps_its_credenti
 
 @pytest.mark.asyncio
 async def test_native_named_profile_turn_never_reads_the_launch_env(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setenv("OPENROUTER_API_KEY", "launch-env-key")
     bot = tmp_path / "profiles" / "bot"
     bot.mkdir(parents=True)

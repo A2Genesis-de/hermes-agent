@@ -9,7 +9,7 @@ import { test } from 'vitest'
 
 const repo = path.resolve(import.meta.dirname, '../../..')
 const hook = pathToFileURL(path.join(import.meta.dirname, 'after-pack.mjs')).href
-const python = process.env.HERMES_PYTHON || 'python'
+const python = process.env.A2ASSISTANT_PYTHON || 'python'
 
 function fixture() {
   const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'after-pack-digests-'))
@@ -27,9 +27,9 @@ function fixture() {
   pe.writeUInt32LE(pe.length, 296)
   pe.writeUInt32LE(24, 300)
   fs.writeFileSync(binary, pe)
-  const env = { ...process.env, HERMES_HOME: path.join(directory, 'home'),
-    HERMES_RUNTIME_DIR: path.join(directory, 'runtime'),
-    HERMES_PYTHON: python, UV_PYTHON_DOWNLOADS: 'never', UV_OFFLINE: '1',
+  const env = { ...process.env, A2ASSISTANT_HOME: path.join(directory, 'home'),
+    A2ASSISTANT_RUNTIME_DIR: path.join(directory, 'runtime'),
+    A2ASSISTANT_PYTHON: python, UV_PYTHON_DOWNLOADS: 'never', UV_OFFLINE: '1',
     UV_CACHE_DIR: path.join(directory, 'uv-cache') }
   for (const key of Object.keys(env)) {
     if (key.startsWith('AZURE_SIGN_')) delete env[key]

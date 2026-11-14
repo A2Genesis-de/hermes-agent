@@ -179,7 +179,7 @@ def test_the_client_verdict_names_the_unsafe_node_and_its_fix(monkeypatch, reque
 
 @pytest.mark.platforms("linux", "macos")
 def test_hermes_chat_prints_the_whole_repair_command(monkeypatch, request):
-    """``hermes chat`` shows a failed attach through ``agent_init_failure_message``, whose 120-character
+    """``a2assistant chat`` shows a failed attach through ``agent_init_failure_message``, whose 120-character
     summary cut the hint mid-path: the whole command must reach the user."""
     import asyncio
     import shutil
@@ -190,8 +190,8 @@ def test_hermes_chat_prints_the_whole_repair_command(monkeypatch, request):
     home = root / ('profile-' + 'x' * 12)
     home.mkdir(mode=0o700)
     control = home / 'gateway.sock'
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.delenv('HERMES_TUI_GATEWAY_URL', raising=False)
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
+    monkeypatch.delenv('A2ASSISTANT_TUI_GATEWAY_URL', raising=False)
 
     async def attach():
         async with connect_gateway():

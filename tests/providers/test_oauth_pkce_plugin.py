@@ -24,7 +24,7 @@ PROVIDER = "example-pkce"
 
 @pytest.fixture
 def idp(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     server = FakeIdP().start()
     yield server
     server.stop()
@@ -139,7 +139,7 @@ def test_spent_refresh_token_is_grant_dead_and_marks_the_pool_row_dead(idp, monk
 
 
 def test_alias_login_stores_the_row_under_the_canonical_profile_name(idp, monkeypatch, tmp_path, request):
-    """hermes auth add <alias> must write the pool under ProviderProfile.name, not the typed alias."""
+    """a2assistant auth add <alias> must write the pool under ProviderProfile.name, not the typed alias."""
     from agent.credential_pool import load_pool
 
     alias = "example-pkce-alias"

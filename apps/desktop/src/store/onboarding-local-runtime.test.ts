@@ -9,7 +9,7 @@ import { $desktopOnboarding, type DesktopOnboardingState, type OnboardingContext
 markOnboardingDecided()
 
 const SERVER_OFF =
-  'The local model server is turned off. Start it from the A2Assistant desktop app or `hermes model` → Local models, or switch to another model with /model.'
+  'The local model server is turned off. Start it from the A2Assistant desktop app or `a2assistant model` → Local models, or switch to another model with /model.'
 
 function coldState(): DesktopOnboardingState {
   return {

@@ -28,7 +28,7 @@ from typing import List, Dict, Any, Optional
 
 logger = logging.getLogger(__name__)
 
-os.environ["HERMES_QUIET"] = "1"  # suppress our modules' startup chatter
+os.environ["A2ASSISTANT_QUIET"] = "1"  # suppress our modules' startup chatter
 
 
 from hermes_cli.cli_agent_setup_mixin import CLIAgentSetupMixin
@@ -456,7 +456,7 @@ def _arm_exit_watchdog_on_shutdown_signal() -> None:
     several wedge points BEFORE ``_run_cleanup`` arms the normal watchdog: a main thread parked in a syscall
     that never observes the unwind, a prompt_toolkit teardown that never returns, or an agent worker
     blocking the ``finally``. When that happens the process has NO backstop and a "dead" CLI lingers
-    (observed: ``hermes --tui`` alive ~47 min at 4% CPU after terminal close — the #65998 class).
+    (observed: ``a2assistant --tui`` alive ~47 min at 4% CPU after terminal close — the #65998 class).
     """
     global _signal_watchdog_armed
     if _signal_watchdog_armed:
@@ -770,7 +770,7 @@ def _parse_skills_argument(skills: str | list[str] | tuple[str, ...] | None) -> 
 
 
 def save_config_value(key_path: str, value: any) -> bool:
-    """Persist dot-separated ``key_path`` = value into HERMES_HOME/config.yaml; True on success.
+    """Persist dot-separated ``key_path`` = value into A2ASSISTANT_HOME/config.yaml; True on success.
 
     Never the repo's cli-config.yaml: no config reader loads it, so the value would vanish.
     """
@@ -795,7 +795,7 @@ def _normalize_moa_model(model: Optional[str]) -> tuple[Optional[str], Optional[
     """``moa:<preset>`` -> ``("moa", preset)`` (same routing as ``/moa``); anything else -> ``(None, model)``.
 
     Returns ``("moa", "<preset>")`` when *model* selects the MoA virtual provider, otherwise ``(None,
-    model)`` unchanged. This gives non-interactive ``hermes chat -Q -m moa:<preset>`` the same routing the
+    model)`` unchanged. This gives non-interactive ``a2assistant chat -Q -m moa:<preset>`` the same routing the
     interactive ``/moa`` command and the model picker already use: ``resolve_runtime_provider`` handles
     ``requested_provider == "moa"`` and ``agent_init`` builds the MoAClient off ``provider == "moa"``.
     Without this the raw ``moa:<preset>`` string is sent to the real provider and rejected with a 401/400
@@ -1005,7 +1005,7 @@ class HermesCLI(CLIBacktrackMixin, CLIInitMixin, CLITuiRuntimeMixin, CLIProcessN
             # A typo'd name must not crash a kanban worker; only a fully-missing set fails loudly.
             if not loaded_skills:
                 raise ValueError(format_missing_skills(missing_skills))
-            logger.warning("Skipping %s. Continuing with: %s. List available skills with `hermes skills list`.",
+            logger.warning("Skipping %s. Continuing with: %s. List available skills with `a2assistant skills list`.",
                            format_missing_skills(missing_skills), ", ".join(loaded_skills))
         if skills_prompt:
             self.system_prompt = "\n\n".join(p for p in (self.system_prompt, skills_prompt) if p).strip()
@@ -1739,7 +1739,7 @@ def main(
         from hermes_cli.stdio import configure_windows_stdio
         configure_windows_stdio()
 
-    os.environ["HERMES_INTERACTIVE"] = "1"  # terminal_tool: interactive sudo prompts with timeout
+    os.environ["A2ASSISTANT_INTERACTIVE"] = "1"  # terminal_tool: interactive sudo prompts with timeout
 
     if gateway:
         _run_legacy_gateway()

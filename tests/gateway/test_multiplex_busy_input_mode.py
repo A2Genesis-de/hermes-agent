@@ -115,7 +115,7 @@ async def test_secondary_profile_busy_mode_controls_live_busy_behavior(
     expected_text_mode,
 ):
     """A routed profile chooses queue/steer/interrupt independently."""
-    monkeypatch.setenv("HERMES_GATEWAY_BUSY_ACK_ENABLED", "false")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_BUSY_ACK_ENABLED", "false")
     runner = _runner(default_mode="interrupt")
     adapter = await _load_profile_snapshot(
         runner,
@@ -155,7 +155,7 @@ async def test_secondary_profile_busy_mode_controls_priority_path(
     secondary_mode,
 ):
     """The runner's early active-agent path uses the same routed policy."""
-    monkeypatch.setenv("HERMES_TELEGRAM_FOLLOWUP_GRACE_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_TELEGRAM_FOLLOWUP_GRACE_SECONDS", "0")
     runner = _runner(default_mode="interrupt")
     adapter = await _load_profile_snapshot(
         runner,
@@ -208,7 +208,7 @@ async def test_busy_change_updates_only_routed_profile(tmp_path, monkeypatch):
         "display:\n  busy_input_mode: interrupt\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
 
     runner = _runner(default_mode="interrupt")
     profile_home = tmp_path / "research"
@@ -270,7 +270,7 @@ async def test_secondary_profile_busy_mode_controls_priority_restart_drain(
     tmp_path,
     monkeypatch,
 ):
-    monkeypatch.setenv("HERMES_TELEGRAM_FOLLOWUP_GRACE_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_TELEGRAM_FOLLOWUP_GRACE_SECONDS", "0")
     runner = _runner(default_mode="interrupt")
     adapter = await _load_profile_snapshot(
         runner,
@@ -299,7 +299,7 @@ async def test_secondary_adapter_busy_guard_stamps_profile_before_resolving_mode
     monkeypatch,
 ):
     """Per-profile adapters route busy events before the message wrapper runs."""
-    monkeypatch.setenv("HERMES_GATEWAY_BUSY_ACK_ENABLED", "false")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_BUSY_ACK_ENABLED", "false")
     runner = _runner(default_mode="interrupt")
     adapter = await _load_profile_snapshot(
         runner,
@@ -354,7 +354,7 @@ async def test_secondary_legacy_busy_text_mode_is_profile_specific(tmp_path):
 
 @pytest.mark.asyncio
 async def test_default_busy_mode_is_unchanged_by_secondary_profile(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_GATEWAY_BUSY_ACK_ENABLED", "false")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_BUSY_ACK_ENABLED", "false")
     runner = _runner(default_mode="interrupt")
     await _load_profile_snapshot(runner, tmp_path / "research", "steer")
     adapter = _adapter()
@@ -467,9 +467,9 @@ async def test_primary_adapter_busy_origin_uses_routed_privacy(
     secondary = home / "profiles" / "research"
     secondary.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr("gateway.run._hermes_home", home)
-    monkeypatch.setenv("HERMES_GATEWAY_BUSY_ACK_ENABLED", "false")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_BUSY_ACK_ENABLED", "false")
     for directory, privacy in ((home, not secondary_privacy), (secondary, secondary_privacy)):
         (directory / "config.yaml").write_text(
             f"privacy:\n  redact_pii: {str(privacy).lower()}\n", encoding="utf-8",
@@ -514,8 +514,8 @@ async def test_primary_adapter_busy_origin_uses_routed_privacy(
 async def test_secondary_busy_text_timing_follows_profile_config_not_process_env(tmp_path, monkeypatch):
     """Debounce / hard-cap are per-profile config (#116893): a launch-process env value must not
     reach a secondary profile's adapter, and each profile keeps its own numbers across A->B->A."""
-    monkeypatch.setenv("HERMES_GATEWAY_BUSY_TEXT_DEBOUNCE_SECONDS", "9.0")
-    monkeypatch.setenv("HERMES_GATEWAY_BUSY_TEXT_HARD_CAP_SECONDS", "9.0")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_BUSY_TEXT_DEBOUNCE_SECONDS", "9.0")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_BUSY_TEXT_HARD_CAP_SECONDS", "9.0")
     runner = _runner()
     runner._busy_text_timing = (0.35, 1.0)
     homes = {"alpha": tmp_path / "alpha", "beta": tmp_path / "beta"}
@@ -554,9 +554,9 @@ def test_busy_text_timing_rejects_non_numeric_config(caplog):
 async def test_secondary_human_delay_follows_profile_config_not_process_env(tmp_path, monkeypatch):
     """``human_delay`` pacing is per-profile config (#116895): the launch-process env must not reach
     any adapter, and each profile keeps its own range across A->B->A."""
-    monkeypatch.setenv("HERMES_HUMAN_DELAY_MODE", "custom")
-    monkeypatch.setenv("HERMES_HUMAN_DELAY_MIN_MS", "1")
-    monkeypatch.setenv("HERMES_HUMAN_DELAY_MAX_MS", "2")
+    monkeypatch.setenv("A2ASSISTANT_HUMAN_DELAY_MODE", "custom")
+    monkeypatch.setenv("A2ASSISTANT_HUMAN_DELAY_MIN_MS", "1")
+    monkeypatch.setenv("A2ASSISTANT_HUMAN_DELAY_MAX_MS", "2")
     runner = _runner()
     runner._human_delay = None
     homes = {"alpha": tmp_path / "alpha", "beta": tmp_path / "beta"}

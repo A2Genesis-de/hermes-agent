@@ -707,7 +707,7 @@ def test_thread_transcript_prunes_committed_message_and_settlement_together(
 
 
 def test_service_derives_room_deadline_from_agent_timeout(tmp_path: Path, monkeypatch):
-    monkeypatch.setenv("HERMES_AGENT_TIMEOUT", "90")
+    monkeypatch.setenv("A2ASSISTANT_AGENT_TIMEOUT", "90")
 
     service = HostedRoomService(_server(), db_path=tmp_path / "state.db")
 
@@ -1922,7 +1922,7 @@ def test_peer_recovery_replays_the_same_execution_generation(tmp_path: Path):
 
 
 def test_local_profiles_skips_delete_tombstones_and_dot_dirs(tmp_path: Path):
-    """`hermes profile delete` leaves ``profiles/.deleted/<name>``; neither the tombstone dir, a
+    """`a2assistant profile delete` leaves ``profiles/.deleted/<name>``; neither the tombstone dir, a
     tombstoned profile, nor a marker-less cron shell is a roster member (#106847: ``.deleted``
     failed validate_roster every cycle; #99392: side-effect dirs listed as bots)."""
     from hermes_constants import mark_named_profile_deleted

@@ -138,7 +138,7 @@ def test_worker_rejects_unloadable_staged_plugin_without_app_dependencies(client
     repo = _current_environment(tmp_path, monkeypatch, [])
     # The install stamp is the running version identity; without a release
     # base (a tagless checkout) the requires_hermes gate is permissive.
-    monkeypatch.delenv("HERMES_INSTALL_ROOT", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INSTALL_ROOT", raising=False)
     (repo / "install-stamp.json").write_text(json.dumps({
         "commit": "1" * 40, "updateMechanism": "self", "baseVersion": "1.0.0", "source": "local",
     }), encoding="utf-8")
@@ -401,7 +401,7 @@ def test_explicit_publication_keeps_its_intent_through_tool_acquisition(client, 
     (project / "pyproject.toml").write_text('[project]\nname="explicit-proof"\nversion="1"\nrequires-python=">=3.11"\n[tool.uv]\npackage=false\n')
     worker_toolchain(client, monkeypatch, isolated_python)
     client.lock_project(project, offline=True, explicit=True)
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
     worker_toolchain(client, monkeypatch, isolated_python,
         "from pm.package import InstallError\ntools = pm._uv._toolchain\n"
         "def acquire(*, explicit=False, **kwargs):\n"

@@ -13,7 +13,7 @@
  */
 
 import { useState, useEffect, useRef } from "react";
-import { api, HERMES_BASE_PATH } from "@/lib/api";
+import { api, A2ASSISTANT_BASE_PATH } from "@/lib/api";
 import { dashboardServingProfile } from "@/lib/profile-bootstrap";
 import type { PluginManifest, RegisteredPlugin } from "./types";
 import {
@@ -83,7 +83,7 @@ export function pluginAssetUrl(
   profile: string,
 ): string {
   const scope = profile ? `@${encodeURIComponent(profile)}/` : "";
-  return `${HERMES_BASE_PATH}/dashboard-plugins/${scope}${name}/${file}`;
+  return `${A2ASSISTANT_BASE_PATH}/dashboard-plugins/${scope}${name}/${file}`;
 }
 
 /** The manifests of one profile and whether its plugins are still loading. */

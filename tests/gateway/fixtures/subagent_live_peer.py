@@ -150,11 +150,11 @@ async def probe(release, started):
         for v in viewers:
             await v.ws.close()
         await stop_gateway_api(api)
-    Path(os.environ['HERMES_HOME'], 'receipt.json').write_text(json.dumps(receipt))
+    Path(os.environ['A2ASSISTANT_HOME'], 'receipt.json').write_text(json.dumps(receipt))
 
 
 def main():
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['A2ASSISTANT_HOME'])
     release, started = home / 'release', home / 'leaf-started'
     peer = ThreadingHTTPServer(('127.0.0.1', 0), Peer)
     peer.command = (f'touch {shlex.quote(str(started))}; '

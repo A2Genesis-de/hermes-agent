@@ -36,7 +36,7 @@ from typing import Any, Dict, List, Tuple
 FIXTURE_NOTES = Path(tempfile.gettempdir()) / "livetest" / "notes.txt"
 
 # Force-isolate the test environment BEFORE any hermes imports.
-ORIGINAL_HOME = os.environ.get("HERMES_HOME")
+ORIGINAL_HOME = os.environ.get("A2ASSISTANT_HOME")
 ORIGINAL_AUTH = Path.home() / ".hermes" / "auth.json"
 
 _THIS_DIR = Path(__file__).resolve().parent
@@ -254,9 +254,9 @@ SCENARIOS: list[dict[str, Any]] = [
 def setup_isolated_home(enabled: bool, listing: str = "off",
                         listing_max_tokens: int = 4000,
                         model: str = "anthropic/claude-haiku-4.5") -> Path:
-    """Create a fresh ~/.hermes/ for one test, copying minimal credentials.
+    """Create a fresh ~/.a2assistant/ for one test, copying minimal credentials.
 
-    Also reads OPENROUTER_API_KEY from the user's real ``~/.hermes/.env`` so
+    Also reads OPENROUTER_API_KEY from the user's real ``~/.a2assistant/.env`` so
     the agent can authenticate against OpenRouter inside the isolated home.
     """
     home_dir = Path(tempfile.mkdtemp(prefix="hermes_ts_live_"))
@@ -348,7 +348,7 @@ def register_fake_tools() -> int:
 
 
 def reset_module_state():
-    """Drop cached modules so the new HERMES_HOME takes effect."""
+    """Drop cached modules so the new A2ASSISTANT_HOME takes effect."""
     keys = [k for k in sys.modules.keys()
             if k.startswith(("tools.", "model_tools", "toolsets",
                              "hermes_cli", "agent.", "run_agent"))]
@@ -360,7 +360,7 @@ def run_one_scenario(scenario: dict[str, Any], enabled: bool, out_dir: Path) -> 
     """Run one (scenario, enabled) combination. Returns the recorded transcript."""
     reset_module_state()
     home = setup_isolated_home(enabled=enabled)
-    os.environ["HERMES_HOME"] = str(home)
+    os.environ["A2ASSISTANT_HOME"] = str(home)
 
     # Pre-create the test file used by scenario D.
     FIXTURE_NOTES.parent.mkdir(parents=True, exist_ok=True)
@@ -547,9 +547,9 @@ def main():
 
     # Restore original HERMES_HOME
     if ORIGINAL_HOME is not None:
-        os.environ["HERMES_HOME"] = ORIGINAL_HOME
+        os.environ["A2ASSISTANT_HOME"] = ORIGINAL_HOME
     else:
-        os.environ.pop("HERMES_HOME", None)
+        os.environ.pop("A2ASSISTANT_HOME", None)
 
 
 if __name__ == "__main__":

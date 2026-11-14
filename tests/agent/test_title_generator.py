@@ -490,7 +490,7 @@ class TestMaybeAutoTitle:
         with kanban_db_connect.connect_closing(board="default") as conn:
             task_id = kanban_db.create_task(conn, title="Fix flaky worker startup", board="default")
             conn.commit()
-        monkeypatch.setenv("HERMES_KANBAN_TASK", task_id)
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", task_id)
         db = SessionDB(tmp_path / "state.db")
         db.create_session(session_id="sess-1", source="kanban")
 
@@ -510,7 +510,7 @@ class TestMaybeAutoTitle:
         with kanban_db_connect.connect_closing(board="default") as conn:
             task_id = kanban_db.create_task(conn, title=card, board="default")
             conn.commit()
-        monkeypatch.setenv("HERMES_KANBAN_TASK", task_id)
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", task_id)
         db = SessionDB(tmp_path / "state.db")
         for sid in ("sess-1", "sess-2"):  # a retried card must still get the ``#N`` suffix within the cap
             db.create_session(session_id=sid, source="kanban")
@@ -523,7 +523,7 @@ class TestMaybeAutoTitle:
         assert len(second) <= SessionDB.MAX_TITLE_LENGTH
 
     def test_kanban_worker_with_unreadable_card_falls_back_to_the_task_id(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_KANBAN_TASK", "t_missing")
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", "t_missing")
         db = SessionDB(tmp_path / "state.db")
         db.create_session(session_id="sess-1", source="kanban")
 
@@ -534,11 +534,11 @@ class TestMaybeAutoTitle:
         mock_auto.assert_not_called()
 
     def test_delegated_child_of_a_worker_is_not_named_after_the_card(self, tmp_path, monkeypatch):
-        """A delegate_task child inherits ``HERMES_KANBAN_TASK`` but is not the card's session;
+        """A delegate_task child inherits ``A2ASSISTANT_KANBAN_TASK`` but is not the card's session;
         it takes the ordinary title path instead of the parent's card title (#112817)."""
         from agent.delegation_context import delegated_child_context
 
-        monkeypatch.setenv("HERMES_KANBAN_TASK", "t_parent")
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", "t_parent")
         db = SessionDB(tmp_path / "state.db")
         db.create_session(session_id="child-1", source="kanban")
 

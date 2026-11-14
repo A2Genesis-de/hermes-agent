@@ -1,7 +1,7 @@
 """Bot Desktop runtime: one headless Xfce desktop per Hermes profile, served over RFB on a private
 Unix socket, viewed and driven from Hermes Desktop.
 
-Layout under ``<HERMES_HOME>/bot-desktop/``: ``display`` (allocated X display number), ``rfb.sock``
+Layout under ``<A2ASSISTANT_HOME>/bot-desktop/``: ``display`` (allocated X display number), ``rfb.sock``
 (Xvnc RFB Unix socket, 0600), ``Xauthority``, ``env`` (DISPLAY/XAUTHORITY/DBUS_SESSION_BUS_ADDRESS
 published by the launcher once Xfce's bus exists), ``launcher.pid``, ``launcher.log``, ``xdg/``
 (per-profile XDG_CONFIG_HOME so two profiles never share xfconf). Everything is profile-scoped via
@@ -100,7 +100,7 @@ def install_command() -> Optional[str]:
     :mod:`tools.bot_desktop.install` runs. ``None`` when no package manager is present.
 
     Not a promise that it can run here: see :func:`installable`. The published Docker image supervises
-    every service under ``s6-setuidgid hermes`` (UID 10000 by default) and ships no ``sudo`` binary, so an
+    every service under ``s6-setuidgid a2assistant`` (UID 10000 by default) and ships no ``sudo`` binary, so an
     install on a hosted instance is impossible no matter what this returns."""
     pm = package_manager()
     if pm is None:
@@ -122,7 +122,7 @@ def installable() -> bool:
     """Whether :func:`install_command` could actually succeed on this host.
 
     False on an unprivileged process with no ``sudo`` to reach for, which is exactly the published Docker
-    image: services drop to the ``hermes`` user and no ``sudo`` binary is installed. The packages can only
+    image: services drop to the ``a2assistant`` user and no ``sudo`` binary is installed. The packages can only
     arrive in the image there, so :func:`start` says that instead of printing a sudo line the user has no
     way to run. ``status()`` still reports ``install_command`` for the pane; surfacing this there needs a
     wire-contract change and is deliberately out of scope.
@@ -530,7 +530,7 @@ def published_env() -> dict[str, str]:
     """Variables the launcher wrote once Xfce's private bus existed; empty when the desktop is down.
 
     Pure file reads on the common path: this is called from every browser / cua-driver env builder, so it
-    must not load config (that initializes HERMES_HOME). A sandbox-hosted screen leaves a host-side marker at
+    must not load config (that initializes A2ASSISTANT_HOME). A sandbox-hosted screen leaves a host-side marker at
     start; only its presence routes to the sandbox probe."""
     from tools.bot_desktop import sandbox_host
     if sandbox_host._read_marker():
@@ -787,35 +787,35 @@ def _spawn_and_wait(sd: Path, wait_seconds: float) -> DesktopStatus:
         # scrubbed child env like any other agent child, keeping the user's HOME.
         from tools.environments.local import served_profile_child_env
         child_env = served_profile_child_env(inherit_credentials=False)
-        child_env["HOME"] = child_env["HERMES_REAL_HOME"]
+        child_env["HOME"] = child_env["A2ASSISTANT_REAL_HOME"]
         for key in ("DISPLAY", "XAUTHORITY", "WAYLAND_DISPLAY", "DBUS_SESSION_BUS_ADDRESS", "SESSION_MANAGER"):
             child_env.pop(key, None)
         from hermes_cli._launchers import installation_command
         from tools.bot_desktop.idle_watch import next_check_in
         child_env.update({
-            "HERMES_BD_PROFILE": _profile_name(),
-            "HERMES_BD_DISPLAY_NUM": str(num),
-            "HERMES_BD_SOCKET": str(sd / "rfb.sock"),
-            "HERMES_BD_XAUTH": str(sd / "Xauthority"),
-            "HERMES_BD_ENV_FILE": str(env_file),
-            "HERMES_BD_CONFIG_HOME": str(sd / "xdg"),
-            "HERMES_BD_GEOMETRY": geometry(),
+            "A2ASSISTANT_BD_PROFILE": _profile_name(),
+            "A2ASSISTANT_BD_DISPLAY_NUM": str(num),
+            "A2ASSISTANT_BD_SOCKET": str(sd / "rfb.sock"),
+            "A2ASSISTANT_BD_XAUTH": str(sd / "Xauthority"),
+            "A2ASSISTANT_BD_ENV_FILE": str(env_file),
+            "A2ASSISTANT_BD_CONFIG_HOME": str(sd / "xdg"),
+            "A2ASSISTANT_BD_GEOMETRY": geometry(),
             # The launcher's idle self-stop runs tools.bot_desktop.idle_watch through the install's stable
             # command (the ``hermes --run-module`` launcher on a store install, which follows Python pin changes
             # and picks the current dependency generation at every run; this interpreter elsewhere), in this
             # home, first once the screen could be due (nothing is idle at start). The screen outlives updates,
             # so the inherited PYTHONPATH generation is never pinned, and on a store install neither is this
             # interpreter.
-            "HERMES_BD_IDLE_CMD": shlex.join(installation_command(
+            "A2ASSISTANT_BD_IDLE_CMD": shlex.join(installation_command(
                 Path(__file__).resolve().parents[2], module="tools.bot_desktop.idle_watch")),
-            "HERMES_BD_HOME": str(get_hermes_home()),
-            "HERMES_BD_IDLE_FIRST_DELAY": str(next_check_in(idle_stop_seconds(), 0.0)),
+            "A2ASSISTANT_BD_HOME": str(get_hermes_home()),
+            "A2ASSISTANT_BD_IDLE_FIRST_DELAY": str(next_check_in(idle_stop_seconds(), 0.0)),
         })
         from tools.bot_desktop.browser import dock_exec_line, dock_launch
         if (browser := dock_launch()) is not None:
             # The bare executable (the launcher checks it exists) and the ready-made, spec-quoted Exec= line.
-            child_env["HERMES_BD_BROWSER_EXEC"] = browser[0]
-            child_env["HERMES_BD_BROWSER_EXEC_LINE"] = dock_exec_line(*browser)
+            child_env["A2ASSISTANT_BD_BROWSER_EXEC"] = browser[0]
+            child_env["A2ASSISTANT_BD_BROWSER_EXEC_LINE"] = dock_exec_line(*browser)
         # A new file per start: the log is a diagnostic for THIS launch, and nothing rotates it otherwise. Not
         # truncated in place: the old screen's idle check (in a session of its own) may still hold the old file
         # open, and its late write would land in this one behind a run of NUL bytes.

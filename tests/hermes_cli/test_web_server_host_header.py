@@ -269,7 +269,7 @@ def test_other_local_ports_can_neither_read_nor_open_a_socket(
     """A loopback page on another port is a different origin. It must get no CORS grant (else it
     reads index.html's session token) and no WebSocket upgrade (else it drives /api/pty with that
     token). Only the bound port and the desktop renderer this backend was spawned for (Electron
-    passes HERMES_DESKTOP_DEV_SERVER down; worktree-ui-dev.md runs slot N's Vite on 5174+N) are
+    passes A2ASSISTANT_DESKTOP_DEV_SERVER down; worktree-ui-dev.md runs slot N's Vite on 5174+N) are
     trusted — no fixed dev port, so a Vite app on 5173/5174 cannot reach a packaged backend."""
     from fastapi.testclient import TestClient
     from starlette.websockets import WebSocketDisconnect
@@ -277,9 +277,9 @@ def test_other_local_ports_can_neither_read_nor_open_a_socket(
     import hermes_cli.web_server as ws
 
     if dev_server:
-        monkeypatch.setenv("HERMES_DESKTOP_DEV_SERVER", dev_server)
+        monkeypatch.setenv("A2ASSISTANT_DESKTOP_DEV_SERVER", dev_server)
     else:
-        monkeypatch.delenv("HERMES_DESKTOP_DEV_SERVER", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_DESKTOP_DEV_SERVER", raising=False)
     monkeypatch.setattr(ws.app.state, "bound_host", "127.0.0.1", raising=False)
     monkeypatch.setattr(ws.app.state, "bound_port", bound_port, raising=False)
     monkeypatch.setattr(ws.app.state, "auth_required", False, raising=False)
@@ -324,7 +324,7 @@ def test_dashboard_vite_dev_proxy_needs_no_trusted_dev_port(monkeypatch, origin,
 
     import hermes_cli.web_server as ws
 
-    monkeypatch.delenv("HERMES_DESKTOP_DEV_SERVER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_DEV_SERVER", raising=False)
     monkeypatch.setattr(ws.app.state, "bound_host", "127.0.0.1", raising=False)
     monkeypatch.setattr(ws.app.state, "bound_port", 9119, raising=False)
     monkeypatch.setattr(ws.app.state, "auth_required", False, raising=False)
@@ -360,7 +360,7 @@ def test_a_port_forwarded_dashboard_page_opens_its_own_sockets(monkeypatch, host
 
     import hermes_cli.web_server as ws
 
-    monkeypatch.delenv("HERMES_DESKTOP_DEV_SERVER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_DEV_SERVER", raising=False)
     monkeypatch.setattr(ws.app.state, "bound_host", "127.0.0.1", raising=False)
     monkeypatch.setattr(ws.app.state, "bound_port", 9119, raising=False)
     monkeypatch.setattr(ws.app.state, "auth_required", False, raising=False)
@@ -539,7 +539,7 @@ def test_a_loopback_public_url_behind_a_host_rewriting_proxy(
     from hermes_cli.dashboard_auth import prefix
     import hermes_cli.web_server as ws
 
-    monkeypatch.delenv("HERMES_DESKTOP_DEV_SERVER", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_DEV_SERVER", raising=False)
     monkeypatch.setattr(prefix, "resolve_public_url", lambda *a, **k: dashboard_url or "")
     for name in ("trusted_public_hosts", "trusted_public_origins", "auth_required"):
         monkeypatch.setattr(ws.app.state, name, None, raising=False)

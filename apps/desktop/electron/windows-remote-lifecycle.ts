@@ -8,7 +8,7 @@ import { WINDOWS_NO_REPARSE_PS, windowsHelperArgv } from './windows-runtime-comm
 
 const LOCKFILE_SCHEMA_VERSION = 2
 const PROTOCOL_VERSION = 1
-const READY_RE = /^HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)/gm
+const READY_RE = /^A2ASSISTANT_(?:BACKEND|DASHBOARD)_READY port=(\d+)/gm
 const READY_POLL_INTERVAL_MS = 750
 
 function psLiteral(value) {
@@ -127,10 +127,10 @@ async function probeWindowsFiles(ssh, explicitHermesPath = '') {
     '}',
     `$explicit=${explicit}`,
     'if($explicit){Assert-NoReparse $explicit $false;$explicitPython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($explicit), "python.exe");Assert-NoReparse $explicitPython $true}',
-    // HERMES_HOME is only trusted when it names a directory on the REMOTE: a stale User-scope
+    // A2ASSISTANT_HOME is only trusted when it names a directory on the REMOTE: a stale User-scope
     // value (older install.ps1 persisted one) or a client path leaked over SSH otherwise fails
     // assertSafeRemoteHome as "Unsafe remote Hermes home" (#118988).
-    '$hermesHome=$env:HERMES_HOME',
+    '$hermesHome=$env:A2ASSISTANT_HOME',
     'if(-not $hermesHome -or -not (Test-Path -LiteralPath $hermesHome -PathType Container)){$hermesHome=Join-Path $env:LOCALAPPDATA "hermes"}',
     'Assert-NoReparse $hermesHome $true',
     '$candidate=[IO.Path]::Combine($hermesHome, "hermes-agent\\venv\\Scripts\\hermes.exe")',
@@ -145,7 +145,7 @@ async function probeWindowsFiles(ssh, explicitHermesPath = '') {
     '$fallbackProfileCandidate=Join-Path $HOME "hermes-agent\\.venv\\Scripts\\hermes.exe"',
     '$candidates=@()',
     'if($explicit){$candidates+=$explicit}',
-    // A bare `hermes` resolves through PATHEXT, so a published hermes.cmd counts as well as hermes.exe.
+    // A bare `a2assistant` resolves through PATHEXT, so a published hermes.cmd counts as well as hermes.exe.
     '$cmd=@(Get-Command hermes -CommandType Application -ErrorAction SilentlyContinue)|Select-Object -First 1',
     'if($cmd){Assert-NoReparse $cmd.Source $true;$cmdPython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($cmd.Source), "python.exe");Assert-NoReparse $cmdPython $true;$candidates+=$cmd.Source}',
     // The installer's launchers, for an SSH session whose PATH lacks the user PATH entry.
@@ -157,7 +157,7 @@ async function probeWindowsFiles(ssh, explicitHermesPath = '') {
     'foreach($candidate in $candidates){Assert-NoReparse $candidate $true;$candidatePython=[IO.Path]::Combine([IO.Path]::GetDirectoryName($candidate), "python.exe");Assert-NoReparse $candidatePython $true;try{$item=Get-Item -LiteralPath $candidate -Force -ErrorAction Stop;if(($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0 -and -not $item.PSIsContainer){$pair=Test-Path -LiteralPath $candidatePython -PathType Leaf;if($pair -or (Split-Path -Leaf (Split-Path -Parent $candidate)) -ieq "bin"){$hermes=$item.FullName;break}}}catch [Management.Automation.ItemNotFoundException]{continue}}',
     'if(-not $hermes){throw "A2Assistant is not installed on the remote Windows host."}',
     'Assert-NoReparse $hermes $false',
-    'if($explicit -and $hermes -ne $explicit){throw "The configured A2Assistant path is not an executable file."}',
+    'if($explicit -and $a2assistant -ne $explicit){throw "The configured A2Assistant path is not an executable file."}',
     '$python=[IO.Path]::Combine([IO.Path]::GetDirectoryName($hermes), "python.exe")',
     'if(Test-Path -LiteralPath $python -PathType Leaf){Assert-NoReparse $python $false}else{$python=""}',
     '[ordered]@{os="Windows";arch=$env:PROCESSOR_ARCHITECTURE;hermesHome=$hermesHome;hermesPath=$hermes;launcherPath=$hermes;python=$python}|ConvertTo-Json -Compress'
@@ -865,7 +865,7 @@ async function connectWindowsRemote(deps) {
     spawned = await atomicWindowsSpawn(
       ssh,
       runtime,
-      // The backend trusts a dev renderer's http origin only from the HERMES_DESKTOP_DEV_SERVER it
+      // The backend trusts a dev renderer's http origin only from the A2ASSISTANT_DESKTOP_DEV_SERVER it
       // inherits; the runtime helper sets it from devServer, as the POSIX spawn command does.
       JSON.stringify({ ownershipId, spawnNonce, profile, hermesPath: runtime.hermesPath, devServer }),
       {

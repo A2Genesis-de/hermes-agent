@@ -86,7 +86,7 @@ def _private_rpc_stdin_windows() -> None:
 
 def _install_sidecar_publisher() -> None:
     """Mirror every dispatcher emit to the dashboard sidebar via WS when set (best-effort)."""
-    url = os.environ.get("HERMES_TUI_SIDECAR_URL")
+    url = os.environ.get("A2ASSISTANT_TUI_SIDECAR_URL")
     if not url:
         return
     from tui_gateway.event_publisher import WsPublisherTransport
@@ -99,7 +99,7 @@ _DEFAULT_SHUTDOWN_GRACE_S = 1.0
 
 
 def _shutdown_grace_seconds() -> float:
-    value = env_float("HERMES_TUI_GATEWAY_SHUTDOWN_GRACE_S", _DEFAULT_SHUTDOWN_GRACE_S)
+    value = env_float("A2ASSISTANT_TUI_GATEWAY_SHUTDOWN_GRACE_S", _DEFAULT_SHUTDOWN_GRACE_S)
     return value if value > 0 else _DEFAULT_SHUTDOWN_GRACE_S
 
 
@@ -236,9 +236,9 @@ def mcp_discovery_in_flight() -> bool:
     """True if ANY background MCP discovery thread is still running: the late-refresh
     scheduler calls this regardless of surface, so it MUST consult both owners.
 
-    There are two independent discovery-thread owners by surface: the stdio ``hermes --tui`` path spawns ITS
+    There are two independent discovery-thread owners by surface: the stdio ``a2assistant --tui`` path spawns ITS
     thread here (``_mcp_discovery_thread``), while the desktop app + dashboard WebSocket sidecar
-    (``tui_gateway/ws.py``) and ``hermes dashboard`` spawn theirs via
+    (``tui_gateway/ws.py``) and ``a2assistant dashboard`` spawn theirs via
     ``hermes_cli.mcp_startup.start_background_mcp_discovery``. The late-refresh scheduler imports this
     function regardless of surface, so it MUST consult both — checking only the entry thread left the
     desktop/dashboard surfaces with no late refresh, so a slow MCP server's tools never surfaced for the
@@ -278,10 +278,10 @@ def _has_configured_mcp_servers() -> bool:
 def ensure_mcp_discovery_started() -> None:
     """Start background MCP discovery for the current profile context, once per profile home.
     ``main()`` calls this for stdio; ``server._start_agent_build`` also calls it AFTER binding the
-    session profile's HERMES_HOME.
+    session profile's A2ASSISTANT_HOME.
 
     WebSocket/Desktop entrypoints can accept sessions without running ``main()``, so the agent-build path
-    (``server._start_agent_build``) also calls it AFTER binding the session profile's HERMES_HOME override —
+    (``server._start_agent_build``) also calls it AFTER binding the session profile's A2ASSISTANT_HOME override —
     the shared owner in ``hermes_cli.mcp_startup`` captures the caller's context-local override and
     propagates it into the discovery thread, so discovery reads the SELECTED profile's ``mcp_servers``, not
     the launch profile's. The discovery slot in ``hermes_cli.mcp_startup`` is keyed by profile home, so

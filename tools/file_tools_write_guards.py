@@ -64,7 +64,7 @@ def _hermes_home_real() -> str:
 def _get_hermes_config_resolved() -> str | None:
     """Resolved absolute path of the Hermes config file for the ACTIVE profile.
 
-    Resolved per call so it tracks the per-turn ``HERMES_HOME`` scope (#107327);
+    Resolved per call so it tracks the per-turn ``A2ASSISTANT_HOME`` scope (#107327);
     a test may pin it via ``_hermes_config_resolved`` + ``_hermes_config_resolved_loaded``."""
     if _hermes_config_resolved_loaded:
         return _hermes_config_resolved
@@ -89,7 +89,7 @@ def _get_hermes_config_resolved() -> str | None:
 def _get_real_hermes_home() -> str | None:
     """Realpath of the authoritative Hermes home for the ACTIVE profile.
 
-    Resolved per call so it tracks the per-turn ``HERMES_HOME`` scope (#107327);
+    Resolved per call so it tracks the per-turn ``A2ASSISTANT_HOME`` scope (#107327);
     a test may pin it via ``_real_hermes_home_cached`` + ``_real_hermes_home_loaded``.
     Consumers exempting a whole TREE want ``_hermes_exempt_homes()``: under a named
     profile this home is ``<root>/profiles/<name>`` and the root is exempt too."""
@@ -119,9 +119,9 @@ def _hermes_exempt_homes() -> tuple[str, ...]:
     (LEDGER.md / MEMORY.md / SOUL.md / AGENTS.md ...) to the ``.hermes`` component rule, which
     gated them like a project-local ``<repo>/.hermes/config.yaml`` — fail-closed headless
     (#110630). They are the agent's own store, governed by their own guards, exactly like
-    ``~/.hermes`` under the default profile. The root is added only when the shape really is a
+    ``~/.a2assistant`` under the default profile. The root is added only when the shape really is a
     named profile (``named_profile_home``), so a coincidental ``profiles/`` dir elsewhere never
-    exempts its parent; the home comes from the ACTIVE scope, never ``HERMES_HOME`` alone."""
+    exempts its parent; the home comes from the ACTIVE scope, never ``A2ASSISTANT_HOME`` alone."""
     home = _get_real_hermes_home()
     if not home:
         return ()
@@ -170,7 +170,7 @@ def _check_sensitive_path(filepath: str, task_id: str = "default") -> str | None
         return (
             f"Refusing to write to A2Assistant config file: {filepath}\n"
             "Agent cannot modify security-sensitive configuration. "
-            "Edit ~/.hermes/config.yaml directly or use 'hermes config' instead.")
+            "Edit ~/.a2assistant/config.yaml directly or use 'a2assistant config' instead.")
     from tools.skill_lock import path_refusal
     if reason := path_refusal(candidates):
         return f"Refusing to write to {filepath}: {reason}"

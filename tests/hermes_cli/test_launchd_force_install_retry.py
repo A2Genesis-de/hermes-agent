@@ -7,7 +7,7 @@ import pytest
 import hermes_cli.gateway as gateway_cli
 
 
-LABEL = "ai.hermes.gateway"
+LABEL = "de.a2genesis.a2assistant.gateway"
 DOMAIN = "gui/501"
 
 

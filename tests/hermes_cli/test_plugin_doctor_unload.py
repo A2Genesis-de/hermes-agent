@@ -1,6 +1,6 @@
 """`plugins doctor` must unload the plugin before removing the temp home (#99918).
 
-Doctor loads a plugin under a temporary ``HERMES_HOME`` through a throwaway
+Doctor loads a plugin under a temporary ``A2ASSISTANT_HOME`` through a throwaway
 ``PluginManager``. It restored the global registries and closed the temp dir but
 never called ``manager.unload()``, so host-owned ``ctx.on_unload(...)`` callbacks
 never ran. A context-engine plugin that opened SQLite under the temp home thus

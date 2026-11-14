@@ -36,15 +36,15 @@ def posix_launcher(name: str, entry: str, *, python: str, repo: str, site: str, 
         extra = '''PREFIX="${PREFIX:-/data/data/com.termux/files/usr}"
 export PREFIX
 export LD_LIBRARY_PATH="$root/tools/python/data/data/com.termux/files/usr/lib:$root/tools/node/data/data/com.termux/files/usr/lib:$root/tools/ffmpeg/data/data/com.termux/files/usr/lib:$root/runtime-libs/lib:$PREFIX/lib"
-export HERMES_PYTHON_SRC_ROOT="$REPO"
-export HERMES_PYTHON="$PYTHON"
-export HERMES_NODE="$root/tools/node/data/data/com.termux/files/usr/bin/node"
-export HERMES_RUNTIME_DIR="$root/tools"
+export A2ASSISTANT_PYTHON_SRC_ROOT="$REPO"
+export A2ASSISTANT_PYTHON="$PYTHON"
+export A2ASSISTANT_NODE="$root/tools/node/data/data/com.termux/files/usr/bin/node"
+export A2ASSISTANT_RUNTIME_DIR="$root/tools"
 export PATH="$root/tools/npm/bin:$root/tools/node/data/data/com.termux/files/usr/bin:$root/tools/ffmpeg/data/data/com.termux/files/usr/bin:$root/tools/ripgrep:$PATH"
 '''
     code = (
         f"import os, site, sys; sys.argv[0]={name!r}; "
-        "site.addsitedir(os.environ['HERMES_SITE']); "
+        "site.addsitedir(os.environ['A2ASSISTANT_SITE']); "
         f"from {module} import {func}; sys.exit({func}())"
     )
     return f'''{header}
@@ -68,7 +68,7 @@ export PYTHONPATH="$REPO:$SITE"
 # the venv's .pth files are load-bearing (pywin32.pth -> win32\\lib ->
 # `import pywintypes` on Windows bundles; the win32 wrapper mirrors this
 # in launcher_wrapper.py). The -c bootstrap below runs addsitedir() on it.
-export HERMES_SITE="$SITE"
+export A2ASSISTANT_SITE="$SITE"
 export PYTHONPYCACHEPREFIX="${{PYTHONPYCACHEPREFIX:-${{XDG_CACHE_HOME:-$HOME/.cache}}/hermes-pycache}}"
 {extra}exec "$PYTHON" -P -c {shlex.quote(code)} "$@"
 '''
@@ -87,10 +87,10 @@ def write_launchers(root: Path, entries: dict[str, str], *, python: str,
                 wrapper = Path(temp) / "wrapper.py"
                 wrapper.write_text(render_wrapper(entry, f"../{repo}", f"../{site}"), encoding="utf-8")
                 module, func = entry.split(":", 1)
-                env = {**os.environ, "HERMES_MINT_BIN_DIR": str(bindir),
-                       "HERMES_MINT_SPECS": json.dumps([{"name": name, "module": module, "func": func}]),
-                       "HERMES_MINT_WRAPPER": str(wrapper),
-                       "HERMES_MINT_PYTHON": "<launcher_dir>\\..\\" + python.replace("/", "\\")}
+                env = {**os.environ, "A2ASSISTANT_MINT_BIN_DIR": str(bindir),
+                       "A2ASSISTANT_MINT_SPECS": json.dumps([{"name": name, "module": module, "func": func}]),
+                       "A2ASSISTANT_MINT_WRAPPER": str(wrapper),
+                       "A2ASSISTANT_MINT_PYTHON": "<launcher_dir>\\..\\" + python.replace("/", "\\")}
                 run([str(root / python), str(Path(__file__).with_name("mint_launchers.py"))], env=env, check=True)
         else:
             script = posix_launcher(name, entry, python=python, repo=repo, site=site, target=target)

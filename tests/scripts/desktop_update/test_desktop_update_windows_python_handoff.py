@@ -53,8 +53,8 @@ def test_pm_handoff_reports_update_and_gateway_results(
         command.append('-NoGateway')
     result = subprocess.run(
         command,
-        cwd=tmp_path, env={**os.environ, 'HERMES_HOME': str(home),
-                          'HERMES_RUNTIME_DIR': str(tmp_path / 'empty-store'),
+        cwd=tmp_path, env={**os.environ, 'A2ASSISTANT_HOME': str(home),
+                          'A2ASSISTANT_RUNTIME_DIR': str(tmp_path / 'empty-store'),
                           'HANDOFF_CALLS': str(calls), 'HANDOFF_EXIT': str(code),
                           'GATEWAY_EXIT': str(gateway_code)},
         capture_output=True, text=True, timeout=120,
@@ -75,7 +75,7 @@ def test_pm_handoff_reports_update_and_gateway_results(
 @pytest.mark.platforms('windows')
 @pytest.mark.parametrize(('output', 'code'), [
     ('✓ Update complete! (v1.0.0)', 0),
-    ('✓ Update complete! (v1.0.0)|  ✗ hermes-gateway failed to come back after restart.', 124),
+    ('✓ Update complete! (v1.0.0)|  ✗ a2assistant-gateway failed to come back after restart.', 124),
     ('✓ Update complete! (v1.0.0)|Update incomplete — some units were not restarted', 124),
     ('Cloning into the checkout...', 124),
 ])
@@ -92,10 +92,10 @@ def test_update_killed_by_idle_watchdog_after_completing_is_a_success(
     result = subprocess.run(
         ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
          str(ROOT / 'scripts/desktop-update/windows.ps1'), '-InstallRoot', str(install), '-NoUi'],
-        cwd=tmp_path, env={**os.environ, 'HERMES_HOME': str(home),
-                          'HERMES_RUNTIME_DIR': str(tmp_path / 'empty-store'),
+        cwd=tmp_path, env={**os.environ, 'A2ASSISTANT_HOME': str(home),
+                          'A2ASSISTANT_RUNTIME_DIR': str(tmp_path / 'empty-store'),
                           'HANDOFF_CALLS': str(calls), 'HANDOFF_EXIT': '0', 'HANDOFF_HANG': output,
-                          'HERMES_UPDATE_STEP_IDLE_SECONDS': '3', 'PYTHONIOENCODING': 'utf-8'},
+                          'A2ASSISTANT_UPDATE_STEP_IDLE_SECONDS': '3', 'PYTHONIOENCODING': 'utf-8'},
         capture_output=True, text=True, timeout=180,
         check=False,
     )
@@ -122,7 +122,7 @@ def test_earlier_pm_userbin_launcher_is_identity_checked(tmp_path: Path) -> None
     for target, expected_code in [(root, 0), (wrong, 1)]:
         script = f". '{helper}'; try {{ @(Get-HermesRuntimeCommand -InstallRoot '{target}') | ConvertTo-Json -Compress }} catch {{ exit 1 }}"
         result = subprocess.run(['powershell', '-NoProfile', '-Command', script],
-                                env={**os.environ, 'HERMES_HOME': str(home)},
+                                env={**os.environ, 'A2ASSISTANT_HOME': str(home)},
                                 capture_output=True, text=True, timeout=45, check=False)
         assert result.returncode == expected_code, result.stdout + result.stderr
         if expected_code == 0:

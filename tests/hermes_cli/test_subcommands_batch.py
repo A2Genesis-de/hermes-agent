@@ -29,7 +29,7 @@ def _h(name):
 
 
 def test_config_get_unset_subcommands_parse():
-    """`hermes config get/unset` parse key args (and --json for get)."""
+    """`a2assistant config get/unset` parse key args (and --json for get)."""
     parser = argparse.ArgumentParser(prog="hermes")
     sub = parser.add_subparsers(dest="command")
     handler = _h("config")
@@ -65,7 +65,7 @@ def test_config_get_unset_subcommands_parse():
 
 
 def test_login_subparser_help_is_suppressed():
-    """The deprecated `login` row must not appear in `hermes --help`.
+    """The deprecated `login` row must not appear in `a2assistant --help`.
 
     Must hold without leaking argparse's literal `==SUPPRESS==` placeholder,
     which `help=argparse.SUPPRESS` emits for a top-level subparser on 3.12+.

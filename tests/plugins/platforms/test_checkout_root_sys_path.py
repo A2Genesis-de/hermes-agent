@@ -42,7 +42,7 @@ def test_import_keeps_installed_package_ahead_of_checkout(module, tmp_path):
         import evals
         assert getattr(evals, "MARKER", None) == "installed", evals.__file__
     """)
-    env = dict(os.environ, HERMES_HOME=str(tmp_path / "home"))
+    env = dict(os.environ, A2ASSISTANT_HOME=str(tmp_path / "home"))
     env.pop("PYTHONPATH", None)
     result = subprocess.run(
         [sys.executable, "-c", script], check=False, capture_output=True, text=True, cwd=str(tmp_path), env=env,
@@ -65,7 +65,7 @@ def test_standalone_file_load_still_resolves_repo_siblings(module, tmp_path):
         spec.loader.exec_module(mod)
         assert sys.path[-1] == repo, sys.path[-3:]
     """)
-    env = dict(os.environ, HERMES_HOME=str(tmp_path / "home"))
+    env = dict(os.environ, A2ASSISTANT_HOME=str(tmp_path / "home"))
     env.pop("PYTHONPATH", None)
     result = subprocess.run(
         [sys.executable, "-c", script], check=False, capture_output=True, text=True, cwd=str(tmp_path), env=env,

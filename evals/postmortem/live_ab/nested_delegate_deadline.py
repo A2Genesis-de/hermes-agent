@@ -11,8 +11,8 @@ sys.path.insert(0, root)
 # value is exactly what main will hit.
 import shutil, tempfile
 import hermes_yaml as yaml
-home = tempfile.mkdtemp(prefix="dl_home_"); os.environ["HERMES_HOME"] = home
-real_home = os.environ.get("HERMES_HOME_SOURCE", os.path.expanduser("~/.hermes"))  # credentials are copied from here into a temp home
+home = tempfile.mkdtemp(prefix="dl_home_"); os.environ["A2ASSISTANT_HOME"] = home
+real_home = os.environ.get("A2ASSISTANT_HOME_SOURCE", os.path.expanduser("~/.a2assistant"))  # credentials are copied from here into a temp home
 shutil.copy(f"{real_home}/auth.json", f"{home}/auth.json")
 cfg = yaml.safe_load(open(f"{real_home}/config.yaml", encoding="utf-8")) or {}
 cfg.setdefault("timeouts", {}).setdefault("tools", {})["sequential_call"] = 40

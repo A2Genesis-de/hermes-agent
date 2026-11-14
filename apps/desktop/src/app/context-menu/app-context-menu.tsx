@@ -7,7 +7,7 @@ import { terminalMenuHandleFor } from '@/app/right-sidebar/terminal/terminal-con
 import { openStarMapNodeMenuFor } from '@/app/starmap/context-menu-handle'
 import { DROPDOWN_KIT } from '@/components/ui/actions-menu'
 import { Codicon } from '@/components/ui/codicon'
-import { HERMES_CONTEXT_MENU_TRIGGER_ATTR } from '@/components/ui/context-menu'
+import { A2ASSISTANT_CONTEXT_MENU_TRIGGER_ATTR } from '@/components/ui/context-menu'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -685,7 +685,7 @@ export function AppContextMenu() {
         return
       }
 
-      const trigger = element?.closest(`[${HERMES_CONTEXT_MENU_TRIGGER_ATTR}], [data-slot="context-menu-trigger"]`)
+      const trigger = element?.closest(`[${A2ASSISTANT_CONTEXT_MENU_TRIGGER_ATTR}], [data-slot="context-menu-trigger"]`)
 
       // Only the pane-body wrapper is a fallback menu. Explicit row, tab and
       // status-bar menus still own their whole gesture, even inside a pane.

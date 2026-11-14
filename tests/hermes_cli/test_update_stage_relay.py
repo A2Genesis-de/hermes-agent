@@ -18,7 +18,7 @@ def test_restart_after_a_failed_build_names_the_restart(tmp_path, monkeypatch):
     from hermes_cli.update_stage import publish_stage
 
     status = tmp_path / "hermes-update-status.1"
-    monkeypatch.setenv("HERMES_UPDATE_STATUS_FILE", str(status))
+    monkeypatch.setenv("A2ASSISTANT_UPDATE_STATUS_FILE", str(status))
 
     def shown() -> str:
         return json.loads(status.read_text(encoding="utf-8"))["message"] if status.exists() else ""

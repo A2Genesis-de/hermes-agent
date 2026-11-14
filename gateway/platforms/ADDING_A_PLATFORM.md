@@ -4,7 +4,7 @@ There are two ways to add a platform to the Hermes gateway:
 
 ## Plugin Path (Recommended for Community/Third-Party)
 
-Create a plugin directory in `~/.hermes/plugins/` (or under `plugins/platforms/`
+Create a plugin directory in `~/.a2assistant/plugins/` (or under `plugins/platforms/`
 for bundled plugins) with a `plugin.yaml` and `adapter.py`.  The adapter
 inherits from `BasePlatformAdapter` and registers via
 `ctx.register_platform()` in the `register(ctx)` entry point.  This requires
@@ -19,7 +19,7 @@ status display, gateway setup, and more.
 - `env_enablement_fn: () -> Optional[dict]` — seeds `PlatformConfig.extra`
   (and an optional `home_channel` dict) from env vars BEFORE the adapter is
   constructed.  Without this, env-only setups don't surface in
-  `hermes gateway status` or `get_connected_platforms()` until the SDK
+  `a2assistant gateway status` or `get_connected_platforms()` until the SDK
   instantiates.  Build it from a `(ENV_VAR, extra_key, conv)` table with
   `gateway.platforms._shared.seed_extra_from_env(spec, home_env=...)`; every
   read goes through `_shared.get_scoped_secret` (multiplex-safe, never
@@ -256,7 +256,7 @@ Add a named toolset for your platform:
 },
 ```
 
-And add it to the `hermes-gateway` composite:
+And add it to the `a2assistant-gateway` composite:
 
 ```python
 "hermes-gateway": {

@@ -1,8 +1,8 @@
-"""Uninstall must not leave a dangling ``hermes`` command on Windows.
+"""Uninstall must not leave a dangling ``a2assistant`` command on Windows.
 
 Every uninstall mode deletes the code checkout, but the launcher copies
 staged onto PATH in the managed binary dir (the default Hermes root's
-``bin``) live outside it. A surviving launcher makes ``hermes`` in a new
+``bin``) live outside it. A surviving launcher makes ``a2assistant`` in a new
 terminal resolve and then error on its missing venv target — worse than
 command-not-found. The dir is wholly hermes-owned (pm keeps uv in its own
 store entry), so the sweep takes everything in it.
@@ -26,7 +26,7 @@ def managed_bin(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
     bin_dir.mkdir(parents=True)
     (bin_dir / "hermes.exe").write_bytes(b"MZ launcher")
     (bin_dir / "hermes-acp.cmd").write_text("@echo off\r\n", encoding="ascii")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return bin_dir
 
 
@@ -40,10 +40,10 @@ def test_removes_the_whole_managed_bin_dir(managed_bin: Path):
 def test_anchors_on_default_root_not_profile_home(
     managed_bin: Path, monkeypatch: pytest.MonkeyPatch
 ):
-    """The launcher dir is per-machine; a profile HERMES_HOME must not
+    """The launcher dir is per-machine; a profile A2ASSISTANT_HOME must not
     redirect the sweep into ``profiles/<name>/bin``."""
     home = managed_bin.parent
-    monkeypatch.setenv("HERMES_HOME", str(home / "profiles" / "work"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home / "profiles" / "work"))
 
     removed = uninstall.remove_windows_bin_launchers(windows=True)
 
@@ -59,6 +59,6 @@ def test_noop_on_posix(managed_bin: Path):
 def test_noop_when_no_bin_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch):
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     assert uninstall.remove_windows_bin_launchers(windows=True) == []

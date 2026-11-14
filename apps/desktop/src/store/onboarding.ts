@@ -336,7 +336,7 @@ export function settleLocalRuntimeNotice(runtime: RuntimeReadinessResult) {
 // The Webapp has no Local models pane (the flag is Electron-only), so there the way forward it can
 // offer is another model, and the sentence must not send the user to a pane they cannot open.
 const WEBAPP_LOCAL_RUNTIME_DOWN =
-  "The local model server isn't serving. Start it from the A2Assistant desktop app or `hermes model` in a terminal, or choose another model."
+  "The local model server isn't serving. Start it from the A2Assistant desktop app or `a2assistant model` in a terminal, or choose another model."
 
 // Desktop has the pane, so its notice names it next to the button that opens it.
 const DESKTOP_LOCAL_RUNTIME_DOWN =
@@ -447,7 +447,7 @@ async function fetchProviderDefaultModel(
   }
 
   // Prefer the backend's recommended default — it mirrors the curation
-  // `hermes model` does (for Nous it honors the user's free/paid tier, so a
+  // `a2assistant model` does (for Nous it honors the user's free/paid tier, so a
   // free user gets a free model rather than a paid default like opus). Fall
   // back to the first curated model if the endpoint can't resolve one.
   let defaultModel = String(models[0])

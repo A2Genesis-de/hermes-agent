@@ -133,11 +133,11 @@ export function registerTerminalIpc({
   // Resolve the interactive shell for the embedded terminal: an explicit user
   // override wins, otherwise auto-detect the best one installed for the platform.
   function terminalShellCommand() {
-    // HERMES_DESKTOP_SHELL is the cross-platform escape hatch (a path or a bare
+    // A2ASSISTANT_DESKTOP_SHELL is the cross-platform escape hatch (a path or a bare
     // name on PATH); $SHELL is honored on POSIX, where it's the user's canonical
     // choice, but ignored on Windows, where it's usually a stray MSYS/Git path
     // node-pty can't spawn natively.
-    const override = (process.env.HERMES_DESKTOP_SHELL || (isWindows ? '' : process.env.SHELL) || '').trim()
+    const override = (process.env.A2ASSISTANT_DESKTOP_SHELL || (isWindows ? '' : process.env.SHELL) || '').trim()
 
     if (override) {
       const resolved = isExecutableFile(override) ? override : findOnPath(override)
@@ -196,9 +196,9 @@ export function registerTerminalIpc({
     env.TERM_PROGRAM_VERSION = app.getVersion()
 
     // Let a hermes/--tui launched in this pane know it's embedded in the desktop
-    // GUI (build_environment_hints surfaces this). Distinct from HERMES_DESKTOP,
+    // GUI (build_environment_hints surfaces this). Distinct from A2ASSISTANT_DESKTOP,
     // which marks the agent *backend* and gates cron/gateway behavior.
-    env.HERMES_DESKTOP_TERMINAL = '1'
+    env.A2ASSISTANT_DESKTOP_TERMINAL = '1'
 
     return applyWindowsMsysBashEnvDefaults(env, isWindows)
   }

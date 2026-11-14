@@ -34,7 +34,7 @@ def test_secondary_profile_pairing_stores_created(tmp_path, monkeypatch):
     Pre-fix this silently did nothing: the ``PairingStore(profile=name)``
     reference raised NameError inside the swallowed try/except.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir()
 
     runner = _bare_runner()
@@ -63,7 +63,7 @@ def test_secondary_profile_pairing_stores_created(tmp_path, monkeypatch):
 
 def test_pairing_store_scoped_to_profile_dir(tmp_path, monkeypatch):
     """The created store must live under the profile's pairing directory."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir()
 
     runner = _bare_runner()
@@ -103,7 +103,7 @@ def test_routed_pairing_grant_mirror_stays_in_profile_scope(tmp_path, monkeypatc
     prof.mkdir(parents=True)
     (root / ".env").write_text("TELEGRAM_ALLOWED_USERS=default-admin\n")
     (prof / ".env").write_text("TELEGRAM_ALLOWED_USERS=b-admin\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "default-admin")
 
     was_active = ss.is_multiplex_active()
@@ -143,7 +143,7 @@ def test_allowlist_env_read_never_borrows_on_scope_failure(tmp_path, monkeypatch
     from agent import secret_scope as ss
     from gateway import pairing
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "default-admin")
 
     was_active = ss.is_multiplex_active()
@@ -180,7 +180,7 @@ def test_allowlist_sync_does_not_persist_foreign_allowlist(tmp_path, monkeypatch
 
     root = tmp_path / ".hermes"
     root.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "default-admin")
 
     was_active = ss.is_multiplex_active()
@@ -214,7 +214,7 @@ def test_allowlist_scoped_miss_configures_nothing(tmp_path, monkeypatch):
     prof = root / "profiles" / "b"
     prof.mkdir(parents=True)
     (prof / ".env").write_text("OTHER_KEY=x\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setenv("TELEGRAM_ALLOWED_USERS", "default-admin")
 
     was_active = ss.is_multiplex_active()

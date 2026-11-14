@@ -4,7 +4,7 @@ Unknown users receive a one-time pairing code that the bot owner approves via th
 CLI, instead of static user-ID allowlists. Security properties (OWASP + NIST SP
 800-63-4): 8-char codes from a 32-char unambiguous alphabet via ``secrets``, 1-hour
 expiry, max 3 pending per platform, 1 request per user per 10 min, lockout after 5
-failed approvals, chmod 0600 data files, codes never logged. Storage: ~/.hermes/pairing/
+failed approvals, chmod 0600 data files, codes never logged. Storage: ~/.a2assistant/pairing/
 """
 
 import contextlib
@@ -65,7 +65,7 @@ def _allowlist_env_for_platform(platform: str) -> Optional[str]:
     Approving a code also writes the user into an already-configured allowlist (revoke removes
     them) so the operator's list stays the visible source of truth. Platforms without one (or with
     no allowlist configured) keep the pairing store as the sole grant record (authz union). See
-    #23778. Discovers plugins first: ``hermes pairing approve`` runs in a CLI process that may not
+    #23778. Discovers plugins first: ``a2assistant pairing approve`` runs in a CLI process that may not
     have loaded them yet."""
     platform = (platform or "").lower().strip()
     with contextlib.suppress(Exception):
@@ -250,7 +250,7 @@ def _load_json_file(path: Path) -> dict:
         euid = os.geteuid() if hasattr(os, "geteuid") else "n/a"  # no geteuid on Windows
         logger.warning(
             "Pairing file %s exists but is not readable as uid=%s (%s; %s). "
-            "If you ran `docker exec <container> hermes pairing approve ...` as root, "
+            "If you ran `docker exec <container> a2assistant pairing approve ...` as root, "
             "re-run with `docker exec -u hermes <container> ...` and "
             "chown the existing file to the hermes user, or restart the "
             "container so the entrypoint can fix ownership.",
@@ -313,7 +313,7 @@ class PairingStore:
 
     Files per platform: ``{platform}-pending.json``, ``{platform}-approved.json``, plus
     shared ``_rate_limits.json``. With ``profile="<name>"`` storage resolves from that
-    profile's HERMES_HOME exactly as ``hermes -p <name> pairing ...`` does, so multiplex
+    profile's A2ASSISTANT_HOME exactly as ``a2assistant -p <name> pairing ...`` does, so multiplex
     gateways and profile-scoped CLI approvals share one whitelist.
     """
 

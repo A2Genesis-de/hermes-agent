@@ -25,7 +25,7 @@ def _named_profile(tmp_path, monkeypatch, *, key_env: bool, dotenv: str = "", mo
     (home / "config.yaml").write_text(json.dumps({"model": model, "custom_providers": [entry]}))
     (home / ".env").write_text(dotenv)
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     # The key lives only in the server's process environment: invisible to a routed profile.
     monkeypatch.setenv("CANARY_KEY", "canary-process-env")
     return home
@@ -56,7 +56,7 @@ def test_declared_key_missing_from_profile_scope_fails_before_the_request(tmp_pa
         resolve_runtime_provider()
     message = str(excinfo.value)
     assert excinfo.value.code == "missing_api_key"
-    for needle in ("FakeUp", "CANARY_KEY", "'beta'", "hermes -p beta config set CANARY_KEY"):
+    for needle in ("FakeUp", "CANARY_KEY", "'beta'", "a2assistant -p beta config set CANARY_KEY"):
         assert needle in message
     assert "server's environment" in message  # the key the user exported is named as unreadable here
     assert "canary-process-env" not in message

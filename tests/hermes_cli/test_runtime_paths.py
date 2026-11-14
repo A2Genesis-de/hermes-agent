@@ -10,7 +10,7 @@ from hermes_constants import get_default_hermes_root
 
 
 def test_store_resolution_follows_relocated_payload(tmp_path, monkeypatch):
-    monkeypatch.delenv("HERMES_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_RUNTIME_DIR", raising=False)
     payload = tmp_path / "agent-payload"
     repo = payload / "hermes-agent"
     repo.mkdir(parents=True)
@@ -38,9 +38,9 @@ def test_store_resolution_follows_relocated_payload(tmp_path, monkeypatch):
         assert (resolved / installed["packages"]["node"]["entry"]).is_dir()
 
     override = tmp_path / "stage-tools"
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(override))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(override))
     assert store_root(repo) == override
-    monkeypatch.delenv("HERMES_RUNTIME_DIR")
+    monkeypatch.delenv("A2ASSISTANT_RUNTIME_DIR")
     (repo / "install-stamp.json").write_text(json.dumps({"runtimeDir": str(override)}))
     (destination / "manifest.json").write_text(json.dumps({"repo": "other-repo"}))
     assert store_root(repo) == override
@@ -50,7 +50,7 @@ def test_store_resolution_follows_relocated_payload(tmp_path, monkeypatch):
 
 @pytest.mark.parametrize("escape", ["relative", "absolute", "symlink"])
 def test_payload_store_cannot_escape_payload(tmp_path, monkeypatch, escape):
-    monkeypatch.delenv("HERMES_RUNTIME_DIR", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_RUNTIME_DIR", raising=False)
     payload = tmp_path / "agent-payload"
     repo = payload / "hermes-agent"
     repo.mkdir(parents=True)
@@ -64,7 +64,7 @@ def test_payload_store_cannot_escape_payload(tmp_path, monkeypatch, escape):
     }))
     with pytest.raises(RuntimeError, match="payload store escapes its root"):
         store_root(repo)
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(outside))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(outside))
     assert store_root(repo) == outside
 
 def test_site_packages_follows_the_venv_python_not_the_caller(tmp_path):

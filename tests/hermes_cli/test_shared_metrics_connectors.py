@@ -247,7 +247,7 @@ def test_entries_report_their_own_post_even_under_the_executor_suppression(monke
 
 
 def test_a_package_with_each_new_row_validates_against_the_v4_schema(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     store = SharedMetricsStore()
     store.record_counter(contract.TOOL_SEARCH_METRIC,
                          {"hits_bucket": "3_to_5", "outcome": "hits", "scope": "both"}, _RESOURCE)

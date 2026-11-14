@@ -13,7 +13,7 @@ def pytest_configure(config):
 def isolated_machine_home(request, tmp_path, monkeypatch):
     """Machine-scoped PM state (store, caches, profiles root) lands under tmp_path.
 
-    The root conftest already sandboxes HERMES_HOME; PM additionally keys its machine cache
+    The root conftest already sandboxes A2ASSISTANT_HOME; PM additionally keys its machine cache
     off the home directory, so that moves too — in this process (Path.home) and in any child
     (HOME / USERPROFILE). Opt out with ``@pytest.mark.real_machine_home``.
     """
@@ -24,14 +24,14 @@ def isolated_machine_home(request, tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
 
 @pytest.fixture(autouse=True)
 def checkout_venvs_are_not_an_install(monkeypatch):
     """The checkout running the suite is never a test's pre-PM install.
 
-    Many PM tests keep ``repo_root`` at the real checkout under an isolated HERMES_HOME (no
+    Many PM tests keep ``repo_root`` at the real checkout under an isolated A2ASSISTANT_HOME (no
     recorded selection), where PM reads that checkout's ``venv/`` or ``.venv/`` as the old
     install's. Whatever a contributor keeps there must not change what those tests select; a
     test of the legacy carry builds its own tree under ``tmp_path``.

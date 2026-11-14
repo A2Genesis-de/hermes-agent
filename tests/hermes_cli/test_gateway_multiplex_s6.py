@@ -1,5 +1,5 @@
 """s6 container: the unset multiplex default resolves ON when the boot has parked every named
-slot, ``hermes gateway migrate --multiplex`` folds an UP slot in-process, a guard refusal on a
+slot, ``a2assistant gateway migrate --multiplex`` folds an UP slot in-process, a guard refusal on a
 multi-profile host is loud, and the resolved default is written back to config.yaml."""
 from __future__ import annotations
 
@@ -47,7 +47,7 @@ def s6_host(tmp_path, monkeypatch):
     (root / ".env").write_text("TELEGRAM_BOT_TOKEN=111111:default-token\n", encoding="utf-8")
     (root / "profiles/alpha/.env").write_text("TELEGRAM_BOT_TOKEN=222222:alpha-token\n", encoding="utf-8")
     (root / "profiles/beta/.env").write_text("DISCORD_BOT_TOKEN=beta-discord-333333\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     for name in ("GATEWAY_MULTIPLEX_PROFILES", "TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "API_SERVER_KEY"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)

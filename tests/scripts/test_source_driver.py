@@ -181,9 +181,9 @@ def test_pm_observer_accepts_ready_fixture_and_leaves_failed_fixture_untouched(t
     (root / "uv.lock").write_text("fixture locked graph", encoding="utf-8")
     home = tmp_path / "home"
     store = tmp_path / "store"
-    env = dict(os.environ, HOME=str(home), HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(store),
-               PYTHONDONTWRITEBYTECODE="1", HERMES_DISABLE_LAZY_INSTALLS="1")
-    env.pop("HERMES_INSTALL_ROOT", None)
+    env = dict(os.environ, HOME=str(home), A2ASSISTANT_HOME=str(home), A2ASSISTANT_RUNTIME_DIR=str(store),
+               PYTHONDONTWRITEBYTECODE="1", A2ASSISTANT_DISABLE_LAZY_INSTALLS="1")
+    env.pop("A2ASSISTANT_INSTALL_ROOT", None)
     path = os.pathsep.join(p for p in os.get_exec_path() if ".hermes" not in Path(p).parts)
     node = shutil.which("node", path=path)
     assert node

@@ -250,7 +250,7 @@ async def test_an_overlapping_retry_with_another_key_is_still_refused(owner, fir
     assert _attempt(_stage, authority, connection, _params(home, **second)) == 'admission_conflict'
 
 
-PROMPT = 'HERMES_EPHEMERAL_SYSTEM_PROMPT'  # kept by the rules of a client the gateway did not prove local
+PROMPT = 'A2ASSISTANT_EPHEMERAL_SYSTEM_PROMPT'  # kept by the rules of a client the gateway did not prove local
 
 
 @pytest.mark.asyncio

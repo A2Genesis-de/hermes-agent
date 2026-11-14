@@ -11,7 +11,7 @@ from hermes_state import SessionDB
 @pytest.mark.asyncio
 async def test_maintenance_routes_refuse_live_owner_without_changing_rows(tmp_path, monkeypatch):
     monkeypatch.setattr('hermes_state._default_db_path', lambda: tmp_path / 'state.db')
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     app = FastAPI()
     app.include_router(manage_router)
     with SessionDB(db_path=tmp_path / 'state.db') as db:
@@ -36,7 +36,7 @@ async def test_maintenance_routes_refuse_live_owner_without_changing_rows(tmp_pa
 @pytest.mark.asyncio
 async def test_exclusive_offline_maintenance_preserves_bulk_behavior(tmp_path, monkeypatch):
     monkeypatch.setattr('hermes_state._default_db_path', lambda: tmp_path / 'state.db')
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     app = FastAPI()
     app.include_router(manage_router)
     with SessionDB(db_path=tmp_path / 'state.db') as db:

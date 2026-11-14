@@ -2,7 +2,7 @@
 
 The wait cuts every socket opened before it so their clients go to the NEXT owner. A worker that
 redials into the wait and keeps polling ``prompt.receipt`` stays alive, so ``_watch_submitter``
-never ends the card's turn and the restart (``hermes update``) is held until
+never ends the card's turn and the restart (``a2assistant update``) is held until
 ``agent.restart_after_turn_timeout``. The wait still admits interactive clients (#139041).
 """
 
@@ -20,7 +20,7 @@ GUE = gateway_client.GatewayUnavailableError
 
 @pytest.fixture(autouse=True)
 def _env(monkeypatch):
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_GATEWAY_URL", raising=False)
 
 
 def _restart_wait_verdict(*_, **__):

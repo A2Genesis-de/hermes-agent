@@ -32,7 +32,7 @@ async def probe(mode):
     from tests.gateway.fixtures.local_recovery_probe import rpc
     from websockets.asyncio.client import connect
 
-    home = Path(os.environ['HERMES_HOME'])
+    home = Path(os.environ['A2ASSISTANT_HOME'])
     marker = home / 'quick-exec-ran'
     (home / 'config.yaml').write_text(_CONFIG.format(marker=marker), encoding='utf-8')
     runner = GatewayRunner()
@@ -157,7 +157,7 @@ async def _commands(authority, ws, reader, sid, marker, receipt):
     def plugin(args):
         from gateway.session_context import get_session_env
         calls.append(args)
-        return f'PLUGIN_OK {args} platform={get_session_env("HERMES_SESSION_PLATFORM")}'
+        return f'PLUGIN_OK {args} platform={get_session_env("A2ASSISTANT_SESSION_PLATFORM")}'
     _ensure_plugins_discovered()._plugin_commands['probe-plugin'] = {
         'handler': plugin, 'description': 'fixture command', 'plugin': 'fixture'}
 
@@ -171,7 +171,7 @@ async def _commands(authority, ws, reader, sid, marker, receipt):
     assert ran.get('result') == {'type': 'exec', 'output': 'QUICK_EXEC_OK'}, ran
     assert marker.exists()
     # A relative path acts in the session's folder, never the gateway process's.
-    work = Path(os.environ['HERMES_HOME']) / 'session-work'
+    work = Path(os.environ['A2ASSISTANT_HOME']) / 'session-work'
     assert (work / 'relative-exec-ran').exists(), 'exec quick command ran outside the session folder'
     assert not (Path.cwd() / 'relative-exec-ran').exists()
     dispatched = await rpc(ws, 'command.dispatch', session_id=sid, name='probe-plugin', arg='ARG_ONE two')
@@ -246,7 +246,7 @@ async def _connection_card(authority, ws, reader, sid, marker, receipt):
 
     def rerun(op, names):
         from gateway.session_context import get_session_env
-        seen.update(names=names, key=get_session_env('HERMES_SESSION_KEY'), platform=get_session_env('HERMES_SESSION_PLATFORM'))
+        seen.update(names=names, key=get_session_env('A2ASSISTANT_SESSION_KEY'), platform=get_session_env('A2ASSISTANT_SESSION_PLATFORM'))
         op.transition('linear', TargetState.initiated, Actor.user)
 
     run.reissue = rerun

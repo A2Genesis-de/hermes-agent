@@ -125,7 +125,7 @@ def _owner(tmp_path: Path, script: str) -> tuple[subprocess.Popen, int, int]:
     """)
     home = tmp_path / "home"
     home.mkdir()
-    env = dict(os.environ, HERMES_HOME=str(home), HOME=str(home), PYTHONPATH=REPO)
+    env = dict(os.environ, A2ASSISTANT_HOME=str(home), HOME=str(home), PYTHONPATH=REPO)
     owner = subprocess.Popen([sys.executable, "-c", src], env=env, cwd=REPO, stdin=subprocess.DEVNULL,
                              stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     line = owner.stdout.readline().split()

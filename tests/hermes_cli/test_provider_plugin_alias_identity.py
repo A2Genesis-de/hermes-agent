@@ -60,7 +60,7 @@ def home_with_meta_plugin(tmp_path, monkeypatch):
     plugin = tmp_path / "plugins" / "model-providers" / "my-meta"
     plugin.mkdir(parents=True)
     (plugin / "__init__.py").write_text(_HOME_PLUGIN, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)

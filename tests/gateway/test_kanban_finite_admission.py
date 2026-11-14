@@ -14,9 +14,9 @@ def test_kanban_submission_enters_single_query_approval_context(tmp_path, monkey
     from hermes_cli.kanban_db_connect import connect
     from tools.approval_context import _is_single_query_approval_context
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
-    monkeypatch.setenv('HERMES_KANBAN_HOME', str(tmp_path))
-    for name in ('HERMES_KANBAN_DB', 'HERMES_DELEGATED_CHILD', 'HERMES_SINGLE_QUERY_SESSION'):
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_KANBAN_HOME', str(tmp_path))
+    for name in ('A2ASSISTANT_KANBAN_DB', 'A2ASSISTANT_DELEGATED_CHILD', 'A2ASSISTANT_SINGLE_QUERY_SESSION'):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr('hermes_cli.profiles.resolve_profile_env', lambda name: str(tmp_path))
     workspace = tmp_path / 'workspace'
@@ -74,9 +74,9 @@ def kanban_owner(tmp_path, monkeypatch):
     from hermes_cli.kanban_db_connect import connect
     from tests.gateway.test_session_follow_profile_config import _owner
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
-    monkeypatch.setenv('HERMES_KANBAN_HOME', str(tmp_path))
-    for name in ('HERMES_KANBAN_DB', 'HERMES_DELEGATED_CHILD', 'HERMES_SINGLE_QUERY_SESSION', 'HERMES_YOLO_MODE'):
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_KANBAN_HOME', str(tmp_path))
+    for name in ('A2ASSISTANT_KANBAN_DB', 'A2ASSISTANT_DELEGATED_CHILD', 'A2ASSISTANT_SINGLE_QUERY_SESSION', 'A2ASSISTANT_YOLO_MODE'):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(run, '_hermes_home', tmp_path)
     monkeypatch.setattr('hermes_cli.profiles.resolve_profile_env', lambda name: str(tmp_path))

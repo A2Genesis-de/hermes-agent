@@ -262,7 +262,7 @@ export const arCommandCenter = {
     exported: 'تم تصدير الملف الشخصي',
     failedImport: 'فشل استيراد الملف الشخصي',
     failedExport: 'فشل تصدير الملف الشخصي',
-    exportNeedsHost: name => `لا يمكن للمتصفح حفظ أرشيف الملف الشخصي. على مضيف A2Assistant، شغّل: hermes profile export ${name}`,
+    exportNeedsHost: name => `لا يمكن للمتصفح حفظ أرشيف الملف الشخصي. على مضيف A2Assistant، شغّل: a2assistant profile export ${name}`,
     allProfiles: 'كل الملفات الشخصية',
     showAllProfiles: 'إظهار كل الملفات الشخصية',
     notServedHere: 'غير متاح هنا',

@@ -99,7 +99,7 @@ export function getMemoryProviderOAuthStatus(
 }
 
 // ---------------------------------------------------------------------------
-// Memory data + curator (parity with `hermes memory` / `hermes curator`).
+// Memory data + curator (parity with `a2assistant memory` / `a2assistant curator`).
 // ---------------------------------------------------------------------------
 
 export function getMemoryStatus(profile?: null | string): Promise<MemoryStatusResponse> {
@@ -259,8 +259,8 @@ export function setSttLease(lease: string, active: boolean, owner: ResolvedOwner
 }
 
 // ---------------------------------------------------------------------------
-// Maintenance operations (parity with `hermes doctor` / `hermes security
-// audit` / `hermes backup` and the dashboard System page): spawn-based
+// Maintenance operations (parity with `a2assistant doctor` / `a2assistant security
+// audit` / `a2assistant backup` and the dashboard System page): spawn-based
 // background actions tailed via getActionStatus().
 //
 // Every one carries the ambient profile: Electron pins the whole /api/ops

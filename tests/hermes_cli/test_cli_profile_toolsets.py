@@ -1,5 +1,5 @@
 """A stale ``platform_toolsets.cli`` entry (a toolset whose plugin was uninstalled) must not refuse every
-`hermes chat` (#138670): the profile default is the gateway's to resolve, only a picked list rides
+`a2assistant chat` (#138670): the profile default is the gateway's to resolve, only a picked list rides
 session.create. The CLI's launch params go through the real gateway policy build (scripted transport)."""
 from contextlib import asynccontextmanager
 
@@ -30,7 +30,7 @@ def _launch(monkeypatch, db, toolsets=None, coding=None):
     bare host. Returns the CLI and the lines its startup printed."""
     import cli as cli_mod
     from hermes_cli.cli_init_mixin import CLIInitMixin
-    monkeypatch.delenv("HERMES_SESSION_SOURCE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_SOURCE", raising=False)
     monkeypatch.setattr(cli_mod, "CLI_CONFIG", CONFIG)
     monkeypatch.setattr("agent.coding_context.coding_selection", lambda **_: coding)
     monkeypatch.setattr("hermes_cli.plugins.get_plugin_toolset_keys_nowait", lambda: set())

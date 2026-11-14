@@ -14,7 +14,7 @@ def test_message_pages_identify_the_serving_profile(tmp_path, monkeypatch, servi
     work_home = default_home / "profiles" / "work" if serving_profile else default_home / "custom-home"
     default_home.mkdir(parents=True)
     work_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(work_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(work_home))
     # conftest redirects this legacy override independently of HERMES_HOME.
     monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", work_home / "state.db")
 
@@ -58,7 +58,7 @@ def test_message_pages_type_untyped_failed_turn_rows(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr("hermes_state.DEFAULT_DB_PATH", home / "state.db")
     db = SessionDB(db_path=home / "state.db")
     try:

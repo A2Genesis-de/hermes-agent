@@ -5,6 +5,7 @@ env through ``_build_child_env`` so the security rules (secret scrubbing,
 PYTHONPATH hygiene, UTF-8 forcing, TZ) cannot drift between them.
 """
 
+from hermes_constants import unset_env
 import logging
 import os
 import platform
@@ -39,7 +40,7 @@ def is_secret_env_name(name: str) -> bool:
 # along or a child that imports Hermes code loses the Kanban mutation guard
 # while still inheriting HERMES_HOME.
 _HERMES_CHILD_ALLOWED = frozenset({
-    "HERMES_HOME", "HERMES_PROFILE", "HERMES_CONFIG", "HERMES_ENV", "HERMES_DELEGATED_CHILD_CONTEXT",
+    "A2ASSISTANT_HOME", "A2ASSISTANT_PROFILE", "A2ASSISTANT_CONFIG", "A2ASSISTANT_ENV", "A2ASSISTANT_DELEGATED_CHILD_CONTEXT",
 })
 
 # Windows-only: without these the CRT itself fails — socket.socket() raises
@@ -61,7 +62,7 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
     through the active profile secret scope — an absent scoped value is
     omitted; (2) secret-substring names are blocked; (3) safe prefixes pass,
     as do a local session's client ``toolchain`` names (NVM_DIR, GOPATH...);
-    (4) operational HERMES_* pass by exact name; (5) on Windows the
+    (4) operational A2ASSISTANT_* pass by exact name; (5) on Windows the
     OS-essential allowlist passes by exact name.
     """
     try:
@@ -90,14 +91,14 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
                 or k in _HERMES_CHILD_ALLOWED
                 or (is_windows and k.upper() in _WINDOWS_ESSENTIAL_ENV_VARS)):
             scrubbed[k] = v
-        elif k.startswith("HERMES_"):
+        elif k.startswith("A2ASSISTANT_"):
             _dropped_hermes.append(k)
     # Declared names only the bound profile scope holds (a routed profile's own .env / sources
     # never enter the process env) — the loop above sees only names ``source_env`` carries.
     scrubbed.update((k, v) for k, v in scoped_passthrough_additions(scrubbed).items() if is_passthrough(k))
     if _dropped_hermes:
         logger.debug(
-            "execute_code: dropped %d non-allowlisted HERMES_* var(s) from the "
+            "execute_code: dropped %d non-allowlisted A2ASSISTANT_* var(s) from the "
             "sandbox child env (%s). This is intentional hardening (#27303); if "
             "a sandbox script legitimately needs one, declare it via "
             "env_passthrough in the skill/config so it passes by explicit opt-in.",
@@ -113,7 +114,7 @@ def _scrub_child_env(source_env, is_passthrough=None, is_windows=None, toolchain
     # Preserve location only when carrying the descendant fence, not for arbitrary
     # non-allowlisted HERMES_* values in otherwise ordinary execution environments.
     if scoped.get(DELEGATED_CHILD_ENV_MARKER):
-        for key in (DELEGATED_CHILD_ENV_MARKER, "HERMES_KANBAN_DB", "HERMES_KANBAN_BOARD"):
+        for key in (DELEGATED_CHILD_ENV_MARKER, "A2ASSISTANT_KANBAN_DB", "A2ASSISTANT_KANBAN_BOARD"):
             if key in scoped:
                 scrubbed[key] = scoped[key]
     return delegated_child_subprocess_env(scrubbed)
@@ -127,8 +128,8 @@ def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
     # A local session's client toolchain replaces the daemon's PATH / venv, then the whole scrub (secret
     # names, delegated-child restrictions) runs over the merged environment.
     child_env = _scrub_child_env(toolchain_environ(), toolchain=frozenset(tool_env()))
-    child_env["HERMES_RPC_SOCKET"] = rpc_endpoint
-    child_env["HERMES_RPC_TOKEN"] = rpc_token
+    child_env["A2ASSISTANT_RPC_SOCKET"] = rpc_endpoint
+    child_env["A2ASSISTANT_RPC_TOKEN"] = rpc_token
     child_env["PYTHONDONTWRITEBYTECODE"] = "1"
     # Force UTF-8 stdio and default file encoding: on Windows sys.stdout is bound to the console
     # code page (cp1252) and print("→") raises; harmless under a C/POSIX locale (containers).
@@ -143,7 +144,7 @@ def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
     # preserves the OS-configured local timezone for the child process.
     if _tz_name and not _IS_WINDOWS:
         child_env["TZ"] = _tz_name
-    child_env.pop("HERMES_TIMEZONE", None)
+    unset_env(child_env, "TIMEZONE")
     apply_subprocess_home_env(child_env)
     # Multiplexed gateway/Desktop (#110303): the server process env carries the machine-default
     # HERMES_HOME, but this turn runs under a per-profile override (ContextVar bound per turn).
@@ -152,7 +153,7 @@ def _build_child_env(*, rpc_endpoint: str, rpc_token: str, tmpdir: str,
     # No override (dedicated per-profile process) → leave the inherited value untouched.
     _home_override = get_hermes_home_override()
     if _home_override:
-        child_env["HERMES_HOME"] = _home_override
+        child_env["A2ASSISTANT_HOME"] = _home_override
         apply_scratch_tmp_env(child_env)  # TMPDIR follows the routed home, like HOME does
     # PYTHONPATH: the staging dir (hermes_tools.py) must always be importable even when project
     # mode changes CWD. Hermes's root is added ONLY when the child runs in Hermes's Python env —

@@ -67,7 +67,7 @@ print("discharged", flush=True)
 
 @pytest.mark.parametrize("carrier", ["claim", "record"])
 def test_a_completed_obligation_never_runs_again_from_a_copy_windows_kept(tmp_path, monkeypatch, carrier):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     src = pause_record.record_path()
     if carrier == "claim":  # a recovering launch claims an orphan and finishes its resume
         _orphan({"default": 4242, "work": 4343})
@@ -83,7 +83,7 @@ def test_a_completed_obligation_never_runs_again_from_a_copy_windows_kept(tmp_pa
     else:  # the update that paused them resumes them all and discharges its record, then exits
         updater = subprocess.Popen([sys.executable, "-c", textwrap.dedent(_UPDATER), uuid.uuid4().hex],
                                    cwd=REPO, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, encoding="utf-8",
-                                   env={**os.environ, "HERMES_HOME": str(tmp_path), "PYTHONPATH": str(REPO)})
+                                   env={**os.environ, "A2ASSISTANT_HOME": str(tmp_path), "PYTHONPATH": str(REPO)})
         assert updater.stdout.readline().strip() == "written"
         holder = _hold(src)
         try:
@@ -99,7 +99,7 @@ def test_a_completed_obligation_never_runs_again_from_a_copy_windows_kept(tmp_pa
 
 
 def test_a_partly_resumed_claim_is_what_the_next_launch_resumes_not_the_copy_windows_kept(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     src = pause_record.record_path()
     _orphan({"default": 4242, "work": 4343})
     holder = _hold(src)
@@ -166,14 +166,14 @@ def test_a_running_service_owes_its_gateway_until_that_gateway_is_ready(tmp_path
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     bin_dir = tmp_path / "svc"
     bin_dir.mkdir()
     exe = bin_dir / "wrapper.exe"
     exe.write_bytes(service_wrapper.read_bytes())
     child = ([sys.executable, "-c \"import time; time.sleep(900)\""] if gateway == "absent"
              else [sys.executable, "-m hermes_cli.main gateway run"])
-    (bin_dir / "child.txt").write_text("\n".join([*child, str(REPO), f"HERMES_HOME={home}", f"PYTHONPATH={REPO}",
+    (bin_dir / "child.txt").write_text("\n".join([*child, str(REPO), f"A2ASSISTANT_HOME={home}", f"PYTHONPATH={REPO}",
                                                   "PYTHONIOENCODING=utf-8"]) + "\n", encoding="utf-8")
     name = f"hermes-r8-debt-{gateway}-{os.getpid()}"
     created = _sc("create", name, "binPath=", f'"{exe}"', "start=", "demand")
@@ -216,7 +216,7 @@ def test_a_launch_recovering_an_unready_service_keeps_the_debt_without_stalling(
     never comes up: the debt stays owed, and neither launch waits out the update's full readiness budget."""
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     bin_dir = tmp_path / "svc"
     bin_dir.mkdir()
     exe = bin_dir / "wrapper.exe"
@@ -235,7 +235,7 @@ def test_a_launch_recovering_an_unready_service_keeps_the_debt_without_stalling(
         for _ in range(2):
             done = subprocess.run([sys.executable, "-c", _RECOVERING_LAUNCH], cwd=REPO, capture_output=True,
                                   text=True, encoding="utf-8", errors="replace", timeout=300,
-                                  env={**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": str(REPO)}, check=False)
+                                  env={**os.environ, "A2ASSISTANT_HOME": str(home), "PYTHONPATH": str(REPO)}, check=False)
             assert done.returncode == 0, done.stdout + done.stderr
             launches.append(json.loads(done.stdout.strip().splitlines()[-1]))
     finally:
@@ -265,8 +265,8 @@ def test_a_pause_force_kills_only_the_process_it_discovered(tmp_path, monkeypatc
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RESTART_DRAIN_TIMEOUT", "1")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RESTART_DRAIN_TIMEOUT", "1")
     # Never answers its pause, so it survives the drain and reaches the force-kill.
     victim = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(600)"], stdin=subprocess.DEVNULL)
     try:

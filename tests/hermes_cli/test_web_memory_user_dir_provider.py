@@ -1,4 +1,4 @@
-"""A memory provider installed under ``$HERMES_HOME/plugins/`` (catalog install) keeps the
+"""A memory provider installed under ``$A2ASSISTANT_HOME/plugins/`` (catalog install) keeps the
 Desktop surfaces a bundled copy has: its provider-owned config panel and the OAuth connect routes
 resolve through ``find_provider_dir``, not a hard-coded ``plugins.memory.<name>`` import that
 only the bundled copy satisfies."""
@@ -27,7 +27,7 @@ from . import client  # relative import: only a real package load resolves it
 
 def start_loopback_flow_background():
     import os
-    return {"state": "pending", "config": str(client.resolve_config_path(os.environ["HERMES_HOME"]))}
+    return {"state": "pending", "config": str(client.resolve_config_path(os.environ["A2ASSISTANT_HOME"]))}
 
 def get_flow_status():
     return {"state": "idle"}
@@ -112,7 +112,7 @@ def test_oauth_routes_load_the_provider_from_the_requested_profile(tmp_path, mon
     work_home.mkdir(parents=True)
     (work_home / "profile.yaml").write_text("name: work\n", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     monkeypatch.setattr(memory_pkg, "_MEMORY_PLUGINS_DIR", tmp_path / "no-bundled")
 
     for home, label in ((default_home, "default"), (work_home, "work")):

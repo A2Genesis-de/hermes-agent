@@ -44,8 +44,8 @@ def _restore_backups(backups: dict[Path, Path]) -> list[Path]:
 
 
 def main() -> int:
-    if env_var_enabled("HERMES_SKIP_CONFIG_MIGRATION"):
-        print("[config-migrate] HERMES_SKIP_CONFIG_MIGRATION is set; skipping config migration")
+    if env_var_enabled("A2ASSISTANT_SKIP_CONFIG_MIGRATION"):
+        print("[config-migrate] A2ASSISTANT_SKIP_CONFIG_MIGRATION is set; skipping config migration")
         return 0
 
     # Strict read: malformed YAML or a non-mapping root is left alone with a warning and the

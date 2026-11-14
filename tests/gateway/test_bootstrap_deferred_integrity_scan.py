@@ -33,7 +33,7 @@ def _startup(monkeypatch, tmp_path):
     from gateway import lifecycle_ledger as ledger
     from gateway import run_api, run_runtime
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     events, release, scan_entered = [], threading.Event(), threading.Event()
     state = {"evidence": None}
 

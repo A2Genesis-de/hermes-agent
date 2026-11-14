@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Generic web_search / web_extract tools over pluggable backends.
 
-Backend is selected during ``hermes tools`` (``web.backend`` in config.yaml; per
+Backend is selected during ``a2assistant tools`` (``web.backend`` in config.yaml; per
 capability via ``web.search_backend`` / ``web.extract_backend``). Every vendor
 implementation lives in a ``plugins/web/<vendor>/provider.py`` plugin and registers
 with ``agent.web_search_registry``; this module owns selection, safety gates,
@@ -174,7 +174,7 @@ def web_search_tool(query: str, limit: int = 5) -> str:
             provider = get_active_search_provider()
 
         if provider is None:
-            fallback = "No web search provider configured. Run `hermes tools` to set one up."
+            fallback = "No web search provider configured. Run `a2assistant tools` to set one up."
             response_data = {"success": False, "error": _no_provider_error("search", fallback)}
         else:
             logger.info("Web search via %s: '%s' (limit: %d)", provider.name, query, limit)
@@ -268,7 +268,7 @@ def _provider_is_ready(provider) -> bool:
     """True when *provider* reports ``is_available()``, without raising.
 
     ``get_active_*_provider()`` returns an explicitly configured backend even when ``is_available()`` is
-    False (so dispatch can emit a precise error), so readiness gates (tool check_fn, ``hermes doctor``)
+    False (so dispatch can emit a precise error), so readiness gates (tool check_fn, ``a2assistant doctor``)
     must probe for real.
     """
     return provider is not None and bool(_probe(provider, "is_available", " during readiness check"))

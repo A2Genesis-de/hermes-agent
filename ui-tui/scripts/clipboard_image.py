@@ -7,7 +7,7 @@ from pathlib import Path
 # The Python root (localGatewayBootstrap.ts/imageAttachments.ts pass it): the TUI product ships this
 # helper in dist/scripts/, where parents[2] is not the root.
 def python_root() -> Path:
-    return Path(os.environ.get("HERMES_PYTHON_SRC_ROOT") or Path(__file__).resolve().parents[2])
+    return Path(os.environ.get("A2ASSISTANT_PYTHON_SRC_ROOT") or Path(__file__).resolve().parents[2])
 
 
 sys.path.insert(0, str(python_root()))

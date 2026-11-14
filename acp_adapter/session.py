@@ -1,6 +1,6 @@
 """ACP session manager — maps ACP sessions to Hermes AIAgent instances.
 
-Sessions are persisted to the shared SessionDB (``~/.hermes/state.db``) so they
+Sessions are persisted to the shared SessionDB (``~/.a2assistant/state.db``) so they
 survive process restarts and appear in ``session_search``; ``load_session`` /
 ``resume_session`` after an editor reconnect restore the full history from there.
 """
@@ -161,7 +161,7 @@ class SessionManager:
 
     def __init__(self, agent_factory=None, db=None):
         """``agent_factory``: AIAgent-like factory (tests); default builds a real AIAgent from
-        the runtime provider config. ``db``: SessionDB; default lazily opens ``~/.hermes/state.db``."""
+        the runtime provider config. ``db``: SessionDB; default lazily opens ``~/.a2assistant/state.db``."""
         self._sessions: dict[str, SessionState] = {}
         self._lock = threading.Lock()
         # Serializes DB restores: session construction runs off the event loop, so two
@@ -333,7 +333,7 @@ class SessionManager:
 
     def _get_db(self):
         """Lazily acquire the process-shared SessionDB; ``None`` if unavailable (e.g. import
-        error in a minimal test env). ``HERMES_HOME`` is resolved here, not via the import-time
+        error in a minimal test env). ``A2ASSISTANT_HOME`` is resolved here, not via the import-time
         ``DEFAULT_DB_PATH``, so test fixtures that change the env var later are honoured. The
         registry handle is the one in-process tools (delegation, session_search, goals) also
         acquire, so the ACP server holds ONE writer on state.db instead of two (#100896)."""

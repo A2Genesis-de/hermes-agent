@@ -1,4 +1,4 @@
-"""``hermes connectors``: list, connect, rename and remove hosted connector accounts."""
+"""``a2assistant connectors``: list, connect, rename and remove hosted connector accounts."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ from typing import Any, Callable, NoReturn
 
 _POLL_SECONDS = 2.0
 _DONE_STATES = frozenset({"connected", "skipped", "failed", "expired", "not_connected"})
-_SIGN_IN = "Run `hermes auth upgrade` to sign in."
+_SIGN_IN = "Run `a2assistant auth upgrade` to sign in."
 
 
 class _CommandError(Exception):
@@ -119,7 +119,7 @@ def _report_connect(app: str, alias: str | None, target: dict[str, Any]) -> int:
     if state == "connected":
         if alias:
             print(f"{app_title(app)} account {alias} is connected. "
-                  f"Rename it anytime: hermes connectors rename {app} {alias} --to <new-name>")
+                  f"Rename it anytime: a2assistant connectors rename {app} {alias} --to <new-name>")
         else:
             print(f"{app_title(app)} is connected.")
         return 0

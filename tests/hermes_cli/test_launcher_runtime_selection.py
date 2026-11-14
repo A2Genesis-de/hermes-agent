@@ -40,7 +40,7 @@ def test_minted_launcher_reads_current_selection_and_editable_members(tmp_path, 
     base = site_packages(root / "venv")
     base.mkdir(parents=True)
     (base / "selection_probe.py").write_text("VALUE = 'base'\n")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     state = install_state_dir(root)
     out = tmp_path / "bin"
     out.mkdir()

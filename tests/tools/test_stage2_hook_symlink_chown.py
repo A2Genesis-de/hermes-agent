@@ -34,7 +34,7 @@ def _run_helper(
     hermes_home = target if hermes_home is None else hermes_home
     script = (
         "set -eu\n"
-        f'HERMES_HOME="{hermes_home}"\n'
+        f'A2ASSISTANT_HOME="{hermes_home}"\n'
         f"{_chown_hermes_tree_function(text)}\n"
         f'chown() {{ printf "%s\\n" "$*" >> "{log_path}"; }}\n'
         f'chown_hermes_tree "{target}"\n'
@@ -90,5 +90,5 @@ def test_chown_helper_refuses_target_under_symlinked_home(
     )
 
     assert proc.returncode == 0, proc.stderr
-    assert not log_path.exists(), "must not chown through a symlinked HERMES_HOME"
+    assert not log_path.exists(), "must not chown through a symlinked A2ASSISTANT_HOME"
     assert "refusing recursive chown through symlinked path" in proc.stdout

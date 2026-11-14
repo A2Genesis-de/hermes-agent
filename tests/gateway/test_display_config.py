@@ -222,7 +222,7 @@ class TestConfigMigration:
         }
         config_path.write_text(yaml.safe_dump(config), encoding="utf-8")
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         # Re-import to pick up the new HERMES_HOME
         import importlib
         import hermes_cli.config as cfg_mod

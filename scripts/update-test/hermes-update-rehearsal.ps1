@@ -5,9 +5,9 @@
 .DESCRIPTION
   Two steps:
 
-    pre   take a `hermes backup` of your data, snapshot the disk that holds
-          HERMES_HOME and the desktop app's Electron userData (Volume Shadow Copy),
-          then point the install's update source at a fork so `hermes update`
+    pre   take a `a2assistant backup` of your data, snapshot the disk that holds
+          A2ASSISTANT_HOME and the desktop app's Electron userData (Volume Shadow Copy),
+          then point the install's update source at a fork so `a2assistant update`
           pulls that fork's main. Prints what to do next.
     post  put both trees back exactly as they were at the snapshot.
 
@@ -16,10 +16,10 @@
 
   The snapshot is copy-on-write, so pre copies nothing and takes seconds. post
   mirrors the snapshot back over both trees: only files the update changed are
-  copied, and files it added are deleted. HERMES_HOME\cache is left as it is.
+  copied, and files it added are deleted. A2ASSISTANT_HOME\cache is left as it is.
 
   If Windows drops the snapshot (it can when the disk's shadow storage fills),
-  your files are untouched but post cannot roll back; the `hermes backup` zip
+  your files are untouched but post cannot roll back; the `a2assistant backup` zip
   still holds your config, keys, sessions, memories and skills. To make that
   unlikely, pre raises the shadow-storage cap to 128 GB (a ceiling, not a
   reservation) and post puts the original cap back.
@@ -41,11 +41,11 @@
 
 .EXAMPLE
   ./hermes-update-rehearsal.ps1 pre -Source <git-url>
-  # ... run `hermes update`, use Hermes, test ...
+  # ... run `a2assistant update`, use Hermes, test ...
   ./hermes-update-rehearsal.ps1 post
 
 .NOTES
-  `pre` and `hermes update` need network access to -Source, and a usable git on PATH.
+  `pre` and `a2assistant update` need network access to -Source, and a usable git on PATH.
 #>
 [CmdletBinding()]
 param(
@@ -86,10 +86,10 @@ function Assert-Elevated {
 # paths
 # ---------------------------------------------------------------------------
 function Get-ResolvedPaths {
-  $suffix = if ($env:HERMES_DATA_DIR_SUFFIX) { $env:HERMES_DATA_DIR_SUFFIX } else { '' }
+  $suffix = if ($env:A2ASSISTANT_DATA_DIR_SUFFIX) { $env:A2ASSISTANT_DATA_DIR_SUFFIX } else { '' }
   $userProfile = $env:USERPROFILE
-  if ($env:HERMES_HOME) {
-    $home_ = $env:HERMES_HOME
+  if ($env:A2ASSISTANT_HOME) {
+    $home_ = $env:A2ASSISTANT_HOME
     try { $home_ = (Resolve-Path -LiteralPath $home_ -ErrorAction Stop).Path }
     catch { $home_ = [IO.Path]::GetFullPath($home_) }
   }
@@ -98,8 +98,8 @@ function Get-ResolvedPaths {
     $home_ = "$(Join-Path $base 'hermes')$suffix"
   }
   $install = Join-Path $home_ 'hermes-agent'
-  if ($env:HERMES_DESKTOP_USER_DATA_DIR) {
-    $ud = $env:HERMES_DESKTOP_USER_DATA_DIR
+  if ($env:A2ASSISTANT_DESKTOP_USER_DATA_DIR) {
+    $ud = $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR
     try { $ud = (Resolve-Path -LiteralPath $ud -ErrorAction Stop).Path }
     catch { $ud = [IO.Path]::GetFullPath($ud) }
     $userData = $ud
@@ -133,7 +133,7 @@ function Load-Snapshot {
   $P = Get-ResolvedPaths
   $recorded = ((Get-Content -LiteralPath $recordedPath -Raw) -replace "`r", '').Trim()
   if ($recorded -ne $P.Home) {
-    Fail "that backup belongs to HERMES_HOME=$recorded, not $($P.Home); pass -BackupRoot to pick the right one"
+    Fail "that backup belongs to A2ASSISTANT_HOME=$recorded, not $($P.Home); pass -BackupRoot to pick the right one"
   }
 }
 
@@ -294,11 +294,11 @@ function Resolve-HermesExe {
 function Invoke-Pre {
   $P = Get-ResolvedPaths
   Step 'your install'
-  Say "HERMES_HOME   $($P.Home)"
+  Say "A2ASSISTANT_HOME   $($P.Home)"
   Say "install       $($P.Install)"
   Say "desktop data  $($P.UserData) ($($P.UserDataOrigin))"
   Say "backup to     $BackupRoot"
-  if (-not (Test-Path -LiteralPath $P.Home)) { Fail "no HERMES_HOME at $($P.Home)" }
+  if (-not (Test-Path -LiteralPath $P.Home)) { Fail "no A2ASSISTANT_HOME at $($P.Home)" }
   if (-not (Test-Path -LiteralPath (Join-Path $P.Install '.git'))) { Fail "no git checkout at $($P.Install) -- this tool covers source installs" }
   Assert-Elevated
   $hermesExe = Resolve-HermesExe $P
@@ -313,7 +313,7 @@ function Invoke-Pre {
   $procs = @(Get-Process -Name 'Hermes', 'hermes' -ErrorAction SilentlyContinue)
   if ($procs.Count) {
     Warn 'Hermes looks like it is running -- close the desktop app and the gateway'
-    Warn "before you run 'hermes update', or the dependency sync may fail:"
+    Warn "before you run 'a2assistant update', or the dependency sync may fail:"
     $procs | ForEach-Object { Write-Host "    $($_.ProcessName) (pid $($_.Id))" }
   }
   else { Ok 'no Hermes processes running' }
@@ -332,26 +332,26 @@ function Invoke-Pre {
   if (Test-Path -LiteralPath $script:Snap) { Fail "backup dir already exists: $($script:Snap)" }
   New-Item -ItemType Directory -Force -Path $script:Snap | Out-Null
 
-  Step 'backing up your data (hermes backup)'
+  Step 'backing up your data (a2assistant backup)'
   # Insurance for the case where Windows drops the snapshot: config, keys,
   # sessions, memories, skills, with SQLite copied consistently. Code, venvs and
   # models are left out -- those are what a reinstall brings back.
   $zip = Join-Path $script:Snap 'hermes-backup.zip'
   $started = Get-Date
-  $prevHome = $env:HERMES_HOME
-  $env:HERMES_HOME = $P.Home
+  $prevHome = $env:A2ASSISTANT_HOME
+  $env:A2ASSISTANT_HOME = $P.Home
   $prev = $ErrorActionPreference
   $ErrorActionPreference = 'Continue'
   try { $out = & $hermesExe backup -o $zip 2>&1; $code = $LASTEXITCODE }
-  finally { $ErrorActionPreference = $prev; $env:HERMES_HOME = $prevHome }
+  finally { $ErrorActionPreference = $prev; $env:A2ASSISTANT_HOME = $prevHome }
   $elapsed = [int]((Get-Date) - $started).TotalSeconds
   if ($code -eq 1 -and (Test-Path -LiteralPath $zip)) {
     $out | ForEach-Object { Write-Host "    $_" }
-    Warn "hermes backup finished INCOMPLETE (${elapsed}s): the files listed above are not in $zip"
+    Warn "a2assistant backup finished INCOMPLETE (${elapsed}s): the files listed above are not in $zip"
   }
   elseif ($code -ne 0 -or -not (Test-Path -LiteralPath $zip)) {
     $out | ForEach-Object { Write-Host "    $_" }
-    Fail "hermes backup failed (exit $code) -- nothing else was done"
+    Fail "a2assistant backup failed (exit $code) -- nothing else was done"
   }
   else { Ok "hermes-backup.zip ($([math]::Round((Get-Item $zip).Length / 1MB, 1)) MB, ${elapsed}s)" }
 
@@ -403,7 +403,7 @@ function Invoke-Pre {
 
   Step "pointing your install at $Source"
   # insteadOf is a TRANSPORT rewrite. Your checkout's origin keeps the official
-  # URL, which matters: `hermes update` resolves its channel from the archive and
+  # URL, which matters: `a2assistant update` resolves its channel from the archive and
   # validates it against `git config --get remote.origin.url`. Repointing origin
   # at a fork would make the update fail before any git work.
   # Straight at the fork: the updater follows main, so the fork's main is what
@@ -434,7 +434,7 @@ function Invoke-Pre {
 function Invoke-Status {
   $P = Get-ResolvedPaths
   Step 'your install'
-  Say "HERMES_HOME   $($P.Home)"
+  Say "A2ASSISTANT_HOME   $($P.Home)"
   Say "install       $($P.Install)"
   Say "desktop data  $($P.UserData) ($($P.UserDataOrigin))"
   Say "backup root   $BackupRoot"
@@ -500,7 +500,7 @@ function Invoke-Post {
     Say 'Nothing was changed. An exact rollback is no longer possible, but your data is'
     Say "backed up in $zip. To put your config, keys, sessions, memories and"
     Say 'skills back, either:'
-    Say "  hermes import `"$zip`""
+    Say "  a2assistant import `"$zip`""
     Say 'or, if hermes itself no longer starts, extract the zip over your home:'
     Say "  tar -xf `"$zip`" -C `"$($P.Home)`""
     Say 'then reinstall Hermes to get the program back.'
@@ -523,7 +523,7 @@ function Invoke-Post {
   $mounts = @{}
   try {
     foreach ($s in $shadows) { $mounts[$s.Volume] = Mount-Shadow $s }
-    $trees = @([pscustomobject]@{ Label = 'HERMES_HOME'; Live = $P.Home; IsHome = $true })
+    $trees = @([pscustomobject]@{ Label = 'A2ASSISTANT_HOME'; Live = $P.Home; IsHome = $true })
     $trees += [pscustomobject]@{ Label = "the desktop app's data"; Live = $P.UserData; IsHome = $false }
     foreach ($t in $trees) {
       Step "restoring $($t.Label)"
@@ -554,8 +554,8 @@ function Invoke-Post {
   Restore-ShadowStorage
 
   Step 'done'
-  Say "Your HERMES_HOME and the desktop app's data are back exactly as they were."
-  Say "Open the desktop app once and run 'hermes doctor' to confirm."
+  Say "Your A2ASSISTANT_HOME and the desktop app's data are back exactly as they were."
+  Say "Open the desktop app once and run 'a2assistant doctor' to confirm."
   Say "Nothing was judged or changed by this script; the backup at $($script:Snap)"
   Say 'is yours to keep or delete.'
 }

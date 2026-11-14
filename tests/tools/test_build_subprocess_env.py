@@ -20,12 +20,12 @@ def test_factory_child_policy_and_profile_home(child_env, monkeypatch, scrub, in
     try:
         env = build_subprocess_env(scrub_secrets=scrub, inherit_profile_home=inherit_home,
                                    extra={"MY_HARMLESS_VAR": "caller", "ANTHROPIC_API_KEY": "fake-extra"})
-        result = observe_child(env, ["HERMES_HOME", "ANTHROPIC_API_KEY", "AUXILIARY_FAKE_API_KEY",
+        result = observe_child(env, ["A2ASSISTANT_HOME", "ANTHROPIC_API_KEY", "AUXILIARY_FAKE_API_KEY",
                                      "MY_HARMLESS_VAR"])
     finally:
         reset_hermes_home_override(token)
     assert result == {
-        "HERMES_HOME": str(routed) if scrub or inherit_home else before["HERMES_HOME"],
+        "A2ASSISTANT_HOME": str(routed) if scrub or inherit_home else before["A2ASSISTANT_HOME"],
         "ANTHROPIC_API_KEY": None if scrub else "fake-extra",
         "AUXILIARY_FAKE_API_KEY": None if scrub else "fake-auxiliary",
         "MY_HARMLESS_VAR": "caller",
@@ -35,15 +35,15 @@ def test_factory_child_policy_and_profile_home(child_env, monkeypatch, scrub, in
 
 def test_no_scrub_is_byte_preserving_except_explicit_extra():
     base = {"PATH": "/bin", "PYTHONHOME": "/poison", "VIRTUAL_ENV": "/venv",
-            "CONDA_PREFIX": "/conda", "SERVICE_TOKEN": "fake", "HERMES_HOME": "/original"}
+            "CONDA_PREFIX": "/conda", "SERVICE_TOKEN": "fake", "A2ASSISTANT_HOME": "/original"}
     assert build_subprocess_env(base, scrub_secrets=False, inherit_profile_home=False) == base
-    assert build_subprocess_env(base, scrub_secrets=False, extra={"HERMES_HOME": "/caller"})["HERMES_HOME"] == "/caller"
+    assert build_subprocess_env(base, scrub_secrets=False, extra={"A2ASSISTANT_HOME": "/caller"})["A2ASSISTANT_HOME"] == "/caller"
 
 
 def test_e2e_scrubbed_env_resolves_bare_hermes_under_minimal_parent_path(monkeypatch, tmp_path):
     """Regression for #92998/#93082: a gateway launched by systemd/cron with a
     minimal PATH (no hermes console-script dir) must still hand cron job
-    children an env whose PATH resolves bare ``hermes``.
+    children an env whose PATH resolves bare ``a2assistant``.
 
     Exercises the REAL factory and the REAL bin-dir resolver — no mocks of the
     helpers. cron/scheduler._run_job_script builds its child env via exactly

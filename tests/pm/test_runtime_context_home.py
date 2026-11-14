@@ -16,7 +16,7 @@ def test_context_home_publication_recovers_from_its_own_process(tmp_path, monkey
     config = context_home / "config.yaml"
     original = b"plugins:\n  enabled: [old]\n"
     config.write_bytes(original)
-    monkeypatch.setenv("HERMES_HOME", str(process_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(process_home))
     monkeypatch.setattr(paths, "repo_root", lambda: project)
     process_state = runtime_paths.install_state_dir(project)
     token = set_hermes_home_override(context_home)
@@ -33,7 +33,7 @@ def test_context_home_publication_recovers_from_its_own_process(tmp_path, monkey
         reset_hermes_home_override(token)
 
     assert not process_state.exists()
-    monkeypatch.setenv("HERMES_HOME", str(context_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(context_home))
     assert runtime_paths.install_state_dir(project) == context_state
     with runtime_lock(project):
         recover_publication(project)
@@ -45,7 +45,7 @@ def test_named_context_profile_shares_its_install_root(tmp_path, monkeypatch):
     home = tmp_path / "home"
     profile = home / "profiles" / "worker"
     profile.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     project = tmp_path / "repo"
     state = runtime_paths.install_state_dir(project)
     token = set_hermes_home_override(profile)

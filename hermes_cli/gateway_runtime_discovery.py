@@ -49,7 +49,7 @@ def _may_have_access_acl(path: Path) -> bool:
 
 def home_mode_unsafe(node: os.stat_result, path: Path) -> bool:
     """The profile home keeps the operator's mode (main's home policy: symlinked homes,
-    HERMES_HOME_MODE 0701/0750). Only write by another user lets them swap the socket; read/search
+    A2ASSISTANT_HOME_MODE 0701/0750). Only write by another user lets them swap the socket; read/search
     bits grant nothing against our 0600 socket, and group-write is harmless when the group is the
     owner's private group (the umask-002 user-private-group default). What we create stays 0700."""
     mode = stat.S_IMODE(node.st_mode)

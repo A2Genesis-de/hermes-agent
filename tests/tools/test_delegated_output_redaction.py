@@ -25,7 +25,7 @@ PEM = (
 
 @pytest.fixture(autouse=True)
 def isolated(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     ad._reset_for_tests()
     yield

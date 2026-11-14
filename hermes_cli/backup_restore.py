@@ -2,7 +2,7 @@
 
 Owns the restore side of ``hermes_cli.backup``: the page-copy SQLite restore
 (``_safe_restore_db`` plus the foreign-holder scan) and the zip-member publish
-helpers used by ``hermes import`` and ``/snapshot restore``.  Backup
+helpers used by ``a2assistant import`` and ``/snapshot restore``.  Backup
 *creation* (``run_backup``, full-zip writing) stays in ``hermes_cli.backup``,
 which composes these helpers.
 """
@@ -199,7 +199,7 @@ def _restore_destination_epoch(dst: Path) -> int:
     except (OSError, sqlite3.Error, ValueError) as exc:
         raise OSError(
             f"Cannot read the canonical runtime epoch at {dst}; refusing in-place restore. "
-            "Use `hermes sessions recover --source <snapshot> --output <separate-path>` "
+            "Use `a2assistant sessions recover --source <snapshot> --output <separate-path>` "
             "to salvage transcripts into a separate output."
         ) from exc
 
@@ -410,7 +410,7 @@ def _detect_prefix(zf: zipfile.ZipFile) -> str:
     if len(first_parts) == 1:
         prefix = first_parts.pop()
         # Only strip if it looks like a hermes dir name
-        if prefix in {".hermes", "hermes"}:
+        if prefix in {".hermes", "hermes", ".a2assistant", "a2assistant"}:
             return prefix + "/"
 
     return ""
@@ -448,7 +448,7 @@ def _extract_member_atomically(
     ``open(target, "wb")`` truncates the user's existing file to zero *before*
     any replacement bytes exist.  A Ctrl-C, an ENOSPC, a corrupt member, or a
     crash between the truncate and the write therefore leaves that file empty
-    with nothing behind it — during ``hermes import``, which is the
+    with nothing behind it — during ``a2assistant import``, which is the
     disaster-recovery path a user reaches for *because* they already lost
     something.  Staging into the target's own directory and publishing with a
     rename means the target only ever moves from its old contents to the
@@ -467,7 +467,7 @@ def _extract_member_atomically(
     Permission bits *and* ownership are carried across the replace so routing
     through mkstemp does not change the file the caller would otherwise have
     produced.  ``os.replace`` swaps in a temp file owned by the *writing* user,
-    so without the chown a ``sudo hermes import`` would silently re-own every
+    so without the chown a ``sudo a2assistant import`` would silently re-own every
     restored file to root — on the disaster-recovery path, and on exactly the
     Docker/NAS installs ``utils._restore_file_owner`` documents.  Both concerns
     delegate to the shared ``utils`` helpers rather than being re-derived here.
@@ -594,7 +594,7 @@ def _import_db_member_exclusive(
     describes the database that was just unlinked.  Nothing fails, so nothing
     is reported — the sessions simply are not there afterwards (issue #100960).
 
-    ``hermes import`` is the disaster-recovery path, so that failure mode lands
+    ``a2assistant import`` is the disaster-recovery path, so that failure mode lands
     on users who have already lost something once.  Route the member through
     the same ``_safe_restore_db`` page copy that ``/snapshot restore`` has used
     since #65942: the live inode is preserved, every open connection converges

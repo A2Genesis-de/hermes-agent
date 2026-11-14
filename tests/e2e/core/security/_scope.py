@@ -1,4 +1,4 @@
-"""Private harness for ``test_profile_secret_scope.py``: one real ``hermes serve`` hosting two
+"""Private harness for ``test_profile_secret_scope.py``: one real ``a2assistant serve`` hosting two
 profiles, a user dashboard plugin whose API route reads a credential through ``get_secret``, and a
 stdio MCP server per profile that dumps the environment it was spawned with.
 

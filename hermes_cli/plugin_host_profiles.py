@@ -95,7 +95,7 @@ def _extract(plugin_dir: Path, module_name: str) -> dict[str, Any]:
     home = str(get_hermes_home().resolve())
     env = {key: os.environ[key] for key in ("PATH", "LANG", "LC_ALL", "TZ", "SYSTEMROOT") if key in os.environ}
     # Windows resolves Path.home() from USERPROFILE, never HOME: without it the child cannot start.
-    env.update(HOME=str(Path.home()), USERPROFILE=str(Path.home()), HERMES_HOME=home,
+    env.update(HOME=str(Path.home()), USERPROFILE=str(Path.home()), A2ASSISTANT_HOME=home,
                PYTHONPATH=repo_root,
                **{HOST_PROCESS_ENV: "1"})
     # -P and a trusted cwd: ``-m`` otherwise puts the launch directory ahead of PYTHONPATH, so a

@@ -3,7 +3,7 @@
 ``is_active`` on a run row is a 300s activity window. A live run inside a long tool call writes no
 heartbeat, so it reads inactive exactly like a zombie whose process died. ``scheduler_owned`` is
 the durable answer the desktop keys its view-only decision on; these tests drive the real
-execution ledger in a temp HERMES_HOME.
+execution ledger in a temp A2ASSISTANT_HOME.
 """
 
 import sqlite3
@@ -26,7 +26,7 @@ def homes(tmp_path, monkeypatch):
     for home in (default_home, worker_home):
         (home / "cron").mkdir(parents=True, exist_ok=True)
         (home / "config.yaml").write_text("model: test-model\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: profiles_root)
     return {"default": default_home, "worker_alpha": worker_home}

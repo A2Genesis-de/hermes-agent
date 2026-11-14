@@ -20,9 +20,9 @@ replay). Do not add the modeled figures to the observed ones; see §5 of #103563
 
 - A Hermes checkout with its venv (`.venv/bin/python`). NeMo Relay is not required for the forensics;
   it is what the run itself used for the wire captures in `live_ab/cache_prefix_wire.py`.
-- For forensics: a **copy** of `~/.hermes/state.db` (never point at the live file; `sqlite3 state.db ".backup copy.db"`
-  or `cp` while Hermes is idle) and, optionally, the rotated `~/.hermes/logs/agent.log*`.
-- For `--live` probes: real credentials in `HERMES_HOME` (they spend cents per run).
+- For forensics: a **copy** of `~/.a2assistant/state.db` (never point at the live file; `sqlite3 state.db ".backup copy.db"`
+  or `cp` while Hermes is idle) and, optionally, the rotated `~/.a2assistant/logs/agent.log*`.
+- For `--live` probes: real credentials in `A2ASSISTANT_HOME` (they spend cents per run).
 
 ## Forensics: recompute the observed numbers for YOUR run
 
@@ -32,7 +32,7 @@ P=.venv/bin/python
 # 1. cost buckets, depth/duration shares, context-size reconstruction, excess-cache-write proxy, cap replay
 $P -m evals.postmortem.forensics.tokens     --db state_copy.db [--root <session_id>] [--cap 200000 --floor 65000]
 # 2. per-call cache behaviour from the logs (coverage fraction is printed first; quote nothing without it)
-$P -m evals.postmortem.forensics.logcalls   --db state_copy.db --logs "$HOME/.hermes/logs/agent.log*"
+$P -m evals.postmortem.forensics.logcalls   --db state_copy.db --logs "$HOME/.a2assistant/logs/agent.log*"
 # 3. delegation: timeouts, orphaned children, polling, batch-join delay, truncated summaries
 $P -m evals.postmortem.forensics.delegation --db state_copy.db
 # 4. tool friction: hardline false blocks, foreground refusals, whole-file rewrites, output volume
@@ -66,7 +66,7 @@ the peak-concurrency window). The tracking issue quotes the second and says so.
 ## Live A/B: what each fix does
 
 ```bash
-# offline probes (fake providers, temp HERMES_HOME), main vs a branch or integration checkout:
+# offline probes (fake providers, temp A2ASSISTANT_HOME), main vs a branch or integration checkout:
 .venv/bin/python -m evals.postmortem.run --repo /path/to/main --compare /path/to/branch
 # add the probes that make real provider calls (cents):
 .venv/bin/python -m evals.postmortem.run --repo /path/to/branch --live

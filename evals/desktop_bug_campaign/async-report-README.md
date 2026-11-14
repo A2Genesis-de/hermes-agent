@@ -10,7 +10,7 @@ From the repository root with the normal Python and pnpm dependencies installed:
 
 ```sh
 export HOME=$(mktemp -d)
-export HERMES_HOME="$HOME/.hermes"
+export A2ASSISTANT_HOME="$HOME/.a2assistant"
 export ASYNC_REPORT_ARTIFACT_DIR=$(mktemp -d)
 # If Chromium is installed outside the temporary HOME, set
 # PLAYWRIGHT_BROWSERS_PATH to that installation's browser cache.

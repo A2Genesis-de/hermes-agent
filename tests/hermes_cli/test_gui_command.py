@@ -1,4 +1,4 @@
-"""Tests for ``hermes gui`` desktop launcher wiring."""
+"""Tests for ``a2assistant gui`` desktop launcher wiring."""
 
 from __future__ import annotations
 
@@ -56,7 +56,7 @@ def _stable_keychain_detection(monkeypatch):
     """
     monkeypatch.delenv("KDE_SESSION_VERSION", raising=False)
     monkeypatch.delenv("KDE_FULL_SESSION", raising=False)
-    monkeypatch.delenv("HERMES_DESKTOP_PASSWORD_STORE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_PASSWORD_STORE", raising=False)
     monkeypatch.setenv("GNOME_KEYRING_CONTROL", "/run/user/1000/keyring")
 
 
@@ -132,7 +132,7 @@ def _packaged_exe_rel() -> Path:
 
 
 def _pnpm_argv(cmd) -> list:
-    """The pnpm command line inside a build call. A direct ``hermes desktop`` build holds the
+    """The pnpm command line inside a build call. A direct ``a2assistant desktop`` build holds the
     checkout lock (review C5), so on POSIX it runs under the custody launcher
     (``python -I -S -c <reaper> <fds> pnpm ...``)."""
     cmd = list(cmd)
@@ -197,7 +197,7 @@ def _stamped_macos_bundle(app: Path, asar: bytes) -> Path:
 
 @pytest.mark.platforms("macos")
 def test_packaged_launch_opens_the_refreshed_installed_app(tmp_path, monkeypatch):
-    """#52339: Finder and the Dock open the installed Hermes.app, so ``hermes desktop`` must launch
+    """#52339: Finder and the Dock open the installed Hermes.app, so ``a2assistant desktop`` must launch
     that copy (brought up to the checkout build) instead of a second bundle under release/."""
     import shutil
 
@@ -305,7 +305,7 @@ def test_gui_brew_install_launches_installed_app_when_present(tmp_path, monkeypa
 
 
 def test_gui_close_preview_flag_forwards_to_packaged_exe(tmp_path, monkeypatch):
-    """`hermes desktop --close-preview` must reach the Electron binary so the
+    """`a2assistant desktop --close-preview` must reach the Electron binary so the
     running instance's single-instance handler can close a fullscreened
     preview pane the user cannot otherwise escape (#97213)."""
     root = _make_desktop_tree(tmp_path)
@@ -385,7 +385,7 @@ def _make_signable_app(desktop_dir: Path) -> Path:
     (ent_dir / "entitlements.mac.inherit.plist").write_text("<plist/>", encoding="utf-8")
 
     app = desktop_dir / "release" / "mac-arm64" / "A2Assistant.app"
-    _write_info_plist(app, "com.nousresearch.hermes")
+    _write_info_plist(app, "de.a2genesis.a2assistant")
     (app / "Contents" / "MacOS").mkdir(parents=True)
     (app / "Contents" / "MacOS" / "A2Assistant").write_text("", encoding="utf-8")
 
@@ -673,7 +673,7 @@ def test_setup_tcc_identity_untrusted_existing_cert_is_repaired(tmp_path, monkey
 
 
 def test_cmd_gui_setup_tcc_identity_exits_before_build(tmp_path, monkeypatch):
-    """`hermes desktop --setup-tcc-identity` calls the setup and exits 0/1
+    """`a2assistant desktop --setup-tcc-identity` calls the setup and exits 0/1
     without building or launching the app."""
     root = _make_desktop_tree(tmp_path)
     monkeypatch.setattr(cli_main, "PROJECT_ROOT", root)
@@ -763,7 +763,7 @@ def test_relaunchable_fixup_configured_identity_failure_never_falls_back_to_adho
     # replacement would orphan its keychain ACLs and TCC grants.
     monkeypatch.setattr(
         main_desktop, "_macos_signature_summary",
-        lambda codesign, app: {"team": "TEAMID123", "identifier": "com.nousresearch.hermes",
+        lambda codesign, app: {"team": "TEAMID123", "identifier": "de.a2genesis.a2assistant",
                                "verified": True},
     )
 
@@ -1068,7 +1068,7 @@ def test_gui_registers_linux_desktop_entry_before_launch(tmp_path, monkeypatch):
 def test_gui_shell_launch_defers_desktop_entry_until_window_reveal(tmp_path, monkeypatch):
     """An app-grid launch (DESKTOP_STARTUP_ID set) writes the entry only after Electron reports
     its window on screen — never before the spawn, while gnome-shell has the app in STARTING
-    (#111906). Electron gets the pipe's write end via HERMES_DESKTOP_READY_FD."""
+    (#111906). Electron gets the pipe's write end via A2ASSISTANT_DESKTOP_READY_FD."""
     root = _make_desktop_tree(tmp_path)
     monkeypatch.setattr(cli_main, "PROJECT_ROOT", root)
     monkeypatch.setenv("DESKTOP_STARTUP_ID", "gnome-shell/Hermes/1-0_TIME1")
@@ -1084,7 +1084,7 @@ def test_gui_shell_launch_defers_desktop_entry_until_window_reveal(tmp_path, mon
 
     def fake_electron(cmd, **kwargs):
         events.append("spawn")
-        fd = int(kwargs["env"]["HERMES_DESKTOP_READY_FD"])
+        fd = int(kwargs["env"]["A2ASSISTANT_DESKTOP_READY_FD"])
         assert fd in kwargs["pass_fds"]
         os.write(fd, b"r")  # main window revealed
         deadline = time.monotonic() + 10
@@ -1212,23 +1212,23 @@ def test_desktop_launch_options_normalizes_renderer_accessibility(raw, expected)
 
 def test_desktop_environment_bridges_only_the_accessibility_opt_out(monkeypatch):
     """ON (the default) sets nothing; the opt-out bridges to
-    HERMES_DESKTOP_RENDERER_ACCESSIBILITY=0, and an explicit env var wins."""
-    monkeypatch.delenv("HERMES_DESKTOP_RENDERER_ACCESSIBILITY", raising=False)
+    A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY=0, and an explicit env var wins."""
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY", raising=False)
     monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"desktop": {}})
 
     env, _ = main_desktop._desktop_launch_env(_ns())
-    assert "HERMES_DESKTOP_RENDERER_ACCESSIBILITY" not in env
+    assert "A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY" not in env
 
     monkeypatch.setattr(
         "hermes_cli.config.load_config",
         lambda: {"desktop": {"renderer_accessibility": False}})
     env, _ = main_desktop._desktop_launch_env(_ns())
-    assert env["HERMES_DESKTOP_RENDERER_ACCESSIBILITY"] == "0"
+    assert env["A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY"] == "0"
 
-    monkeypatch.setenv("HERMES_DESKTOP_RENDERER_ACCESSIBILITY", "0")
+    monkeypatch.setenv("A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY", "0")
     monkeypatch.setattr("hermes_cli.config.load_config", lambda: {"desktop": {}})
     env, _ = main_desktop._desktop_launch_env(_ns())
-    assert env["HERMES_DESKTOP_RENDERER_ACCESSIBILITY"] == "0"
+    assert env["A2ASSISTANT_DESKTOP_RENDERER_ACCESSIBILITY"] == "0"
 
 
 
@@ -1241,7 +1241,7 @@ def _clear_keychain_env(monkeypatch):
         "KDE_SESSION_VERSION",
         "KDE_FULL_SESSION",
         "GNOME_KEYRING_CONTROL",
-        "HERMES_DESKTOP_PASSWORD_STORE",
+        "A2ASSISTANT_DESKTOP_PASSWORD_STORE",
     ):
         monkeypatch.delenv(var, raising=False)
 
@@ -1311,7 +1311,7 @@ def test_gui_linux_packaged_launch_bridges_detected_password_store(tmp_path, mon
         cli_main.cmd_gui(_ns())
 
     launch_env = mock_run.call_args_list[-1].kwargs["env"]
-    assert launch_env["HERMES_DESKTOP_PASSWORD_STORE"] == "gnome-libsecret"
+    assert launch_env["A2ASSISTANT_DESKTOP_PASSWORD_STORE"] == "gnome-libsecret"
 
 
 @pytest.mark.platforms("linux")
@@ -1330,9 +1330,9 @@ def test_desktop_environment_precedence(monkeypatch, explicit, configured, detec
         return detected
     monkeypatch.setattr(main_desktop, '_detect_linux_password_store', detect)
     if explicit:
-        monkeypatch.setenv('HERMES_DESKTOP_PASSWORD_STORE', explicit)
+        monkeypatch.setenv('A2ASSISTANT_DESKTOP_PASSWORD_STORE', explicit)
     env, _ = main_desktop._desktop_launch_env(_ns())
-    assert env['HERMES_DESKTOP_PASSWORD_STORE'] == expected
+    assert env['A2ASSISTANT_DESKTOP_PASSWORD_STORE'] == expected
     assert env['ELECTRON_OZONE_PLATFORM_HINT'] == 'x11'
     monkeypatch.setenv('ELECTRON_OZONE_PLATFORM_HINT', 'wayland')
     assert main_desktop._desktop_launch_env(_ns())[0]['ELECTRON_OZONE_PLATFORM_HINT'] == 'wayland'
@@ -1363,7 +1363,7 @@ def test_gui_linux_source_launch_bridges_detected_password_store(tmp_path, monke
 
     assert mock_run.call_args_list[-1].args[0] == [str(electron / "dist/electron"), "."]
     launch_env = mock_run.call_args_list[-1].kwargs["env"]
-    assert launch_env["HERMES_DESKTOP_PASSWORD_STORE"] == "kwallet6"
+    assert launch_env["A2ASSISTANT_DESKTOP_PASSWORD_STORE"] == "kwallet6"
 
 
 @pytest.mark.platforms("macos")
@@ -1388,7 +1388,7 @@ def test_gui_password_store_bridge_is_linux_only(tmp_path, monkeypatch):
 
     mock_detect.assert_not_called()
     launch_env = mock_run.call_args_list[-1].kwargs["env"]
-    assert "HERMES_DESKTOP_PASSWORD_STORE" not in launch_env
+    assert "A2ASSISTANT_DESKTOP_PASSWORD_STORE" not in launch_env
 
 
 # ---------------------------------------------------------------------------
@@ -1677,7 +1677,7 @@ def test_stop_desktop_processes_locking_build_posix_swap_bypasses_early_return(t
 
 def _stop_spares_the_desktop_driving_this_update(tmp_path, monkeypatch, *, also_posix):
     """A Desktop's own process tree runs this update (a historical Desktop's piped
-    `hermes update` child, or the launch-time tail its backend runs). Stopping that
+    `a2assistant update` child, or the launch-time tail its backend runs). Stopping that
     Desktop kills the update with it. Its renderer/GPU/zygote helpers run the same
     exe but are not our ancestors; stopping them leaves a main process that can
     neither draw nor quit. Only an unrelated Desktop from the same release tree is
@@ -1732,7 +1732,7 @@ def _stop_spares_the_desktop_driving_this_update(tmp_path, monkeypatch, *, also_
 
 @pytest.mark.platforms("posix")
 def test_posix_swap_spares_the_desktop_driving_this_update(tmp_path, monkeypatch):
-    """A historical Desktop runs `hermes update` as a piped child and relaunches
+    """A historical Desktop runs `a2assistant update` as a piped child and relaunches
     itself afterwards; stopping it breaks the update's stdout (EPIPE)."""
     _stop_spares_the_desktop_driving_this_update(tmp_path, monkeypatch, also_posix=True)
 

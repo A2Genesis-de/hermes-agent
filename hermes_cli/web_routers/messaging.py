@@ -19,6 +19,7 @@ from fastapi import APIRouter, HTTPException
 
 from gateway.config import SHARED_LISTENER_MIRROR_PLATFORMS as _LISTENER_MIRRORS
 from gateway.status import resolve_gateway_liveness, retained_gateway_state
+from hermes_cli.branding import CLI_COMMAND
 from hermes_cli.config import OPTIONAL_ENV_VARS, get_env_path
 from hermes_constants import get_process_hermes_home
 from hermes_cli.web_deps import LateState, late
@@ -236,7 +237,7 @@ def _messaging_platform_payload(
 
 def _platform_payloads(scoped_dir: Optional[Path], entries) -> list[dict[str, Any]]:
     """Payloads for ``entries``; call inside ``_profile_scope`` (load_env honors the
-    HERMES_HOME contextvar; the gateway status readers do not, hence the explicit path)."""
+    A2ASSISTANT_HOME contextvar; the gateway status readers do not, hence the explicit path)."""
     env_on_disk = load_env()
     runtime = read_runtime_status(path=scoped_dir / "gateway_state.json") if scoped_dir is not None else read_runtime_status()
     # A profile served by the multiplexer writes no live record of its own; its adapters live in the
@@ -289,7 +290,7 @@ async def get_messaging_platforms(profile: Optional[str] = None):
         with _profile_scope(profile) as scoped_dir:
             return {
                 "env_path": str(get_env_path()),
-                "gateway_start_command": " ".join(["hermes", *_gateway_subcommand(profile, "start")]),
+                "gateway_start_command": " ".join([CLI_COMMAND, *_gateway_subcommand(profile, "start")]),
                 "platforms": _platform_payloads(scoped_dir, _messaging_platform_catalog()),
             }
 
@@ -408,7 +409,7 @@ async def update_messaging_platform(platform_id: str, body: MessagingPlatformUpd
 def _notify_multiplexer_hot_serve(profile: Optional[str]) -> bool:
     """True when a live multiplexer serves the written profile and was told to rebuild its adapters.
     Unscoped (no ``?profile=``) means THIS process's profile: Desktop routes a pooled
-    ``hermes --profile X serve`` without the query (#109088), so X must resolve here too."""
+    ``a2assistant --profile X serve`` without the query (#109088), so X must resolve here too."""
     from hermes_cli.gateway import _current_profile_name, named_profile_served_by_running_multiplexer
     from hermes_cli.gateway_multiplex_served import notify_multiplexer_profiles_changed
     name = (profile or "").strip() or _current_profile_name()

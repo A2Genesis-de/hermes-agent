@@ -193,7 +193,7 @@ describe('durable submit acknowledgement', () => {
   })
 
   it('a legacy backend refusing submission_id as version skew (4000) gets one identityless retry', async () => {
-    // `hermes serve` validates params against a strict contract: an unknown key is refused
+    // `a2assistant serve` validates params against a strict contract: an unknown key is refused
     // as 4000 before any handler ran (surfaced by the remote-topology E2E as "Session unavailable").
     const submits: Array<Record<string, unknown>> = []
 

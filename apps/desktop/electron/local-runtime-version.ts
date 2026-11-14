@@ -21,7 +21,7 @@ export type VersionProbeRunner = (
 ) => Promise<string>
 
 const DEFAULT_CACHE_TTL_MS = 5_000
-// Keyed by installation (root + HERMES_HOME), not launcher: the cache must answer before any
+// Keyed by installation (root + A2ASSISTANT_HOME), not launcher: the cache must answer before any
 // launcher discovery, whose historical rung spawns the launcher to prove its identity.
 let cached: { key: string; version: string; expiresAt: number } | null = null
 let inFlight: { key: string; promise: Promise<string> } | null = null
@@ -118,7 +118,7 @@ async function probeLocalRuntimeVersion(
 
   return (options.run ?? runVersionProbe)(command, ['--version'], {
     cwd: root,
-    env: { ...process.env, ...buildDesktopBackendEnv({ currentEnv: process.env }), HERMES_HOME: hermesHome },
+    env: { ...process.env, ...buildDesktopBackendEnv({ currentEnv: process.env }), A2ASSISTANT_HOME: hermesHome },
     timeout: PROBE_TIMEOUT_MS,
     maxBuffer: 64 * 1024,
     shell,

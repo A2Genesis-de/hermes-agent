@@ -1,4 +1,4 @@
-"""Auto-decompose billing bounds, proven against a REAL ``hermes gateway run`` embedded dispatcher.
+"""Auto-decompose billing bounds, proven against a REAL ``a2assistant gateway run`` embedded dispatcher.
 
 The gateway (no messaging platforms -> a kanban/cron-only process) ticks the embedded dispatcher
 every second; each tick auto-decomposes triage cards through the auxiliary model, which is the
@@ -133,8 +133,8 @@ def gateway(b: Board) -> Iterator[subprocess.Popen]:
     env = b.env()
     # The child's HOME is itself the scratch board root, so ~/.hermes IS the temp home here; the
     # inherited live-system guard would refuse it (same as the delivery/tenancy gateway children).
-    env.update({"HERMES_GATEWAY_LOCK_DIR": str(b.root / "gw-locks"), "PYTHONUNBUFFERED": "1",
-                "HERMES_STATE_DB_GUARD_BYPASS": "1"})
+    env.update({"A2ASSISTANT_GATEWAY_LOCK_DIR": str(b.root / "gw-locks"), "PYTHONUNBUFFERED": "1",
+                "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1"})
     log_path = b.root / "gateway.log"
     with open(log_path, "wb") as log:
         proc = subprocess.Popen([PY, "-m", "hermes_cli.main", "gateway", "run"], cwd=str(b.root),
@@ -224,7 +224,7 @@ def test_valid_three_child_graph_bills_once_and_links_children(tmp_path: Path) -
 
 def test_huge_decompose_reply_is_bounded(tmp_path: Path) -> None:
     """One decompose call answering 500 children must be rejected or capped, not fanned out.
-    Driven through the real ``hermes kanban decompose`` CLI (same decompose_task path)."""
+    Driven through the real ``a2assistant kanban decompose`` CLI (same decompose_task path)."""
     model = AuxModel()
     with FakeLLMServer(aux=model) as srv:
         b = Board(tmp_path, srv.base_url)

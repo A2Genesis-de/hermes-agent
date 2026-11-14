@@ -40,7 +40,7 @@ def test_staged_uv_prepares_pm_before_any_tool_download(tmp_path):
     }}))
     env = {key: value for key, value in os.environ.items()
            if not key.startswith(("PYTHON", "UV_"))}
-    env.update(HERMES_HOME=str(home), HERMES_RUNTIME_DIR=str(store))
+    env.update(A2ASSISTANT_HOME=str(home), A2ASSISTANT_RUNTIME_DIR=str(store))
     code = """
 import sys, subprocess
 from pathlib import Path
@@ -89,8 +89,8 @@ def test_pm_cli_verifies_tls_with_platform_trust(tmp_path, monkeypatch):
 
     home = tmp_path / "home"
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(home / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(home / "tools"))
     uv = shutil.which("uv")
     assert uv
     python = prepare_runtime(Path(uv), Path(sys.executable), tmp_path / "runtime")

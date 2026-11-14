@@ -14,7 +14,7 @@ class TestRetiredMultiplexAllowlist:
             "_config_version": 42,
             "gateway": {"multiplex_profiles": True, "multiplex_profile_allowlist": ["worker"]},
         }), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         run_migrations(42, {"env_added": [], "config_added": [], "warnings": []}, quiet=True)
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         assert "multiplex_profile_allowlist" not in raw["gateway"]
@@ -33,7 +33,7 @@ class TestCuratorFasterPrune:
             "_config_version": 43,
             "curator": {"stale_after_days": 30, "archive_after_days": 180},
         }), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         run_migrations(43, {"env_added": [], "config_added": [], "warnings": []}, quiet=True)
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         assert raw["curator"]["stale_after_days"] == DEFAULT_CONFIG["curator"]["stale_after_days"]
@@ -52,7 +52,7 @@ class TestRetiredBotChatDeliveryTimeout:
             "_config_version": 50,
             "cron": {"bot_chat_delivery_timeout_seconds": 900, "max_parallel_jobs": 2},
         }), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         results = {"env_added": [], "config_added": [], "warnings": []}
         run_migrations(50, results, quiet=True)
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
@@ -74,7 +74,7 @@ class TestRetiredKeysWhateverTheStamp:
         config_path.write_text(yaml.safe_dump({
             "cron": {"bot_chat_delivery_timeout_seconds": 900, "max_parallel_jobs": 2},
         }), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         migrate_config(interactive=False, quiet=True)
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         assert raw["cron"] == {"max_parallel_jobs": 2}
@@ -90,7 +90,7 @@ class TestRetiredKeysWhateverTheStamp:
             "mcp_servers": {"old": {"command": "x", "enabled": True, "disabled": True}},
             "security": {"redact_secrets": True, "tirith_enabled": True},
         }), encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         migrate_config(interactive=False, quiet=True)
         raw = yaml.safe_load(config_path.read_text(encoding="utf-8"))
         assert raw["mcp_servers"]["old"] == {"command": "x", "enabled": False}

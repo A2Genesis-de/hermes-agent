@@ -1,6 +1,6 @@
 """Record of who carries inference, for ``setup.status`` and ``setup.ready``.
 
-It runs once per process on a daemon thread: at ``hermes serve`` boot, and on the gateway when the
+It runs once per process on a daemon thread: at ``a2assistant serve`` boot, and on the gateway when the
 local Desktop first connects (``tui_gateway.methods_onboarding.begin_local_desktop_boot``). It never
 creates an identity: the desktop's welcome-trial claim (``hermes_cli.welcome_trial``) and the first
 hosted connector action are the only creators. For the desktop's local backend it first records a
@@ -95,7 +95,7 @@ def reconcile_record() -> Optional[SetupRecord]:
     inference. The identity and failure block are kept as is. A record that already says ``True`` is never re-probed, so the answer
     only moves false -> true here. Every write path that assigns the main model (the Models page,
     a picker key save) calls this for the immediate broadcast; ``setup.status`` calls it for
-    writes this process never saw (``hermes setup`` / ``hermes model`` from a shell, a hand edit).
+    writes this process never saw (``a2assistant setup`` / ``a2assistant model`` from a shell, a hand edit).
     The record is the LAUNCH profile's: a call scoped to another profile's home (a dashboard
     write with ``?profile=B``) leaves it alone, or B's providers would open the launch gate."""
     global _record

@@ -1,6 +1,6 @@
 /**
  * @hermes belongs to the default bot only while its source has no real
- * (pre-reservation) `hermes` profile. With one, the roster shows exactly one
+ * (pre-reservation) `a2assistant` profile. With one, the roster shows exactly one
  * @hermes — the real profile — and the default answers to @default, so a
  * typed @hermes reaches the same profile the backend's message_agent does.
  */
@@ -51,7 +51,7 @@ describe('the @hermes handle', () => {
     expect(resolveRosterMentions('@hermes ping', rows, { name: 'researcher' }).map(row => row.name)).toEqual([owner])
   })
 
-  it('names the default @default once a real hermes profile holds the handle', () => {
+  it('names the default @default once a real a2assistant profile holds the handle', () => {
     const rows = roster(['default', 'hermes', 'researcher'])
     const byName = Object.fromEntries(rows.map(row => [row.name, botHandle(row.name, row)]))
 
@@ -59,7 +59,7 @@ describe('the @hermes handle', () => {
     expect(resolveRosterMentions('@default ping', rows, { name: 'researcher' }).map(row => row.name)).toEqual(['default'])
   })
 
-  it('keeps each source separate: a remote hermes profile does not rename the local default', () => {
+  it('keeps each source separate: a remote a2assistant profile does not rename the local default', () => {
     const rows = claimDefaultHandles<Partial<RosterRow>>([
       { connectionId: 'local', name: 'default' },
       { connectionId: 'mini', name: 'default' },
@@ -70,7 +70,7 @@ describe('the @hermes handle', () => {
   })
 
   it("never lets a source's stale 'hermes' handle on its default answer @hermes", () => {
-    // An older backend labels its default @hermes even beside a real hermes profile.
+    // An older backend labels its default @hermes even beside a real a2assistant profile.
     const rows = claimDefaultHandles<RosterRow>([
       { connectionId: 'mini', handle: 'hermes', name: 'default', remoteSource: true },
       { connectionId: 'mini', handle: 'hermes', name: 'hermes', remoteSource: true },
@@ -89,7 +89,7 @@ describe('the @hermes handle', () => {
       previewKind(`Message from 🤖 ${name} (@x): hi`, list, 'local').fromBot
 
     expect([sender('default', rows), sender('hermes', rows)]).toEqual(['default', 'hermes'])
-    // No real hermes profile: the default is still @hermes (#89484).
+    // No real a2assistant profile: the default is still @hermes (#89484).
     expect(sender('default', claimDefaultHandles<RosterRow>([{ connectionId: 'local', name: 'default' }]))).toBe(
       'hermes'
     )

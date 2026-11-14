@@ -78,7 +78,7 @@ def test_lease_authority_is_shared_across_processes(tmp_path):
              "except lease.HumanHasControl:\n    print('HUMAN')\n"
              "lease.release('desktop-viewer')\n")
     out = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, encoding="utf-8", timeout=30,
-                         stdin=subprocess.DEVNULL, env={**os.environ, "HERMES_HOME": os.environ["HERMES_HOME"]}, check=False)
+                         stdin=subprocess.DEVNULL, env={**os.environ, "A2ASSISTANT_HOME": os.environ["A2ASSISTANT_HOME"]}, check=False)
     assert out.stdout.strip() == "HUMAN", out.stderr
     assert lease.get().holder == lease.AGENT, "the other process's release is visible here"
 
@@ -171,7 +171,7 @@ def test_lease_works_without_fcntl(tmp_path):
              "assert lease.release('v1').holder == lease.AGENT\n"
              "print('OK')\n")
     out = subprocess.run([sys.executable, "-c", probe], capture_output=True, text=True, encoding="utf-8", timeout=60,
-                         stdin=subprocess.DEVNULL, env={**os.environ, "HERMES_HOME": str(tmp_path)}, check=False)
+                         stdin=subprocess.DEVNULL, env={**os.environ, "A2ASSISTANT_HOME": str(tmp_path)}, check=False)
     assert out.stdout.strip() == "OK", out.stderr
 
 
@@ -185,7 +185,7 @@ def test_lease_files_are_private_even_when_the_lease_is_written_before_the_scree
 
     home = tmp_path / "deep" / "home"
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(lease, "get_hermes_home", lambda: home)
     old = os.umask(0o022)
     try:

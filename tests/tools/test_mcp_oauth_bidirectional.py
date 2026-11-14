@@ -61,7 +61,7 @@ async def test_hermes_provider_forwards_401_triggers_refresh(tmp_path, monkeypat
 
     assert _HERMES_PROVIDER_CLS is not None
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     reset_manager_for_tests()
 
     storage = HermesTokenStorage("srv")
@@ -146,7 +146,7 @@ async def test_long_lived_resource_request_does_not_block_concurrent_post(
 
     assert _HERMES_PROVIDER_CLS is not None
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     reset_manager_for_tests()
 
     storage = HermesTokenStorage("srv")
@@ -264,7 +264,7 @@ async def test_fabricated_dcr_registration_rejected_before_network(tmp_path, mon
 
     assert _HERMES_PROVIDER_CLS is not None, "SDK OAuth types must be available"
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     reset_manager_for_tests()
 
     # Empty storage: no tokens, no client_info — the SDK's 401 branch must
@@ -345,7 +345,7 @@ async def test_fabricated_dcr_registration_rejected_before_network(tmp_path, mon
     assert "does not support automatic client registration" in text
     assert "https://example.com/register" in text
     assert "config.yaml" in text
-    assert "hermes mcp login srv" in text
+    assert "a2assistant mcp login srv" in text
     await flow.aclose()
 
 
@@ -369,7 +369,7 @@ async def test_advertised_registration_endpoint_passes_through(tmp_path, monkeyp
 
     assert _HERMES_PROVIDER_CLS is not None, "SDK OAuth types must be available"
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     reset_manager_for_tests()
 
     storage = HermesTokenStorage("srv")
@@ -464,7 +464,7 @@ async def test_guard_ignores_non_fabricated_post_paths(tmp_path, monkeypatch):
 
     assert _HERMES_PROVIDER_CLS is not None, "SDK OAuth types must be available"
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     reset_manager_for_tests()
 
     provider = _HERMES_PROVIDER_CLS(

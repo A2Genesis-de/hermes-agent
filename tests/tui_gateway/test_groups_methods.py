@@ -20,7 +20,7 @@ def home(tmp_path, monkeypatch):
     path.mkdir()
     (path / "profiles" / "ops").mkdir(parents=True)
     (path / "profiles" / "ops" / "config.yaml").write_text("{}\n")  # identity marker: local roster
-    monkeypatch.setenv("HERMES_HOME", str(path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(path))
     monkeypatch.setattr(srv, "_run_idempotency_store", DurableRunStore(), raising=False)
     methods_groups.stop_hosted_room_service(timeout=1.0)
     methods_groups.start_hosted_room_service()
@@ -64,7 +64,7 @@ def _create_room():
 
 def test_capabilities_and_invitation_advertise_scoped_roomlink(home, monkeypatch):
     monkeypatch.setenv("API_SERVER_KEY", "gateway-api-key-1234567890")
-    monkeypatch.setenv("HERMES_PROFILE", "reviewer")
+    monkeypatch.setenv("A2ASSISTANT_PROFILE", "reviewer")
     # The advertised policy is the SERVED profile's own config, so the profile must exist (#116900).
     (home / "profiles" / "reviewer").mkdir(parents=True)
     (home / "profiles" / "reviewer" / "config.yaml").write_text("approvals:\n  mode: manual\n")
@@ -152,8 +152,8 @@ def test_app_managed_catalog_and_self_advertised_endpoint_are_consistent(
     home, monkeypatch
 ):
     monkeypatch.setenv("API_SERVER_KEY", "gateway-api-key-1234567890")
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.setenv("HERMES_ROOM_LINK_URL", "https://peer.example.test/hermes")
+    monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+    monkeypatch.setenv("A2ASSISTANT_ROOM_LINK_URL", "https://peer.example.test/hermes")
     capability = _result(srv._methods["groups.capabilities"](1, {}))
     invitation = _result(
         srv._methods["groups.peer.invite"](
@@ -179,7 +179,7 @@ def test_app_managed_catalog_and_self_advertised_endpoint_are_consistent(
 
 def test_launch_profile_is_valid_for_roomlink_invitation(home, monkeypatch):
     monkeypatch.setenv("API_SERVER_KEY", "gateway-api-key-1234567890")
-    monkeypatch.setenv("HERMES_PROFILE", "default")
+    monkeypatch.setenv("A2ASSISTANT_PROFILE", "default")
 
     capability = _result(
         srv._methods["groups.capabilities"](1, {"profile": "default"})
@@ -205,7 +205,7 @@ def test_launch_profile_is_valid_for_roomlink_invitation(home, monkeypatch):
 
 def test_roomlink_endpoint_absence_has_machine_reason(home, monkeypatch):
     monkeypatch.setenv("API_SERVER_KEY", "gateway-api-key-1234567890")
-    monkeypatch.delenv("HERMES_ROOM_LINK_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_ROOM_LINK_URL", raising=False)
     result = _result(srv._methods["groups.capabilities"](1, {}))
     assert result["room_link"]["endpoint"] == {
         "available": False,

@@ -192,7 +192,7 @@ def route_runtime(policy, frozen, model, key, *, fallback=True):
 def worker_route(policy, construct):
     """Child side: the ``api_key`` / ``base_url`` / ``api_mode`` overrides for the worker's agent, resolved
     as the in-process turn resolves its route (``route_runtime`` with the launch key, if one was bound),
-    from this process's profile home (its HERMES_HOME and ``.env``). The frozen ``model.base_url`` alone
+    from this process's profile home (its A2ASSISTANT_HOME and ``.env``). The frozen ``model.base_url`` alone
     is not the route: a per-model api_mode (opencode-go Responses models) and a resolved endpoint
     (Bedrock's regional URL) come only from resolution. A fallback entry's route belongs to another
     provider and model, so the primary never carries it; the agent's own fallback chain switches them

@@ -1,6 +1,6 @@
 """Signing the Webapp out closes every socket the old browser credential opened.
 
-``hermes webapp --sign-out`` (control verb ``webapp-sign-out``) replaces the session token and closes
+``a2assistant webapp --sign-out`` (control verb ``webapp-sign-out``) replaces the session token and closes
 the live sockets that token authenticated, directly or through a ticket minted with it: each tab's
 host terminal and event stream close at once with code 4401, and the media and download links it
 minted stop working. A socket opened with another credential stays connected. The verb runs on a
@@ -97,7 +97,7 @@ def test_signing_out_ends_the_file_links_the_session_token_minted(webapp, sign_o
     root = tmp_path / "files"
     root.mkdir()
     (root / "clip.mp4").write_bytes(b"hello")
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(root))
     minted = client.post("/api/files/ticket", json={"route": route, "path": str(root / "clip.mp4")},
                          headers={"X-Hermes-Session-Token": _TOKEN})
     assert minted.status_code == 200, minted.text
@@ -117,7 +117,7 @@ def test_a_media_link_minted_while_signing_out_streams_nothing(webapp, sign_out,
     root = tmp_path / "files"
     root.mkdir()
     (root / "clip.mp4").write_bytes(b"hello")
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(root))
     mint = web_server_file_tickets.mint
 
     def mint_after_sign_out(*args, **kwargs):
@@ -143,7 +143,7 @@ def test_a_file_link_another_credential_minted_keeps_working_after_sign_out(weba
     root = tmp_path / "files"
     root.mkdir()
     (root / "clip.mp4").write_bytes(b"hello")
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(root))
     path = str(root / "clip.mp4")
     ticket = web_server_file_tickets.mint(
         route, {"path": path}, authority=web_server_file_tickets.FileAuthority(root / "clip.mp4", ()))

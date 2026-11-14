@@ -417,7 +417,7 @@ def test_a_command_the_job_will_not_take_never_runs(tmp_path):
 _COMPLETION_CHILD = (
     "import json, os, sys\n"
     "from pathlib import Path\n"
-    "Path(os.environ['HERMES_PROBE_STARTED']).touch()\n"  # its first instruction
+    "Path(os.environ['A2ASSISTANT_PROBE_STARTED']).touch()\n"  # its first instruction
     "request = json.loads(Path(sys.argv[1]).read_text(encoding='utf-8-sig'))\n"
     "receipt = dict(request['receipt'], finished_at='now', outcome='success')\n"
     "Path(sys.argv[2]).write_text(json.dumps({'schema': 1, 'update_id': receipt['update_id'], 'exit_code': 0,\n"
@@ -439,8 +439,8 @@ def test_a_completion_child_runs_only_after_its_bind_and_a_refusal_is_receipted(
     (root / "hermes_cli").mkdir(parents=True)
     (root / "hermes_cli" / "update_completion.py").write_text(_COMPLETION_CHILD, encoding="utf-8")
     started = tmp_path / "started"
-    monkeypatch.setenv("HERMES_PROBE_STARTED", str(started))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_PROBE_STARTED", str(started))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
     kernel32.CreateEventW.restype = ctypes.c_void_p
     event = kernel32.CreateEventW(None, True, False, None)
@@ -502,11 +502,11 @@ def test_a_refusal_the_readers_swallow_is_what_the_update_reports(tmp_path):
     out = subprocess.run([sys.executable, "-c", _SWALLOWING_OWNER.replace("REFUSE_JOBS", refuse), str(REPO_ROOT),
                           str(install)], stdin=subprocess.DEVNULL, capture_output=True, text=True, encoding="utf-8",
                          errors="replace", timeout=120,
-                         env={**os.environ, "HERMES_HOME": str(home), "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}, check=False)
+                         env={**os.environ, "A2ASSISTANT_HOME": str(home), "PYTHONUTF8": "1", "PYTHONIOENCODING": "utf-8"}, check=False)
     text = out.stdout + out.stderr
     assert out.returncode == 1, text
-    assert "`hermes update` stopped: Windows would not put `git` in this update's process job" in text, text
-    assert "Nothing was changed" in text and "Run `hermes update` again from a regular terminal" in text, text
+    assert "`a2assistant update` stopped: Windows would not put `git` in this update's process job" in text, text
+    assert "Nothing was changed" in text and "Run `a2assistant update` again from a regular terminal" in text, text
 
 
 # --- F03/N11: both historical takeover hops are bound to the job (or leased and receipted) -----
@@ -534,7 +534,7 @@ def test_the_takeover_finish_child_is_never_silently_outside_the_job(tmp_path, m
     started = tmp_path / "started"
     (root / "hermes_cli" / "update_finish.py").write_text(
         f"import sys\nopen({str(started)!r}, 'w').close()\nopen(sys.argv[2], 'w').write('{{}}')\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(sys, "path", list(sys.path))
     monkeypatch.setattr(_update_takeover, "prepare", lambda request: (Path(sys.executable), dict(os.environ)))
     _refusing_job(monkeypatch)

@@ -33,7 +33,7 @@ def home(tmp_path, monkeypatch, request):
 
     home = tmp_path / request.param
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     # An existing default install keeps import from installing/starting a gateway.
     native = tmp_path / "native"
     native.mkdir()

@@ -61,7 +61,7 @@ def _drain(lease, stuck):
 
 
 def test_the_next_sessions_claim_at_the_cap_sees_the_ended_turns_slot_free(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     runner = _runner({"max_concurrent_sessions": 1})
     src = SessionSource(platform=Platform.TELEGRAM, chat_id="c1", user_id="u1")
     stuck = _ReleaseStuckOnTheRegistry()
@@ -78,7 +78,7 @@ def test_the_next_sessions_claim_at_the_cap_sees_the_ended_turns_slot_free(tmp_p
 
 
 def test_a_desktop_claim_of_the_session_a_gateway_turn_just_ended_is_not_already_owned(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from tui_gateway import server
 
     runner = _runner({})

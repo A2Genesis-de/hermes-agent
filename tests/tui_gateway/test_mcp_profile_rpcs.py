@@ -1,7 +1,7 @@
 """E2E tests for the per-profile MCP lifecycle RPCs (mcp.servers.*).
 
 These drive the real registered gateway handlers against a real temp
-``HERMES_HOME`` with named profile dirs — no mocks of the config/mcp layer — and
+``A2ASSISTANT_HOME`` with named profile dirs — no mocks of the config/mcp layer — and
 assert that every write lands in the RIGHT profile's ``config.yaml`` / ``.env``
 and NEVER leaks into the launch (default) profile.
 
@@ -22,16 +22,16 @@ from tui_gateway import server
 
 @pytest.fixture
 def hermes_root(tmp_path, monkeypatch):
-    """A temp HERMES_HOME root with two named profiles: 'work' and 'other'.
+    """A temp A2ASSISTANT_HOME root with two named profiles: 'work' and 'other'.
 
-    Pointing HERMES_HOME at a dir outside ~/.hermes makes it the profile ROOT
+    Pointing A2ASSISTANT_HOME at a dir outside ~/.a2assistant makes it the profile ROOT
     (get_default_hermes_root's Docker/custom branch), so named profiles live at
     ``<root>/profiles/<name>/`` and the launch/default profile is ``<root>``.
     """
     root = tmp_path / "hermes_home"
     (root / "profiles" / "work").mkdir(parents=True)
     (root / "profiles" / "other").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     # Make sure no stale process-wide home override leaks in from another test.
     from hermes_constants import get_hermes_home_override
 

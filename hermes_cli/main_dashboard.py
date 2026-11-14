@@ -4,6 +4,7 @@ Split out of ``hermes_cli/main.py``. Names that still live in main (``PROJECT_RO
 are imported lazily inside the functions that use them (avoids an import cycle).
 """
 
+from hermes_constants import unset_env
 import contextlib
 import os
 import re
@@ -286,7 +287,7 @@ def _loaded_launchd_backend_jobs(
     plist_dirs: list[tuple[str, Path]] | None = None,
 ) -> list[tuple[str, str, list[str], int | None]]:
     """``(domain, label, program_arguments, live_pid)`` for every LOADED launchd job whose
-    ``ProgramArguments`` is a ``hermes dashboard`` / ``hermes serve`` backend. macOS only (empty
+    ``ProgramArguments`` is a ``a2assistant dashboard`` / ``a2assistant serve`` backend. macOS only (empty
     elsewhere). Reads the plists (unreadable/malformed ones are skipped) and asks ``launchctl print``
     per candidate label — a job that is not loaded in any domain is not returned, so an operator's
     stale plist never claims a process."""
@@ -408,7 +409,7 @@ def _respawnable_command_for_current_install(argv: list[str]) -> list[str]:
     script, so the kernel recorded a manual backend as ``[<old venv python>, <launcher>, dashboard,
     ...]``. The takeover then rewrote that launcher into a POSIX shell shim, and replaying the
     captured argv verbatim asks the old interpreter to parse a shell script (#124778). This
-    checkout's own ``hermes`` entry script stays Python, so it and every other shape replay unchanged.
+    checkout's own ``a2assistant`` entry script stays Python, so it and every other shape replay unchanged.
     """
     root = Path(__file__).resolve().parents[1]
     if (len(argv) > 2 and os.path.basename(argv[0]).startswith("python")
@@ -419,7 +420,7 @@ def _respawnable_command_for_current_install(argv: list[str]) -> list[str]:
 
 
 def _respawn_dashboard_processes(commands: list[list[str]]) -> list[list[str]]:
-    """Respawn manually-started dashboards after ``hermes update``, detached, logging to
+    """Respawn manually-started dashboards after ``a2assistant update``, detached, logging to
     ``logs/dashboard-restart.log``; returns the argvs that failed to spawn. Callers pre-filter via
     ``_filter_dashboard_respawn_candidates`` (no Desktop ``--port 0`` backends, capped per profile).
 
@@ -471,7 +472,7 @@ def _respawn_dashboard_processes(commands: list[list[str]]) -> list[list[str]]:
 
 
 class _UpdateOutputStream:
-    """stdout/stderr wrapper for ``hermes update``: mirrors to ``logs/update.log`` and, once the
+    """stdout/stderr wrapper for ``a2assistant update``: mirrors to ``logs/update.log`` and, once the
     terminal vanishes (BrokenPipe/OSError/ValueError), drops screen output instead of the update."""
 
     _BROKEN = (BrokenPipeError, OSError, ValueError)
@@ -547,8 +548,8 @@ def _install_hangup_protection(gateway_mode: bool = False):
 
         import datetime as _dt
 
-        stage = "continued on the pulled code" if os.environ.get("HERMES_UPDATE_POST_SWAP") == "1" else "started"
-        log_file.write(f"\n=== hermes update {stage} {_dt.datetime.now().isoformat(timespec='seconds')} ===\n")
+        stage = "continued on the pulled code" if os.environ.get("A2ASSISTANT_UPDATE_POST_SWAP") == "1" else "started"
+        log_file.write(f"\n=== a2assistant update {stage} {_dt.datetime.now().isoformat(timespec='seconds')} ===\n")
 
         state["log_file"] = log_file
         sys.stdout = _UpdateOutputStream(state["prev_stdout"], log_file)
@@ -603,10 +604,10 @@ def _report_dashboard_status() -> int:
         live.append((pid, command, mode))
 
     if not live:
-        print("No hermes dashboard or serve processes running.")
+        print("No a2assistant dashboard or serve processes running.")
         return 0
 
-    print(f"{len(live)} hermes dashboard/serve process(es) running:")
+    print(f"{len(live)} a2assistant dashboard/serve process(es) running:")
     for pid, command, mode in live:
         print(f"    PID {pid} [{mode}]: {command}")
     return len(live)
@@ -745,7 +746,9 @@ def _read_ssh_session_token_file(path: str) -> str:
     # validation there, NOT get_hermes_home(): a non-default profile or a Docker
     # /opt/data root re-homes get_hermes_home() and would reject every token.
     # See #69551.
-    token_root = Path.home() / ".hermes" / "desktop-ssh"
+    from hermes_constants import default_home_in
+
+    token_root = default_home_in(Path.home()) / "desktop-ssh"
     try:
         relative = Path(path).relative_to(token_root)
     except ValueError as exc:
@@ -816,7 +819,7 @@ def _read_ssh_session_token_file(path: str) -> str:
 def _is_electron_packaged_web_dist(path: str) -> bool:
     """True when *path* is an Electron-packaged renderer dist (``app.asar[.unpacked]/dist``).
 
-    A standalone ``hermes dashboard`` inheriting that ``HERMES_WEB_DIST`` would
+    A standalone ``a2assistant dashboard`` inheriting that ``A2ASSISTANT_WEB_DIST`` would
     serve the desktop frontend in the browser ("Desktop IPC bridge is unavailable").
     """
     if not path:
@@ -880,24 +883,24 @@ def _endpoint_conflict(args, record, typed: set) -> str:
 
 
 def _attach_to_host_backend(args, headless_backend: bool) -> None:
-    """Multiplex-only: a second `hermes serve`/`dashboard` attaches to the host backend.
+    """Multiplex-only: a second `a2assistant serve`/`dashboard` attaches to the host backend.
 
     Exactly ONE backend runs per host and multiplexes every profile, so a second invocation —
     for ANY profile, the default included — reports the live one and exits 0 instead of binding
     a second port. ``--isolated`` opts out (Desktop's SSH backend proves ownership with it) and
-    Desktop pool backends (HERMES_DESKTOP=1) keep their own lifecycle.
+    Desktop pool backends (A2ASSISTANT_DESKTOP=1) keep their own lifecycle.
 
     Exit 0 means "the host backend answered and serves what you asked for", and nothing else:
 
     * the owner must ANSWER on its recorded port and identify itself (a record alone cannot see a
       graceful-shutdown window or a foreign listener that inherited the port) — a supervisor or
-      `hermes update` relaunch landing in that window would otherwise exit 0 with NOTHING
+      `a2assistant update` relaunch landing in that window would otherwise exit 0 with NOTHING
       listening, reporting success for a dead service;
     * an explicitly typed ``--port``/``--host`` the owner cannot serve is a REFUSAL naming the
       owner, never a silent redirect. It exits 78 (EX_CONFIG), the deliberate-refusal code
       ``RestartPreventExitStatus=78`` parks on: exit 1 under ``Restart=always`` was an infinite
       restart loop with nothing listening on the ingress port (#119824);
-    * a `hermes dashboard` user is never handed a headless backend's URL (no SPA behind it).
+    * a `a2assistant dashboard` user is never handed a headless backend's URL (no SPA behind it).
 
     Returns normally — leaving the caller to BIND — when no owner answers.
     """
@@ -926,8 +929,8 @@ def _attach_to_host_backend(args, headless_backend: bool) -> None:
 
     if not headless_backend and not identity.get("servesSpa"):
         print(f"Refusing to start: this host is already served by {hr.describe(record)}, "
-              "which is a headless `hermes serve` backend with no dashboard UI.")
-        print("  Stop it and run `hermes dashboard`, or use --isolated for a dedicated server.")
+              "which is a headless `a2assistant serve` backend with no dashboard UI.")
+        print("  Stop it and run `a2assistant dashboard`, or use --isolated for a dedicated server.")
         sys.exit(GATEWAY_FATAL_CONFIG_EXIT_CODE)
 
     try:
@@ -958,7 +961,7 @@ def _route_named_profile_dashboard(
     No-record fallback to :func:`_attach_to_host_backend`, which already attached (and exited)
     when the host publishes a live rendezvous record: re-exec pinned to ``-p default`` (so
     ``_apply_profile_override`` can't re-route via the sticky active_profile file). ``--isolated``
-    opts out; Desktop pool backends (HERMES_DESKTOP=1) stay per-profile. Returns normally when no
+    opts out; Desktop pool backends (A2ASSISTANT_DESKTOP=1) stay per-profile. Returns normally when no
     routing applies.
     """
     try:
@@ -1007,9 +1010,9 @@ def _route_named_profile_dashboard(
     # get_default_hermes_root() strips a trailing profiles/<name> for both layouts.
     try:
         from hermes_constants import get_default_hermes_root
-        env["HERMES_HOME"] = str(get_default_hermes_root())
+        env["A2ASSISTANT_HOME"] = str(get_default_hermes_root())
     except Exception:
-        env.pop("HERMES_HOME", None)  # prior behaviour rather than blocking the reroute
+        unset_env(env, "HOME")
     # On Windows os.execvpe() spawns via CreateProcess then exits, which under
     # Python 3.14+ can crash with STATUS_ACCESS_VIOLATION; use Popen + exit.
     if sys.platform == "win32":
@@ -1025,25 +1028,25 @@ def _route_named_profile_dashboard(
 def _resolve_dashboard_web_dist(args, _headless_backend: bool) -> None:
     """Build or validate the web UI dist before the server imports.
 
-    ``serve`` sets HERMES_SERVE_HEADLESS so mount_spa() stays off. Otherwise build
-    unless HERMES_WEB_DIST / --skip-build promise a dist — then verify index.html
+    ``serve`` sets A2ASSISTANT_SERVE_HEADLESS so mount_spa() stays off. Otherwise build
+    unless A2ASSISTANT_WEB_DIST / --skip-build promise a dist — then verify index.html
     (else the server serves 404s). --skip-build on the default location gets ONE
-    recovery build; a caller-managed HERMES_WEB_DIST can't be populated.
+    recovery build; a caller-managed A2ASSISTANT_WEB_DIST can't be populated.
     """
     from hermes_cli.main import PROJECT_ROOT
     from hermes_cli.main_web_build import _build_web_ui
     skip_build = getattr(args, "skip_build", False)
     if _headless_backend:
-        os.environ["HERMES_SERVE_HEADLESS"] = "1"  # set before web_server import
-    elif "HERMES_WEB_DIST" not in os.environ and not skip_build:
+        os.environ["A2ASSISTANT_SERVE_HEADLESS"] = "1"  # set before web_server import
+    elif "A2ASSISTANT_WEB_DIST" not in os.environ and not skip_build:
         if not _build_web_ui(PROJECT_ROOT / "web", fatal=True):
             sys.exit(1)
     elif skip_build:
         _dist_root = (
             # --build-mode skip trusts the caller to have pre-built the web UI. Verify the dist actually
             # exists; otherwise the server will start and serve 404s with no obvious cause (issue #23817).
-            Path(os.environ["HERMES_WEB_DIST"])
-            if "HERMES_WEB_DIST" in os.environ
+            Path(os.environ["A2ASSISTANT_WEB_DIST"])
+            if "A2ASSISTANT_WEB_DIST" in os.environ
             else PROJECT_ROOT / "hermes_cli" / "web_dist"
         )
         if not (_dist_root / "index.html").exists():
@@ -1053,7 +1056,7 @@ def _resolve_dashboard_web_dist(args, _headless_backend: bool) -> None:
             # The caller promised a pre-built dist but there isn't one. Instead of hard-failing (issue
             # #59288 — desktop launches with --build-mode skip after a wipe of web_dist), warn and attempt
             # ONE recovery build through the normal build path.
-            _recoverable = "HERMES_WEB_DIST" not in os.environ
+            _recoverable = "A2ASSISTANT_WEB_DIST" not in os.environ
             if _recoverable:
                 print(f"⚠ --skip-build was passed but no web dist found at: {_dist_root}")
                 print("  Attempting one recovery build of the web UI...")
@@ -1074,16 +1077,16 @@ def _resolve_dashboard_web_dist(args, _headless_backend: bool) -> None:
         # caller-managed dist), so validate it the same way the --skip-build branch does — otherwise the
         # server starts and serves 404s with no obvious cause (same failure mode as #23817, via the env-var
         # path).
-        _dist_root = Path(os.environ["HERMES_WEB_DIST"]).expanduser()
+        _dist_root = Path(os.environ["A2ASSISTANT_WEB_DIST"]).expanduser()
         if not (_dist_root / "index.html").exists():
-            print(f"✗ HERMES_WEB_DIST is set but no web dist found at: {_dist_root}")
+            print(f"✗ A2ASSISTANT_WEB_DIST is set but no web dist found at: {_dist_root}")
             print(_PRE_BUILD_HINT)
-            print("  Or unset HERMES_WEB_DIST to build and use the default web UI dist.")
+            print("  Or unset A2ASSISTANT_WEB_DIST to build and use the default web UI dist.")
             sys.exit(1)
         # web_server reads HERMES_WEB_DIST raw at import (no expanduser), so a
         # validated "~/dist" would otherwise pass here and still 404 there.
-        os.environ["HERMES_WEB_DIST"] = str(_dist_root)
-        print(f"→ Using web dist from HERMES_WEB_DIST: {_dist_root}")
+        os.environ["A2ASSISTANT_WEB_DIST"] = str(_dist_root)
+        print(f"→ Using web dist from A2ASSISTANT_WEB_DIST: {_dist_root}")
 
 
 def _dashboard_validate_serve_args(args, headless_backend, token_file):
@@ -1109,5 +1112,5 @@ def _dashboard_validate_serve_args(args, headless_backend, token_file):
     if ssh_owner_nonce and not re.fullmatch(r"[0-9a-f]{16}", ssh_owner_nonce):
         raise SystemExit("--ssh-owner-nonce must be 16 lowercase hex characters")
     if token_file and not headless_backend:
-        raise SystemExit("--ssh-session-token-file is only valid with hermes serve")
+        raise SystemExit("--ssh-session-token-file is only valid with a2assistant serve")
     return ssh_owner_nonce

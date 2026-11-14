@@ -1,7 +1,7 @@
 """Host-wide singleton rendezvous: one lock + one record per ROLE per OS user.
 
-Multiplex-only (Teknium ruling): exactly ONE ``hermes serve`` and ONE ``hermes gateway run``
-per host, each multiplexing every profile. The per-``HERMES_HOME`` gateway lock/PID files
+Multiplex-only (Teknium ruling): exactly ONE ``a2assistant serve`` and ONE ``a2assistant gateway run``
+per host, each multiplexing every profile. The per-``A2ASSISTANT_HOME`` gateway lock/PID files
 (``gateway.status``) cannot express that — N profiles are N homes, so N processes each take
 their own flock and none of them ever sees the others. This module adds the missing layer:
 
@@ -10,9 +10,9 @@ their own flock and none of them ever sees the others. This module adds the miss
   is the same live process, and ATTACH instead of binding a second port.
 
 Both live in :func:`gateway.status._get_lock_dir` — the only cross-profile lock root already
-in the tree (``$HERMES_GATEWAY_LOCK_DIR`` else ``$XDG_STATE_HOME/hermes/gateway-locks``),
+in the tree (``$A2ASSISTANT_GATEWAY_LOCK_DIR`` else ``$XDG_STATE_HOME/hermes/gateway-locks``),
 which scopes to the **OS user**. That is the correct granularity: separate OS users have
-separate ``$HOME``s, separate ``~/.hermes`` profile roots, separate ports-by-convention and
+separate ``$HOME``s, separate ``~/.a2assistant`` profile roots, separate ports-by-convention and
 separate credentials, so "one per host" means "one per host per OS user".
 
 **Staleness is proved, never assumed.** New records pair the PID with the repository's stable
@@ -606,7 +606,7 @@ def publish_record(
     """Publish this process as the host owner of ``role``. ``None`` when the write failed.
 
     ``token`` (serve) is persisted 0600 next to the record and only its fingerprint is published.
-    ``home`` is the launch HERMES_HOME — the key an attaching client needs to reach this owner's
+    ``home`` is the launch A2ASSISTANT_HOME — the key an attaching client needs to reach this owner's
     control socket.
     """
     role = _validated_role(role)

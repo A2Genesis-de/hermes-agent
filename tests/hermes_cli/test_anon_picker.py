@@ -3,7 +3,7 @@
 A guest carrying the welcome trial shows one row, "Nous · free tier", with the single model
 ``nous/welcome``; the same guest with ``nous.guest: false`` shows no Nous row at all. The rule lives
 in one helper (``_free_tier_nous_row``) and this file exercises it through the real row builders
-against a temp ``HERMES_HOME`` with the network catalog fetch stubbed.
+against a temp ``A2ASSISTANT_HOME`` with the network catalog fetch stubbed.
 """
 
 from __future__ import annotations
@@ -32,7 +32,7 @@ GUEST_STATE = {
 def guest_home(monkeypatch, tmp_path):
     """Seed a guest that claimed the welcome trial, read on the desktop's local backend, as the only
     Nous state, and keep every row builder offline."""
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(tmp_path / "shared-store"))
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(tmp_path / "shared-store"))
     as_local_desktop_backend(monkeypatch)
     for var in ("OPENROUTER_API_KEY", "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "NOUS_API_KEY", "LM_API_KEY", "LM_BASE_URL"):
         monkeypatch.delenv(var, raising=False)
@@ -45,7 +45,7 @@ def guest_home(monkeypatch, tmp_path):
     monkeypatch.setattr(models_dev, "fetch_models_dev", lambda *a, **k: {})
     monkeypatch.setattr(models_mod, "get_curated_nous_model_ids", lambda *a, **k: ["anthropic/claude-x", "openai/gpt-y"])
     monkeypatch.setattr(msp, "_nous_picker_model_ids", lambda *a, **k: pytest.fail("guest must not fetch the Portal catalog"))
-    return Path(os.environ["HERMES_HOME"])
+    return Path(os.environ["A2ASSISTANT_HOME"])
 
 
 def _write_config(monkeypatch, home: Path, text: str) -> None:

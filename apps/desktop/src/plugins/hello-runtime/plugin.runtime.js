@@ -3,7 +3,7 @@
  * raw text (`?raw`) and goes through the real runtime pipeline (specifier
  * rewrite -> SDK/react shim blobs -> blob import -> register). Plain ESM js
  * with `jsx()` calls — exactly what an agent (or a compiler) writes into
- * `~/.hermes/desktop-plugins/<name>/plugin.js`.
+ * `~/.a2assistant/desktop-plugins/<name>/plugin.js`.
  *
  * It also shows the Settings ▸ Plugins contract: one settings page with two
  * sub-pages (`ctx.registerSettingsPage`), persisted with `ctx.storage`.

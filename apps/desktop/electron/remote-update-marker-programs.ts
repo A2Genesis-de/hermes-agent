@@ -117,7 +117,7 @@ def marker_verdict(raw):
  * CHECKOUT lock is free (update_lock._reclaim_dead): a killed updater's
  * completion/build child still holding it answers HELD and keeps the marker.
  * The checkouts probed are `<marker dir>/hermes-agent` plus the checkout of
- * each `hermes` executable argument (`<root>/venv/bin/hermes`, symlinks
+ * each `a2assistant` executable argument (`<root>/venv/bin/hermes`, symlinks
  * resolved). Then it either prints the verdict (no payload: the relaunch probe)
  * or runs the payload as `sh -c payload hermes-update-mutex <fd>` still holding
  * the lock. A refused payload exits 75 with the verdict on stderr. The probe

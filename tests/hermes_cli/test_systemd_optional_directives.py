@@ -57,7 +57,7 @@ RestartForceExitStatus=75
 RestartPreventExitStatus=78
 """
         installed = expected.replace("RestartPreventExitStatus=78\n", "")
-        unit_file = tmp_path / "hermes-gateway.service"
+        unit_file = tmp_path / "a2assistant-gateway.service"
         unit_file.write_text(installed)
 
         monkeypatch.setattr(gw, "get_systemd_unit_path", lambda system=False: unit_file)
@@ -86,7 +86,7 @@ RestartSec=5
 [Install]
 WantedBy=default.target
 """
-        unit_file = tmp_path / "hermes-gateway.service"
+        unit_file = tmp_path / "a2assistant-gateway.service"
         unit_file.write_text(installed)
 
         monkeypatch.setattr(gw, "get_systemd_unit_path", lambda system=False: unit_file)

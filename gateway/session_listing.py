@@ -52,7 +52,7 @@ def stored_picker_sessions(authority, actor, *, limit, include_hidden=False, wor
 
     Canonical sessions are already in the live feed. Old local rows have no policy
     receipt until explicit resume; listing them must not claim or restore anything.
-    *workspace*: only the folder's rows (``hermes -c``'s rule). *picker*: each row carries the picker
+    *workspace*: only the folder's rows (``a2assistant -c``'s rule). *picker*: each row carries the picker
     fields, from the columns the listing already read (``gateway/session_picker_fields.py``).
     """
     if actor.profile_id != authority.profile_id:

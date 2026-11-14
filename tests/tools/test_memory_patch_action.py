@@ -17,7 +17,7 @@ PACKED = "todo: item A; item B; item C"
 
 @pytest.fixture
 def packed_store(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     s = MemoryStore(memory_char_limit=500, user_char_limit=300)
     s.add("memory", PACKED)
     return s
@@ -75,7 +75,7 @@ class TestPatchStoreLevel:
 
     def test_patch_rejects_a_span_repeated_within_the_entry(self, tmp_path, monkeypatch):
         # Replacing every occurrence rewrote sibling facts that shared the span.
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         s = MemoryStore(memory_char_limit=500)
         entry = "Jeff drinks tea in the morning; his wife drinks tea at night"
         s.add("memory", entry)
@@ -90,7 +90,7 @@ class TestPatchStoreLevel:
 
 
 def _store_with(tmp_path, monkeypatch, entry):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     s = MemoryStore(memory_char_limit=500)
     s.add("memory", entry)
     return s

@@ -251,7 +251,7 @@ def test_browser_attached_after_its_owner_crashed_is_never_reaped_while_in_use(r
 class TestPrivatePerProfileRecords:
     """Launcher state lives in a private per-profile dir: a records dir that is not a real directory of this
     user closed to other writers is never read, and the reaper deletes nothing outside the profile's
-    ephemeral root (``<HERMES_HOME>/cache/browser/chromium/``)."""
+    ephemeral root (``<A2ASSISTANT_HOME>/cache/browser/chromium/``)."""
 
     @staticmethod
     def _orphan(records, monkeypatch, pid=12345):

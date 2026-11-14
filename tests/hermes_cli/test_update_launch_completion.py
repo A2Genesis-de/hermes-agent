@@ -52,9 +52,9 @@ def _self_checkout(tmp_path, monkeypatch):
     (root / ".git").mkdir()
     (root / "pyproject.toml").write_text("[project]\nname='example'\n")
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "self"}))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     return root
 
 
@@ -78,9 +78,9 @@ def _committed_checkout(tmp_path, monkeypatch):
         subprocess.run(["git", *args], cwd=root, check=True,
                          capture_output=True, timeout=30)
     assert write_source_stamp(root)["dirty"] is False
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda _, **__: Path(sys.executable))
     return root
 
@@ -89,7 +89,7 @@ def _committed_checkout(tmp_path, monkeypatch):
 def test_completed_tree_discharges_only_a_marker_older_than_its_stamp(
         tmp_path, monkeypatch, completion_tail, marker_age, owed):
     """Fresh install under a preserved home (#123314): a marker armed before the stamp
-    owes no rebuild of the same SHA. One armed after it (a same-commit `hermes update`
+    owes no rebuild of the same SHA. One armed after it (a same-commit `a2assistant update`
     that failed or was killed) is newer debt and the launch still finishes it."""
     import pm
 
@@ -105,7 +105,7 @@ def test_completed_tree_discharges_only_a_marker_older_than_its_stamp(
 
 @pytest.mark.parametrize("edited", [False, True])
 def test_pristine_home_provisions_dependencies_without_rebuild(tmp_path, monkeypatch, completion_tail, edited):
-    """Pristine HERMES_HOME on a freshly installed tree (#123314): with no facts the venv
+    """Pristine A2ASSISTANT_HOME on a freshly installed tree (#123314): with no facts the venv
     needs provisioning, but the stamp names a clean HEAD so no product rebuild is owed.
     Local edits since the stamp void that proof: the tail runs as before."""
     import pm
@@ -146,7 +146,7 @@ def test_adoption_stamp_never_discharges_an_owed_tail(tmp_path, monkeypatch, com
 
 @pytest.mark.parametrize("argv", [["--version"], ["-V"], ["--help"], ["-p", "work", "-h"]])
 def test_metadata_query_never_waits_on_source_completion(tmp_path, monkeypatch, argv):
-    """`hermes --version` offline must answer from the tree, not run a network-bound sync."""
+    """`a2assistant --version` offline must answer from the tree, not run a network-bound sync."""
     import pm
 
     root = _self_checkout(tmp_path, monkeypatch)
@@ -172,12 +172,12 @@ def test_failed_completion_tail_is_retried_without_rebuilding_dependencies(tmp_p
 
     monkeypatch.setattr(pm, "sync_venv", sync)
     completion_tail.exit_code = 1
-    with pytest.raises(RuntimeError, match="run `hermes update`"):
+    with pytest.raises(RuntimeError, match="run `a2assistant update`"):
         venv_sync.prepare_launch(root, [])
     assert len(syncs) == 1 and len(completion_tail) == 1
     assert pm.venv_is_current()
 
-    with pytest.raises(RuntimeError, match="run `hermes update`"):
+    with pytest.raises(RuntimeError, match="run `a2assistant update`"):
         venv_sync.prepare_launch(root, [])
     assert len(syncs) == 1, "current dependencies were rebuilt for a tail retry"
     assert len(completion_tail) == 2
@@ -258,9 +258,9 @@ def test_first_launch_syncs_without_marker_then_uses_completion_fact(tmp_path, m
     (root / "pyproject.toml").write_text("[project]\nname='example'\n")
     (root / "uv.lock").write_text("lock\n")
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "self"}))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     fact = runtime_facts_path(root)
     calls = []
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: fact.is_file())
@@ -314,9 +314,9 @@ def test_non_self_or_pm_launch_cannot_trigger_update(tmp_path, monkeypatch, owne
     (root / "pyproject.toml").write_text("[project]\n")
     if owner:
         (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": owner}))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: pytest.fail("unowned launch reached PM"))
     assert venv_sync.prepare_launch(root, argv) is None
 
@@ -328,9 +328,9 @@ def test_failed_launch_keeps_previous_completion_and_retries(tmp_path, monkeypat
     (root / ".git").mkdir()
     (root / "pyproject.toml").write_text("[project]\n")
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "self"}))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     fact = runtime_facts_path(root)
     fact.parent.mkdir(parents=True)
     previous = '{"schema":1,"packages":{"venv":{"stamp":"previous","extras":["all","anthropic"]}}}'
@@ -385,8 +385,8 @@ def test_blessed_legacy_install_is_adopted_before_sync(tmp_path, monkeypatch, co
     from hermes_cli import _launchers
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / "home"
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     root = home / "hermes-agent"
     root.mkdir(parents=True)
     (root / ".git").mkdir()
@@ -421,7 +421,7 @@ def test_live_old_update_blocks_launch_sync(tmp_path, monkeypatch):
     (root / "install-stamp.json").write_text(json.dumps({"updateMechanism": "self"}))
     marker = root / ".update-incomplete"
     marker.write_text(f"pid={os.getpid()}\n")
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: False)
     monkeypatch.setattr(pm, "sync_venv", lambda *a, **kw: pytest.fail("raced old updater"))
     with pytest.raises(RuntimeError, match="still running"):
@@ -466,14 +466,14 @@ def test_gateway_status_skips_pending_source_update_completion(tmp_path, monkeyp
 
     assert venv_sync.prepare_launch(root, ["gateway", "status"]) is None
     assert completion_tail == []
-    assert pending.is_file(), "a status query must leave the update tail for `hermes gateway restart`"
+    assert pending.is_file(), "a status query must leave the update tail for `a2assistant gateway restart`"
 
 
 @pytest.mark.parametrize("marker,value,owed_by_cli", [
-    ("HERMES_SUPERVISED_CHILD", "1", True),
-    ("HERMES_S6_SUPERVISED_CHILD", "true", True),
-    ("HERMES_SUPERVISED_CHILD", "0", False),
-    ("HERMES_SUPERVISED_CHILD", "false", False),
+    ("A2ASSISTANT_SUPERVISED_CHILD", "1", True),
+    ("A2ASSISTANT_S6_SUPERVISED_CHILD", "true", True),
+    ("A2ASSISTANT_SUPERVISED_CHILD", "0", False),
+    ("A2ASSISTANT_SUPERVISED_CHILD", "false", False),
 ])
 def test_supervised_launch_leaves_a_pending_tail_to_the_cli(
     tmp_path, monkeypatch, capsys, completion_tail, marker, value, owed_by_cli
@@ -482,7 +482,7 @@ def test_supervised_launch_leaves_a_pending_tail_to_the_cli(
 
     systemd/launchd/s6 restart the gateway under a policy; with a marker that never
     clears, each boot would rebuild the completion environment until the disk fills.
-    The obligation stays with `hermes update`. An off value (`0`/`false`) is not a
+    The obligation stays with `a2assistant update`. An off value (`0`/`false`) is not a
     supervised launch and still repays the tail.
     """
     import pm
@@ -494,8 +494,8 @@ def test_supervised_launch_leaves_a_pending_tail_to_the_cli(
     pending.write_text("owed\n")
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: True)
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda _, **__: Path(sys.executable))
-    monkeypatch.delenv("HERMES_SUPERVISED_CHILD", raising=False)
-    monkeypatch.delenv("HERMES_S6_SUPERVISED_CHILD", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SUPERVISED_CHILD", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_S6_SUPERVISED_CHILD", raising=False)
     monkeypatch.setenv(marker, value)
 
     assert venv_sync.prepare_launch(root, ["gateway", "run"]) is None
@@ -503,7 +503,7 @@ def test_supervised_launch_leaves_a_pending_tail_to_the_cli(
         assert completion_tail == []
         assert pending.is_file(), "a supervised child discharged an obligation the CLI still owes"
         out, err = capsys.readouterr()
-        assert out == "" and err.count("run `hermes update`") == 1
+        assert out == "" and err.count("run `a2assistant update`") == 1
     else:
         assert len(completion_tail) == 1
         assert not pending.is_file()
@@ -528,7 +528,7 @@ def test_supervised_launch_with_stale_dependencies_still_syncs(
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: False)
     monkeypatch.setattr(pm, "sync_venv", lambda *a, **kw: syncs.append(a))
     monkeypatch.setattr(_launchers, "resolve_store_python", lambda _, **__: Path(sys.executable))
-    monkeypatch.setenv("HERMES_SUPERVISED_CHILD", "1")
+    monkeypatch.setenv("A2ASSISTANT_SUPERVISED_CHILD", "1")
 
     venv_sync.prepare_launch(root, ["gateway", "run"])
     assert syncs, "a supervised child booted on a stale dependency graph without syncing"

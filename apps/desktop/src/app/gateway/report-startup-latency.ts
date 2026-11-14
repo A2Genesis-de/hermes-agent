@@ -20,7 +20,7 @@ export async function reportStartupLatency(
 
   // The main-process claim succeeds once per app launch, so an id minted on success names the
   // launch; the backend latches on it, so a long-lived backend still counts the next launch.
-  // Declared, not env-detected: a URL/cloud backend has no HERMES_DESKTOP to tell it who attached.
+  // Declared, not env-detected: a URL/cloud backend has no A2ASSISTANT_DESKTOP to tell it who attached.
   await request('shared_metrics.startup_latency', {
     elapsed_ms: elapsedMs,
     launch_id: randomUuid(),

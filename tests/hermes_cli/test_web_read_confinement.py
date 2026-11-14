@@ -21,9 +21,9 @@ def test_preview_respects_locked_root_and_sensitive_paths(client, monkeypatch, t
     root = tmp_path / "root"
     root.mkdir()
     if locked:
-        monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(root))
     else:
-        monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", raising=False)
     safe = root / "safe.txt"
     secret = root / "auth.json"
     outside = tmp_path / "outside.txt"
@@ -76,9 +76,9 @@ def test_git_reads_filter_credentials_without_losing_safe_diffs(
     if change != "unstaged":
         git("add", "-A")
     if locked:
-        monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(root))
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(root))
     else:
-        monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", raising=False)
 
     response = client.get("/api/git/review/commit-context", params={"path": str(root)})
     assert response.status_code == 200
@@ -93,6 +93,6 @@ def test_git_reads_filter_credentials_without_losing_safe_diffs(
             response = client.get(endpoint, params={"path": str(root), "file": file, "staged": change != "unstaged"})
             assert "PRIVATE_EXAMPLE" not in response.text
 
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(tmp_path / "other"))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(tmp_path / "other"))
     response = client.get("/api/git/review/commit-context", params={"path": str(root)})
     assert response.status_code == 403

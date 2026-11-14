@@ -15,7 +15,7 @@ def _document(tmp_path, name, data):
 
 
 def test_queued_hosted_document_survives_native_cancel_and_is_released_at_its_own_terminal(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     from gateway.session_hosted_attachments import attested_submission_payload
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')

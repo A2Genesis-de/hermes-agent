@@ -233,12 +233,12 @@ def _unsupported_reason(stamp: dict, root: Path, *, explicit_root: bool, embedde
 
 
 def _installed_git(git: str) -> str:
-    """``git`` as given, unless it is a bare ``git`` PATH lacks: then the git ``hermes update`` runs.
+    """``git`` as given, unless it is a bare ``git`` PATH lacks: then the git ``a2assistant update`` runs.
 
     A Windows source install's only git is often the copy install.ps1 staged in PM's store, which
-    is on PATH only inside ``hermes update`` (``expose_pm_git``). Desktop and the dashboard pass a
+    is on PATH only inside ``a2assistant update`` (``expose_pm_git``). Desktop and the dashboard pass a
     bare ``git`` there, it dies with WinError 2, and the check reports ``head-unavailable``, which
-    Desktop shows as "couldn't reach the update server" while ``hermes update`` works.
+    Desktop shows as "couldn't reach the update server" while ``a2assistant update`` works.
     """
     if git != "git" or shutil.which(git):
         return git
@@ -424,7 +424,7 @@ def _update_refuses(co: _Checkout, target: str, home: Path) -> bool:
 
 
 def _hold_refused_release(result: dict, co: _Checkout, home: Path) -> None:
-    """Hold an offered release `hermes update` refuses (it predates the gateway runtime these session
+    """Hold an offered release `a2assistant update` refuses (it predates the gateway runtime these session
     stores use). Covers releases off this checkout's history too, which the ancestry-only rollback
     test cannot see. Apply only after caching the release facts: stores can gain runtime history,
     or the only ledgered profile can be removed, between checks."""
@@ -548,7 +548,7 @@ def check_for_updates(*, install_root: Path | None = None, home: Path | None = N
                       passive: bool = False, git: str = "git") -> dict:
     """Return a presentation-ready status. Omitted branch follows the current checkout.
 
-    Only the default (running installation) may use HERMES_REVISION. An explicit
+    Only the default (running installation) may use A2ASSISTANT_REVISION. An explicit
     target must never inherit the host process's embedded revision or stamp.
     """
     from hermes_cli.config import get_project_root, require_readable_config_before_write
@@ -556,7 +556,7 @@ def check_for_updates(*, install_root: Path | None = None, home: Path | None = N
     from hermes_cli.update_channel import channel_record, install_id, resolve_update_channel, rides_default_channel
     from hermes_cli.release_channels import validate_name
 
-    embedded = (os.environ.get("HERMES_REVISION") or None) if install_root is None else None
+    embedded = (os.environ.get("A2ASSISTANT_REVISION") or None) if install_root is None else None
     root = Path(install_root if install_root is not None else get_project_root()).resolve()
     home = Path(home if home is not None else get_hermes_home()).resolve()
     result = {"supported": False, "hermesRoot": str(root), "behind": None, "commits": []}

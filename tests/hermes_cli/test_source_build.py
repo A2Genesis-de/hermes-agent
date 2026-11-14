@@ -60,8 +60,8 @@ def test_source_build_uses_selected_python_for_isolated_icon_child(tmp_path, mon
     monkeypatch.syspath_prepend(str(selected))
 
     env = source_build_env()
-    assert env["HERMES_PYTHON"] == str(venv_python(venv))
-    subprocess.run([env["HERMES_PYTHON"], "-I", "-c",
+    assert env["A2ASSISTANT_PYTHON"] == str(venv_python(venv))
+    subprocess.run([env["A2ASSISTANT_PYTHON"], "-I", "-c",
                     "import icon_dependency; assert icon_dependency.ready"], check=True)
 
 
@@ -82,7 +82,7 @@ def test_installed_pnpm_does_not_authorize_missing_workspace_dependencies(source
 
     root, _ = source_checkout
     env = source_build_env()
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
     with pytest.raises(subprocess.CalledProcessError):
         prepare_source_dependencies(root, ("ui-tui", "web"), env=env)
     assert _events(root) == []
@@ -98,11 +98,11 @@ def source_checkout(tmp_path, monkeypatch):
     assert node and pnpm, "source-build integration requires node and pnpm"
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "0")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "0")
     monkeypatch.setenv("ESBUILD_BINARY_PATH", "/wrong/esbuild")
-    monkeypatch.setenv("HERMES_PYTHON", "/wrong/python")
+    monkeypatch.setenv("A2ASSISTANT_PYTHON", "/wrong/python")
     (home / "npmrc").write_text(
         "fund=false\nnode-get-windows-binary-host-mirror=https://mirror.invalid/get-windows/\n"
         "//registry.invalid/:_authToken=npmrc-secret\nelectron-mirror=${MIRROR_BASE}/electron/\n"
@@ -150,7 +150,7 @@ def source_checkout(tmp_path, monkeypatch):
     (root / "log.mjs").write_text(
         "import { appendFileSync } from 'node:fs';\n"
         "appendFileSync('events.jsonl', JSON.stringify({step: process.argv[2], "
-        "python: process.env.HERMES_PYTHON, ci: process.env.CI, "
+        "python: process.env.A2ASSISTANT_PYTHON, ci: process.env.CI, "
         "esbuild: process.env.ESBUILD_BINARY_PATH, "
         "npmrc: process.env.NPM_CONFIG_USERCONFIG, store: process.env.pnpm_config_store_dir, "
         "mirror: process.env.npm_config_node_get_windows_binary_host_mirror, "
@@ -244,10 +244,10 @@ def test_preparation_reuses_only_the_exact_completed_workspace_union(source_chec
     prepare_source_dependencies(root, ("ui-tui", "web"), env=env)
     first = _events(root)
     assert [event["step"] for event in first] == ["deps"]
-    assert first[0]["python"] == env["HERMES_PYTHON"]
+    assert first[0]["python"] == env["A2ASSISTANT_PYTHON"]
     assert first[0]["ci"] == "1"
     assert "esbuild" not in first[0]
-    assert first[0]["npmrc"] == str(Path(os.environ["HERMES_HOME"]) / "npmrc")
+    assert first[0]["npmrc"] == str(Path(os.environ["A2ASSISTANT_HOME"]) / "npmrc")
     # npmrc settings reach install scripts as npm did it (node-pre-gyp mirrors); credentials never do.
     assert first[0]["mirror"] == "https://mirror.invalid/get-windows/"
     assert first[0]["electron"] == "https://mirror.invalid/electron/"
@@ -256,8 +256,8 @@ def test_preparation_reuses_only_the_exact_completed_workspace_union(source_chec
     # Updates and builds keep pnpm's default download retries; only a launch lowers them.
     assert "retries" not in first[0]
     # pnpm's store lives under the Hermes root, never the user's XDG data dir.
-    assert first[0]["store"] == str(Path(os.environ["HERMES_HOME"]) / "cache/pnpm/store")
-    assert (Path(os.environ["HERMES_HOME"]) / "cache/pnpm/store").is_dir()
+    assert first[0]["store"] == str(Path(os.environ["A2ASSISTANT_HOME"]) / "cache/pnpm/store")
+    assert (Path(os.environ["A2ASSISTANT_HOME"]) / "cache/pnpm/store").is_dir()
     assert (root / "ui-tui/node_modules/fixture-dep").exists()
     assert (root / "web/node_modules/fixture-dep").exists()
     assert not (root / "apps/desktop/node_modules").exists()
@@ -354,7 +354,7 @@ def test_update_failure_raises_without_retries_or_replacing_live_app(source_prod
     if step == "desktop":
         # A failed desktop build never replaces the live app nor stamps it.
         assert app.read_text() == "previous app"
-        assert not (Path(os.environ["HERMES_HOME"]) / "desktop-build-stamp.json").exists()
+        assert not (Path(os.environ["A2ASSISTANT_HOME"]) / "desktop-build-stamp.json").exists()
 
 
 @pytest.mark.platforms("linux")
@@ -403,7 +403,7 @@ def test_desktop_dependency_failure_still_builds_the_tui_and_web_ui(source_produ
     assert not (root / "apps/desktop/node_modules").exists()
     out = capsys.readouterr().out
     assert "Desktop app build owed: desktop dependencies failed" in out
-    assert "hermes uninstall --gui" in out
+    assert "a2assistant uninstall --gui" in out
 
 
 @pytest.mark.platforms("linux")
@@ -459,7 +459,7 @@ def test_packaged_desktop_is_reused_only_while_it_names_head(tmp_path, monkeypat
 
 @pytest.mark.parametrize("enabled", [False, True])
 def test_update_rebuilds_the_webapp_bundle_a_home_serves(tmp_path, monkeypatch, enabled):
-    """``hermes update`` rebuilds ``apps/desktop/dist-webapp``, with the function ``hermes webapp``
+    """``a2assistant update`` rebuilds ``apps/desktop/dist-webapp``, with the function ``a2assistant webapp``
     uses, when any home sharing this install has ``webapp.enabled``: that home's gateway serves the
     bundle as built, so an old one would talk to the updated backend. Otherwise it is left alone."""
     import hermes_cli.left_core_migration as left_core
@@ -492,9 +492,9 @@ def test_update_rebuilds_the_webapp_bundle_a_home_serves(tmp_path, monkeypatch, 
 
 @pytest.mark.parametrize("built", [True, False])
 def test_a_failed_webapp_rebuild_in_update_marks_the_served_bundle_out_of_date(tmp_path, monkeypatch, capsys, built):
-    """When ``hermes update`` cannot rebuild the Webapp bundle a home serves, the previous bundle
+    """When ``a2assistant update`` cannot rebuild the Webapp bundle a home serves, the previous bundle
     stays on disk but is marked out of date: its gateway reports the Webapp unavailable and says to
-    run ``hermes webapp`` (which rebuilds it) instead of serving it against the updated backend. The
+    run ``a2assistant webapp`` (which rebuilds it) instead of serving it against the updated backend. The
     update still reports the failure. With no bundle built there is nothing to mark."""
     import hermes_cli.left_core_migration as left_core
     import hermes_cli.main_install_repair as install_repair
@@ -530,9 +530,9 @@ def test_a_failed_webapp_rebuild_in_update_marks_the_served_bundle_out_of_date(t
         build_update_products(root, desktop=False)
 
     reason = bundle_missing_reason(dist)
-    assert reason is not None and reason.startswith(NOT_BUILT) and "hermes webapp" in reason
+    assert reason is not None and reason.startswith(NOT_BUILT) and "a2assistant webapp" in reason
     if built:
         assert (dist / "index.html").read_text(encoding="utf-8") == "<!doctype html>"
-        assert "hermes webapp" in capsys.readouterr().out
+        assert "a2assistant webapp" in capsys.readouterr().out
     else:
         assert sorted(root.rglob("*")) == before

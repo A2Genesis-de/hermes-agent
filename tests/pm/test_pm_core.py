@@ -70,9 +70,9 @@ def pm_env(tmp_path, served, monkeypatch):
     docroot, base_url = served
     runtime = tmp_path / "runtime"
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(runtime))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(runtime))
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     # Policy is pinned open here; the disabled-path tests pin it closed.
     import importlib
 
@@ -951,7 +951,7 @@ def test_store_path_dirs_include_node_npm_when_installed(tmp_path, monkeypatch):
     from pm.lock import Facts, Lockfile
 
     runtime = tmp_path / "runtime"
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(runtime))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(runtime))
     lock_dir = tmp_path / "repo-lock"
     lock_dir.mkdir()
     lockfile_path = lock_dir / "lock.json"

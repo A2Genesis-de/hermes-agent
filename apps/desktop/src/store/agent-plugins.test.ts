@@ -71,7 +71,7 @@ describe('installAgentPlugin', () => {
       if ('inspected_sha' in params) {
         throw new JsonRpcGatewayError(
           'invalid params for plugins.manage: inspected_sha: Extra inputs are not permitted — the client and the ' +
-            'A2Assistant backend are out of sync (different versions); run `hermes update` and restart both',
+            'A2Assistant backend are out of sync (different versions); run `a2assistant update` and restart both',
           { code: 4000 }
         )
       }

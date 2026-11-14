@@ -237,7 +237,7 @@ export const zhHantAssistant = {
           title: '無法連線到本機模型伺服器',
           body: '本機模型伺服器尚未執行：它可能仍在啟動中。請稍後重試，或切換到其他模型。',
           bodyNoRetry:
-            '本機模型伺服器已關閉。請在 A2Assistant 桌面應用程式或終端機中的 `hermes model` 啟動它，或切換到其他模型。'
+            '本機模型伺服器已關閉。請在 A2Assistant 桌面應用程式或終端機中的 `a2assistant model` 啟動它，或切換到其他模型。'
         }
       },
       errorLayers: {
@@ -301,7 +301,7 @@ export const zhHantAssistant = {
       reject: '拒絕',
       alwaysTitle: '一律允許此指令？',
       alwaysDescription: pattern =>
-        `這會將「${pattern}」模式加入永久允許清單（~/.hermes/config.yaml）。A2Assistant 對類似指令將不再詢問，包括目前工作階段和未來工作階段。`,
+        `這會將「${pattern}」模式加入永久允許清單（~/.a2assistant/config.yaml）。A2Assistant 對類似指令將不再詢問，包括目前工作階段和未來工作階段。`,
       alwaysAllow: '一律允許'
     },
     clarify: {

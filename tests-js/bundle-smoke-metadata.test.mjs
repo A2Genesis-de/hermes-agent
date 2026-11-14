@@ -40,7 +40,7 @@ test('identity uses the production bundled variant and exact input tokens, not i
     expect(() => bundleIdentity(bad)).toThrow('commit')
   }
   expect(() => bundleIdentity(commit, 'v1.2.3 ')).toThrow('tag')
-  const hostileEnvironment = { ...process.env, HERMES_DESKTOP_VARIANT: 'store', HERMES_BUILD_COMMIT: 'b'.repeat(40), HERMES_PAYLOAD_TAG: 'v9.9.9', _HERMES_CHANNEL_REQUEST_JSON: '{"invalid":"inherited"}' }
+  const hostileEnvironment = { ...process.env, A2ASSISTANT_DESKTOP_VARIANT: 'store', A2ASSISTANT_BUILD_COMMIT: 'b'.repeat(40), A2ASSISTANT_PAYLOAD_TAG: 'v9.9.9', _HERMES_CHANNEL_REQUEST_JSON: '{"invalid":"inherited"}' }
   const cli = path.resolve(import.meta.dirname, '../tests/install/e2e-assets/bundle-smoke-metadata.mjs')
   expect(JSON.parse(execFileSync(process.execPath, [cli, 'identity', '--commit', commit], { env: hostileEnvironment, encoding: 'utf8' }))).toEqual(tagless)
 })
@@ -66,8 +66,8 @@ test('channel smoke binds the complete admitted request, not a commit-build iden
     expect(JSON.parse(identity.stdout)).toMatchObject({ appId: request.identity.appId,
       msixIdentity: request.identity.msixAppIdWithOrg, applicationId: request.identity.appNamePascal,
       windowsVersion: request.windowsVersion })
-    const env = { ...process.env, HERMES_DESKTOP_VARIANT: 'bundled', HERMES_BUILD_COMMIT: '',
-      HERMES_PAYLOAD_TAG: '', HERMES_PAYLOAD_VERSION: '', _HERMES_CHANNEL_REQUEST_JSON: JSON.stringify(request) }
+    const env = { ...process.env, A2ASSISTANT_DESKTOP_VARIANT: 'bundled', A2ASSISTANT_BUILD_COMMIT: '',
+      A2ASSISTANT_PAYLOAD_TAG: '', A2ASSISTANT_PAYLOAD_VERSION: '', _HERMES_CHANNEL_REQUEST_JSON: JSON.stringify(request) }
     for (const platform of ['darwin', 'win32']) {
       const stamp = buildStampPayload({ commit, dirty: false }, env, platform,
         { runtime: { commands: { hermes: 'bin/hermes' } } })
@@ -94,7 +94,7 @@ test('channel smoke binds the complete admitted request, not a commit-build iden
         }
         expect(stampAssertions(stamp, { commit, tag: null, channelRequest: request })).toEqual([])
         expect(stampAssertions(stamp, { commit, tag: null }).join(';')).toContain('channelBuild')
-        expect(stampAssertions({ ...stamp, channelBuild: { ...request, bundleEnv: { HERMES_MODEL: 'other' } } },
+        expect(stampAssertions({ ...stamp, channelBuild: { ...request, bundleEnv: { A2ASSISTANT_MODEL: 'other' } } },
           { commit, tag: null, channelRequest: request }).join(';')).toContain('channelBuild')
       }
     }

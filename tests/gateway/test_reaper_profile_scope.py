@@ -41,7 +41,7 @@ def test_interrupt_reaper_keeps_served_profile_home(tmp_path, monkeypatch):
     served_home = tmp_path / "served"
     launch_home.mkdir()
     served_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
 
     seen_homes = []
     reaped = threading.Event()

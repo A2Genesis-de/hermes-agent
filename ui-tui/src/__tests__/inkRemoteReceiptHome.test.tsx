@@ -16,9 +16,9 @@ import { useSubmission } from '../app/useSubmission.js'
 import { useQueue } from '../hooks/useQueue.js'
 import { t } from '../i18n/runtime.js'
 
-// C22: an explicit HERMES_TUI_GATEWAY_URL owner on another home/machine answers receipts naming ITS
+// C22: an explicit A2ASSISTANT_TUI_GATEWAY_URL owner on another home/machine answers receipts naming ITS
 // profile_id; Ink validates them against the owner identity from the snapshot, not its local
-// HERMES_HOME, and still rejects a wrong-session receipt.
+// A2ASSISTANT_HOME, and still rejects a wrong-session receipt.
 const row = (admission_id: string, input_id: string, text: string, status = 'queued') => ({
   admission_id, input_id, text, status, sequence: 1, outcome: null, authority_epoch: 1, execution_generation: null,
   ref: { profile_id: '/tmp/profile', session_id: 'stored-owner' }
@@ -26,12 +26,12 @@ const row = (admission_id: string, input_id: string, text: string, status = 'que
 
 function mount(receiptHome: string, receiptSession = 'stored-owner', busyInputMode: 'queue' | 'interrupt' | 'steer' = 'queue', cancel: () => Promise<unknown> = () => Promise.resolve({ status: 'terminal', outcome: 'cancelled' })) {
   // macOS: tmpdir() is /var/..., a symlink to /private/var; captureDestination() realpaths
-  // HERMES_HOME, so receipts must carry the canonical home or target_profile_home never matches.
+  // A2ASSISTANT_HOME, so receipts must carry the canonical home or target_profile_home never matches.
   const home = realpathSync(mkdtempSync(join(tmpdir(), 'ink-busy-admit-')))
-  vi.stubEnv('HERMES_HOME', home)
+  vi.stubEnv('A2ASSISTANT_HOME', home)
   resetUiState()
 
-  vi.stubEnv('HERMES_TUI_GATEWAY_URL', 'ws://remote.test/api/ws')
+  vi.stubEnv('A2ASSISTANT_TUI_GATEWAY_URL', 'ws://remote.test/api/ws')
 
   const info = { model: 'test', skills: {}, tools: {}, profile_name: 'default', profile_id: '/srv/remote-owner/.hermes',
     stored_session_id: 'stored-owner', execution_epoch: '1', execution_generation: 1, running: true }

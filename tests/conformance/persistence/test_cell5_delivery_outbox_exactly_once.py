@@ -24,7 +24,7 @@ effect-level invariant that follows, per obligation id, is:
 What is real
 ------------
 * The ledger module, on a real ``state.db`` under an isolated
-  ``HOME=<tmp>/home``, ``HERMES_HOME=<tmp>/home/.hermes`` (every child).
+  ``HOME=<tmp>/home``, ``A2ASSISTANT_HOME=<tmp>/home/.hermes`` (every child).
 * The turn-side checkpoints: ``BasePlatformAdapter._record_delivery_obligation``
   (record + mark_attempting) and ``_finalize_delivery_obligation``
   (mark_delivered) — the exact methods the adapter's final-send path calls.
@@ -223,7 +223,7 @@ if barrier_dir:
 
     dl._owner_alive = _gated_owner_alive
 
-home = Path(os.environ["HERMES_HOME"])
+home = Path(os.environ["A2ASSISTANT_HOME"])
 runner = object.__new__(GatewayRunner)
 runner.adapters = {Platform.TELEGRAM: JournalAdapter()}
 runner._profile_adapters = {}
@@ -278,11 +278,11 @@ class Cell:
             "PYTHONPATH": f"{REPO_ROOT}{os.pathsep}{inherited}" if inherited else str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1",
             "HOME": str(self.home),
-            "HERMES_HOME": str(self.hermes_home),
+            "A2ASSISTANT_HOME": str(self.hermes_home),
             "TMPDIR": str(self.root / "tmp"),
             # HOME/.hermes IS the temp home here, so the live-system guard would
             # read it as production; bypass it in the CHILD only.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
             "CELL5_JOURNAL": str(self.journal),
             "CELL5_ROLE": role,
             "CELL5_CHAT_ID": CHAT_ID,

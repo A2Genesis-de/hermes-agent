@@ -12,7 +12,7 @@ def test_explicit_profile_target_never_falls_back(tmp_path, monkeypatch):
     worker = home / "profiles" / "worker"
     worker.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", home)
     for path, marker in ((home, "launch"), (worker, "worker")):
         (path / "config.yaml").write_text(f"terminal:\n  cwd: /{marker}\n")
@@ -48,7 +48,7 @@ def test_custom_root_basename_target_fails_closed_when_unavailable(tmp_path, mon
     custom_home.mkdir()
     (custom_home / "config.yaml").write_text("terminal:\n  cwd: /custom\n")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(custom_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(custom_home))
     monkeypatch.setattr(server, "_hermes_home", custom_home)
 
     with pytest.raises(FileNotFoundError):
@@ -70,7 +70,7 @@ def test_profile_param_traversal_fails_closed(tmp_path, monkeypatch, name):
     home.mkdir()
     (home / "config.yaml").write_text("terminal:\n  cwd: /launch\n")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", home)
 
     with pytest.raises(FileNotFoundError):
@@ -89,7 +89,7 @@ def test_unavailable_profile_is_a_typed_rpc_error_not_a_dispatch_crash(tmp_path,
     home.mkdir()
     (home / "config.yaml").write_text("terminal:\n  cwd: /launch\n")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(server, "_hermes_home", home)
 
     for method, params in (("session.create", {"profile": "gone"}),

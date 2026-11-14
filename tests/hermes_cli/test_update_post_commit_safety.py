@@ -22,7 +22,7 @@ ROOT = Path(__file__).resolve().parents[2]
 
 def _child_env(**values: str) -> dict[str, str]:
     """A fresh env for a child of THIS interpreter: same dependency path, no hermes state."""
-    env = {key: value for key, value in os.environ.items() if not key.startswith(("HERMES_", "PYTEST_"))}
+    env = {key: value for key, value in os.environ.items() if not key.startswith(("A2ASSISTANT_", "PYTEST_"))}
     # The test runner may provide dependencies through sys.path rather than site-packages.
     env["PYTHONPATH"] = os.pathsep.join(path for path in sys.path if path)
     env.update(values)
@@ -46,7 +46,7 @@ _CHILD = textwrap.dedent('''
         sys.executable = os.environ["PROBE_SHIM"]
     import hermes_yaml as yaml
     from hermes_cli.config import DEFAULT_CONFIG, ensure_hermes_home
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     home.mkdir(parents=True, exist_ok=True)
     # The process's first config read secures the home (0700) once. Do it now, as a real process
     # has by the time it runs the update tail: config-ro's later chmod must stay in force.
@@ -88,7 +88,7 @@ _CHILD = textwrap.dedent('''
         if mode == "ipc-failed-unit":
             gateway_module.find_gateway_pids = lambda **kwargs: []
             fleet._restart_systemd_gateway_units = lambda restarted, failed, *rest: failed.append(
-                "hermes-gateway-probe.service")
+                "a2assistant-gateway-probe.service")
         else:
             def unavailable(*args, **kwargs):
                 raise RuntimeError("systemctl unavailable")
@@ -159,11 +159,11 @@ def _run_completion(tmp_path: Path, mode: str, *, sqlite: str | None = None) -> 
     profile = root_home / "profiles" / "probe"
     for name in ("logs/update_receipts", "skills", "cache", "profiles/probe"):
         (root_home / name).mkdir(parents=True, exist_ok=True)
-    env = _child_env(HOME=str(cell / "home"), HERMES_HOME=str(profile), HERMES_DISABLE_LAZY_INSTALLS="1",
-                     HERMES_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
+    env = _child_env(HOME=str(cell / "home"), A2ASSISTANT_HOME=str(profile), A2ASSISTANT_DISABLE_LAZY_INSTALLS="1",
+                     A2ASSISTANT_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
                      XDG_CONFIG_HOME=str(cell / "home/.config"), XDG_CACHE_HOME=str(cell / "home/.cache"),
                      XDG_STATE_HOME=str(cell / "home/.local/state"),
-                     HERMES_GATEWAY_LOCK_DIR=str(cell / "home/.local/state/hermes/gateway-locks"))
+                     A2ASSISTANT_GATEWAY_LOCK_DIR=str(cell / "home/.local/state/hermes/gateway-locks"))
     if sqlite is not None:
         payload = json.dumps({"base_prefix": sys.base_prefix, "executable": sys.executable,
                               "python_version": list(sys.version_info[:3]),
@@ -335,8 +335,8 @@ def test_zip_update_never_replays_a_refused_resume_after_the_commit_point(tmp_pa
     completion = cell / "source" / "hermes_cli" / "update_completion.py"
     completion.parent.mkdir(parents=True)
     completion.write_text(_REFUSED_RESUME_COMPLETION, encoding="utf-8")
-    env = _child_env(HOME=str(cell / "home"), HERMES_HOME=str(home), HERMES_DISABLE_LAZY_INSTALLS="1",
-                     HERMES_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
+    env = _child_env(HOME=str(cell / "home"), A2ASSISTANT_HOME=str(home), A2ASSISTANT_DISABLE_LAZY_INSTALLS="1",
+                     A2ASSISTANT_RUNTIME_DIR=str(tmp_path / "store"), PYTHONDONTWRITEBYTECODE="1",
                      XDG_CONFIG_HOME=str(cell / "home/.config"), XDG_CACHE_HOME=str(cell / "home/.cache"),
                      XDG_STATE_HOME=str(cell / "home/.local/state"))
     driver = tmp_path / "zip_parent.py"
@@ -378,7 +378,7 @@ def test_old_schema_handoff_receipt_keeps_the_previous_runs_manual_serve_debt(tm
     home.mkdir(parents=True)
     # The durable reminder store is obstructed, so the receipt is the only record of the debt.
     (home / "serve_restart_pending").write_text("not a directory\n", encoding="utf-8")
-    env = _child_env(HOME=str(tmp_path / "home"), HERMES_HOME=str(home), PYTHONDONTWRITEBYTECODE="1")
+    env = _child_env(HOME=str(tmp_path / "home"), A2ASSISTANT_HOME=str(home), PYTHONDONTWRITEBYTECODE="1")
     child = tmp_path / "receipt_child.py"
     child.write_text(_RECEIPT_CHILD, encoding="utf-8")
     serve = subprocess.Popen([sys.executable, "-I", "-c", "import time; print('ready', flush=True); time.sleep(120)"],

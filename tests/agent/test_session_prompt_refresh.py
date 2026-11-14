@@ -1,4 +1,4 @@
-"""``hermes sessions refresh-prompts``: a continuing session adopts updated prompt sources once.
+"""``a2assistant sessions refresh-prompts``: a continuing session adopts updated prompt sources once.
 
 Operators push SOUL.md / skill / AGENTS.md changes into a profile while users keep one long
 gateway conversation. The stored system prompt is reused verbatim every turn (prefix cache), so
@@ -7,7 +7,7 @@ profile's state.db; the session's next turn rebuilds its prompt once, keeps its 
 and persists the new bytes so later turns restore them verbatim.
 
 Everything is real except the model: a real ``AIAgent`` per turn (as the messaging gateway runs
-it), the real ``SessionDB`` in a temp HERMES_HOME, the real CLI entrypoint, and a recording
+it), the real ``SessionDB`` in a temp A2ASSISTANT_HOME, the real CLI entrypoint, and a recording
 ``FakeLLMServer`` whose request bodies are what the model was actually sent.
 """
 
@@ -51,7 +51,7 @@ def _update_profile(home: Path, project: Path) -> None:
 
 @pytest.fixture
 def profile(monkeypatch, tmp_path):
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     project = tmp_path / "project"
     with FakeLLMServer() as srv:
         _write_profile(home, srv.base_url, project)
@@ -105,7 +105,7 @@ def _refresh_prompts(monkeypatch, home: Path, *extra: str) -> None:
     """Run the real CLI entrypoint against ``home`` (what an operator's update script calls)."""
     import hermes_cli.main as main_mod
 
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(sys, "argv", ["hermes", "sessions", "refresh-prompts", *extra])
     try:
         main_mod.main()
@@ -222,17 +222,17 @@ def test_refresh_request_is_scoped_to_its_profile(profile, monkeypatch, tmp_path
     _write_profile(home_b, srv.base_url, project)
 
     history_a, _ = _turn(srv, home_a, "chat-a", "hello", [])
-    monkeypatch.setenv("HERMES_HOME", str(home_b))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home_b))
     history_b, _ = _turn(srv, home_b, "chat-b", "hello", [])
 
     _update_profile(home_a, project)
     _update_profile(home_b, project)
     _refresh_prompts(monkeypatch, home_a)
 
-    monkeypatch.setenv("HERMES_HOME", str(home_a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home_a))
     _, system_a = _turn(srv, home_a, "chat-a", "next", history_a)
     _assert_updated(system_a)
-    monkeypatch.setenv("HERMES_HOME", str(home_b))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home_b))
     _, system_b = _turn(srv, home_b, "chat-b", "next", history_b)
     assert SOUL_V1 in system_b and "incident-triage" not in system_b
 

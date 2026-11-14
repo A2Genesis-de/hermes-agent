@@ -1,6 +1,6 @@
 /**
  * Backend-delivered language packs. A Hermes language-pack plugin (or a user
- * overlay under `$HERMES_HOME/locales/`) ships `<lang>.desktop.yaml`; the
+ * overlay under `$A2ASSISTANT_HOME/locales/`) ships `<lang>.desktop.yaml`; the
  * gateway serves the flattened strings over `i18n.catalog {lang, surface:
  * 'desktop'}` and the selectable languages over `i18n.languages`. Both land
  * in the app-locale registry under source `backend`, merged over the bundled

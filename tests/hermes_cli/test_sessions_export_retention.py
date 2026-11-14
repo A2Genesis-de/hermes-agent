@@ -14,7 +14,7 @@ from hermes_state import SessionDB
 def store(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     # `hermes sessions` opens the ACTIVE home's store by explicit path (a served-profile process has
     # no single default store); the hermetic conftest re-pins hermes_state's argless default to its

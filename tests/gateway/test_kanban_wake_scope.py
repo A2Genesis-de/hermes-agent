@@ -77,7 +77,7 @@ def _completed_subscription(**sub_kwargs):
 
 def test_unscoped_platform_wake_key_is_byte_identical(tmp_path, monkeypatch):
     """Platforms without tenant scoping must keep their exact key shape."""
-    monkeypatch.setenv("HERMES_KANBAN_DB", str(tmp_path / "wake-scope-telegram.db"))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_DB", str(tmp_path / "wake-scope-telegram.db"))
     kb.init_db()
     _completed_subscription(
         platform="telegram",

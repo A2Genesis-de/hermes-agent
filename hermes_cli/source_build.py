@@ -39,14 +39,14 @@ def source_build_env(base_env: dict | None = None, *, explicit: bool = False, ve
     # the selected venv executable rather than the store interpreter.
     root = repo_root()
     python = str(project_python(root)) if running_from_selected_environment(root) else sys.executable
-    env = {**os.environ, **(base_env or {}), "CI": "1", "HERMES_PYTHON": python,
+    env = {**os.environ, **(base_env or {}), "CI": "1", "A2ASSISTANT_PYTHON": python,
            "PYTHON": python}
     # Electron's installer unpacks its binary with a native module that imports
     # VCRUNTIME140.dll, which a fresh Windows lacks. Our Python ships one, and
     # scripts/build/electron-runtime.mjs copies it beside that module.
     vc_runtime = Path(sys.base_prefix) / "vcruntime140.dll"
     if vc_runtime.is_file():
-        env["HERMES_VC_RUNTIME"] = str(vc_runtime)
+        env["A2ASSISTANT_VC_RUNTIME"] = str(vc_runtime)
     env.pop("ESBUILD_BINARY_PATH", None)
     npmrc = user_npmrc(env)
     if npmrc == hermes_npmrc():
@@ -257,7 +257,7 @@ def build_update_products(project_root: Path, *, desktop: bool, after_dependenci
             after_dependencies()
         desktop_reason = failures[-1][0] if failures else ""
         if desktop and (desktop_skipped or _headless_linux()):
-            print("  ⓘ If this host never runs the desktop app, `hermes uninstall --gui` removes it "
+            print("  ⓘ If this host never runs the desktop app, `a2assistant uninstall --gui` removes it "
                   "and future updates stop building it.")
         if prepared:
             # An update that changed no TUI/web input reuses the receipted output, as the
@@ -311,9 +311,9 @@ def build_update_products(project_root: Path, *, desktop: bool, after_dependenci
 def _rebuild_served_webapp(project_root: Path, publish_stage) -> None:
     """The Webapp bundle (``apps/desktop/dist-webapp``), when a home sharing this install serves it
     (``webapp.enabled``): its gateway serves the bundle as built, so one older than the updated
-    backend would talk to it with an outdated contract. Built with the function ``hermes webapp``
+    backend would talk to it with an outdated contract. Built with the function ``a2assistant webapp``
     uses, which reuses a current bundle. A failed build leaves the previous bundle on disk, marked
-    out of date: its gateways report the Webapp unavailable until ``hermes webapp`` rebuilds it."""
+    out of date: its gateways report the Webapp unavailable until ``a2assistant webapp`` rebuilds it."""
     from gateway.webapp_listener import webapp_settings
     from hermes_cli.webapp import mark_webapp_stale, prepare_webapp_renderer
     from pm.plugins_state import dependency_homes
@@ -326,7 +326,7 @@ def _rebuild_served_webapp(project_root: Path, publish_stage) -> None:
     except BaseException:
         try:
             if mark_webapp_stale(project_root):
-                print("  ⓘ The Webapp stays unavailable until `hermes webapp` rebuilds it.")
+                print("  ⓘ The Webapp stays unavailable until `a2assistant webapp` rebuilds it.")
         except OSError as exc:
             print(f"  ⚠ Could not mark the Webapp out of date: {exc}")
         raise

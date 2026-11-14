@@ -86,15 +86,15 @@ def _terminated_groups(stream: str, *, parent_pgid: int = 777) -> set:
     """Feed ``stream`` to the supervisor, close it, return the groups it SIGTERMed."""
     recorder = (
         'kill() { case $1 in -0) command kill "$@" ;;'
-        ' -TERM) echo "${2#-}" >> "$HERMES_TEST_LOG"; return 1 ;; *) return 1 ;; esac; };'
-        ' . "$HERMES_TEST_SCRIPT"'
+        ' -TERM) echo "${2#-}" >> "$A2ASSISTANT_TEST_LOG"; return 1 ;; *) return 1 ;; esac; };'
+        ' . "$A2ASSISTANT_TEST_SCRIPT"'
     )
     log = os.path.join(os.environ.get("TMPDIR") or "/tmp", f"supervisor-{os.getpid()}-{time.monotonic_ns()}")
     try:
         subprocess.run(
             ["/bin/sh", "-c", recorder, "supervisor", str(parent_pgid)],
             input=stream, text=True, timeout=30, check=True, start_new_session=True,
-            env={**os.environ, "HERMES_TEST_LOG": log, "HERMES_TEST_SCRIPT": SUPERVISOR},
+            env={**os.environ, "A2ASSISTANT_TEST_LOG": log, "A2ASSISTANT_TEST_SCRIPT": SUPERVISOR},
         )
         with contextlib.suppress(FileNotFoundError):
             with open(log, encoding="utf-8") as f:
@@ -869,7 +869,7 @@ def test_a_released_supervisor_leaves_no_zombie_child():
 
 
 def test_a_supervisor_killed_on_its_own_is_restarted_with_every_group_replayed(monkeypatch):
-    """``pkill -f hermes`` (or the OOM killer) can take the supervisor out while this process lives.
+    """``pkill -f a2assistant`` (or the OOM killer) can take the supervisor out while this process lives.
     Its waiter restarts it at once and replays the registered groups, so they still die with us even
     if no registration change ever comes; it is also reaped, never left a zombie. A signal death is
     restarted however young the supervisor is (a new one starts after every idle period)."""

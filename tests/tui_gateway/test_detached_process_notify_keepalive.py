@@ -24,7 +24,7 @@ def server(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     with patch.dict("sys.modules", {"hermes_cli.env_loader": MagicMock(), "hermes_cli.banner": MagicMock()}):
         mod = importlib.import_module("tui_gateway.server")
         yield mod
@@ -92,7 +92,7 @@ def _spawn(registry, owner: str, **kw):
     """A background process as the TUI turn spawns it: owner_task_id is the turn's task id (the session key)."""
     from tools.process_registry import ProcessSession
 
-    proc = ProcessSession(id=f"proc_{len(registry._running)}", command="hermes -p reviewer chat",
+    proc = ProcessSession(id=f"proc_{len(registry._running)}", command="a2assistant -p reviewer chat",
                           session_key=owner, owner_task_id=owner, started_at=time.time(), **kw)
     registry._running[proc.id] = proc
     return proc

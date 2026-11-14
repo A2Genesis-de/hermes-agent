@@ -223,7 +223,7 @@ def test_compute_host_interrupt_uses_explicit_stop_compatibility(monkeypatch, ki
 
     agent = {"legacy": _Legacy(), "hard-only": _HardOnly(), "dynamic-getattr": _Dynamic()}[kind]
     # The child never routes back to a supervisor (HERMES_COMPUTE_HOST_CHILD=1 in production).
-    monkeypatch.setenv("HERMES_COMPUTE_HOST_CHILD", "1")
+    monkeypatch.setenv("A2ASSISTANT_COMPUTE_HOST_CHILD", "1")
     out = io.StringIO()
     host = ComputeHost(stdout=out, heartbeat_secs=0)
     sid = "s1"

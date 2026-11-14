@@ -6,7 +6,7 @@ from hermes_state import SessionDB
 def test_sessions_export_md_writes_single_session(monkeypatch, tmp_path, capsys):
     import hermes_cli.main as main_mod
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     path = tmp_path / "state.db"
     db = SessionDB(db_path=path)
     sid = "20260706_123456_abcd1234"
@@ -38,7 +38,7 @@ def test_sessions_export_verified_delete_keeps_file(monkeypatch, tmp_path, capsy
     import hermes_cli.main as main_mod
     from hermes_cli.session_export_md import verify_export_file
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     path = tmp_path / "state.db"
     db = SessionDB(db_path=path)
     db.create_session("delete-me", "cli")
@@ -69,7 +69,7 @@ def test_sessions_export_redact_scrubs_secrets(monkeypatch, tmp_path):
     """Redaction affects the exported file, never the stored transcript."""
     import hermes_cli.main as main_mod
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     secret = "sk-proj-Zz12345678901234567890123456789012345678"
     path = tmp_path / "state.db"
     db = SessionDB(db_path=path)

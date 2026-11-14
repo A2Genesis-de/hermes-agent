@@ -172,7 +172,7 @@ def local_voice_transition(source, mode):
 
 def _voice(connection, ref):
     """The session's own ``/voice`` mode, so Ink mirrors the gateway's per-session state instead of
-    the sidecar's process-global ``HERMES_VOICE`` (T9)."""
+    the sidecar's process-global ``A2ASSISTANT_VOICE`` (T9)."""
     if not ref.session_id:
         raise RuntimeStoreError('invalid_params')
     return {'value': session_voice_mode(connection, ref)}

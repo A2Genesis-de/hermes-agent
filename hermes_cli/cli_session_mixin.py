@@ -279,7 +279,7 @@ class CLISessionMixin:
         store = gateway_store(self)  # a gateway session's tools are the gateway's: never enumerated here
         inventory = store.banner_inventory() if store is not None else None
         # Avoid pulling the full tool registry into the bare Termux prompt path.
-        if os.environ.get("HERMES_DEFER_AGENT_STARTUP") == "1" or (store is not None and inventory is None):
+        if os.environ.get("A2ASSISTANT_DEFER_AGENT_STARTUP") == "1" or (store is not None and inventory is None):
             tool_status = t("cli.session.status_tools_deferred")
         elif inventory is not None:
             tool_status = t("cli.session.status_tools_count", count=len(inventory["tools"] or []))
@@ -632,7 +632,7 @@ class CLISessionMixin:
                     self.agent._session_db_created = False
                     self._session_db.create_session(
                         session_id=self.session_id,
-                        source=os.environ.get("HERMES_SESSION_SOURCE", "cli"),
+                        source=os.environ.get("A2ASSISTANT_SESSION_SOURCE", "cli"),
                         model=self.model,
                         model_config={
                             "max_iterations": self.max_turns, "reasoning_config": self.reasoning_config,
@@ -903,7 +903,7 @@ class CLISessionMixin:
         return ""
 
     def _write_terminal_breadcrumb(self) -> None:
-        """Record this terminal's live session for bare ``hermes -c``. Called whenever
+        """Record this terminal's live session for bare ``a2assistant -c``. Called whenever
         ``self.session_id`` is (re)assigned so a later bare ``-c`` in THIS terminal resumes
         this conversation's live tip. Best-effort; no-op without a terminal identity."""
         with contextlib.suppress(Exception):
@@ -928,7 +928,7 @@ class CLISessionMixin:
         """Toggle per-session YOLO mode (skip dangerous-command approvals).
 
         Mirrors the gateway/TUI ``/yolo`` handlers. Deliberately does NOT touch
-        ``HERMES_YOLO_MODE``: that env var is frozen into ``tools.approval._YOLO_MODE_FROZEN``
+        ``A2ASSISTANT_YOLO_MODE``: that env var is frozen into ``tools.approval._YOLO_MODE_FROZEN``
         at import (so prompt-injected skills can't flip the bypass), making a later set a
         silent no-op. ``run_conversation`` binds ``self.session_id`` as the active approval
         key, so the bypass applies to the very next dangerous command.
@@ -1215,9 +1215,9 @@ class CLISessionMixin:
         except Exception:
             _active_profile = "default"
         profile_flag = "" if _active_profile in ("default", "custom") else f" -p {_active_profile}"
-        print(f"  hermes --resume {self.session_id}{profile_flag}")
+        print(f"  a2assistant --resume {self.session_id}{profile_flag}")
         if session_title:
-            print(f"  hermes -c \"{session_title}\"{profile_flag}")
+            print(f"  a2assistant -c \"{session_title}\"{profile_flag}")
         print()
         print(t("cli.session.exit_label_session", session_id=self.session_id))
         if session_title:

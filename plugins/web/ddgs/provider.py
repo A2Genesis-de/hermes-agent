@@ -1,5 +1,5 @@
 """DuckDuckGo search via the optional ``ddgs`` package (search only, no key). ``is_available()``
-reflects package importability; the plugin registers either way so ``hermes tools`` can offer to
+reflects package importability; the plugin registers either way so ``a2assistant tools`` can offer to
 install it. Isolation: ``ddgs``/``primp`` can block inside native code while holding the GIL, so a
 thread-pool ``future.result(timeout=…)`` cap can never fire and Ctrl+C/SIGTERM freeze the process —
 each search runs in a disposable child process the parent can terminate/kill.
@@ -151,7 +151,7 @@ def _run_ddgs_search_bounded(query: str, safe_limit: int) -> list[dict[str, Any]
     env = _sanitize_subprocess_env(dict(os.environ))
     if _test_hook:
         request["test_hook"] = _test_hook
-        env["HERMES_DDGS_ALLOW_TEST_HOOKS"] = "1"
+        env["A2ASSISTANT_DDGS_ALLOW_TEST_HOOKS"] = "1"
     proc = _last_worker_proc = _spawn_worker(env)
     # ``communicate`` runs in a side thread so the parent can poll interrupt /
     # deadline without blocking; killing the child unblocks it.
@@ -190,7 +190,7 @@ class DDGSWebSearchProvider(BaseWebSearchProvider):
 
     def is_available(self) -> bool:
         """True when ``ddgs`` is importable. Must NOT do network I/O — runs at
-        tool-registration time and on every ``hermes tools`` paint."""
+        tool-registration time and on every ``a2assistant tools`` paint."""
         try:
             import ddgs
             return True

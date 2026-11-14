@@ -16,7 +16,7 @@ async def test_keyboard_interrupt_in_end_session_does_not_skip_close(tmp_path, m
 
     home = tmp_path / "owner"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("HOME", str(tmp_path))
     (home / "config.yaml").write_text("model:\n  default: test/model\n  provider: custom\n")
     db = acquire(home / "state.db")

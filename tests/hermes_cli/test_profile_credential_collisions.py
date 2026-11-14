@@ -1,5 +1,5 @@
 """Regression for #118388: a platform singleton secret (``TELEGRAM_BOT_TOKEN``) duplicated across
-local profile homes was invisible to ``hermes doctor`` / ``hermes gateway status``; the only signal
+local profile homes was invisible to ``a2assistant doctor`` / ``a2assistant gateway status``; the only signal
 was the losing standalone gateway's log. Doctor, status and the migrate preflight now share one
 duplicate-credential helper, so all three name the same profiles + key names (never the value)."""
 
@@ -22,7 +22,7 @@ def homes(tmp_path, monkeypatch):
     root = tmp_path / ".hermes"
     (root / "profiles" / "worker").mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     for name in ("TELEGRAM_BOT_TOKEN", "DISCORD_BOT_TOKEN", "OPENAI_API_KEY"):
         monkeypatch.delenv(name, raising=False)
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)

@@ -3,7 +3,7 @@
 # the same completion an update runs -- command publication, product builds and
 # post-build maintenance -- so a fresh install and a finished update land in one
 # state. Heavy dependencies (tool binaries, browsers, node) are pm's job:
-# `hermes pm install`.
+# `a2assistant pm install`.
 #
 # Stage protocol kept for Hermes-Setup:
 #   --manifest            print the stage list as JSON
@@ -20,14 +20,14 @@ set -u
 # hygiene can't break the locked sync the way it used to before pm owned it.
 export UV_NO_CONFIG=1
 
-REPO_URL="${HERMES_REPO_URL:-https://github.com/NousResearch/hermes-agent.git}"
+REPO_URL="${A2ASSISTANT_REPO_URL:-https://github.com/NousResearch/hermes-agent.git}"
 BRANCH="main"
 INSTALL_COMMIT=""
 # The update channel to install: stable (the latest published release, the default for the
 # official repository's main line) or main (every commit). An explicit choice is persisted.
-CHANNEL="${HERMES_INSTALL_CHANNEL:-}"
-INSTALL_DIR="${HERMES_INSTALL_DIR:-}"
-HERMES_HOME="${HERMES_HOME:-$HOME/.hermes}"
+CHANNEL="${A2ASSISTANT_INSTALL_CHANNEL:-}"
+INSTALL_DIR="${A2ASSISTANT_INSTALL_DIR:-}"
+A2ASSISTANT_HOME="${A2ASSISTANT_HOME:-$HOME/.a2assistant}"
 STAGE=""
 WANT_MANIFEST=false
 JSON=false
@@ -56,7 +56,7 @@ while [ $# -gt 0 ]; do
                 --commit|-Commit) INSTALL_COMMIT="$2" ;;
                 --channel|-Channel) CHANNEL="$2" ;;
                 --dir) INSTALL_DIR="$2" ;;
-                --hermes-home|-HermesHome) HERMES_HOME="$2" ;;
+                --hermes-home|-HermesHome) A2ASSISTANT_HOME="$2" ;;
                 --stage|-Stage) STAGE="$2" ;;
             esac
             shift 2 ;;
@@ -76,14 +76,14 @@ while [ $# -gt 0 ]; do
             echo "                  [--skip-browser] [--skip-computer-use]"
             echo
             echo "  --channel       stable (default): the latest published release, then release"
-            echo "                  to release. main: every commit. Also HERMES_INSTALL_CHANNEL;"
-            echo "                  an explicit choice is saved like 'hermes update --set-channel'."
+            echo "                  to release. main: every commit. Also A2ASSISTANT_INSTALL_CHANNEL;"
+            echo "                  an explicit choice is saved like 'a2assistant update --set-channel'."
             echo "  --skip-browser  Do not install the browser (Chromium). Alias: --no-playwright."
-            echo "                  Remembered by later installs and 'hermes update';"
-            echo "                  undo with 'hermes pm install chromium'."
+            echo "                  Remembered by later installs and 'a2assistant update';"
+            echo "                  undo with 'a2assistant pm install chromium'."
             echo "  --skip-computer-use"
             echo "                  Do not install the computer-use driver (cua-driver). Remembered"
-            echo "                  the same way; undo with 'hermes pm install cua-driver'."
+            echo "                  the same way; undo with 'a2assistant pm install cua-driver'."
             exit 0 ;;
         *) echo "unknown option: $1" >&2; exit 1 ;;
     esac
@@ -94,10 +94,10 @@ case "$CHANNEL" in
     *) printf -- '--channel must be stable or main, not %s\n' "$CHANNEL" >&2; exit 2 ;;
 esac
 
-INSTALL_DIR="${INSTALL_DIR:-$HERMES_HOME/hermes-agent}"
-export HERMES_HOME
+INSTALL_DIR="${INSTALL_DIR:-$A2ASSISTANT_HOME/hermes-agent}"
+export A2ASSISTANT_HOME
 
-INSTALL_LOG="$HERMES_HOME/logs/install.log"
+INSTALL_LOG="$A2ASSISTANT_HOME/logs/install.log"
 
 # Same glyphs as the pre-pm installer. Colour only on a terminal, so CI
 # transcripts and the Hermes-Setup driver read plain text.
@@ -142,7 +142,7 @@ write_install_receipt() {
     # $1 outcome, $2 failed stage, $3 failure class. One file per run: the first writer wins.
     # A failed write (full disk) removes its partial temp file: the reader never sees dotfiles.
     {
-        local dir="$HERMES_HOME/telemetry/shared_metrics/pending_installs" id="$INSTALL_RUN_ID"
+        local dir="$A2ASSISTANT_HOME/telemetry/shared_metrics/pending_installs" id="$INSTALL_RUN_ID"
         [ -n "$id" ] && [ ! -e "$dir/$id.json" ] && mkdir -p "$dir" && {
             printf '{"id":"%s","installer":"install_sh","outcome":"%s","failed_stage":"%s","failure_class":"%s","started_at":%s,"finished_at":%s}\n' \
                 "$id" "$1" "$2" "$3" "$INSTALL_STARTED" "$(date +%s)" > "$dir/.$id.tmp" \
@@ -204,7 +204,7 @@ print_banner() {
 # readers parse.
 quiet_output() {
     [ "$VERBOSE" = true ] && return 1
-    if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${HERMES_INSTALL_VERBOSE:-}" ]; then
+    if [ -n "${CI:-}" ] || [ -n "${GITHUB_ACTIONS:-}" ] || [ -n "${A2ASSISTANT_INSTALL_VERBOSE:-}" ]; then
         return 1
     fi
     [ -t 1 ]
@@ -371,7 +371,7 @@ ensure_uv() {
     if ! uv_bootstrap_pin "$_target"; then
         fail "no pinned uv artifact for $_target; Hermes does not support this host" unsupported_platform
     fi
-    local _store="${HERMES_RUNTIME_DIR:-$HERMES_HOME/tools}"
+    local _store="${A2ASSISTANT_RUNTIME_DIR:-$A2ASSISTANT_HOME/tools}"
     local _entry="$_store/uv-$UV_PIN_VERSION-$_target"
     UV_CMD="$_entry/uv"
     if [ ! -x "$UV_CMD" ]; then
@@ -480,7 +480,7 @@ stage_result() {
     if [ "$ok" = false ] && [ "${INSTALL_LADDER:-false}" = true ]; then
         local class="${FAILURE_CLASS:-other}"
         # A user abort beats the stage's own class: a child that caught Ctrl-C and exited 1
-        # (pm, source_completion, `hermes setup`) still reaches the stage's `|| fail ... <class>`.
+        # (pm, source_completion, `a2assistant setup`) still reaches the stage's `|| fail ... <class>`.
         case "$code" in 129|130|143) class=interrupted ;; esac
         [ "${STAGE_INTERRUPTED:-false}" = false ] || class=interrupted
         write_install_receipt failed "${STAGE//-/_}" "$class"
@@ -489,7 +489,7 @@ stage_result() {
 
 # The single authoritative stage list: emit_manifest prints it AND the
 # no-flag ladder runs it. `products` is the shared completion tail -- the same
-# call `hermes update` makes -- so the manifest and the run cannot disagree.
+# call `a2assistant update` makes -- so the manifest and the run cannot disagree.
 # `desktop` stays directly dispatchable via --stage for external callers, but
 # is never listed: --include-desktop selects the desktop product inside
 # `products` instead of adding a second build stage.
@@ -620,7 +620,7 @@ stage_prerequisites() {
 # Pre-Python reader of the block YAML Hermes writes; anything it cannot read prints
 # nothing, which keeps the plain branch behaviour.
 chosen_channel() {
-    local config="$HERMES_HOME/config.yaml" root id
+    local config="$A2ASSISTANT_HOME/config.yaml" root id
     [ -f "$config" ] || return 0
     root="$(cd "$INSTALL_DIR" 2>/dev/null && pwd -P)" || return 0
     if command -v sha256sum >/dev/null 2>&1; then id="$(printf '%s' "$root" | sha256sum)"
@@ -651,7 +651,7 @@ is_official_repo() {
         | grep -Eq '^(https://github\.com/|git@github\.com:|ssh://git@github\.com/)nousresearch/hermes-agent(\.git)?/?$'
 }
 
-# The latest published stable release (vX.Y.Z), the release `hermes update` resolves for the
+# The latest published stable release (vX.Y.Z), the release `a2assistant update` resolves for the
 # stable channel. github.com's /releases/latest redirect answers when the API quota is spent, and
 # origin's highest vX.Y.Z tag (final tags are pushed by the publication run) when github.com's web
 # endpoints are unreachable but git is not. $1 is the origin URL. Prints nothing when none answers.
@@ -697,7 +697,7 @@ fetch_release() {
 }
 
 # Stable applies but cannot be reached. A fresh install stops (installing main instead would be
-# a channel nobody chose); a rerun keeps its checkout for `hermes update`, unless stable was
+# a channel nobody chose); a rerun keeps its checkout for `a2assistant update`, unless stable was
 # asked for by name. $1 says what failed.
 stable_unreachable() {
     if [ -d "$INSTALL_DIR/.git" ] && [ "$CHANNEL" != stable ]; then
@@ -713,7 +713,7 @@ stage_repository() {
     # initial commit, where stash/checkout abort ("You do not have the
     # initial commit yet", #40998); a killed update or a sync tool can leave
     # one git rejects outright (empty HEAD, a gitdir: file pointing nowhere),
-    # where `hermes update` cannot fetch. Move it aside -- never delete it, it
+    # where `a2assistant update` cannot fetch. Move it aside -- never delete it, it
     # may hold something the user wants -- and clone fresh below.
     if [ -e "$INSTALL_DIR/.git" ] && ! git -C "$INSTALL_DIR" rev-parse --verify HEAD >/dev/null 2>&1; then
         local broken
@@ -722,18 +722,18 @@ stage_repository() {
         mv "$INSTALL_DIR" "$broken" || fail "cannot move $INSTALL_DIR aside" filesystem_error
     fi
     if [ -d "$INSTALL_DIR/.git" ]; then
-        # A chosen channel (stable, a preview) owns where this checkout sits: `hermes update`
+        # A chosen channel (stable, a preview) owns where this checkout sits: `a2assistant update`
         # moves it. Switching it to the installer's branch would leave it on main while its
         # channel still says otherwise, and the next check would offer the release as an update.
         # Only an explicit --commit pin outranks the choice.
         # An explicit --channel is a new choice and replaces the recorded one.
         [ -n "$INSTALL_COMMIT" ] || [ -n "$CHANNEL" ] || channel="$(chosen_channel)"
-        # An explicit HERMES_REPO_URL names the source for reruns too, not
+        # An explicit A2ASSISTANT_REPO_URL names the source for reruns too, not
         # just the first clone.
-        if [ -n "${HERMES_REPO_URL:-}" ]; then
+        if [ -n "${A2ASSISTANT_REPO_URL:-}" ]; then
             git -C "$INSTALL_DIR" remote set-url origin "$REPO_URL" || fail "cannot point origin at $REPO_URL" git_fetch_failed
         fi
-        # No recorded choice: an official checkout tracks stable, as `hermes update` does.
+        # No recorded choice: an official checkout tracks stable, as `a2assistant update` does.
         if [ -z "$channel" ]; then
             # The configured URL, as hermes_cli.update_channel reads it (`remote get-url`
             # applies insteadOf rewrites).
@@ -773,7 +773,7 @@ stage_repository() {
                 || log_warn "could not disable fetch.writeCommitGraph in $INSTALL_DIR"
             # A treeless (tree:0) checkout from a late-September installer downloads whole
             # directory snapshots again on every history walk (#129514). Fetch its trees once; the
-            # new filter is recorded only after that succeeds, so `hermes update` retries otherwise.
+            # new filter is recorded only after that succeeds, so `a2assistant update` retries otherwise.
             if [ "$(git -C "$INSTALL_DIR" config --get remote.origin.partialclonefilter)" = tree:0 ]; then
                 if run_logged --may-fail "Fetching directory history once (treeless checkout)" \
                     git -C "$INSTALL_DIR" -c gc.auto=0 -c maintenance.auto=false fetch --refetch \
@@ -781,12 +781,12 @@ stage_repository() {
                     git -C "$INSTALL_DIR" config remote.origin.partialclonefilter blob:none \
                         || log_warn "could not record the blobless filter in $INSTALL_DIR"
                 else
-                    log_warn "could not fetch the directory history; the next hermes update retries it"
+                    log_warn "could not fetch the directory history; the next a2assistant update retries it"
                 fi
             fi
         fi
         if [ -n "$channel" ]; then
-            log "Keeping its checkout: \`hermes update\` moves it (\`hermes update --set-channel main\` follows main)"
+            log "Keeping its checkout: \`a2assistant update\` moves it (\`a2assistant update --set-channel main\` follows main)"
             return 0
         fi
         if [ -n "$release" ] && ! fetch_release "$INSTALL_DIR"; then
@@ -796,14 +796,14 @@ stage_repository() {
         if [ -n "$release" ]; then
             # A rerun only moves a checkout forward onto the release. Any other move (a main
             # checkout diverged from a release cut on release/*, one already past it, a shallow
-            # one that cannot tell) is `hermes update`'s: it refuses a release that predates the
+            # one that cannot tell) is `a2assistant update`'s: it refuses a release that predates the
             # session stores this checkout wrote (update_downgrade_guard).
             if git -C "$INSTALL_DIR" merge-base --is-ancestor "$release" HEAD 2>/dev/null; then
-                log "Keeping its checkout: it already has $release (\`hermes update\` moves it to the next release)"
+                log "Keeping its checkout: it already has $release (\`a2assistant update\` moves it to the next release)"
                 return 0
             fi
             if ! git -C "$INSTALL_DIR" merge-base --is-ancestor HEAD "$release" 2>/dev/null; then
-                log "Keeping its checkout: $release does not descend from it (\`hermes update\` decides that move)"
+                log "Keeping its checkout: $release does not descend from it (\`a2assistant update\` decides that move)"
                 return 0
             fi
         else
@@ -830,7 +830,7 @@ stage_repository() {
             log_warn "local changes stashed as hermes-install-autostash-$stamp"
         fi
         if [ -n "$release" ]; then
-            # Detached at the release commit, the way `hermes update` places a stable checkout;
+            # Detached at the release commit, the way `a2assistant update` places a stable checkout;
             # branches (and any commits on them) stay where they are.
             run_logged "Checking out $release" git -C "$INSTALL_DIR" checkout --detach "$release" \
                 || fail "git checkout failed$(native_detail)" git_checkout_failed
@@ -850,10 +850,10 @@ stage_repository() {
             # A release cut off the main line, a force-pushed remote, or the
             # user's own commits cannot fast-forward. Every stage below reads
             # files only the new tree has (pm/), so an install left on the old
-            # tree cannot finish -- match the remote the way `hermes update`
+            # tree cannot finish -- match the remote the way `a2assistant update`
             # does, after parking the old tip.
             # Only commits absent from origin need a rescue ref. Keep the same
-            # namespace as `hermes update` so its pruning and recovery work.
+            # namespace as `a2assistant update` so its pruning and recovery work.
             local dropped rescue_kind rescue_ref prior
             dropped="$(git -C "$INSTALL_DIR" rev-list --count "origin/$BRANCH..HEAD")" \
                 || fail "cannot count commits before reset" git_reset_failed
@@ -961,7 +961,7 @@ stage_repository() {
         rmdir "$staged"
         # A treeless checkout must never write a commit-graph: over a graph with
         # changed-path data that lazy-fetches the trees of every unseen commit, in a
-        # loop (#127711). gc.auto stays on: `hermes update` folds lazy-fetch packs with
+        # loop (#127711). gc.auto stays on: `a2assistant update` folds lazy-fetch packs with
         # `gc --auto`.
         git -C "$INSTALL_DIR" config maintenance.commit-graph.enabled false \
             || log_warn "could not disable maintenance.commit-graph.enabled in $INSTALL_DIR"
@@ -1022,8 +1022,8 @@ bootstrap_python() {
 bootstrap_pm() {
     local boot_py
     local pm_args=(install)
-    # PM records the opt-outs, so later installs and `hermes update` keep the
-    # tools off until `hermes pm install <name>` opts back in.
+    # PM records the opt-outs, so later installs and `a2assistant update` keep the
+    # tools off until `a2assistant pm install <name>` opts back in.
     # Legacy spelling on purpose: the stable PM this script installs by default
     # rejects `chromium`, and newer PMs read `agent-browser` as `chromium`.
     [ "$SKIP_BROWSER" = true ] && pm_args+=(--without agent-browser)
@@ -1132,17 +1132,17 @@ stage_desktop() {
 }
 
 stage_config() {
-    mkdir -p "$HERMES_HOME"/cron "$HERMES_HOME"/sessions "$HERMES_HOME"/logs \
-        "$HERMES_HOME"/pairing "$HERMES_HOME"/hooks "$HERMES_HOME"/image_cache \
-        "$HERMES_HOME"/audio_cache "$HERMES_HOME"/memories "$HERMES_HOME"/skills
-    if [ ! -f "$HERMES_HOME/.env" ]; then
-        cp "$INSTALL_DIR/.env.example" "$HERMES_HOME/.env" 2>/dev/null || touch "$HERMES_HOME/.env"
+    mkdir -p "$A2ASSISTANT_HOME"/cron "$A2ASSISTANT_HOME"/sessions "$A2ASSISTANT_HOME"/logs \
+        "$A2ASSISTANT_HOME"/pairing "$A2ASSISTANT_HOME"/hooks "$A2ASSISTANT_HOME"/image_cache \
+        "$A2ASSISTANT_HOME"/audio_cache "$A2ASSISTANT_HOME"/memories "$A2ASSISTANT_HOME"/skills
+    if [ ! -f "$A2ASSISTANT_HOME/.env" ]; then
+        cp "$INSTALL_DIR/.env.example" "$A2ASSISTANT_HOME/.env" 2>/dev/null || touch "$A2ASSISTANT_HOME/.env"
     fi
-    chmod 600 "$HERMES_HOME/.env"
-    if [ ! -f "$HERMES_HOME/config.yaml" ] && [ -f "$INSTALL_DIR/cli-config.yaml.example" ]; then
-        cp "$INSTALL_DIR/cli-config.yaml.example" "$HERMES_HOME/config.yaml"
+    chmod 600 "$A2ASSISTANT_HOME/.env"
+    if [ ! -f "$A2ASSISTANT_HOME/config.yaml" ] && [ -f "$INSTALL_DIR/cli-config.yaml.example" ]; then
+        cp "$INSTALL_DIR/cli-config.yaml.example" "$A2ASSISTANT_HOME/config.yaml"
     fi
-    log_success "config prepared in $HERMES_HOME"
+    log_success "config prepared in $A2ASSISTANT_HOME"
 }
 
 # Interactive stages read the terminal, not stdin: under `curl | bash` stdin
@@ -1153,7 +1153,7 @@ has_terminal() { (: </dev/tty) 2>/dev/null; }
 stage_setup() {
     if [ "$NON_INTERACTIVE" = true ]; then return 0; fi
     if ! has_terminal; then
-        log "setup skipped (no terminal); run 'hermes setup' after install"
+        log "setup skipped (no terminal); run 'a2assistant setup' after install"
         return 0
     fi
     "$INSTALL_DIR/.hermes/bin/hermes" setup </dev/tty || fail "setup failed" setup_failed
@@ -1162,7 +1162,7 @@ stage_setup() {
 stage_gateway() {
     if [ "$NON_INTERACTIVE" = true ]; then return 0; fi
     if ! has_terminal; then
-        log "gateway setup skipped (no terminal); run 'hermes gateway install' after install"
+        log "gateway setup skipped (no terminal); run 'a2assistant gateway install' after install"
         return 0
     fi
     # Setup installs the service when it handles the gateway; ask only if it did not.
@@ -1189,7 +1189,7 @@ print_path_reload_hint() {
     # The rc files only reach shells started later, and this installer is
     # always a child (`curl | bash`, `bash install.sh`) that cannot change its
     # parent's PATH. The inherited PATH is the parent's, so it says whether
-    # the user can run `hermes` right away.
+    # the user can run `a2assistant` right away.
     case ":$PATH:" in *":$HOME/.local/bin:"*|*":$HOME/.local/bin/:"*) return 0 ;; esac
     local rc
     local login_shell="${SHELL:-}"

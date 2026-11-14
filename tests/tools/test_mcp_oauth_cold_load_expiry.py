@@ -48,7 +48,7 @@ pytest.importorskip("mcp.client.auth.oauth2", reason="MCP SDK 1.26.0+ required")
 class TestSetTokensAbsoluteExpiry:
     def test_set_tokens_persists_absolute_expires_at(self, tmp_path, monkeypatch):
         """Tokens round-tripped through disk must encode absolute expiry."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         from mcp.shared.auth import OAuthToken
 
         from tools.mcp_oauth import HermesTokenStorage
@@ -81,7 +81,7 @@ class TestSetTokensAbsoluteExpiry:
         self, tmp_path, monkeypatch
     ):
         """Tokens without a TTL must not gain a fabricated expires_at."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         from mcp.shared.auth import OAuthToken
 
         from tools.mcp_oauth import HermesTokenStorage
@@ -107,7 +107,7 @@ class TestGetTokensReconstructsExpiresIn:
         self, tmp_path, monkeypatch
     ):
         """Round-trip: expires_in on read must reflect time remaining."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         from mcp.shared.auth import OAuthToken
 
         from tools.mcp_oauth import HermesTokenStorage
@@ -137,7 +137,7 @@ class TestGetTokensReconstructsExpiresIn:
         self, tmp_path, monkeypatch
     ):
         """An already-expired token reloaded from disk must report expires_in=0."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         from tools.mcp_oauth import HermesTokenStorage, _get_token_dir
 
         token_dir = _get_token_dir()
@@ -174,7 +174,7 @@ class TestGetTokensReconstructsExpiresIn:
         expires_in to zero so the SDK refreshes on next request. A fresh
         legacy-format file (mtime = now) keeps most of its TTL.
         """
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         from tools.mcp_oauth import HermesTokenStorage, _get_token_dir
 
         token_dir = _get_token_dir()
@@ -219,7 +219,7 @@ async def test_initialize_seeds_token_expiry_time_from_stored_tokens(
     token_expiry_time. Our subclass must do it so ``is_token_valid()``
     reports correctly and the preemptive-refresh path fires when needed.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from mcp.shared.auth import OAuthClientInformationFull, OAuthToken
     from pydantic import AnyUrl
 
@@ -284,7 +284,7 @@ async def test_initialize_marks_zero_ttl_cold_loaded_token_invalid(
     need an expiry that is already in the past before the SDK selects its refresh
     or authorization-code path.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     from mcp.shared.auth import OAuthClientInformationFull, OAuthClientMetadata, OAuthToken
     from pydantic import AnyUrl
 
@@ -367,7 +367,7 @@ async def test_initialize_prefetches_oauth_metadata_when_missing(
     and we drop into full browser re-auth — visible to the user as an
     unwanted OAuth browser prompt every time the process restarts.
     """
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
     # The SDK's httpx flavour (httpx2 on mcp >= 2.0). _prefetch_oauth_metadata
     # builds its client from the same module, so the MockTransport and the

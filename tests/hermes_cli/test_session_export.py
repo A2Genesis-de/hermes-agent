@@ -99,7 +99,7 @@ def test_sessions_export_cli_prompt_only_stdout(monkeypatch, capsys, tmp_path):
     import hermes_cli.main as main_mod
     import hermes_state
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     path = tmp_path / "state.db"
     db = hermes_state.SessionDB(db_path=path)
     db.create_session("sess-123", "cli")

@@ -111,13 +111,13 @@ def _clean_route(provider_name: str, route: Any) -> dict[str, Any]:
 def _profile_home(name: Any) -> Path:
     from hermes_cli.profiles import get_profile_dir, profile_exists
     if not isinstance(name, str) or not name.strip() or not profile_exists(name):
-        raise DelegationRouteError(f"Profile {name!r} does not exist (see `hermes profile list`).")
+        raise DelegationRouteError(f"Profile {name!r} does not exist (see `a2assistant profile list`).")
     return Path(get_profile_dir(name))
 
 
 @contextlib.contextmanager
 def delegated_profile_scope(home: Any) -> Iterator[None]:
-    """Run the block as profile ``home``: HERMES_HOME override, that profile's secret scope,
+    """Run the block as profile ``home``: A2ASSISTANT_HOME override, that profile's secret scope,
     multiplex semantics when it is not this process's own profile, and its terminal policy - the
     binding a multiplexed gateway applies to a routed turn (gateway/AGENTS.md § Profile scope).
     A no-op for anything but a path (``None``: no profile route) and for the home already in effect."""

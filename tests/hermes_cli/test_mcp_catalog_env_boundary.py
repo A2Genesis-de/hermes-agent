@@ -49,7 +49,7 @@ def catalog_env(tmp_path: Path, monkeypatch: pytest.MonkeyPatch, _isolate_hermes
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_OPTIONAL_MCPS", str(catalog))
+    monkeypatch.setenv("A2ASSISTANT_OPTIONAL_MCPS", str(catalog))
     invalidate_env_cache()
     return get_hermes_home()
 
@@ -103,12 +103,12 @@ def test_catalog_cannot_declare_reserved_control_key(
 ):
     from hermes_cli import mcp_catalog
 
-    catalog_root = Path(os.environ["HERMES_OPTIONAL_MCPS"])
+    catalog_root = Path(os.environ["A2ASSISTANT_OPTIONAL_MCPS"])
     manifest_path = catalog_root / "demo" / "manifest.yaml"
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     manifest["auth"]["env"].append(
         {
-            "name": "HERMES_YOLO_MODE",
+            "name": "A2ASSISTANT_YOLO_MODE",
             "prompt": "Unsafe control",
             "secret": False,
         }
@@ -125,14 +125,14 @@ def test_catalog_cannot_declare_reserved_control_key(
     response = client.post(
         "/api/mcp/catalog/install",
         headers=HEADERS,
-        json={"name": "demo", "env": {"HERMES_YOLO_MODE": "1"}},
+        json={"name": "demo", "env": {"A2ASSISTANT_YOLO_MODE": "1"}},
     )
 
     assert response.status_code == 400
     assert "denylist" in response.json()["detail"]
     assert installs == []
     env_path = catalog_env / ".env"
-    assert not env_path.exists() or "HERMES_YOLO_MODE" not in env_path.read_text(
+    assert not env_path.exists() or "A2ASSISTANT_YOLO_MODE" not in env_path.read_text(
         encoding="utf-8"
     )
 
@@ -177,7 +177,7 @@ def test_catalog_non_secret_env_never_lands_in_env_file(
     install_entry inlines them into the server config instead."""
     from hermes_cli import mcp_catalog
 
-    catalog_root = Path(os.environ["HERMES_OPTIONAL_MCPS"])
+    catalog_root = Path(os.environ["A2ASSISTANT_OPTIONAL_MCPS"])
     manifest_path = catalog_root / "demo" / "manifest.yaml"
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     manifest["auth"]["env"].append(
@@ -235,10 +235,10 @@ def test_catalog_non_secret_env_never_lands_in_env_file(
 @pytest.mark.parametrize(
     "protected_key",
     [
-        "HERMES_YOLO_MODE",
-        "HERMES_OPTIONAL_MCPS",
-        "HERMES_COPILOT_ACP_COMMAND",
-        "HERMES_COPILOT_ACP_ARGS",
+        "A2ASSISTANT_YOLO_MODE",
+        "A2ASSISTANT_OPTIONAL_MCPS",
+        "A2ASSISTANT_COPILOT_ACP_COMMAND",
+        "A2ASSISTANT_COPILOT_ACP_ARGS",
     ],
 )
 def test_generic_env_endpoint_rejects_protected_key(
@@ -274,8 +274,8 @@ def _acp_launch_resolvers(monkeypatch: pytest.MonkeyPatch):
     from providers.base import ProviderProfile
 
     acme = ProviderProfile(name="acme-acp", auth_type="external_process", base_url="acp://acme",
-                           process_command="acme", process_command_env_vars=("HERMES_ACME_ACP_COMMAND",),
-                           process_args_env_var="HERMES_ACME_ACP_ARGS")
+                           process_command="acme", process_command_env_vars=("A2ASSISTANT_ACME_ACP_COMMAND",),
+                           process_args_env_var="A2ASSISTANT_ACME_ACP_ARGS")
     real_list = providers.list_providers
     monkeypatch.setattr(providers, "list_providers", lambda: [*real_list(), acme])
 
@@ -298,14 +298,14 @@ def test_rejected_acp_launch_controls_do_not_change_live_resolvers(
 ):
     _resolve_command, _resolve_args = _acp_launch_resolvers(monkeypatch)
 
-    monkeypatch.setenv("HERMES_ACME_ACP_COMMAND", "/opt/trusted/acme")
-    monkeypatch.setenv("HERMES_ACME_ACP_ARGS", "--acp --stdio")
+    monkeypatch.setenv("A2ASSISTANT_ACME_ACP_COMMAND", "/opt/trusted/acme")
+    monkeypatch.setenv("A2ASSISTANT_ACME_ACP_ARGS", "--acp --stdio")
     expected_command = _resolve_command()
     expected_args = _resolve_args()
 
     attempts = {
-        "HERMES_ACME_ACP_COMMAND": "/tmp/attacker-command",
-        "HERMES_ACME_ACP_ARGS": "--malicious-transport",
+        "A2ASSISTANT_ACME_ACP_COMMAND": "/tmp/attacker-command",
+        "A2ASSISTANT_ACME_ACP_ARGS": "--malicious-transport",
     }
     for key, value in attempts.items():
         response = client.put(
@@ -331,11 +331,11 @@ def test_preexisting_acp_launch_controls_remain_usable(
     _resolve_command, _resolve_args = _acp_launch_resolvers(monkeypatch)
     from hermes_cli.env_loader import load_hermes_dotenv
 
-    monkeypatch.setenv("HERMES_ACME_ACP_COMMAND", "parent-placeholder")
-    monkeypatch.setenv("HERMES_ACME_ACP_ARGS", "--parent-placeholder")
+    monkeypatch.setenv("A2ASSISTANT_ACME_ACP_COMMAND", "parent-placeholder")
+    monkeypatch.setenv("A2ASSISTANT_ACME_ACP_ARGS", "--parent-placeholder")
     (catalog_env / ".env").write_text(
-        "HERMES_ACME_ACP_COMMAND=/opt/operator/acme\n"
-        "HERMES_ACME_ACP_ARGS=--acp --stdio --operator-mode\n",
+        "A2ASSISTANT_ACME_ACP_COMMAND=/opt/operator/acme\n"
+        "A2ASSISTANT_ACME_ACP_ARGS=--acp --stdio --operator-mode\n",
         encoding="utf-8",
     )
 
@@ -358,7 +358,7 @@ def test_connection_card_install_keeps_env_file_secrets_only(
     from hermes_cli import mcp_config
     from tools.connectors.mcp import _CatalogBackend
 
-    catalog_root = Path(os.environ["HERMES_OPTIONAL_MCPS"])
+    catalog_root = Path(os.environ["A2ASSISTANT_OPTIONAL_MCPS"])
     manifest_path = catalog_root / "demo" / "manifest.yaml"
     manifest = yaml.safe_load(manifest_path.read_text(encoding="utf-8"))
     manifest["transport"]["env"] = {"DEMO_BASE_URL": "${DEMO_BASE_URL}"}

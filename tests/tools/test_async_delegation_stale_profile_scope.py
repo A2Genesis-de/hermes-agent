@@ -48,7 +48,7 @@ def test_stale_monitor_force_finalize_updates_origin_profile_ledger(tmp_path, mo
     launch_home = tmp_path / "launch"
     profile_home = launch_home / "profiles" / "secondary"
     profile_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
 
     # We drive the production monitor loop ourselves below so the test controls
     # exactly when the record becomes expired.

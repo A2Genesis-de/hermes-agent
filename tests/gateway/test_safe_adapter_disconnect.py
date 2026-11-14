@@ -31,7 +31,7 @@ def bare_runner():
 @pytest.mark.asyncio
 async def test_safe_disconnect_times_out_and_continues(bare_runner, monkeypatch, caplog):
     """A wedged adapter disconnect must not block gateway shutdown."""
-    monkeypatch.setenv("HERMES_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT", "0.001")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT", "0.001")
     adapter = MagicMock()
 
     async def hang():
@@ -57,7 +57,7 @@ async def test_safe_disconnect_detaches_cancellation_swallowing_disconnect(
     unwinding, so the runner must detach the old close task and continue to the
     reconnect queue instead of waiting indefinitely.
     """
-    monkeypatch.setenv("HERMES_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT", "0.01")
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_ADAPTER_DISCONNECT_TIMEOUT", "0.01")
     adapter = MagicMock()
     started = asyncio.Event()
     release = asyncio.Event()

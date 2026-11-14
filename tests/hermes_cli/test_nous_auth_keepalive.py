@@ -135,10 +135,10 @@ def test_keepalive_binds_launch_scope_for_multiplexed_singleton_refresh(tmp_path
     launch_home.mkdir()
     (launch_home / ".env").write_text(
         "NOUS_INFERENCE_BASE_URL=https://inference.example/v1\n"
-        "HERMES_PORTAL_BASE_URL=https://portal.example\n",
+        "A2ASSISTANT_PORTAL_BASE_URL=https://portal.example\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
     monkeypatch.setattr("agent.credential_pool.load_pool", lambda provider: None)
     monkeypatch.setattr(
         keepalive, "get_provider_auth_state", lambda provider: {"access_token": "stored-token"}
@@ -173,7 +173,7 @@ def test_keepalive_binds_launch_scope_for_multiplexed_pool_refresh(tmp_path, mon
     (launch_home / ".env").write_text(
         "NOUS_INFERENCE_BASE_URL=https://inference.example/v1\n", encoding="utf-8"
     )
-    monkeypatch.setenv("HERMES_HOME", str(launch_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch_home))
     seen = []
 
     class _Entry:

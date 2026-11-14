@@ -24,7 +24,7 @@ export const frDesktopCommands = {
   configHeader: 'Configuration (affichage, approbations, collage et voix ; le reste n’est pas affiché) :',
   configDefaults: '(valeurs par défaut)',
   configFooter:
-    'Modifiez les réglages dans Réglages, ou éditez config.yaml avec `hermes config edit` sur l’hôte de la passerelle.',
+    'Modifiez les réglages dans Réglages, ou éditez config.yaml avec `a2assistant config edit` sur l’hôte de la passerelle.',
   historyHeader: (count: string) => `Historique de la conversation (${count} messages) :`,
   historyEmpty: 'Aucun message pour l’instant.',
   historyYou: 'Vous',
@@ -39,9 +39,9 @@ export const frDesktopCommands = {
   savedTo: (path: string) => `Conversation enregistrée dans ${path}`,
   saveCancelled: 'Non enregistré (annulé).',
   exportRemote:
-    '/export empaquette un profil depuis l’hôte de la passerelle, qui n’est pas cette machine. Lancez `hermes profile export` sur cet hôte.',
+    '/export empaquette un profil depuis l’hôte de la passerelle, qui n’est pas cette machine. Lancez `a2assistant profile export` sur cet hôte.',
   importRemote:
-    '/import installe un profil sur l’hôte de la passerelle, qui n’est pas cette machine. Lancez `hermes profile import <archive>` sur cet hôte.',
+    '/import installe un profil sur l’hôte de la passerelle, qui n’est pas cette machine. Lancez `a2assistant profile import <archive>` sur cet hôte.',
   timestampsUsage: 'utilisation : /timestamps [on|off|status]',
   timestampsOn: 'Horodatage : activé (cette fenêtre ; définissez display.timestamps dans config.yaml pour le garder)',
   timestampsOff:

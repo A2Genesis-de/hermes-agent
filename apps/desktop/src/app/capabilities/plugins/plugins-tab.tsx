@@ -271,7 +271,7 @@ function PackageRow({
   // the backend and entrypoint (pip-installed) ones go with their package.
   const agentRemovable = agent?.source === 'user' || agent?.source === 'git'
   const unavailableServers = agent?.servers?.filter(server => server.state !== 'connected') ?? []
-  // A STANDALONE desktop plugin (a folder in <HERMES_HOME>/desktop-plugins with
+  // A STANDALONE desktop plugin (a folder in <A2ASSISTANT_HOME>/desktop-plugins with
   // no agent package behind it) is deleted by Electron. A unified package's
   // desktop half is not offered here: uninstalling the agent half prunes it.
   const desktopRemovable = desktop?.kind === 'disk' && !desktop.packageName && !agent

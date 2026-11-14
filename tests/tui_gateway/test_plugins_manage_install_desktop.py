@@ -19,7 +19,7 @@ def test_install_desktop_round_trips_through_the_rpc(tmp_path, monkeypatch):
     from hermes_cli import plugins_cmd
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     repo = tmp_path / "gizmo"
     repo.mkdir()
     (repo / "plugin.js").write_text("export default { id: 'gizmo' }\n", encoding="utf-8")

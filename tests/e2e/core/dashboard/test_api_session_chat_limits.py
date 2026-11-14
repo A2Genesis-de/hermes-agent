@@ -2,7 +2,7 @@
 
 Real ``python -m gateway.run`` with the API-server platform enabled through the profile ``.env``
 (``API_SERVER_ENABLED``/``API_SERVER_KEY``/host/port, as a user configures it), sandboxed
-HOME/HERMES_HOME, the model routed to ``FakeLLMServer`` — which records every request, so the cell
+HOME/A2ASSISTANT_HOME, the model routed to ``FakeLLMServer`` — which records every request, so the cell
 reads exactly what the model was sent.
 
 Contract for ``POST /api/sessions/{id}/chat``: a message either reaches the model whole (length

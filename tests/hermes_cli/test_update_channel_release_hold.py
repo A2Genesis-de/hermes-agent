@@ -1,6 +1,6 @@
 """A channel whose release predates the gateway runtime holds the install where it is (#140729).
 
-The channel picked that release, the user did not ask to go back: ``hermes update`` reports that
+The channel picked that release, the user did not ask to go back: ``a2assistant update`` reports that
 the build is newer than the release and holds there, exiting 0, instead of refusing the
 downgrade on every attempt. An explicit ``--branch`` to a pre-runtime commit is still refused.
 """
@@ -35,9 +35,9 @@ def source(tmp_path, monkeypatch):
     home, origin, checkout = (tmp_path / name for name in ("home", "origin", "checkout"))
     home.mkdir()
     origin.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(checkout))
-    monkeypatch.delenv("HERMES_MANAGED", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(checkout))
+    monkeypatch.delenv("A2ASSISTANT_MANAGED", raising=False)
     git(origin, "init", "-b", "main")
     git(origin, "config", "user.name", "Channel Fixture")
     git(origin, "config", "user.email", "fixture@example.invalid")
@@ -98,7 +98,7 @@ def test_a_channel_release_older_than_the_runtime_holds_the_install_and_exits_cl
     assert git(source.root, "rev-parse", "HEAD") == source.installed
     assert "Refusing" not in out and "Downgrading is unsupported" not in out
     assert f"This build is newer than the {name} release {source.release[:12]}" in out
-    assert "hermes update --set-channel main" in out
+    assert "a2assistant update --set-channel main" in out
     assert len(source.completed) == 1 and source.completed[0]["expected_sha"] == source.installed
     # A held install is not up to date with its channel: the closing line says it was held.
     assert source.completed[0]["completion_message"] == f"✓ Holding at this build until a newer {name} release ships."

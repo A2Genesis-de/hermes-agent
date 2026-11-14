@@ -50,9 +50,9 @@ On Windows, the HEAD leg also takes every `git.exe` directory off PATH and insta
 Each leg with the script drivers has these phases:
 
 1. Stage: make the bare clone, park `main` at the old release.
-2. Install: run the old release's own installer script. Make sure that the checkout is at the old commit and that `hermes --version` works.
+2. Install: run the old release's own installer script. Make sure that the checkout is at the old commit and that `a2assistant --version` works.
 3. Update: move `main` to HEAD. Apply one update method. An app update must produce a new successful receipt or handoff result; a changed checkout alone is not completion.
-4. Verify the installed command and products before running `hermes --version`. Select the command under the installation's `.hermes/bin`; use the old venv only for a source tree without PM. Check PM currency and compiler receipts where supported. Preserve the no-desktop scenario for a plain install. Do not rebuild, remove dependencies, or force-stop an updater during verification. Historical installs without these receipts get artifact-presence checks, not a freshness claim.
+4. Verify the installed command and products before running `a2assistant --version`. Select the command under the installation's `.hermes/bin`; use the old venv only for a source tree without PM. Check PM currency and compiler receipts where supported. Preserve the no-desktop scenario for a plain install. Do not rebuild, remove dependencies, or force-stop an updater during verification. Historical installs without these receipts get artifact-presence checks, not a freshness claim.
 
 The cheap fixture checks are `tests/scripts/test_source_driver.py` and `tests-js/source-update-observer.test.mjs`. They do not run installers or prove native GUI relaunch. The native packaged-update drivers own automatic-relaunch acceptance. A later driver-owned launch checks chat only after the original update/relaunch assertions pass; it cannot repair a failed handoff. The observer does not change source files, products, dependency selections, or facts.
 
@@ -147,7 +147,7 @@ A leg can install a release from months back. The driver must not assume that th
 The desktop app has two launch paths, so the matrix has two app-update methods. Both click "Update now" in the running app. They differ in how the app starts:
 
 - `open-app-update`: the app starts from the installed app entry point. On Windows, both the desktop installer and `installer-script+desktop` create shortcuts, so both support this route. On Linux and macOS, the script's opt-in desktop stage builds inside the checkout without registering an OS entry point. The macOS route therefore requires a desktop-installer install; Linux has no open-app-update leg.
-- `hermes-desktop-app-update`: the app starts with the `hermes desktop` command. Every install method provides this command, on each OS that ships the desktop app. On linux this is the only app surface: no desktop installer and no packaged desktop artifact exist for linux. The driver captures the product's own launch call (argv, cwd, environment) with `e2e-assets/launch-capture/sitecustomize.py` and re-executes it under Playwright, which owns the app and clicks the update flow. Pre-PM console scripts load the capture hook via `PYTHONPATH`; PM launchers use `-I`, so `launch-capture/pm-launch.py` obtains the installed launcher's own isolated runtime command and loads the driver hook before its bootstrap.
+- `hermes-desktop-app-update`: the app starts with the `a2assistant desktop` command. Every install method provides this command, on each OS that ships the desktop app. On linux this is the only app surface: no desktop installer and no packaged desktop artifact exist for linux. The driver captures the product's own launch call (argv, cwd, environment) with `e2e-assets/launch-capture/sitecustomize.py` and re-executes it under Playwright, which owns the app and clicks the update flow. Pre-PM console scripts load the capture hook via `PYTHONPATH`; PM launchers use `-I`, so `launch-capture/pm-launch.py` obtains the installed launcher's own isolated runtime command and loads the driver hook before its bootstrap.
 
 ## Skips
 
@@ -222,8 +222,8 @@ contract and not exercised.
 ## Manual update rehearsals
 
 There is no `manual/` directory in this repo. The rehearsal scripts — `pre`
-(back up the whole `HERMES_HOME`, the desktop app's Electron userData, the
-`hermes` shims on PATH and the global git config, then point the install's
+(back up the whole `A2ASSISTANT_HOME`, the desktop app's Electron userData, the
+`a2assistant` shims on PATH and the global git config, then point the install's
 update source at a custom repo + ref) and `post` (undo all of it and report how
 exact the restore was) — are a hand-off kit for someone with a *real* install,
 kept outside this checkout on purpose: they are not part of the repo and not
@@ -250,8 +250,8 @@ re-syncs it), but it may not delete or modify the user's own durable state —
   purpose: the state it defends must be produced by the product through the
   ordinary user path, never hand-written by the harness.
 - `e2e-assets/user-state-actions.sh` produces that state with real commands —
-  `hermes chat -q` (a real turn → `sessions/` + `state.db` rows),
-  `hermes auth add` (→ `auth.json`), `hermes profile create`
+  `a2assistant chat -q` (a real turn → `sessions/` + `state.db` rows),
+  `a2assistant auth add` (→ `auth.json`), `a2assistant profile create`
   (→ `profiles/<name>/`) — after probing `--help` for each flag, per the
   harness's "probe, do not assume" rule. Each action asserts it actually landed,
   so a leg can never "pass" while testing nothing.

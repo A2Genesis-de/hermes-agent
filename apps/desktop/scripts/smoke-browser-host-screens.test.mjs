@@ -23,7 +23,7 @@ describe('browser smoke startup screens', () => {
   })
 
   it('finds the Webapp sign-in screen on the page', () => {
-    const titles = shownTitles('Sign in to A2Assistant\nRun hermes webapp on this computer to sign this browser in.')
+    const titles = shownTitles('Sign in to A2Assistant\nRun a2assistant webapp on this computer to sign this browser in.')
 
     expect(startupScreenFailures(titles, { allowGatewayFailure: false })).toEqual([
       'Webapp shows the sign-in screen ("Sign in to A2Assistant")'

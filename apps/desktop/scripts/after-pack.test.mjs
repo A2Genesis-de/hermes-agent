@@ -1,8 +1,4 @@
-import {
-  assertPackagedBackendReadyArtifact,
-  assertBackendReadyArtifactSourceAcceptsBothTokens,
-  resolvePackagedAsarPath
-} from './backend-ready-artifact.mjs'
+import { resolvePackagedAsarPath } from './backend-ready-artifact.mjs'
 import { mkdtemp, mkdir, readdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { createRequire } from 'node:module'
 import os from 'node:os'
@@ -30,7 +26,7 @@ async function seedPackagedMain(context) {
   await mkdir(path.join(`${asarPath}.unpacked`, 'dist'), { recursive: true })
   await writeFile(
     path.join(`${asarPath}.unpacked`, 'dist', 'electron-main.mjs'),
-    'const re = /HERMES_(?:BACKEND|DASHBOARD)_READY[^\\n]*port=(\\d+)/m\n'
+    'const re = /A2ASSISTANT_(?:BACKEND|DASHBOARD)_READY[^\\n]*port=(\\d+)/m\n'
   )
 }
 

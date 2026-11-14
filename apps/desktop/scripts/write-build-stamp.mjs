@@ -14,6 +14,7 @@ import { validateBundleEnvironment } from "./bundle-env.mjs"
 import { execFileSync } from "child_process"
 
 import { isMain } from "./utils.mjs"
+import { CLI_COMMAND_ALTERNATION } from "../../shared/src/product-names.mjs"
 
 const STAMP_SCHEMA_VERSION = 1
 
@@ -96,12 +97,12 @@ export function resolveStamp({
     if (!local || local.commit !== channelBuild.commit || local.dirty) throw new Error('Channel build identity does not match clean checkout HEAD')
     return { ...local, branch: null, source: 'channel-build', baseVersion: channelBuild.sourceVersion, channelBuild }
   }
-  if (env.HERMES_BUILD_COMMIT) {
-    if (!/^[a-f0-9]{40}$/.test(env.HERMES_BUILD_COMMIT) || env.HERMES_PAYLOAD_TAG) {
+  if (env.A2ASSISTANT_BUILD_COMMIT) {
+    if (!/^[a-f0-9]{40}$/.test(env.A2ASSISTANT_BUILD_COMMIT) || env.A2ASSISTANT_PAYLOAD_TAG) {
       throw new Error('Commit builds require an exact full SHA without a release tag')
     }
     const local = fromLocalGit(repoRoot, execFn)
-    if (!local || local.commit !== env.HERMES_BUILD_COMMIT) {
+    if (!local || local.commit !== env.A2ASSISTANT_BUILD_COMMIT) {
       throw new Error('Commit build identity does not match the checkout HEAD')
     }
     return { ...local, branch: null, source: 'commit-build' }
@@ -117,7 +118,7 @@ export function isFallbackCommit(commit) {
  * Canonical command keys remain stable for backend consumers; public aliases
  * come from the declared filenames, never those internal keys. The canonical
  * files stay beside them: the agent's own terminal puts <payload>/bin first on
- * PATH (pm.environments.activate_dependencies) and runs bare `hermes`, while
+ * PATH (pm.environments.activate_dependencies) and runs bare `a2assistant`, while
  * only the qualified names are published (MSIX aliases, ~/.local/bin links).
  */
 export function stageDesktopLaunchers(root, identity = productIdentity) {
@@ -127,7 +128,7 @@ export function stageDesktopLaunchers(root, identity = productIdentity) {
   const commands = {}
   const launchers = []
   for (const [name, source] of Object.entries(manifest.runtime.commands)) {
-    const alias = name.replace(/^hermes(?=-|$)/, identity.cliName)
+    const alias = name.replace(new RegExp(`^(?:${CLI_COMMAND_ALTERNATION})(?=-|$)`), identity.cliName)
     const destination = posix.join(posix.dirname(source), `${alias}${windows ? '.exe' : ''}`)
     if (source !== destination && existsSync(join(root, source))) {
       copyFileSync(join(root, source), join(root, destination))
@@ -187,7 +188,7 @@ function main() {
     )
   }
 
-  const bundled = ['bundled', 'store'].includes(process.env.HERMES_DESKTOP_VARIANT)
+  const bundled = ['bundled', 'store'].includes(process.env.A2ASSISTANT_DESKTOP_VARIANT)
   const payload = bundled
     ? stageDesktopLaunchers(join(OUT_DIR, 'agent-payload'))
     : null
@@ -208,22 +209,22 @@ function main() {
  * The PM bundle builder supplies launch paths only for bundled artifacts.
  */
 export function buildStampPayload(stamp, env = process.env, platform = process.platform, payload = null) {
-  const variant = (env.HERMES_DESKTOP_VARIANT || "").trim()
+  const variant = (env.A2ASSISTANT_DESKTOP_VARIANT || "").trim()
   const channelBuild = channelBuildRequest(env)
   if (channelBuild && (stamp.commit !== channelBuild.commit || stamp.dirty)) throw new Error('Channel build identity does not match stamp')
-  const commitBuild = env.HERMES_BUILD_COMMIT || null
+  const commitBuild = env.A2ASSISTANT_BUILD_COMMIT || null
   if (commitBuild && (!/^[a-f0-9]{40}$/.test(commitBuild) || commitBuild !== stamp.commit)) {
     throw new Error('Commit build identity does not match the stamp commit')
   }
-  if (commitBuild && env.HERMES_PAYLOAD_TAG) {
+  if (commitBuild && env.A2ASSISTANT_PAYLOAD_TAG) {
     throw new Error('Commit builds cannot also set a release tag')
   }
-  const version = env.HERMES_PAYLOAD_VERSION || (env.HERMES_PAYLOAD_TAG || '').replace(/^v/, '') || null
+  const version = env.A2ASSISTANT_PAYLOAD_VERSION || (env.A2ASSISTANT_PAYLOAD_TAG || '').replace(/^v/, '') || null
   // The bundle's baked runtime defaults/clears, recorded as data so the smoke
   // driver can predict the app's resolved Hermes home without reimplementing
   // the banner. Only commit bundles carry one, but the field is harmless when
   // absent elsewhere.
-  const bundleEnv = env.HERMES_BUNDLE_ENV_JSON ? validateBundleEnvironment(JSON.parse(env.HERMES_BUNDLE_ENV_JSON)) : undefined
+  const bundleEnv = env.A2ASSISTANT_BUNDLE_ENV_JSON ? validateBundleEnvironment(JSON.parse(env.A2ASSISTANT_BUNDLE_ENV_JSON)) : undefined
   const base = {
     schemaVersion: STAMP_SCHEMA_VERSION,
     commit: stamp.commit,
@@ -267,7 +268,7 @@ export function buildStampPayload(stamp, env = process.env, platform = process.p
     distribution: "desktop-app",
 
     updateMechanism: commitBuild ? 'external' : updateMechanism,
-    tag: channelBuild?.receiverCandidate ? channelBuild.releaseTag : env.HERMES_PAYLOAD_TAG || null,
+    tag: channelBuild?.receiverCandidate ? channelBuild.releaseTag : env.A2ASSISTANT_PAYLOAD_TAG || null,
     ...(bundleEnv ? { bundleEnv } : {}),
     ...(bundled ? { runtime: payload.runtime } : {})
   }

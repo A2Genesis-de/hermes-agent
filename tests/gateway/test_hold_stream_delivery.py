@@ -80,8 +80,8 @@ async def _deliver(chat, *, hold, monkeypatch):
     import gateway.run as gateway_run
     from hermes_cli import plugins
 
-    home = Path(os.environ["HERMES_HOME"])
-    platform = Platform.TELEGRAM if chat.platform == Platform.RELAY else Platform.TELEGRAM
+    home = Path(os.environ["A2ASSISTANT_HOME"])
+    platform = Platform.TELEGRAM
     source = SessionSource(platform=platform, chat_id="c1", chat_type="dm", user_id="u1")
     event = MessageEvent(text="show me the config", source=source, message_type=MessageType.TEXT)
     session_key = f"agent:main:{platform.value}:dm:c1"

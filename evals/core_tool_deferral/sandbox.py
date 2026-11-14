@@ -1,12 +1,12 @@
 """Keep an eval agent's host-level side effects inside the run's sandbox.
 
-HERMES_HOME isolation covers Hermes state only. Tasks like "schedule it nightly at 2am" let
+A2ASSISTANT_HOME isolation covers Hermes state only. Tasks like "schedule it nightly at 2am" let
 the agent reach the operator's real crontab, systemd user manager and home directory: a
 past run of ``longrange_backup_pipeline`` left three nightly cron jobs and two scripts on the
 operator's machine, pointing into run dirs that no longer existed.
 
 ``isolate_host`` uses the product's own contract for this (``TERMINAL_HOME_MODE=profile``
-pins every terminal child's HOME to ``{HERMES_HOME}/home``), points the worker's own HOME
+pins every terminal child's HOME to ``{A2ASSISTANT_HOME}/home``), points the worker's own HOME
 there too so in-process ``~`` expansion follows, puts a file-backed ``crontab`` first on
 PATH, and drops the user-bus variables so ``systemctl --user`` cannot reach the real manager.
 """

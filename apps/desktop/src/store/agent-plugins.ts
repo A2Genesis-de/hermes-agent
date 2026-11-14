@@ -11,7 +11,7 @@ import { notifyError } from '@/store/notifications'
  * it runs in.
  *
  * Backed by the gateway's `plugins.manage` RPC — the same list/toggle
- * primitives `hermes plugins` and the dashboard use, so all surfaces agree on
+ * primitives `a2assistant plugins` and the dashboard use, so all surfaces agree on
  * what's installed and what's enabled. Works against every backend topology
  * (local spawn, SSH, URL+token) because it rides the session's own transport.
  */
@@ -127,7 +127,7 @@ const withProfile = (params: Record<string, unknown>, profile?: string | null) =
   profile ? { ...params, profile } : params
 
 /** Fetch the backend plugin list, optionally scoped to another profile's
- *  HERMES_HOME. Always refetches (it's a cheap local disk scan on the
+ *  A2ASSISTANT_HOME. Always refetches (it's a cheap local disk scan on the
  *  backend); concurrent callers for the SAME profile share one in-flight
  *  request — a different profile starts fresh so a scope switch can't get a
  *  stale list. */
@@ -335,7 +335,7 @@ export async function installAgentPlugin(
     /** The commit the install dialog inspected: a custom source with no `ref` whose branch moved since is
      *  refused by the backend, never installed at the new tip. */
     inspectedSha?: string
-    /** Target profile's HERMES_HOME (null/undefined = backend launch profile). */
+    /** Target profile's A2ASSISTANT_HOME (null/undefined = backend launch profile). */
     profile?: string | null
   }
 ): Promise<AgentPluginInstallResult> {
@@ -553,7 +553,7 @@ export async function removeDesktopPluginHalf(
 }
 
 /** Uninstall a user-installed agent plugin (backend `plugins.manage remove`;
- *  deletes `<HERMES_HOME>/plugins/<name>` and its install metadata). Drops the
+ *  deletes `<A2ASSISTANT_HOME>/plugins/<name>` and its install metadata). Drops the
  *  row locally on success — callers rescan so a unified package's desktop half
  *  is pruned too. Returns whether the plugin was removed. */
 export async function removeAgentPlugin(

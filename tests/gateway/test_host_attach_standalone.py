@@ -38,8 +38,8 @@ def standalone_home(tmp_path, monkeypatch):
     home = root / "profiles" / "solo"
     home.mkdir(parents=True)
     (home / "config.yaml").write_text("gateway:\n  standalone: true\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     from hermes_cli import profiles
     monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: root)
     monkeypatch.setattr(profiles, "_get_profiles_root", lambda: root / "profiles")

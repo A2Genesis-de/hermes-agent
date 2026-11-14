@@ -8,8 +8,8 @@ import { connectWindowsRemote, decodePowerShellCommand } from './windows-remote-
 const OWNERSHIP_ID = '0123456789abcdef0123456789abcdef'
 const SPAWN_NONCE = '0123456789abcdef'
 const REUSE_TOKEN = 'stored-token'
-const HERMES_PATH = 'C:\\h\\hermes.exe'
-const HERMES_HOME = 'C:\\h'
+const A2ASSISTANT_PATH = 'C:\\h\\hermes.exe'
+const A2ASSISTANT_HOME = 'C:\\h'
 
 function fingerprint(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex').slice(0, 32)
@@ -26,8 +26,8 @@ function ownedLock(devServer?: string): Record<string, unknown> {
     creationTimeNs: '1784219690452757504',
     port: 40000,
     profile: '',
-    hermesPath: HERMES_PATH,
-    hermesHome: HERMES_HOME,
+    hermesPath: A2ASSISTANT_PATH,
+    hermesHome: A2ASSISTANT_HOME,
     tokenFingerprint: fingerprint(REUSE_TOKEN),
     startedAt: '2026-07-14T00:00:00.000Z',
     ...(devServer === undefined ? {} : { devServer })
@@ -56,7 +56,7 @@ function ownedWindowsSsh(lock: null | Record<string, unknown>) {
       }
 
       if (script.includes('Get-Command hermes')) {
-        return JSON.stringify({ os: 'Windows', arch: 'AMD64', hermesHome: HERMES_HOME, hermesPath: HERMES_PATH, python: 'C:\\h\\python.exe' })
+        return JSON.stringify({ os: 'Windows', arch: 'AMD64', hermesHome: A2ASSISTANT_HOME, hermesPath: A2ASSISTANT_PATH, python: 'C:\\h\\python.exe' })
       }
 
       if (script.includes('.hermes-update-in-progress')) {
@@ -64,7 +64,7 @@ function ownedWindowsSsh(lock: null | Record<string, unknown>) {
       }
 
       if (op('inspect')) {
-        return JSON.stringify({ path: HERMES_PATH, version: 'A2Assistant v1', runtimeBootstrapOwnership: 1, supported: true })
+        return JSON.stringify({ path: A2ASSISTANT_PATH, version: 'A2Assistant v1', runtimeBootstrapOwnership: 1, supported: true })
       }
 
       if (op('read-lock')) {
@@ -76,7 +76,7 @@ function ownedWindowsSsh(lock: null | Record<string, unknown>) {
       }
 
       if (op('read-log')) {
-        return JSON.stringify({ content: 'HERMES_DASHBOARD_READY port=52050\n' })
+        return JSON.stringify({ content: 'A2ASSISTANT_DASHBOARD_READY port=52050\n' })
       }
 
       return JSON.stringify({ ok: true })
@@ -113,7 +113,7 @@ for (const [label, devServer, expected] of [
   ['a packaged build hands the Windows serve no renderer origin', '', '']
 ] as const) {
   test(`Windows spawn: ${label}`, async (): Promise<void> => {
-    // The backend trusts a dev renderer's http origin only when it inherits HERMES_DESKTOP_DEV_SERVER;
+    // The backend trusts a dev renderer's http origin only when it inherits A2ASSISTANT_DESKTOP_DEV_SERVER;
     // windows_ssh_runtime.spawn_backend sets it from the payload's devServer, and only when non-empty.
     const ssh = ownedWindowsSsh(null)
 

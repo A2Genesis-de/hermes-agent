@@ -1,6 +1,6 @@
 """Native live proof of the unified gateway runtime on the CURRENT host OS.
 
-An ordinary ``python -m gateway.run`` in a disposable HERMES_HOME with a loopback
+An ordinary ``python -m gateway.run`` in a disposable A2ASSISTANT_HOME with a loopback
 model must, on Linux, macOS and native Windows alike: publish discovery + tickets;
 attach WebSockets; admit/execute/receipt prompts; keep two clients FIFO on one
 session; survive an owner hard-kill (``gateway.status.terminate_pid``) with the
@@ -140,7 +140,7 @@ def hard_kill(proc):
 
 
 def planned_stop(home, proc, desc):
-    """The ``hermes gateway stop`` contract: marker first, then the owner drains itself.
+    """The ``a2assistant gateway stop`` contract: marker first, then the owner drains itself.
 
     The marker names the gateway's own pid from ``identify`` (what the PID file carries), not
     the Popen handle: a Windows uv venv ``python.exe`` is a trampoline whose pid differs."""
@@ -286,7 +286,7 @@ def harness(tmp_path, peer):
         "    return _dumps(obj, *a, **kw)\n"
         "_json.dumps = _dumps_witness\n", encoding='utf-8')
     env = {k: os.environ[k] for k in _CHILD_ENV_KEYS if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONUNBUFFERED='1',
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONUNBUFFERED='1',
                PYTHONPATH=os.pathsep.join([str(site), str(ROOT)]),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
     return {'home': home, 'work': work, 'env': env, 'url': url, 'audit': audit, 'peer': peer}
@@ -476,7 +476,7 @@ def test_native_owner_hard_kill_recovers_queued_admission_once(harness):
 
 
 def test_native_safe_mode_cli_executes_in_managed_worker(harness):
-    """`hermes chat --safe-mode -q` over subprocess pipes: the turn runs in an out-of-process
+    """`a2assistant chat --safe-mode -q` over subprocess pipes: the turn runs in an out-of-process
     managed worker (pid != owner) that opens no writable canonical sqlite."""
     home, env, peer, url, audit = harness['home'], harness['env'], harness['peer'], harness['url'], harness['audit']
 

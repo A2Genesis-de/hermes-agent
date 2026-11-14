@@ -1,7 +1,7 @@
 /**
  * Provider setup must keep the Settings owner's gateway AND profile.
  * Two real serve backends; only OpenAI-compatible model discovery is a fixture.
- * Build dist/ separately, then run this spec with HERMES_DESKTOP_PYTHON pointing
+ * Build dist/ separately, then run this spec with A2ASSISTANT_DESKTOP_PYTHON pointing
  * at a dependency-complete interpreter. No OAuth account or inference is used.
  */
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process'
@@ -44,7 +44,7 @@ function isolatedEnv(home: string, hermesHome: string): Record<string, string> {
     PATH: process.env.PATH ?? '',
     HOME: home,
     USERPROFILE: home,
-    HERMES_HOME: hermesHome,
+    A2ASSISTANT_HOME: hermesHome,
     PYTHONPATH: REPO_ROOT,
     PYTHONNOUSERSITE: '1',
     PYTHONDONTWRITEBYTECODE: '1',
@@ -72,11 +72,11 @@ function isolatedEnv(home: string, hermesHome: string): Record<string, string> {
 
 function pythonBinary(): string {
   const python =
-    process.env.HERMES_DESKTOP_PYTHON ??
+    process.env.A2ASSISTANT_DESKTOP_PYTHON ??
     path.join(REPO_ROOT, '.venv', process.platform === 'win32' ? 'Scripts/python.exe' : 'bin/python')
 
   if (!fs.existsSync(python)) {
-    throw new Error('Set HERMES_DESKTOP_PYTHON to an isolated dependency-complete interpreter')
+    throw new Error('Set A2ASSISTANT_DESKTOP_PYTHON to an isolated dependency-complete interpreter')
   }
 
   return python
@@ -170,7 +170,7 @@ async function startRemote(python: string, env: Record<string, string>, logPath:
     ['-m', 'hermes_cli.main', 'serve', '--isolated', '--host', '127.0.0.1', '--port', String(port), '--skip-build'],
     {
       cwd: REPO_ROOT,
-      env: { ...env, HERMES_DASHBOARD_SESSION_TOKEN: REMOTE_TOKEN },
+      env: { ...env, A2ASSISTANT_DASHBOARD_SESSION_TOKEN: REMOTE_TOKEN },
       stdio: ['ignore', log, log]
     }
   )
@@ -335,12 +335,12 @@ test('Settings provider setup stays on its gateway/profile across A → B → A'
         : {}),
       env: {
         ...localEnv,
-        HERMES_DESKTOP_PYTHON: python,
-        HERMES_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
-        HERMES_DESKTOP_IGNORE_EXISTING: '1',
-        HERMES_DESKTOP_HERMES_ROOT: REPO_ROOT,
-        HERMES_DESKTOP_APP_NAME: `ProviderOwnerE2E-${Date.now()}`,
-        HERMES_DESKTOP_SKIP_QUIT_CONFIRM: '1'
+        A2ASSISTANT_DESKTOP_PYTHON: python,
+        A2ASSISTANT_DESKTOP_USER_DATA_DIR: sandbox.userDataDir,
+        A2ASSISTANT_DESKTOP_IGNORE_EXISTING: '1',
+        A2ASSISTANT_DESKTOP_HERMES_ROOT: REPO_ROOT,
+        A2ASSISTANT_DESKTOP_APP_NAME: `ProviderOwnerE2E-${Date.now()}`,
+        A2ASSISTANT_DESKTOP_SKIP_QUIT_CONFIRM: '1'
       }
     })
     page = await app.firstWindow()

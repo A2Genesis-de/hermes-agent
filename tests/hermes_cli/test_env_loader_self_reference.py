@@ -13,7 +13,7 @@ BASE_PATH = "/usr/bin:/bin"
 @pytest.fixture
 def home(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", BASE_PATH)
-    monkeypatch.setenv("HERMES_MULTIPLEX_PROFILES", "0")
+    monkeypatch.setenv("A2ASSISTANT_MULTIPLEX_PROFILES", "0")
     h = tmp_path / "hermes"
     h.mkdir()
     return h
@@ -48,7 +48,7 @@ def test_alternating_project_env_and_none_stays_stable(home, tmp_path):
 
 def test_alternating_homes_each_resolve_against_boot_path(tmp_path, monkeypatch):
     monkeypatch.setenv("PATH", BASE_PATH)
-    monkeypatch.setenv("HERMES_MULTIPLEX_PROFILES", "0")
+    monkeypatch.setenv("A2ASSISTANT_MULTIPLEX_PROFILES", "0")
     home_a = tmp_path / "a"
     home_b = tmp_path / "b"
     for h, tag in ((home_a, "a"), (home_b, "b")):

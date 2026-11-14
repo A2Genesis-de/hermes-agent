@@ -46,10 +46,10 @@ REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 # a branch switch or lock edit never runs the suite against the previous
 # dependency set.
 #
-# Without an activation, an explicit HERMES_PYTHON that has pytest is honored:
+# Without an activation, an explicit A2ASSISTANT_PYTHON that has pytest is honored:
 # the Nix devShell's editable venv and CI's minimal installer lanes provide
-# one on purpose. The import check matters: a wrapped `hermes` binary exports
-# HERMES_PYTHON pointing at a release venv without pytest.
+# one on purpose. The import check matters: a wrapped `a2assistant` binary exports
+# A2ASSISTANT_PYTHON pointing at a release venv without pytest.
 _has_pytest() { [ -n "$1" ] && [ -x "$1" ] && "$1" -c 'import pytest' 2>/dev/null; }
 # shellcheck source=scripts/_activation.sh
 . "$SCRIPT_DIR/_activation.sh"
@@ -60,50 +60,54 @@ _has_pytest() { [ -n "$1" ] && [ -x "$1" ] && "$1" -c 'import pytest' 2>/dev/nul
 # records this checkout's pins (_store_has_pins). The check runs unlocked
 # before `pm install` takes the store's install lock, so it keeps runs that
 # START on different pins apart; it does not cover the window in between, where
-# the account's own `hermes update` (or a run on other pins) can re-point
+# the account's own `a2assistant update` (or a run on other pins) can re-point
 # facts.json and this run's `pm install` then re-stages its pins over them.
-# Only this runner's own provisioning gets HERMES_RUNTIME_DIR: the pytest
+# Only this runner's own provisioning gets A2ASSISTANT_RUNTIME_DIR: the pytest
 # children below start from `env -i` without it, so tests that exercise setup,
 # install or update resolve their own stores. Their PATH still holds the
 # account store's tool dirs, so a test writing through a PATH tool
 # (`pip install`, `npm -g`) would write into the account store. An explicit
-# HERMES_RUNTIME_DIR, a custom HERMES_HOME, a home that already holds a store,
+# A2ASSISTANT_RUNTIME_DIR, a custom A2ASSISTANT_HOME, a home that already holds a store,
 # or an account without a usable store keep today's per-home layout.
 # Prints the account home, then the pinned Python minor.
 _account_tool_store() {
   local account py_minor
-  [ -z "${HERMES_RUNTIME_DIR:-}" ] || return 1
-  case "${HERMES_HOME:-}" in "" | "$HOME/.hermes" | "$HOME/.hermes/"*) ;; *) return 1 ;; esac
-  [ ! -f "$HOME/.hermes/tools/facts.json" ] || return 1
+  [ -z "${A2ASSISTANT_RUNTIME_DIR:-}" ] || return 1
+  local default_home
+  default_home="$(a2assistant_default_home)"
+  case "${A2ASSISTANT_HOME:-${HERMES_HOME:-}}" in "" | "$default_home" | "$default_home/"*) ;; *) return 1 ;; esac
+  [ ! -f "$default_home/tools/facts.json" ] || return 1
   account="$(getent passwd "$(id -u)" 2>/dev/null | cut -d: -f6)"
   [ -n "$account" ] || account="$(dscl . -read "/Users/$(id -un)" NFSHomeDirectory 2>/dev/null | sed -n 's/^NFSHomeDirectory: *//p')"
   [ -n "$account" ] && [ -d "$account" ] && [ ! "$account" -ef "$HOME" ] || return 1
-  [ -f "$account/.hermes/tools/facts.json" ] && [ -w "$account/.hermes/tools" ] || return 1
-  py_minor="$(_store_has_pins "$account/.hermes/tools")" || return 1
+  local account_home
+  account_home="$(a2assistant_default_home "$account")"
+  [ -f "$account_home/tools/facts.json" ] && [ -w "$account_home/tools" ] || return 1
+  py_minor="$(_store_has_pins "$account_home/tools")" || return 1
   printf '%s\n%s\n' "$account" "$py_minor"
 }
 # Read-only check that the store already records this checkout's pins
 # (scripts/tool_store_pins.py says why and what counts); prints the Python minor.
 _store_has_pins() {
   local python
-  python="$(HERMES_RUNTIME_DIR="$1" hermes_bootstrap_python "$REPO_ROOT")" || return 1
+  python="$(A2ASSISTANT_RUNTIME_DIR="$1" hermes_bootstrap_python "$REPO_ROOT")" || return 1
   PYTHONHOME= "$python" -I -B "$REPO_ROOT/scripts/tool_store_pins.py" "$REPO_ROOT" "$1" 2>/dev/null
 }
 if _shared="$(_account_tool_store)"; then
   _account="${_shared%%$'\n'*}"
-  export HERMES_RUNTIME_DIR="$_account/.hermes/tools"
+  export A2ASSISTANT_RUNTIME_DIR="$(a2assistant_default_home "$_account")/tools"
   # setup-hermes.sh's uv-managed bootstrap interpreter is the same kind of
   # cache, but only reused: a missing pinned minor would download into it.
   if [ -z "${UV_PYTHON_INSTALL_DIR:-}" ] && [ -w "$_account/.local/share/uv/python" ] \
       && compgen -G "$_account/.local/share/uv/python/cpython-${_shared#*$'\n'}[.-]*" >/dev/null; then
     export UV_PYTHON_INSTALL_DIR="$_account/.local/share/uv/python"
   fi
-  echo "▶ faked HOME: using the account's tool store $HERMES_RUNTIME_DIR"
+  echo "▶ faked HOME: using the account's tool store $A2ASSISTANT_RUNTIME_DIR"
 fi
 unset _account _shared
-if [ -z "${__HERMES_ACTIVATED:-}" ] && _has_pytest "${HERMES_PYTHON:-}"; then
-  PYTHON="$HERMES_PYTHON"
-  echo "▶ not activated — using HERMES_PYTHON: $PYTHON"
+if [ -z "${__HERMES_ACTIVATED:-}" ] && _has_pytest "${A2ASSISTANT_PYTHON:-}"; then
+  PYTHON="$A2ASSISTANT_PYTHON"
+  echo "▶ not activated — using A2ASSISTANT_PYTHON: $PYTHON"
 else
   if ! hermes_activation_current "$REPO_ROOT"; then
     if [ -n "${__HERMES_TESTS_REEXEC:-}" ]; then
@@ -125,8 +129,8 @@ fi
 # ── Live-gateway plugin (computed before we drop env) ───────────────────────
 EXTRA_PYTHONPATH=""
 EXTRA_PYTEST_PLUGINS=""
-if [ -f "$HOME/.hermes/pytest_live_guard.py" ]; then
-  EXTRA_PYTHONPATH="$HOME/.hermes"
+if [ -f "$(a2assistant_default_home)/pytest_live_guard.py" ]; then
+  EXTRA_PYTHONPATH="$(a2assistant_default_home)"
   EXTRA_PYTEST_PLUGINS="pytest_live_guard"
 fi
 
@@ -177,54 +181,54 @@ _pf86="$(env | sed -n 's/^ProgramFiles(x86)=//p' | head -n1)"
 # The runner's own documented environment knobs must survive the hermetic
 # `env -i` below, or they are silent no-ops for anyone invoking this script:
 #
-#   * HERMES_TEST_WORKERS / PATHS / FILE_TIMEOUT / FILE_RETRIES / SLICE are
+#   * A2ASSISTANT_TEST_WORKERS / PATHS / FILE_TIMEOUT / FILE_RETRIES / SLICE are
 #     read by run_tests_parallel.py at argparse-default time — inside the
 #     stripped environment.
-#   * HERMES_TEST_IMAGE is read by tests/docker/conftest.py to skip its
+#   * A2ASSISTANT_TEST_IMAGE is read by tests/docker/conftest.py to skip its
 #     session-scoped `docker build`. CI's docker.yml sets it to the image
 #     the build step just loaded; stripping it made every per-file pytest
 #     subprocess rebuild the 5GB image from a cold builder cache instead
 #     (~4 min per worker per run, and the rebuilt image lacked the
-#     HERMES_GIT_SHA build-arg the workflow bakes in).
-#   * HERMES_E2E_REQUIRE_TUI turns a missing Ink TUI build into a failure in
+#     A2ASSISTANT_GIT_SHA build-arg the workflow bakes in).
+#   * A2ASSISTANT_E2E_REQUIRE_TUI turns a missing Ink TUI build into a failure in
 #     tests/e2e/core/terminal instead of a skip (set by the e2e CI job).
 #   * CI / GITHUB_ACTIONS tell suites they run on a disposable runner (e.g.
 #     tests/e2e/core/upgrade runs the real updater unsandboxed only there).
-#   * HERMES_E2E_WINDOWS_INSTALL opts tests/e2e/core/windows_update into running
-#     the real install.ps1 (it writes HKCU PATH); HERMES_E2E_MACHINE_ROOT,
-#     HERMES_E2E_PROFILES_ROOT and HERMES_E2E_ARTIFACTS place its fake machines,
+#   * A2ASSISTANT_E2E_WINDOWS_INSTALL opts tests/e2e/core/windows_update into running
+#     the real install.ps1 (it writes HKCU PATH); A2ASSISTANT_E2E_MACHINE_ROOT,
+#     A2ASSISTANT_E2E_PROFILES_ROOT and A2ASSISTANT_E2E_ARTIFACTS place its fake machines,
 #     their user profiles and the transcripts CI uploads.
-#   * HERMES_E2E_STRICT_ACCEPTANCE makes tests/e2e/core/_pending_fixes.py's
+#   * A2ASSISTANT_E2E_STRICT_ACCEPTANCE makes tests/e2e/core/_pending_fixes.py's
 #     known gaps hard failures in an acceptance run (workflow dispatch input).
-#   * HERMES_E2E_UPGRADE_BASE (older name HERMES_E2E_N1_REF) picks the release
+#   * A2ASSISTANT_E2E_UPGRADE_BASE (older name A2ASSISTANT_E2E_N1_REF) picks the release
 #     tests/e2e/core/upgrade starts from: a tag, a commit, or an updater
 #     generation (by-path, handoff, pre-handoff); unset, the newest release.
-#     HERMES_E2E_INSTALL_REF installs a patched commit in its place (proving a
-#     leg red), HERMES_E2E_GIT_OBJECTS names an extra object store for its
-#     smart-HTTP origin, HERMES_E2E_KEEP_ROOT keeps its sandbox roots.
-#   * HERMES_TEST_SSH_HOST / _USER / _PORT / _KEY and HERMES_TEST_DOCKER_IMAGE
+#     A2ASSISTANT_E2E_INSTALL_REF installs a patched commit in its place (proving a
+#     leg red), A2ASSISTANT_E2E_GIT_OBJECTS names an extra object store for its
+#     smart-HTTP origin, A2ASSISTANT_E2E_KEEP_ROOT keeps its sandbox roots.
+#   * A2ASSISTANT_TEST_SSH_HOST / _USER / _PORT / _KEY and A2ASSISTANT_TEST_DOCKER_IMAGE
 #     arm the real-backend tests (tests/tools/test_ssh_environment.py,
 #     tests/tools/test_docker_backend_real.py); remote-backends.yml points them at
 #     a throwaway sshd container and a small public image. The key is a
 #     per-run throwaway, never a credential.
 #
 # These are test-infrastructure knobs, not credentials — same class as the
-# HERMES_RUN_SLOW_PET_TESTS / HERMES_E2E_BROWSER / HERMES_RUN_E2E opt-ins
+# A2ASSISTANT_RUN_SLOW_PET_TESTS / A2ASSISTANT_E2E_BROWSER / A2ASSISTANT_RUN_E2E opt-ins
 # forwarded below.
 # SSL_CERT_FILE/DIR are trust-store locations: the pinned interpreter's
 # OpenSSL has no compiled-in bundle path on NixOS, so network tests (PM
 # downloads, channel reads) need the host's pointer to verify TLS.
-# Keep this an explicit allowlist (no HERMES_TEST_* glob) so the "no
+# Keep this an explicit allowlist (no A2ASSISTANT_TEST_* glob) so the "no
 # credential can leak" property stays auditable at a glance.
 TEST_ENV=()
-for _test_var in HERMES_TEST_IMAGE HERMES_TEST_WORKERS HERMES_TEST_PATHS \
-  HERMES_TEST_FILE_TIMEOUT HERMES_TEST_FILE_RETRIES HERMES_TEST_SLICE HERMES_TEST_FORKSERVER \
-  SSL_CERT_FILE SSL_CERT_DIR HERMES_GATEWAY_LOCK_DIR HERMES_E2E_REQUIRE_TUI CI GITHUB_ACTIONS \
-  HERMES_E2E_WINDOWS_INSTALL HERMES_E2E_MACHINE_ROOT HERMES_E2E_PROFILES_ROOT HERMES_E2E_ARTIFACTS \
-  HERMES_E2E_STRICT_ACCEPTANCE HERMES_E2E_UPGRADE_BASE HERMES_E2E_N1_REF \
-  HERMES_E2E_INSTALL_REF HERMES_E2E_GIT_OBJECTS HERMES_E2E_KEEP_ROOT \
-  HERMES_TEST_SSH_HOST HERMES_TEST_SSH_USER HERMES_TEST_SSH_PORT \
-  HERMES_TEST_SSH_KEY HERMES_TEST_DOCKER_IMAGE; do
+for _test_var in A2ASSISTANT_TEST_IMAGE A2ASSISTANT_TEST_WORKERS A2ASSISTANT_TEST_PATHS \
+  A2ASSISTANT_TEST_FILE_TIMEOUT A2ASSISTANT_TEST_FILE_RETRIES A2ASSISTANT_TEST_SLICE A2ASSISTANT_TEST_FORKSERVER \
+  SSL_CERT_FILE SSL_CERT_DIR A2ASSISTANT_GATEWAY_LOCK_DIR A2ASSISTANT_E2E_REQUIRE_TUI CI GITHUB_ACTIONS \
+  A2ASSISTANT_E2E_WINDOWS_INSTALL A2ASSISTANT_E2E_MACHINE_ROOT A2ASSISTANT_E2E_PROFILES_ROOT A2ASSISTANT_E2E_ARTIFACTS \
+  A2ASSISTANT_E2E_STRICT_ACCEPTANCE A2ASSISTANT_E2E_UPGRADE_BASE A2ASSISTANT_E2E_N1_REF \
+  A2ASSISTANT_E2E_INSTALL_REF A2ASSISTANT_E2E_GIT_OBJECTS A2ASSISTANT_E2E_KEEP_ROOT \
+  A2ASSISTANT_TEST_SSH_HOST A2ASSISTANT_TEST_SSH_USER A2ASSISTANT_TEST_SSH_PORT \
+  A2ASSISTANT_TEST_SSH_KEY A2ASSISTANT_TEST_DOCKER_IMAGE; do
   if [ -n "${!_test_var:-}" ]; then
     TEST_ENV+=("$_test_var=${!_test_var}")
   fi
@@ -233,7 +237,7 @@ done
 # ── Run in hermetic env ──────────────────────────────────────────────────────
 # env -i: start with empty environment, opt-in only what we need.
 # No credential var can leak — you'd have to explicitly add it here.
-# Never forward HERMES_RUNTIME_DIR or UV_PYTHON_INSTALL_DIR: under a faked HOME
+# Never forward A2ASSISTANT_RUNTIME_DIR or UV_PYTHON_INSTALL_DIR: under a faked HOME
 # they point at the account's shared stores (see _account_tool_store).
 echo "▶ running per-file parallel test suite via run_tests_parallel.py"
 echo "  (TZ=UTC LANG=C.UTF-8 PYTHONHASHSEED=0; clean env)"
@@ -259,9 +263,9 @@ exec env -i \
   LC_ALL=C.UTF-8 \
   PYTHONHASHSEED=0 \
   PYTHONUTF8=1 \
-  ${HERMES_RUN_SLOW_PET_TESTS:+HERMES_RUN_SLOW_PET_TESTS="$HERMES_RUN_SLOW_PET_TESTS"} \
-  ${HERMES_E2E_BROWSER:+HERMES_E2E_BROWSER="$HERMES_E2E_BROWSER"} \
-  ${HERMES_RUN_E2E:+HERMES_RUN_E2E="$HERMES_RUN_E2E"} \
+  ${A2ASSISTANT_RUN_SLOW_PET_TESTS:+A2ASSISTANT_RUN_SLOW_PET_TESTS="$A2ASSISTANT_RUN_SLOW_PET_TESTS"} \
+  ${A2ASSISTANT_E2E_BROWSER:+A2ASSISTANT_E2E_BROWSER="$A2ASSISTANT_E2E_BROWSER"} \
+  ${A2ASSISTANT_RUN_E2E:+A2ASSISTANT_RUN_E2E="$A2ASSISTANT_RUN_E2E"} \
   ${EXTRA_PYTHONPATH:+PYTHONPATH="$EXTRA_PYTHONPATH"} \
   ${EXTRA_PYTEST_PLUGINS:+PYTEST_PLUGINS="$EXTRA_PYTEST_PLUGINS"} \
   "$PYTHON" "$SCRIPT_DIR/run_tests_parallel.py" "$@"

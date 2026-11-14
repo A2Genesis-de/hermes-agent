@@ -20,7 +20,7 @@ import zipfile
 def main() -> None:
     repository = Path(__file__).resolve().parents[4]
     temp = Path(sys.argv[1])
-    root = Path(os.environ["HERMES_HOME"]) / "hermes-agent"
+    root = Path(os.environ["A2ASSISTANT_HOME"]) / "hermes-agent"
     root.mkdir(parents=True)
     for name in (
         "hermes_cli", "hermes_platform", "pm", "agent", "tools", "gateway", "tui_gateway", "cron", "plugins",
@@ -78,7 +78,7 @@ def main() -> None:
     client.runtime_command = lambda *args, **kwargs: [str(worker_python), "-I", "-c", worker_code]
     pm.sync_venv(explicit=True, project_root=root)
     selected = selected_venv(root)
-    assert selected and selected.is_relative_to(Path(os.environ["HERMES_HOME"]))
+    assert selected and selected.is_relative_to(Path(os.environ["A2ASSISTANT_HOME"]))
     store = paths.store_root()
     entry = store / "python-fixture"
     python = entry / "bin" / "python3"

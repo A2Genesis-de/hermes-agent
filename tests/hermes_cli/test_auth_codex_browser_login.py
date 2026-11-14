@@ -1,4 +1,4 @@
-"""``hermes auth add openai-codex --browser``: opt-in loopback authorization-code + PKCE (#95743).
+"""``a2assistant auth add openai-codex --browser``: opt-in loopback authorization-code + PKCE (#95743).
 
 Exercises the real loopback listener and a real token endpoint (both stdlib servers on ephemeral
 ports); only the system browser is replaced by an HTTP client following the authorize redirect.
@@ -82,7 +82,7 @@ def fake_openai():
 
 
 def test_browser_flag_runs_loopback_pkce_and_stores_loopback_source(tmp_path, monkeypatch, fake_openai):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     (tmp_path / "hermes").mkdir()
     (tmp_path / "hermes" / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
     from hermes_cli import auth_codex_browser as browser_mod
@@ -115,7 +115,7 @@ def test_browser_flag_runs_loopback_pkce_and_stores_loopback_source(tmp_path, mo
 
 
 def test_default_is_device_code_and_busy_callback_port_falls_back(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     (tmp_path / "hermes").mkdir()
     (tmp_path / "hermes" / "auth.json").write_text(json.dumps({"version": 1, "providers": {}}))
     from hermes_cli import auth_codex_browser as browser_mod

@@ -63,7 +63,7 @@ export default async function afterPack(context) {
   const platform = context.electronPlatformName
   // Artifact-skew guard (#60772): before any platform work, prove the packed
   // bundle's readiness parser still accepts both ready tokens. This runs for
-  // every packed build — first install, `hermes desktop`, the installer's
+  // every packed build — first install, `a2assistant desktop`, the installer's
   // --update rebuild — so a stale matcher fails the pack here instead of
   // killing healthy backends on user machines.
   const asarPath = resolvePackagedAsarPath(context)

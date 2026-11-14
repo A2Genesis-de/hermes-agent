@@ -1,4 +1,4 @@
-"""Interactive setup wizard for Hermes Agent (config lives in ~/.hermes/).
+"""Interactive setup wizard for Hermes Agent (config lives in ~/.a2assistant/).
 
 Independently-runnable sections: Model & Provider, Terminal Backend, Agent Settings, Messaging
 Platforms, Tools. Section bodies live in sibling setup_* modules and are re-exported here; they
@@ -95,11 +95,11 @@ def print_noninteractive_setup_guidance(reason: str | None = None) -> None:
         print_info(reason)
     _info("The interactive wizard cannot be used here.", None,
           "Configure A2Assistant using environment variables or config commands:",
-          "  hermes config set model.provider custom",
-          "  hermes config set model.base_url http://localhost:8080/v1",
-          "  hermes config set model.default your-model-name", None,
+          "  a2assistant config set model.provider custom",
+          "  a2assistant config set model.base_url http://localhost:8080/v1",
+          "  a2assistant config set model.default your-model-name", None,
           "Or set OPENROUTER_API_KEY (OpenRouter) / OPENAI_API_KEY (OpenAI) in your environment.",
-          "Run 'hermes setup' in an interactive terminal to use the full wizard.", None)
+          "Run 'a2assistant setup' in an interactive terminal to use the full wizard.", None)
 
 
 def _sanitize_pasted_input(value: str) -> str:
@@ -250,7 +250,7 @@ def run_setup_action_with_navigation(
     label: str, action: Callable[[], None], *, cancelled_message: str = "Setup cancelled."
 ) -> None:
     """Run a setup-style menu flow with Escape and nested Left navigation — for commands such as
-    ``hermes model`` that use the wizard's pickers outside ``run_setup_wizard``."""
+    ``a2assistant model`` that use the wizard's pickers outside ``run_setup_wizard``."""
     with _setup_navigation_scope():
         try:
             _run_setup_steps([(label, action)])
@@ -283,13 +283,13 @@ def prompt_choice(question: str, choices: list, default: int = 0, description: s
 
 def is_noninteractive() -> bool:
     """True when no human is available to answer a prompt: the dashboard/desktop spawn CLI actions
-    with ``stdin=DEVNULL`` and ``HERMES_NONINTERACTIVE=1`` (``hermes_cli/web_server.py``), where a
+    with ``stdin=DEVNULL`` and ``A2ASSISTANT_NONINTERACTIVE=1`` (``hermes_cli/web_server.py``), where a
     prompt that aborts on EOF would kill the spawned action — callers fall back to their default."""
-    return os.environ.get("HERMES_NONINTERACTIVE", "").strip().lower() in {"1", "true", "yes", "on"}
+    return os.environ.get("A2ASSISTANT_NONINTERACTIVE", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def prompt_yes_no(question: str, default: bool = True, description: str | None = None) -> bool:
-    """Prompt for yes/no. Ctrl+C exits; empty input, ``HERMES_NONINTERACTIVE=1`` or a
+    """Prompt for yes/no. Ctrl+C exits; empty input, ``A2ASSISTANT_NONINTERACTIVE=1`` or a
     closed/redirected stdin return ``default`` instead of aborting the whole process.
     ``description`` is the context the question refers to, shown above it in setup's full-screen
     menu, which hides everything printed before it; the line prompt keeps that text on screen."""
@@ -344,7 +344,7 @@ def _prompt_api_key(var: dict):
     if var.get("url"):
         print_info(f"  Get your key at: {var['url']}")
     print()
-    _prompt_and_save_env_var(var, "  ✓ Saved", "  Skipped (configure later with 'hermes setup')")
+    _prompt_and_save_env_var(var, "  ✓ Saved", "  Skipped (configure later with 'a2assistant setup')")
 
 
 def _prompt_and_save_env_var(var: dict, saved_msg: str, skipped_msg: str) -> None:
@@ -379,7 +379,7 @@ def _print_banner(*lines: str) -> None:
 
 
 def setup_model_provider(config: dict, *, quick: bool = False):
-    """Configure the inference provider and default model via the ``hermes model`` flow (one code
+    """Configure the inference provider and default model via the ``a2assistant model`` flow (one code
     path — any provider added there is available here). *quick* is accepted for the first-time
     quick setup caller; rotation, vision and TTS keep safe defaults either way."""
     from hermes_cli.config import load_config, save_config
@@ -396,7 +396,7 @@ def setup_model_provider(config: dict, *, quick: bool = False):
     except Exception as exc:
         logger.debug("select_provider_and_model error during setup: %s", exc)
         from hermes_cli.auth_error_copy import provider_setup_failure_lines
-        lead, *rest = provider_setup_failure_lines(exc, retry_command="hermes model")
+        lead, *rest = provider_setup_failure_lines(exc, retry_command="a2assistant model")
         print_warning(lead)
         for line in rest:
             print_info(line)
@@ -419,13 +419,13 @@ def _apply_default_agent_settings(config: dict):
     config.setdefault("agent", {})["max_turns"] = 150
     # config.yaml is authoritative for max_turns (the gateway bridges it into HERMES_MAX_ITERATIONS);
     # a stale .env entry silently shadowing it caused the 60-vs-500 bug, so drop it.
-    remove_env_value("HERMES_MAX_ITERATIONS")
+    remove_env_value("A2ASSISTANT_MAX_ITERATIONS")
     config.setdefault("compression", {})["enabled"] = True
     config["compression"]["threshold"] = 0.50
     save_config(config)
     print_success("Applied recommended defaults:")
     _info("  Max iterations: 150", "  Compression threshold: 0.50",
-          "  Run `hermes setup agent` later to customize.")
+          "  Run `a2assistant setup agent` later to customize.")
 
 
 def _prompt_number(label: str, current, cast=int):
@@ -449,7 +449,7 @@ _TOOL_PROGRESS_HELP = (
     "  new     — Show tool name only when it changes (less noise)",
     "  all     — Show every tool call with a short preview",
     "  verbose — Full args, results, and debug logs",
-    "  log     — Silent in chat; write every tool call to ~/.hermes/logs/tool_calls.log (gateway only)",
+    "  log     — Silent in chat; write every tool call to ~/.a2assistant/logs/tool_calls.log (gateway only)",
 )
 def setup_agent_settings(config: dict):
     """Configure agent behavior: iterations, progress display and compression."""
@@ -470,7 +470,7 @@ def setup_agent_settings(config: dict):
         # config.yaml only; gateway/run.py derives HERMES_MAX_ITERATIONS from agent.max_turns.
         config.setdefault("agent", {})["max_turns"] = max_iter
         config.pop("max_turns", None)
-        remove_env_value("HERMES_MAX_ITERATIONS")
+        remove_env_value("A2ASSISTANT_MAX_ITERATIONS")
         print_success(f"Max iterations set to {max_iter}")
 
     # ── Tool Progress Display ──
@@ -507,7 +507,7 @@ def setup_agent_settings(config: dict):
 
 
 def setup_tools(config: dict, first_install: bool = False):
-    """`hermes setup tools` == `hermes tools`: platform selection → toolset toggles → provider keys.
+    """`a2assistant setup tools` == `a2assistant tools`: platform selection → toolset toggles → provider keys.
     ``first_install`` selects the simplified flow (no platform menu, prompts for all missing keys)."""
     from hermes_cli.tools_config import tools_command
     tools_command(first_install=first_install, config=config)
@@ -547,7 +547,7 @@ def run_setup_wizard(args):
 
 
 def _run_setup_section(config: dict, section: str) -> None:
-    """``hermes setup <section>``: run one SETUP_SECTIONS entry under the banner."""
+    """``a2assistant setup <section>``: run one SETUP_SECTIONS entry under the banner."""
     entry = next(((label, func) for key, label, func in SETUP_SECTIONS if key == section), None)
     if entry is None:
         print_error(f"Unknown setup section: {section}")
@@ -567,7 +567,7 @@ def _run_full_setup(config: dict, hermes_home, *, is_existing: bool, imported_fr
     print_header("Configuration Location")
     _info(f"Config file:  {get_config_path()}", f"Secrets file: {get_env_path()}",
           f"Data folder:  {hermes_home}", f"Install dir:  {PROJECT_ROOT}", None,
-          "You can edit these files directly or use 'hermes config edit'")
+          "You can edit these files directly or use 'a2assistant config edit'")
     if imported_from:
         _info(None, f"Settings were imported from {imported_from}.",
               "Each section below shows what is already set up — keep it,",
@@ -609,7 +609,7 @@ _FIRST_TIME_MODES = (
 
 def _run_setup_wizard_impl(args):
     """Run the interactive setup wizard: full/quick (auto-detected), ``--portal``, or one
-    ``hermes setup <section>`` from SETUP_SECTIONS."""
+    ``a2assistant setup <section>`` from SETUP_SECTIONS."""
     from hermes_cli.config import is_managed, managed_error
     if is_managed():
         managed_error("run setup wizard")
@@ -662,7 +662,7 @@ def _run_setup_wizard_impl(args):
         print_success("You already have A2Assistant configured.")
         _info("Running the full wizard — each prompt shows your current value.",
               "Press Enter to keep it, or type a new value to change it.", "",
-              "Tip: jump straight to a section with 'hermes setup model|terminal|",
+              "Tip: jump straight to a section with 'a2assistant setup model|terminal|",
               "     gateway|tools|agent', or fill only missing items with --quick.")
     else:
         # First-time setup (--reconfigure / --quick are meaningless here; fall through)

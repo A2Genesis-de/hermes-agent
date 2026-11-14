@@ -2,7 +2,7 @@
 plugin of a provider that left core for a home that uses it, once per process, honouring the failure
 backoff and ``security.allow_lazy_installs``.
 
-Real config files under a temp ``HERMES_HOME``; the catalog lookup and the network install are stand-ins.
+Real config files under a temp ``A2ASSISTANT_HOME``; the catalog lookup and the network install are stand-ins.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import hermes_cli.left_core_migration as lcm
 def _fresh(monkeypatch):
     monkeypatch.setattr(lcm, "_attempted", set())
     monkeypatch.setattr(lcm, "_terminal_front_end", False)
-    for name in ("HERMES_INFERENCE_PROVIDER", "COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
+    for name in ("A2ASSISTANT_INFERENCE_PROVIDER", "COPILOT_GITHUB_TOKEN", "GH_TOKEN", "GITHUB_TOKEN"):
         monkeypatch.delenv(name, raising=False)
     import hermes_cli.memory_provider_migration as mpm
     monkeypatch.setattr(mpm, "catalog_source", lambda name: name)  # never the network
@@ -33,7 +33,7 @@ def installs(monkeypatch):
         return {"ok": False, "error": "fatal: unable to access the catalog repo"}
     import hermes_cli.plugins_cmd as pc
     monkeypatch.setattr(pc, "dashboard_install_plugin", fake_install)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)  # the harness's bridge; config decides
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)  # the harness's bridge; config decides
     return calls
 
 
@@ -41,7 +41,7 @@ def _copilot_home(tmp_path: Path, monkeypatch, config: str = "model:\n  provider
     home = tmp_path / "home"
     home.mkdir()
     (home / "config.yaml").write_text(config, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 
@@ -118,19 +118,19 @@ def test_a_route_configured_outside_the_main_model_installs_when_resolved(tmp_pa
 
 
 def test_doctor_installs_nothing_and_names_the_install(tmp_path, monkeypatch, installs, capsys):
-    """`hermes doctor` is read-only: its auxiliary routing check resolves through the runtime resolver,
+    """`a2assistant doctor` is read-only: its auxiliary routing check resolves through the runtime resolver,
     which must not fetch the plugin there; the failed check names the install command instead."""
     from types import SimpleNamespace
     from hermes_cli import doctor
     from hermes_cli.doctor_config import _check_config_file
     home = _copilot_home(tmp_path, monkeypatch, "model:\n  provider: nous\nauxiliary:\n  vision:\n"
                                                 "    provider: copilot\n    model: gpt-4.1\n")
-    monkeypatch.setattr(doctor, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor, "DOCTOR_CHECKS", ((None, _check_config_file),))
     doctor.run_doctor(SimpleNamespace(fix=False, ack=None, live=False))
     assert installs == []
     assert not (home / "plugins" / "github-copilot").exists()
-    assert "hermes plugins install github-copilot" in capsys.readouterr().out
+    assert "a2assistant plugins install github-copilot" in capsys.readouterr().out
 
 
 def test_an_append_racing_a_claim_is_delivered_not_lost(tmp_path, monkeypatch):
@@ -184,7 +184,7 @@ def test_doctor_in_a_terminal_front_end_leaves_kept_notices_for_the_next_agent(t
                                                 "    provider: copilot\n    model: gpt-4.1\n")
     lcm._queue_notice(home, "kept by the gateway's start")
     lcm.serve_notices_on_stderr()
-    monkeypatch.setattr(doctor, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor, "DOCTOR_CHECKS", ((None, _check_config_file),))
     doctor.run_doctor(SimpleNamespace(fix=False, ack=None, live=False))
     assert "kept by the gateway's start" not in capsys.readouterr().err
@@ -202,12 +202,12 @@ def installs_ok(monkeypatch):
         return {"ok": True}
     import hermes_cli.plugins_cmd as pc
     monkeypatch.setattr(pc, "dashboard_install_plugin", fake_install)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     return calls
 
 
 def _agent_start_in_another_process() -> str:
-    """What a fresh process's agent start (its startup-warning sink) delivers for ``HERMES_HOME``."""
+    """What a fresh process's agent start (its startup-warning sink) delivers for ``A2ASSISTANT_HOME``."""
     import os
     import subprocess
     import sys
@@ -230,26 +230,26 @@ def test_a_resolution_outcome_reaches_the_first_agent_of_any_process_once(tmp_pa
     assert capsys.readouterr().err == ""
     first, second = _agent_start_in_another_process(), _agent_start_in_another_process()
     assert first.count("GitHub Copilot moved out of core") == 1
-    assert "run `hermes auth add copilot`" in first  # no token the plugin reads: the gh-only hint rides along
+    assert "run `a2assistant auth add copilot`" in first  # no token the plugin reads: the gh-only hint rides along
     assert "moved out of core" not in second
 
 
 def test_a_tty_without_a_declared_front_end_keeps_the_outcome_for_the_chat_agent(tmp_path, monkeypatch, installs_ok,
                                                                                  capsys):
-    """A foreground `hermes gateway run` has a TTY, but its resolutions serve the chat user: the outcome (and
-    its "run `hermes auth add copilot`" instruction) stays kept for the chat agent, not the gateway terminal."""
+    """A foreground `a2assistant gateway run` has a TTY, but its resolutions serve the chat user: the outcome (and
+    its "run `a2assistant auth add copilot`" instruction) stays kept for the chat agent, not the gateway terminal."""
     _copilot_home(tmp_path, monkeypatch)
     monkeypatch.setattr(lcm, "_interactive", lambda: True)
     lcm.recover_for_provider("copilot")
     assert installs_ok == ["github-copilot"]
     assert capsys.readouterr().err == ""
     chat = _agent_start_in_another_process()
-    assert chat.count("GitHub Copilot moved out of core") == 1 and "hermes auth add copilot" in chat
+    assert chat.count("GitHub Copilot moved out of core") == 1 and "a2assistant auth add copilot" in chat
 
 
 def test_a_piped_cli_front_end_prints_the_outcome_and_what_another_process_kept(tmp_path, monkeypatch,
                                                                                installs_ok, capsys):
-    """``hermes chat -q`` with output piped: its turn runs in the gateway, and a resolution that fails
+    """``a2assistant chat -q`` with output piped: its turn runs in the gateway, and a resolution that fails
     before any agent exists (no credentials) leaves none to deliver what the migration kept. The classic
     CLI is a terminal front end: it prints outcomes on stderr, also one its gateway kept, exactly once."""
     home = _copilot_home(tmp_path, monkeypatch)
@@ -275,7 +275,7 @@ register_provider(ProviderProfile(name="copilot", display_name="Stand-in", auth_
 
 def test_a_provider_installed_during_resolution_resolves_in_that_same_call(tmp_path, monkeypatch):
     """A fast (cached) install lands inside the plugin-dir stamp TTL: the resolution that triggered it must
-    see the new profile, not answer "installed but not loaded: run hermes plugins enable"."""
+    see the new profile, not answer "installed but not loaded: run a2assistant plugins enable"."""
     import sys
 
     import providers
@@ -291,7 +291,7 @@ def test_a_provider_installed_during_resolution_resolves_in_that_same_call(tmp_p
         return {"ok": True}
     import hermes_cli.plugins_cmd as pc
     monkeypatch.setattr(pc, "dashboard_install_plugin", install)
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     from hermes_cli.runtime_provider import resolve_runtime_provider
     try:
         runtime = resolve_runtime_provider()

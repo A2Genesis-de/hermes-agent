@@ -79,7 +79,7 @@ def test_blocked_turn_never_reaches_the_provider_and_stores_only_the_placeholder
     transcript pair. The stored row's content is the placeholder (what session_search and every
     other content reader sees); the typed text is display-only metadata the transcript renders.
     Turn 2 (a fresh agent reloading the session) replays the placeholder, never the prompt."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     from agent.message_metadata import withheld_prompt_text
     from tools.session_search_tool import session_search
 
@@ -114,7 +114,7 @@ def test_compaction_of_a_blocked_turn_never_sends_the_prompt(provider_url, tmp_p
     home.mkdir()
     (home / "config.yaml").write_text(
         f"auxiliary:\n  compression: {{provider: custom, base_url: '{provider_url}', api_key: k, model: m}}\n")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     from agent.conversation_compression import compress_context
 
     db = SessionDB(db_path=tmp_path / "state.db")
@@ -136,7 +136,7 @@ def test_compaction_of_a_blocked_turn_never_sends_the_prompt(provider_url, tmp_p
 def test_retry_and_undo_after_a_block_resubmit_the_typed_text(provider_url, tmp_path, monkeypatch):
     """/retry (CLI, TUI, gateway, ACP, Desktop) and /undo read a rewind's live view or receipt: both carry
     what the user typed, so the hook re-decides on it (0 model calls, blocked again), never the placeholder."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     import hermes_state_runtime as rt
 
     typed = f"look up {SECRET}"

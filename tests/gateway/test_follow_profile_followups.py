@@ -209,7 +209,7 @@ async def test_a_later_reasoning_command_replaces_the_pick_after_a_restart(home,
 
 @pytest.mark.asyncio
 async def test_follow_session_runs_the_profiles_current_toolsets_and_a_frozen_one_does_not(home):
-    """C03 (main #124211): ``hermes tools disable`` reaches a following Bot Chat's next turn."""
+    """C03 (main #124211): ``a2assistant tools disable`` reaches a following Bot Chat's next turn."""
     from gateway.session_policy import active_policy, policy_for_source, policy_scope
     _profile(home, 'old', 1, 'k')
     store, runner, authority, owner = _owner(home)

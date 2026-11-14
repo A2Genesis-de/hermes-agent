@@ -19,12 +19,12 @@ def _tree(tmp_path, monkeypatch):
     project = tmp_path / "source"
     project.mkdir()
     (project / ".install_method").write_text("git", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(home / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(home / "tools"))
     monkeypatch.delenv("PREFIX", raising=False)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setattr(doctor, "PROJECT_ROOT", project)
-    monkeypatch.setattr(doctor, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor, "A2ASSISTANT_HOME", home)
     monkeypatch.setattr(doctor, "DOCTOR_CHECKS", ((None, doctor_platform._check_command_installation),))
     command = tmp_path / ".local" / "bin" / "hermes"
     command.parent.mkdir(parents=True)
@@ -168,7 +168,7 @@ def test_doctor_reports_selected_import_tree_not_interpreter_prefix(tmp_path, mo
 
 @pytest.mark.platforms("posix")
 @pytest.mark.parametrize("method, remedy", [
-    ("git", "hermes pm repair"), ("nix", "Nix"), ("docker", "docker pull"), ("apt", "pkg upgrade"),
+    ("git", "a2assistant pm repair"), ("nix", "Nix"), ("docker", "docker pull"), ("apt", "pkg upgrade"),
 ])
 def test_remedies_and_launcher_repairs_respect_install_owner(tmp_path, monkeypatch, capsys, method, remedy):
     project, _home, command = _tree(tmp_path, monkeypatch)
@@ -191,4 +191,4 @@ def test_remedies_and_launcher_repairs_respect_install_owner(tmp_path, monkeypat
         assert command.is_symlink() and command.resolve() == entry
     else:
         assert not command.exists()
-        assert "hermes pm repair" not in out
+        assert "a2assistant pm repair" not in out

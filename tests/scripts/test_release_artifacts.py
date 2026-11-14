@@ -358,7 +358,7 @@ def candidate_workflow_step(tmp_path, r2_server, staged_candidate):
         f'    runpy.run_path(str({str(ROOT)!r}+"/"+args[0]),run_name="__main__")\n',
         encoding='utf-8')
     body_file = tmp_path / 'release-body'
-    body_file.write_text('<!-- HERMES_BUILDS_TABLE -->', encoding='utf-8')
+    body_file.write_text('<!-- A2ASSISTANT_BUILDS_TABLE -->', encoding='utf-8')
     gh = bin_dir / 'gh'
     gh.write_text(
         f'#!{sys.executable}\nimport json,sys\nfrom pathlib import Path\n'

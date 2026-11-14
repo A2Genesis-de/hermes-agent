@@ -27,12 +27,12 @@ def test_token_file_is_read_and_unlinked_through_private_directory(tmp_path, mon
 @pytest.mark.platforms("posix")  # POSIX desktop-ssh token path
 def test_token_anchor_is_os_home_not_active_profile(tmp_path, monkeypatch):
     """Regression for #69551: the Desktop client always writes the token under
-    ``$HOME/.hermes/desktop-ssh`` (a literal ``~/.hermes/desktop-ssh`` in
+    ``$HOME/.a2assistant/desktop-ssh`` (a literal ``~/.a2assistant/desktop-ssh`` in
     apps/desktop/electron/remote-lifecycle.ts, expanded against the account's
     $HOME). A non-default sticky profile re-homes ``get_hermes_home()`` to
-    ``<root>/profiles/<name>``, and a Docker-style ``HERMES_HOME`` can point
+    ``<root>/profiles/<name>``, and a Docker-style ``A2ASSISTANT_HOME`` can point
     elsewhere entirely — neither must move the validator off
-    ``$HOME/.hermes/desktop-ssh``, or the token is wrongly rejected."""
+    ``$HOME/.a2assistant/desktop-ssh``, or the token is wrongly rejected."""
     home = tmp_path / "home"
     monkeypatch.setenv("HOME", str(home))
     token_dir = home / ".hermes" / "desktop-ssh" / ("a" * 32)
@@ -116,6 +116,6 @@ def test_windows_runtime_root_stays_at_machine_root_for_named_profile(tmp_path, 
     from hermes_cli import windows_ssh_runtime
 
     machine_root = tmp_path / "custom-hermes-root"
-    monkeypatch.setenv("HERMES_HOME", str(machine_root / "profiles" / "writer_2"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(machine_root / "profiles" / "writer_2"))
 
     assert windows_ssh_runtime._root() == machine_root / "desktop-ssh"

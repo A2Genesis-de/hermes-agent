@@ -15,7 +15,7 @@ import { shortSocketTmpDir } from './local-gateway.test-helpers'
 
 const ORIGIN = 'http://127.0.0.1:1234'
 const LINK = process.platform === 'win32' ? 'junction' : 'dir'
-const PYTHON = process.env.HERMES_TEST_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
+const PYTHON = process.env.A2ASSISTANT_TEST_PYTHON || (process.platform === 'win32' ? 'python' : 'python3')
 
 const endpointFor = (profile_id: string): GatewayEndpoint => ({
   profile_id, instance_id: 'owner', authority_epoch: 1, runtime_protocol: 1, api_origin: ORIGIN,

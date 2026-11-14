@@ -1,6 +1,6 @@
-"""``hermes cron tick`` with no live gateway refuses agent jobs instead of spawning one.
+"""``a2assistant cron tick`` with no live gateway refuses agent jobs instead of spawning one.
 
-The external-scheduler mode (system crontab calling ``hermes cron tick``) used to reach
+The external-scheduler mode (system crontab calling ``a2assistant cron tick``) used to reach
 ``run_canonical_job`` -> ``connect_gateway`` -> ``ensure_gateway_runtime``, which spawns an
 unmanaged daemon when nothing owns the profile. Headless surfaces refuse rather than spawn:
 the agent job is skipped (not failed), keeps its due instant, and one warning names the fix.
@@ -20,8 +20,8 @@ def cron_home(tmp_path, monkeypatch):
     home = tmp_path / "home"
     (home / "cron").mkdir(parents=True)
     (home / "scripts").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setattr(J, "HERMES_DIR", home)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setattr(J, "A2ASSISTANT_DIR", home)
     monkeypatch.setattr(J, "CRON_DIR", home / "cron")
     monkeypatch.setattr(J, "JOBS_FILE", home / "cron" / "jobs.json")
     monkeypatch.setattr(J, "OUTPUT_DIR", home / "cron" / "output")
@@ -64,10 +64,10 @@ def test_tick_without_gateway_skips_agent_jobs_without_spawning_or_drift(cron_ho
         assert stored[job_id]["last_run_at"] is None
         assert stored[job_id]["next_run_at"] == due_before[job_id]
         assert "pending_slot" not in stored[job_id]
-        assert "hermes gateway start" in stored[job_id]["last_fire_error"]["detail"]
+        assert "a2assistant gateway start" in stored[job_id]["last_fire_error"]["detail"]
     refusals = [r for r in caplog.records if "not running" in r.getMessage()]
     assert len(refusals) == 1, "one log line per tick, not one per job"
-    assert agent["id"] in refusals[0].getMessage() and "hermes gateway start" in refusals[0].getMessage()
+    assert agent["id"] in refusals[0].getMessage() and "a2assistant gateway start" in refusals[0].getMessage()
 
 
 @pytest.mark.platforms("linux")
@@ -129,7 +129,7 @@ def test_tick_holds_agent_jobs_while_gateway_is_starting_or_silent(cron_home, mo
     assert stored["last_run_at"] is None and stored["last_status"] is None
     assert stored["next_run_at"] == due_before, "the slot is held, not consumed"
     assert "pending_slot" not in stored
-    assert "hermes gateway status" in stored["last_fire_error"]["detail"]
+    assert "a2assistant gateway status" in stored["last_fire_error"]["detail"]
     assert len([r for r in caplog.records if "skipped" in r.getMessage()]) == 1
 
 

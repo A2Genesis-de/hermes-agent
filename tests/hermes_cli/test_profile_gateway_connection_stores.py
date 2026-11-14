@@ -19,7 +19,7 @@ REPO = Path(__file__).resolve().parents[2]
 
 
 def _hermes(home: Path, *args: str) -> subprocess.CompletedProcess:
-    env = {k: v for k, v in os.environ.items() if not k.startswith("HERMES_")}
+    env = {k: v for k, v in os.environ.items() if not k.startswith("A2ASSISTANT_")}
     env.update(HOME=str(home), PYTHONPATH=str(REPO))
     return subprocess.run([sys.executable, "-m", "hermes_cli.main", *args], env=env, cwd=home,
                           capture_output=True, text=True, timeout=120, check=False)
@@ -29,8 +29,8 @@ def _seed_root(home: Path) -> Path:
     root = home / ".hermes"
     root.mkdir(parents=True)
     (root / "config.yaml").write_text("model: test\n", encoding="utf-8")
-    env = {k: v for k, v in os.environ.items() if not k.startswith("HERMES_")}
-    env.update(HOME=str(home), HERMES_HOME=str(root), PYTHONPATH=str(REPO))
+    env = {k: v for k, v in os.environ.items() if not k.startswith("A2ASSISTANT_")}
+    env.update(HOME=str(home), A2ASSISTANT_HOME=str(root), PYTHONPATH=str(REPO))
     script = ("from hermes_cli import gateway_connections as g\n"
               f"g.save_connection({{'kind': 'remote', 'label': 'Box', 'url': 'http://10.0.0.5:9119', 'token': '{SECRET}'}})\n"
               "c, _ = g.save_connection({'kind': 'remote', 'label': 'Gw', 'url': 'https://gw.example', 'authMode': 'oauth'})\n"

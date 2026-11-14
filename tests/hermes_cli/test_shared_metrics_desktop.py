@@ -28,7 +28,7 @@ def marks(tmp_path, monkeypatch):
     policy = {"on": True}
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(relay_shared_metrics, "enabled", lambda: policy["on"])
     monkeypatch.setattr(relay_shared_metrics, "record_process_mark", lambda mark, data: captured.append((mark, data)))
     store = {"saves": True}

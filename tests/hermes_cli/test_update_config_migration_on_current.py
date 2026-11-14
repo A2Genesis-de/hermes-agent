@@ -65,7 +65,7 @@ def test_migration_policy(monkeypatch, capsys, case, expected):
         if case in {'yes', 'noninteractive', 'gateway'}:
             assert 'API keys require manual entry' in output
         elif not expected:
-            assert 'hermes config migrate' in output
+            assert 'a2assistant config migrate' in output
     elif case in {'current', 'ahead'}:
         assert 'Configuration is up to date' in output
     elif case == 'read-error':
@@ -89,7 +89,7 @@ def test_update_copies_bundled_skill_bytes_to_default_active_and_sibling(tmp_pat
         profile.mkdir(parents=True, exist_ok=True)
         (profile / 'config.yaml').write_text('{}\n', encoding='utf-8')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(homes[1] if named else home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(homes[1] if named else home))
     update_cmd_maint._sync_profiles_after_update()
     bundled = Path(__file__).resolve().parents[2] / 'skills'
     witness = next(bundled.rglob('SKILL.md'))
@@ -113,7 +113,7 @@ def test_active_config_write_failure_still_migrates_siblings_and_restores_snapsh
         (home / 'config.yaml').write_text('_config_version: 48\n', encoding='utf-8')
         (home / 'cron' / 'jobs.json').write_text(json.dumps(jobs), encoding='utf-8')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     active_snapshot = backup.create_quick_snapshot(label='pre-update', hermes_home=root)
     monkeypatch.setattr(update_cmd_config, '_LAST_SIBLING_SNAPSHOTS',
                         backup.create_pre_update_snapshots_all_profiles(root))
@@ -132,6 +132,6 @@ def test_active_config_write_failure_still_migrates_siblings_and_restores_snapsh
     for home in (root, sibling):
         assert json.loads((home / 'cron' / 'jobs.json').read_text(encoding='utf-8')) == jobs
     assert config.check_config_version()[0] == 48  # the active write stays owed
-    monkeypatch.setenv('HERMES_HOME', str(sibling))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(sibling))
     sibling_version, latest = config.check_config_version()
     assert sibling_version == latest > 48

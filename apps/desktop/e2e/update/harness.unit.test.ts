@@ -8,10 +8,10 @@ import { expect, test } from 'vitest'
 import { desktopMainProcesses, type InstallFacts, installProcesses, releaseDir } from './harness'
 
 // Electron 44 zeroes its processes' /proc/<pid>/environ, so the installed app shows no
-// HERMES_HOME. A copy of node under the install's release dir, started with an empty
+// A2ASSISTANT_HOME. A copy of node under the install's release dir, started with an empty
 // environment, is that process.
 test.skipIf(process.platform !== 'linux')(
-  'the install census still sees the packaged app when its environment names no HERMES_HOME',
+  'the install census still sees the packaged app when its environment names no A2ASSISTANT_HOME',
   async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'update census '))
 
@@ -43,10 +43,12 @@ test.skipIf(process.platform !== 'linux')(
   "the packaged app's crash handler is not a Desktop main process",
   async () => {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'update census '))
+
     const facts = {
       hermesHome: path.join(root, 'home', '.hermes'),
       checkout: path.join(root, 'checkout')
     } as InstallFacts
+
     fs.mkdirSync(releaseDir(facts), { recursive: true })
     const exe = path.join(releaseDir(facts), 'Hermes')
     const handlerExe = path.join(releaseDir(facts), 'chrome_crashpad_handler')

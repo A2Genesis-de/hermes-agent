@@ -79,7 +79,7 @@ def test_unpaired_user_in_allowlist_still_authorized(monkeypatch):
 @pytest.fixture
 def store(tmp_path, monkeypatch):
     """A real PairingStore backed by a temp pairing dir."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     (tmp_path / ".hermes").mkdir(parents=True, exist_ok=True)
     import importlib
 

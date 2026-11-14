@@ -23,7 +23,7 @@ export interface PluginFilesIpcDeps extends Omit<PluginFilesDeps, 'protectedRoot
   windowFor: (event: IpcMainInvokeEvent) => BrowserWindow | null
   /** Tell every app window a plugin's grants changed (Folder access lists). */
   broadcastChange: (change: { pluginId: string }) => void
-  /** The resolved HERMES_HOME plus the platform-default homes it may differ from. */
+  /** The resolved A2ASSISTANT_HOME plus the platform-default homes it may differ from. */
   hermesHomes: () => string[]
 }
 

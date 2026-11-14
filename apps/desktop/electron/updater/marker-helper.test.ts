@@ -91,7 +91,7 @@ describe.skipIf(process.platform === 'win32')('runMarkerHelper against a real sc
     assert.equal(
       fs.readFileSync(path.join(home, 'helper-calls.log'), 'utf8'),
       `--marker-op withdraw --install-root ${root} --desktop-pid 4242 --handoff-run desk-4242-abc-0001\n`,
-      'exact argv, and HERMES_HOME reached the script'
+      'exact argv, and A2ASSISTANT_HOME reached the script'
     )
   })
 
@@ -178,7 +178,7 @@ describe.skipIf(process.platform === 'win32')('runMarkerHelper against a real sc
   })
 })
 
-test('the Windows command line: powershell -File windows.ps1 -MarkerOp ... (hidden, HERMES_HOME set)', async () => {
+test('the Windows command line: powershell -File windows.ps1 -MarkerOp ... (hidden, A2ASSISTANT_HOME set)', async () => {
   const root = scratchRoot('marker-helper-win')
   const script = path.join(root, 'scripts', 'desktop-update', 'windows.ps1')
   fs.mkdirSync(path.dirname(script), { recursive: true })
@@ -220,7 +220,7 @@ test('the Windows command line: powershell -File windows.ps1 -MarkerOp ... (hidd
     '-HandoffRun',
     'desk-12-a-beef'
   ])
-  assert.equal(options.env.HERMES_HOME, path.join(root, 'home'))
+  assert.equal(options.env.A2ASSISTANT_HOME, path.join(root, 'home'))
   assert.equal(options.windowsHide, true)
   assert.equal(options.timeout, 20_000)
   assert.deepEqual(markerHelperCommand('reclaim', script, { updateRoot: root, isWindows: true }).args.slice(-4), [

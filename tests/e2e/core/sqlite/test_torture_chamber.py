@@ -6,7 +6,7 @@ version probe in every child, see ``_helpers``); every role is its own OS proces
 ``SessionDB``:
 a gateway-like writer, a TUI-like writer, a dashboard-like reader that opens at startup and lives across
 episodes, short-lived openers (production ``SessionDB`` and bare ``sqlite3``, plus the real
-``hermes sessions list`` / ``sessions stats`` CLI), FTS rebuild/optimize maintenance, and
+``a2assistant sessions list`` / ``sessions stats`` CLI), FTS rebuild/optimize maintenance, and
 ``repair_state_db_schema``. Each episode injects one fault class — ``kill -9`` mid-write, SIGTERM graceful
 close, POSIX lock cancellation by a stray in-process open/close, chmod flips, concurrent FTS rebuilds,
 repair against a live and an offline store, FTS corruption, a whole-fleet SIGKILL — and then asserts the
@@ -26,7 +26,7 @@ SAME invariants:
   open/close churner's fd counts stay bounded.
 
 Randomness (ack thresholds, kill points) is seeded per episode; the seed is in every failure message and
-``HERMES_SQLITE_TORTURE_SEED`` replays a run.
+``A2ASSISTANT_SQLITE_TORTURE_SEED`` replays a run.
 """
 
 from __future__ import annotations
@@ -175,7 +175,7 @@ def ep_sigterm_graceful_close(ch, ep, rng):
 
 
 def ep_lock_cancellation(ch, ep, rng):
-    """Plugins, tool reads of ~/.hermes and header probes open+close state.db inside the writer process,
+    """Plugins, tool reads of ~/.a2assistant and header probes open+close state.db inside the writer process,
     which cancels its POSIX locks; a sibling's last close must still not end the writer's WAL generation.
     Field topology: the gateway (+ a TUI) are the only long-lived holders — no dashboard reader pinning the
     file — so a short-lived CLI's close is the last close SQLite can see."""

@@ -2,7 +2,7 @@
 
 A session routes on the backend its ``delegate_task`` schema was built from, so routing and schema switch
 together. Real AIAgent turns against a recording fake provider, a real delegation backend plugin discovered from
-a temp HERMES_HOME and the real session DB: each test reads the schema Hermes actually sent and the backend a
+a temp A2ASSISTANT_HOME and the real session DB: each test reads the schema Hermes actually sent and the backend a
 task with no choice routes on.
 """
 
@@ -25,7 +25,7 @@ def options_backend(monkeypatch):
     from hermes_cli import plugins as plugins_mod
     from hermes_cli.plugins import PluginManager
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     plugin_dir = home / "plugins" / "probe-options"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text(yaml.safe_dump({"name": "probe-options", "version": "1.0"}))

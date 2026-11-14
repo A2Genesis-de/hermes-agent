@@ -1,4 +1,4 @@
-"""``hermes doctor``'s s6 section probes the image's static s6-rc services in the root scandir and
+"""``a2assistant doctor``'s s6 section probes the image's static s6-rc services in the root scandir and
 lists profile gateway slots from the separate, unprivileged gateway scandir."""
 from __future__ import annotations
 

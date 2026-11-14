@@ -35,7 +35,7 @@ def test_registration_uses_the_target_profiles_mount_policy(
         ),
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("TERMINAL_ENV", "local")
     monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", str(not mount).lower())
     before = dict(os.environ)
@@ -137,7 +137,7 @@ def test_an_unreadable_profile_keeps_the_desktop_cwd_record(tmp_path, monkeypatc
     (profile / "config.yaml").write_text("terminal: [unclosed", encoding="utf-8")
     workspace = tmp_path / "host-project"
     workspace.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("TERMINAL_ENV", "local")
     vars(server)["_register_session_cwd"]({
         "session_key": "bad-profile", "cwd": str(workspace), "explicit_cwd": True,

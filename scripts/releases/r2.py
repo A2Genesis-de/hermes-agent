@@ -1037,7 +1037,7 @@ def main(argv: list[str] | None = None) -> None:
         i += 1
 
     if cmd == "put":
-        tag = args.get("tag") or os.environ.get("HERMES_PAYLOAD_TAG")
+        tag = args.get("tag") or os.environ.get("A2ASSISTANT_PAYLOAD_TAG")
         key, file = args.get("key"), args.get("file")
         if not tag or not key or not file:
             print(USAGE, file=sys.stderr)

@@ -4,7 +4,7 @@
 scheduler (Chronos) fires a job: across N gateway replicas, exactly ONE wins the
 claim for a given fire. Single-machine deployments always win (unaffected).
 
-These exercise the real store against a temp HERMES_HOME (no mocks) per the
+These exercise the real store against a temp A2ASSISTANT_HOME (no mocks) per the
 E2E-over-mocks discipline for file-touching code.
 """
 import threading
@@ -16,8 +16,8 @@ from datetime import UTC
 
 @pytest.fixture
 def temp_home(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME so jobs.json doesn't touch the real store."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    """Isolated A2ASSISTANT_HOME so jobs.json doesn't touch the real store."""
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     # cron.jobs caches no home at import; get_hermes_home() reads the env live.
     yield tmp_path
 
@@ -346,7 +346,7 @@ def test_manual_claim_still_refuses_a_paused_job(temp_home):
 
 def test_fresh_claim_from_a_dead_same_host_owner_is_reclaimable(temp_home):
     """A claim younger than the TTL whose owner pid (same host) has exited is stale at once: a
-    ``hermes cron run`` killed mid-flight must not block the next manual run for the whole TTL
+    ``a2assistant cron run`` killed mid-flight must not block the next manual run for the whole TTL
     with "already being fired". A live owner's fresh claim still blocks."""
     import os
     import socket

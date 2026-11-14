@@ -10,7 +10,7 @@ from hermes_cli.commands_platforms import telegram_menu_commands
 def catalog(tmp_path, monkeypatch):
     bundle_dir = tmp_path / "skill-bundles"
     bundle_dir.mkdir()
-    monkeypatch.setenv("HERMES_BUNDLES_DIR", str(bundle_dir))
+    monkeypatch.setenv("A2ASSISTANT_BUNDLES_DIR", str(bundle_dir))
     monkeypatch.setattr("hermes_cli.commands_platforms._gateway_available_commands", list)
     monkeypatch.setattr("hermes_cli.commands_platforms._iter_plugin_command_entries", lambda: iter([]))
     monkeypatch.setattr("hermes_cli.commands_platforms._iter_gateway_skills",

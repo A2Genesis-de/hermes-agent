@@ -45,7 +45,7 @@ function hangingTreeFixture() {
 
   if (process.platform === 'win32') {
     const python = execFileSync('python3', ['-c', 'import sys; print(sys.executable)'], { encoding: 'utf8' }).trim()
-    vi.stubEnv('HERMES_DESKTOP_PYTHON', python)
+    vi.stubEnv('A2ASSISTANT_DESKTOP_PYTHON', python)
   }
 
   const listening = (port: number): Promise<boolean> =>
@@ -131,7 +131,7 @@ test('windows git spawn uses a CREATE_NO_WINDOW host and does not rewrite git ar
 
   assert.equal(plan.command, 'C:\\hermes\\venv\\Scripts\\python.exe')
   assert.deepEqual(plan.args, ['C:\\hermes\\no-console-git.py', ...gitArgs])
-  assert.equal(plan.env.HERMES_GIT_ARGV0, JSON.stringify(gitBin))
+  assert.equal(plan.env.A2ASSISTANT_GIT_ARGV0, JSON.stringify(gitBin))
   assert.equal(plan.env.GIT_TERMINAL_PROMPT, '0')
   assert.equal(plan.windowsHide, true)
   assert.deepEqual(plan.stdio, ['ignore', 'pipe', 'pipe'])
@@ -181,8 +181,8 @@ test('python resolver skips pythonw and the WindowsApps stub', () => {
   const python = resolveNoConsolePython({
     isWindows: true,
     env: {
-      HERMES_DESKTOP_PYTHON: 'C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe',
-      HERMES_DESKTOP_HERMES_ROOT: 'D:\\hermes'
+      A2ASSISTANT_DESKTOP_PYTHON: 'C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe',
+      A2ASSISTANT_DESKTOP_HERMES_ROOT: 'D:\\hermes'
     },
     roots: ['E:\\src'],
     fileExists: () => true
@@ -192,7 +192,7 @@ test('python resolver skips pythonw and the WindowsApps stub', () => {
   assert.equal(
     resolveNoConsolePython({
       isWindows: true,
-      env: { HERMES_DESKTOP_PYTHON: 'C:\\hermes\\venv\\Scripts\\pythonw.exe' },
+      env: { A2ASSISTANT_DESKTOP_PYTHON: 'C:\\hermes\\venv\\Scripts\\pythonw.exe' },
       roots: [],
       fileExists: () => true
     }),
@@ -201,7 +201,7 @@ test('python resolver skips pythonw and the WindowsApps stub', () => {
   assert.equal(
     resolveNoConsolePython({
       isWindows: true,
-      env: { HERMES_DESKTOP_PYTHON: 'C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe' },
+      env: { A2ASSISTANT_DESKTOP_PYTHON: 'C:\\Users\\me\\AppData\\Local\\Microsoft\\WindowsApps\\python.exe' },
       roots: [],
       fileExists: () => true
     }),
@@ -221,9 +221,9 @@ test('host script forwards git argv unchanged and sets CREATE_NO_WINDOW', () => 
       encoding: 'utf8',
       env: {
         ...process.env,
-        HERMES_GIT_ARGV0: JSON.stringify(gitBin),
-        HERMES_GIT_DRY_RUN: '1',
-        HERMES_GIT_NO_CONSOLE: '1'
+        A2ASSISTANT_GIT_ARGV0: JSON.stringify(gitBin),
+        A2ASSISTANT_GIT_DRY_RUN: '1',
+        A2ASSISTANT_GIT_NO_CONSOLE: '1'
       }
     })
 

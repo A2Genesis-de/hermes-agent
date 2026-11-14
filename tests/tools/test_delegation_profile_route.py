@@ -30,7 +30,7 @@ def two_profiles(tmp_path, monkeypatch):
     _write_profile(coder, host="coder.invalid", model="coder-model", key="coder-key", secret="coder-secret",
                    effort="low", soul="I am the coder profile.")
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     # The launch profile's secrets live in the process env, as after a normal dotenv load.
     monkeypatch.setenv("PROFILE_KEY", "launch-key")
     monkeypatch.setenv("PROBE_SECRET", "launch-secret")
@@ -73,7 +73,7 @@ def test_unknown_profile_is_refused_with_an_instruction(two_profiles):
     from agent.delegation_provider import DelegationRouteError
     from tools.delegate_tool_routes import _route_to_task_route
 
-    with pytest.raises(DelegationRouteError, match="hermes profile list"):
+    with pytest.raises(DelegationRouteError, match="a2assistant profile list"):
         _route_to_task_route({"profile": "nobody"}, _parent(), {})
 
 
@@ -303,7 +303,7 @@ def test_profile_pinned_to_a_missing_acp_command_is_refused_at_routing(two_profi
     _, coder = two_profiles
     profile = ProviderProfile(name="acme-acp", auth_type="external_process", base_url="acp://acme",
                               process_command="acme", process_args=("--acp", "--stdio"),
-                              process_command_env_vars=("HERMES_ACME_ACP_COMMAND",),
+                              process_command_env_vars=("A2ASSISTANT_ACME_ACP_COMMAND",),
                               base_url_env_var="ACME_ACP_BASE_URL")
     monkeypatch.setitem(providers._REGISTRY, profile.name, profile)
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)
@@ -314,7 +314,7 @@ def test_profile_pinned_to_a_missing_acp_command_is_refused_at_routing(two_profi
     _set_config(coder, model={"provider": "acme-acp", "default": "coder-model"})
     # An acp+tcp endpoint keeps the configured command unresolved (the runtime resolver only refuses a missing
     # binary when it would spawn one); the delegation pin rule still refuses it.
-    monkeypatch.setenv("HERMES_ACME_ACP_COMMAND", "hermes-test-missing-acp-binary")
+    monkeypatch.setenv("A2ASSISTANT_ACME_ACP_COMMAND", "hermes-test-missing-acp-binary")
     monkeypatch.setenv("ACME_ACP_BASE_URL", "acp+tcp://127.0.0.1:9")
 
     (route,), error = _resolve_coder_task()
@@ -365,7 +365,7 @@ def test_profile_child_reads_the_starting_directory_seeded_for_it(two_profiles, 
 def test_profile_child_uses_the_target_profiles_persistent_container(two_profiles):
     """Persistent Docker keys its container by profile: a child routed to ``coder`` inside a launch-profile
     session runs in coder's container (coder's image, mounts, env), while the session's delivery identity
-    (HERMES_SESSION_PROFILE, read by notifications) stays the parent's."""
+    (A2ASSISTANT_SESSION_PROFILE, read by notifications) stays the parent's."""
     from gateway.session_context import clear_session_vars, get_session_env, set_session_vars
     from tools import terminal_tool
     from tools.delegate_tool_routes import delegated_profile_scope
@@ -376,13 +376,13 @@ def test_profile_child_uses_the_target_profiles_persistent_container(two_profile
     try:
         with delegated_profile_scope(coder):
             assert terminal_tool._resolve_container_task_id("child-task") == "profile:coder"
-            assert get_session_env("HERMES_SESSION_PROFILE", "") == "default"
+            assert get_session_env("A2ASSISTANT_SESSION_PROFILE", "") == "default"
     finally:
         clear_session_vars(tokens)
 
 
 def test_child_routed_back_to_the_launch_profile_uses_the_launch_profiles_container(two_profiles):
-    """A ``coder`` chat on a default-launched gateway (its turn bound to coder, HERMES_SESSION_PROFILE=coder) routing
+    """A ``coder`` chat on a default-launched gateway (its turn bound to coder, A2ASSISTANT_SESSION_PROFILE=coder) routing
     a child to ``default`` runs that child in default's persistent container, not the parent chat's."""
     from gateway.session_context import clear_session_vars, set_session_vars
     from tools import terminal_tool

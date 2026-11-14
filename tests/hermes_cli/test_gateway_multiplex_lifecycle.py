@@ -14,7 +14,7 @@ def homes(tmp_path, monkeypatch):
     (secondary / 'config.yaml').write_text('model: {default: worker-model}\n')
     (root / 'config.yaml').write_text('gateway: {multiplex_profiles: true}\n')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     monkeypatch.setattr(profiles, 'get_active_profile_name', lambda: 'default')
     return root, secondary
 
@@ -53,7 +53,7 @@ def test_cli_lifecycle_orders_marker_before_socket(homes, monkeypatch, capsys, v
     marker = secondary / 'gateway.parked'
     owner = SimpleNamespace(home=root, profile_label='default', profiles=('default', 'worker'),
                             describe=lambda: 'test host')
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
     monkeypatch.setattr(gw, '_refuse_from_inside_gateway', lambda *a: None)
     monkeypatch.setattr(gw, 'find_gateway_pids', lambda **kw: [])
@@ -100,7 +100,7 @@ def test_restart_after_stop_unparks_and_serves_the_profile(homes, monkeypatch, c
     marker.touch()
     owner = SimpleNamespace(home=root, profile_label='default', profiles=('default',),
                             describe=lambda: 'test host')
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
     monkeypatch.setattr(gw, '_refuse_from_inside_gateway', lambda *a: None)
     monkeypatch.setattr(gw, 'find_gateway_pids', lambda **kw: [])
@@ -129,7 +129,7 @@ def test_force_restart_keeps_parked_profile_gateway_ownership(homes, monkeypatch
     from hermes_cli import gateway as gw
     _, secondary = homes
     (secondary / 'gateway.parked').touch()
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
 
     def host_restart(*args, **kwargs):
@@ -153,7 +153,7 @@ def test_stop_parks_a_served_profile_instead_of_stopping_the_host(homes, monkeyp
     owner = SimpleNamespace(home=root, pid=host_pid, profile_label='default',
                             profiles=('default', 'worker'), describe=lambda: 'test host')
     from gateway import host_rendezvous as hr, status
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
     monkeypatch.setattr(gw, '_refuse_from_inside_gateway', lambda *a: None)
     # The real find_gateway_pids: the profile's record names the live host, launched from root.
@@ -189,7 +189,7 @@ def test_separate_gateway_beside_the_host_keeps_its_own_lifecycle(homes, monkeyp
     host_pid = 4242
     owner = SimpleNamespace(home=root, pid=host_pid, profile_label='default',
                             profiles=('default', 'worker'), describe=lambda: 'test host')
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
     monkeypatch.setattr(gw, 'find_gateway_pids', lambda **kw: [host_pid, 5151])
     monkeypatch.setattr(gw, 'host_multiplexer_serving', lambda *a: owner)
@@ -201,12 +201,12 @@ def test_parked_status_and_topology_keep_roster(homes, monkeypatch, capsys):
     from hermes_cli.web_server_gateway import _collect_profile_gateway_topology
     _root, secondary = homes
     (secondary / 'gateway.parked').touch()
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
     monkeypatch.setattr(profiles, 'get_active_profile_name', lambda: 'worker')
     monkeypatch.setattr(profiles, '_check_gateway_running', lambda home: False)
     gw._cmd_status(SimpleNamespace())
-    assert 'parked (hermes -p worker gateway start)' in capsys.readouterr().out
+    assert 'parked (a2assistant -p worker gateway start)' in capsys.readouterr().out
     topology = _collect_profile_gateway_topology()
     assert topology['profiles'] == ['default', 'worker']
     assert topology['parked_profiles'] == ['worker']
@@ -253,7 +253,7 @@ def test_start_unparks_without_host_rendezvous(homes, monkeypatch, capsys, host_
     root, secondary = homes
     marker = secondary / 'gateway.parked'
     marker.touch()
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
     monkeypatch.setattr(gw, '_host_multiplexer_for_all_verb', lambda: None)
     monkeypatch.setattr(served, 'live_default_gateway_pid', lambda: 42 if host_running else None)
@@ -294,7 +294,7 @@ def test_parked_status_still_reports_a_forced_gateway(homes, monkeypatch, capsys
     from hermes_cli import gateway as gw, profiles
     _root, secondary = homes
     (secondary / 'gateway.parked').touch()
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'worker')
     monkeypatch.setattr(profiles, 'get_active_profile_name', lambda: 'worker')
     monkeypatch.setattr(gw, 'get_gateway_runtime_snapshot', lambda system=False: gw.GatewayRuntimeSnapshot(
@@ -303,7 +303,7 @@ def test_parked_status_still_reports_a_forced_gateway(homes, monkeypatch, capsys
     monkeypatch.setattr(gw, '_installed_service_kind_for', lambda _check: None)
     gw._cmd_status(SimpleNamespace())
     output = capsys.readouterr().out
-    assert 'parked (hermes -p worker gateway start)' in output
+    assert 'parked (a2assistant -p worker gateway start)' in output
     assert 'Gateway is running (PID: 4242)' in output
 
 
@@ -315,7 +315,7 @@ def test_status_flags_a_gateway_this_hermes_cannot_attach(homes, monkeypatch, ca
     """Upgrade with the old daemon up: every client refuses it, so status must not say ✓."""
     from hermes_cli import gateway as gw, gateway_runtime, profiles
     root, _secondary = homes
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     monkeypatch.setattr(gw, '_current_profile_name', lambda: 'default')
     monkeypatch.setattr(profiles, 'get_active_profile_name', lambda: 'default')
     monkeypatch.setattr(gw, 'get_gateway_runtime_snapshot', lambda system=False: gw.GatewayRuntimeSnapshot(
@@ -328,7 +328,7 @@ def test_status_flags_a_gateway_this_hermes_cannot_attach(homes, monkeypatch, ca
     output = capsys.readouterr().out
     assert ('✓ Gateway is running (PID: 4242)' in output) is healthy
     assert ('incompatible: runtime_protocol' in output) is not healthy
-    assert ('hermes gateway restart' in output) is not healthy
+    assert ('a2assistant gateway restart' in output) is not healthy
 
 
 @pytest.mark.parametrize('served', [True, False])
@@ -337,7 +337,7 @@ def test_process_discovery_excludes_host_even_after_unserve(homes, monkeypatch, 
     from hermes_cli import gateway as gw, dashboard_procs
     root, secondary = homes
     owner = SimpleNamespace(pid=4242, home=root, served_known=True, profiles=('default', 'worker') if served else ('default',))
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(host_attach, '_probe_host_gateway', lambda wait: owner)
     monkeypatch.setattr(dashboard_procs, '_hermes_home_for_pid', lambda pid, **kw: str(root if pid == 4242 else secondary))
     monkeypatch.setattr(gw, '_get_service_pids', lambda **kw: [])
@@ -349,7 +349,7 @@ def test_process_discovery_excludes_host_even_after_unserve(homes, monkeypatch, 
     monkeypatch.setattr(status, 'get_running_pid', lambda **kw: 4343)
     assert gw.find_gateway_pids() == [4343]
     # The launching profile still owns the shared process.
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     monkeypatch.setattr(status, 'get_running_pid', lambda **kw: owner.pid)
     assert gw.find_gateway_pids() == [owner.pid]
 
@@ -360,7 +360,7 @@ def test_stop_never_owns_shared_pid_from_an_absent_or_old_probe(homes, monkeypat
     from gateway import host_attach, status
     from hermes_cli import gateway as gw, dashboard_procs
     root, secondary = homes
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(status, 'get_running_pid', lambda **kw: 4242)
     monkeypatch.setattr(gw, '_get_service_pids', lambda **kw: [])
     monkeypatch.setattr(gw, '_scan_gateway_pids', lambda *a, **kw: [])
@@ -385,7 +385,7 @@ def test_absent_host_requires_positive_process_ownership(homes, monkeypatch, pro
     from gateway import host_attach, status
     from hermes_cli import gateway as gw, dashboard_procs
     root, secondary = homes
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     monkeypatch.setattr(status, 'get_running_pid', lambda **kw: 4242)
     monkeypatch.setattr(host_attach, '_probe_host_gateway', lambda wait: None)
 
@@ -404,7 +404,7 @@ def test_owner_switch_during_probe_is_rejected(homes, monkeypatch):
     from gateway import host_attach, status
     from hermes_cli import gateway as gw, dashboard_procs
     _, secondary = homes
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     pids = iter([4343, 4242])
     monkeypatch.setattr(status, 'get_running_pid', lambda **kw: next(pids))
     monkeypatch.setattr(host_attach, '_probe_host_gateway', lambda wait: None)
@@ -417,9 +417,9 @@ def test_sticky_profile_cannot_reassign_running_host(homes, monkeypatch, rendezv
     from gateway import host_attach, status
     from hermes_cli import dashboard_procs, gateway as gw, main_dashboard
     root, secondary = homes
-    monkeypatch.setenv('HERMES_HOME', str(secondary))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(secondary))
     # The process started at the root, before the user's later sticky switch.
-    monkeypatch.setattr(dashboard_procs, '_pid_environ', lambda pid: {'HERMES_HOME': str(root)})
+    monkeypatch.setattr(dashboard_procs, '_pid_environ', lambda pid: {'A2ASSISTANT_HOME': str(root)})
     monkeypatch.setattr(main_dashboard, '_dashboard_cmdline_for_pid', lambda pid: ['hermes', 'gateway', 'run'])
     (root / 'active_profile').write_text('worker\n')
     assert dashboard_procs._hermes_home_for_pid(4242) == str(secondary)
@@ -442,17 +442,17 @@ def test_launch_identity_does_not_follow_sticky_selection(homes, monkeypatch, id
     from hermes_cli import dashboard_procs, gateway as gw, main_dashboard
     root, secondary = homes
     (root / 'active_profile').write_text('other\n')
-    env = {'HERMES_HOME': str(root)}
+    env = {'A2ASSISTANT_HOME': str(root)}
     argv = ['hermes', 'gateway', 'run']
     target = secondary
     if identity == 'explicit':
         argv[1:1] = ['-p', 'worker']
     elif identity == 'profile_home':
-        env['HERMES_HOME'] = str(secondary)
+        env['A2ASSISTANT_HOME'] = str(secondary)
     elif identity == 'supervised':
-        env['HERMES_GATEWAY_EXTERNAL_SUPERVISOR'] = '1'
+        env['A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR'] = '1'
         target = root
-    monkeypatch.setenv('HERMES_HOME', str(target))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(target))
     monkeypatch.setattr(dashboard_procs, '_pid_environ', lambda pid: env)
     monkeypatch.setattr(main_dashboard, '_dashboard_cmdline_for_pid', lambda pid: argv)
     monkeypatch.setattr(host_attach, '_probe_host_gateway', lambda wait: None)
@@ -496,7 +496,7 @@ def test_same_home_record_requires_identity_and_stable_pid(homes, monkeypatch, v
     from gateway import host_attach, status
     from hermes_cli import gateway as gw, dashboard_procs
     root, _ = homes
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     from gateway import host_rendezvous as hr
     owner = host_attach.HostGateway(4242, root, ('default',), served_known=verified)
     monkeypatch.setattr(host_attach, '_probe_host_gateway', lambda wait: owner)

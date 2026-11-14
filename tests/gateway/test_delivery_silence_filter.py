@@ -115,7 +115,7 @@ async def test_config_opt_out_lets_silence_through(tmp_path, monkeypatch):
 async def test_env_does_not_override_config_opt_out(tmp_path, monkeypatch):
     # env shouldn't override config when filter is turned off
     monkeypatch.setattr("gateway.delivery.get_hermes_home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_FILTER_SILENCE_NARRATION", "1")
+    monkeypatch.setenv("A2ASSISTANT_FILTER_SILENCE_NARRATION", "1")
     adapter = RecordingAdapter()
     config = GatewayConfig(filter_silence_narration=False)
     router = DeliveryRouter(config, adapters={Platform.TELEGRAM: adapter})
@@ -132,7 +132,7 @@ async def test_env_does_not_override_config_opt_out(tmp_path, monkeypatch):
 async def test_env_does_not_disable_filter_when_config_enabled(tmp_path, monkeypatch):
     # env shouldn't disable filter when config has it on
     monkeypatch.setattr("gateway.delivery.get_hermes_home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_FILTER_SILENCE_NARRATION", "0")
+    monkeypatch.setenv("A2ASSISTANT_FILTER_SILENCE_NARRATION", "0")
     adapter = RecordingAdapter()
     config = GatewayConfig(filter_silence_narration=True)
     router = DeliveryRouter(config, adapters={Platform.TELEGRAM: adapter})
@@ -152,7 +152,7 @@ async def test_env_does_not_disable_filter_when_config_enabled(tmp_path, monkeyp
 async def test_multiplex_profiles_independent_silence_narration_filtering(tmp_path, monkeypatch):
     # secondary profile keeps its own setting under multiplex regardless of process env
     monkeypatch.setattr("gateway.delivery.get_hermes_home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_FILTER_SILENCE_NARRATION", "1")
+    monkeypatch.setenv("A2ASSISTANT_FILTER_SILENCE_NARRATION", "1")
     adapter_a = RecordingAdapter()
     adapter_b = RecordingAdapter()
     router_a = DeliveryRouter(GatewayConfig(filter_silence_narration=True), adapters={Platform.TELEGRAM: adapter_a})

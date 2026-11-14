@@ -3,8 +3,8 @@ decides whether a Kanban worker transcript may resume as an ordinary session.
 
 A Kanban dispatcher worker transcript must never continue as a write-capable ordinary
 CLI / Desktop / TUI session: the resumed process carries none of the dispatcher-granted
-ownership env (``HERMES_KANBAN_TASK`` / ``HERMES_KANBAN_RUN_ID`` / ``HERMES_KANBAN_BOARD`` /
-``HERMES_KANBAN_CLAIM_LOCK``), so the board cannot observe or supervise it — and unblocking
+ownership env (``A2ASSISTANT_KANBAN_TASK`` / ``A2ASSISTANT_KANBAN_RUN_ID`` / ``A2ASSISTANT_KANBAN_BOARD`` /
+``A2ASSISTANT_KANBAN_CLAIM_LOCK``), so the board cannot observe or supervise it — and unblocking
 the card can then dispatch a second writer into the same workspace. Every surface that makes
 a resumed session WRITE-CAPABLE asks this guard before loading history:
 
@@ -15,7 +15,7 @@ a resumed session WRITE-CAPABLE asks this guard before loading history:
 
 Detection is persisted provenance (``SessionDB.is_kanban_owned_session``: the session row's
 ``kanban`` source, checked across the compression lineage a resume would materialize) plus
-dispatch-time env for the exemption: a process that itself holds ``HERMES_KANBAN_TASK`` is a
+dispatch-time env for the exemption: a process that itself holds ``A2ASSISTANT_KANBAN_TASK`` is a
 dispatcher-owned run — the one legitimate supervised continuation — and may proceed.
 """
 
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 def _dispatcher_owned_run() -> bool:
-    """This process holds a dispatcher-granted Kanban task (``HERMES_KANBAN_TASK``, exactly
+    """This process holds a dispatcher-granted Kanban task (``A2ASSISTANT_KANBAN_TASK``, exactly
     what ``_default_spawn`` injects into worker children). That is the grant boundary: only a
     run the dispatcher owns — task, run id, claim, heartbeat — may continue a worker
     transcript, so it is exempt from the guard."""
@@ -34,7 +34,7 @@ def _dispatcher_owned_run() -> bool:
         from gateway.session_context import get_session_env
     except ImportError:  # no gateway context (plain CLI child) — read the process env
         get_session_env = os.environ.get
-    return bool(str(get_session_env("HERMES_KANBAN_TASK", "") or "").strip())
+    return bool(str(get_session_env("A2ASSISTANT_KANBAN_TASK", "") or "").strip())
 
 
 def kanban_resume_refusal(db, session_id: str):

@@ -58,14 +58,14 @@ def test_a_retry_that_fails_before_the_swap_leaves_no_consent_for_a_later_update
     _desktop_consent(release, proc, run_id="desktop-retry-1")
 
     # The consented retry runs, but its swap fails before the rename (no launchable staged app).
-    monkeypatch.setenv("HERMES_UPDATE_CORRELATION_ID", "desktop-retry-1")
+    monkeypatch.setenv("A2ASSISTANT_UPDATE_CORRELATION_ID", "desktop-retry-1")
     staging = tmp_path / "apps" / "desktop" / ".staging-failed"
     staging.mkdir()
     assert main_desktop._swap_staged_desktop_app(tmp_path / "apps" / "desktop", staging) is None
     assert not (release / CONSENT_FILE_NAME).exists(), "the swap attempt consumes the consent, failed or not"
 
     # Later, a non-interactive gateway /update hits the refused rename.
-    monkeypatch.delenv("HERMES_UPDATE_CORRELATION_ID")
+    monkeypatch.delenv("A2ASSISTANT_UPDATE_CORRELATION_ID")
     holders, closed = release_after_refused_rename(release, input_fn=_never_asked)
 
     assert proc.pid in [h.pid for h in holders]

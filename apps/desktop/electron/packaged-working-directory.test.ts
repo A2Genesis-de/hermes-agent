@@ -96,7 +96,7 @@ test.skipIf(process.platform !== 'win32')(
           format: 'esm',
           define: {
             'process.execPath': JSON.stringify(path.join(install, 'A2Assistant.exe')),
-            'process.env.HERMES_DESKTOP_IS_PACKAGED': 'undefined'
+            'process.env.A2ASSISTANT_DESKTOP_IS_PACKAGED': 'undefined'
           },
           plugins: [
             {

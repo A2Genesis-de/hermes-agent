@@ -336,7 +336,7 @@ def test_v4a_delete_and_move_act_on_a_symlink_not_its_target(
     target.write_text("shared: true\n", encoding="utf-8")
     link.symlink_to("safe/base.yaml")
     if safe_root:
-        monkeypatch.setenv("HERMES_WRITE_SAFE_ROOT", str(workspace / "safe"))
+        monkeypatch.setenv("A2ASSISTANT_WRITE_SAFE_ROOT", str(workspace / "safe"))
 
     out = json.loads(registry.dispatch(
         "patch", {"mode": "patch", "patch": f"*** Begin Patch\n{header}\n*** End Patch\n"}, task_id=task_id))
@@ -344,7 +344,7 @@ def test_v4a_delete_and_move_act_on_a_symlink_not_its_target(
     assert target.is_file() and not target.is_symlink()
     assert target.read_text(encoding="utf-8-sig") == content
     if safe_root:
-        assert not out.get("success") and "HERMES_WRITE_SAFE_ROOT" in json.dumps(out), out
+        assert not out.get("success") and "A2ASSISTANT_WRITE_SAFE_ROOT" in json.dumps(out), out
         assert link.is_symlink()
         return
     assert out.get("success"), out

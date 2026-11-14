@@ -58,8 +58,8 @@ interface ElectronProcess extends NodeJS.Process {
 export { smokeEnvironment }
 
 /** The bundled app resolves its Hermes home the same way electron/data-paths.ts does:
- * an explicit HERMES_HOME wins, but a bundle-env clear (HERMES_HOME=null) empties it before
- * this runs, and the HERMES_DESKTOP_USER_DATA_DIR branch then resolves <userData>/hermes-home.
+ * an explicit A2ASSISTANT_HOME wins, but a bundle-env clear (A2ASSISTANT_HOME=null) empties it before
+ * this runs, and the A2ASSISTANT_DESKTOP_USER_DATA_DIR branch then resolves <userData>/hermes-home.
  * Seed both so the driver works against baked-clear bundles and plain source launches. */
 export function candidateSmokeHermesHomes(home: string, userData: string): string[] {
   const fallback = path.join(userData, 'hermes-home')
@@ -69,7 +69,7 @@ export function candidateSmokeHermesHomes(home: string, userData: string): strin
 /** The home the app will resolve for a bundled artifact whose env defaults/clears
  * are known from its stamp. Replays the bundle banner over the launch env, then
  * runs the same resolver the app runs, so the driver can seed the home before
- * boot instead of pinning HERMES_HOME and hoping the artifact honors it. */
+ * boot instead of pinning A2ASSISTANT_HOME and hoping the artifact honors it. */
 export function predictSmokeHermesHome(
   launchEnv: NodeJS.ProcessEnv,
   bundleEnv: Record<string, string | null>,
@@ -119,18 +119,18 @@ export function resolveSmokeLaunch(options: SmokeOptions): Launch {
       }
       args = spec.argv.slice(1)
     }
-    const editableRoot = spec.env.HERMES_PYTHON_SRC_ROOT
+    const editableRoot = spec.env.A2ASSISTANT_PYTHON_SRC_ROOT
     if (editableRoot) {
       if (!path.isAbsolute(editableRoot) || fs.realpathSync(editableRoot) !== fs.realpathSync(options.root)) {
-        throw new Error('Captured HERMES_PYTHON_SRC_ROOT differs from the expected source installation')
+        throw new Error('Captured A2ASSISTANT_PYTHON_SRC_ROOT differs from the expected source installation')
       }
-      env.HERMES_PYTHON_SRC_ROOT = editableRoot
+      env.A2ASSISTANT_PYTHON_SRC_ROOT = editableRoot
     }
     // Retain the product-selected source interpreter, not the driver's activated Python.
-    for (const key of ['HERMES_DESKTOP_PYTHON', 'HERMES_DESKTOP_HERMES', 'HERMES_DESKTOP_HERMES_ROOT']) {
+    for (const key of ['A2ASSISTANT_DESKTOP_PYTHON', 'A2ASSISTANT_DESKTOP_HERMES', 'A2ASSISTANT_DESKTOP_HERMES_ROOT']) {
       const value = spec.env[key]
       if (value) {
-        if (!path.isAbsolute(value) || (key !== 'HERMES_DESKTOP_PYTHON' && !within(options.root, value))) {
+        if (!path.isAbsolute(value) || (key !== 'A2ASSISTANT_DESKTOP_PYTHON' && !within(options.root, value))) {
           throw new Error(`Captured ${key} escapes the expected source installation`)
         }
         fs.accessSync(value)
@@ -309,7 +309,7 @@ export async function runInstalledDesktopSmoke(options: SmokeOptions, launchApp:
     selectLocal(options['user-data'])
     if (!options['mock-url']) { mock = await startMockServer() }
     const mockUrl = validateMockUrl(options['mock-url'] ?? mock!.url)
-    // A bundle-env HERMES_HOME clear (see candidateSmokeHermesHomes) can make the
+    // A bundle-env A2ASSISTANT_HOME clear (see candidateSmokeHermesHomes) can make the
     // app resolve a different home than --home, so every candidate gets the mock
     // provider config and .env. When the artifact's stamp carries its baked
     // bundle env, predict the home the app will actually resolve and seed that
@@ -335,7 +335,7 @@ export async function runInstalledDesktopSmoke(options: SmokeOptions, launchApp:
     const identity = await readChatIdentity(page)
     assertResolvedIdentity(identity, options, predictedHome)
     // The ordinary host-attach path may reuse the updater's relaunched app's
-    // backend, and `hermes gateway ensure` attaches to (or starts, detached) the
+    // backend, and `a2assistant gateway ensure` attaches to (or starts, detached) the
     // canonical gateway. Observe the ledger and gateway_state.json the app's home
     // resolves to (its machine root), not an arbitrary listener, and retain the
     // OS listener + installed-tree proof below.

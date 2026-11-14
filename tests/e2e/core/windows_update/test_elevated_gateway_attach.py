@@ -8,7 +8,7 @@ the way the Desktop and CLI do:
 * ``query_runtime_control``: the client half of the pipe identity check must refuse before
   sending anything, with the named ``gateway_elevated`` reason and its remedy, never the
   generic ``cannot verify bootstrap peer process``;
-* ``discover_gateway_endpoint`` (what ``hermes gateway ensure`` and the Desktop boot read):
+* ``discover_gateway_endpoint`` (what ``a2assistant gateway ensure`` and the Desktop boot read):
   ``inaccessible`` / ``gateway_elevated`` with the same remedy, without any gateway record.
 
 The gateway's handler must never run: no request crosses the elevation boundary.
@@ -60,7 +60,7 @@ def test_a_standard_user_client_gets_the_named_refusal_from_an_elevated_gateway(
     temp.mkdir()
     hand_to_user(tmp_path)  # the user's own home, as on a real machine
     env = {**os.environ, "PYTHONPATH": str(_REPO), "TEMP": str(temp), "TMP": str(temp),
-           "HERMES_HOME": str(home), "HERMES_STATE_DB_GUARD_BYPASS": "1"}
+           "A2ASSISTANT_HOME": str(home), "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1"}
     # Harness control: the child really is a standard user (Medium, Administrators deny-only).
     assert probe_token_elevation(tmp_path, env, tmp_path / "token.log") == "elevated=False admin=False"
 

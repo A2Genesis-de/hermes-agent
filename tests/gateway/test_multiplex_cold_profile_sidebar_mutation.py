@@ -9,7 +9,7 @@ routing metadata (``?profile=`` and ``body.profile``, exactly what
 ``apps/desktop/src/api/sessions.ts::mutateSessionHttp`` sends) lands on that profile's
 authority, while another served profile holds a live interactive attachment.
 
-The Desktop's endpoint for a served secondary comes from ``hermes -p <name> gateway ensure``
+The Desktop's endpoint for a served secondary comes from ``a2assistant -p <name> gateway ensure``
 and its ticket is minted through the endpoint's ``control_home`` (the multiplexer root),
 so this test uses that exact discovery + mint path rather than a hand-built socket call.
 """
@@ -50,7 +50,7 @@ def multiplex_daemon(tmp_path, profiles=('warm', 'cold')):
     }))
     root = Path(__file__).resolve().parents[2]
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED='1')
     with (tmp_path / 'gateway.log').open('w+') as log:
         process = subprocess.Popen([sys.executable, '-m', 'gateway.run'], cwd=root, env=env,
@@ -80,7 +80,7 @@ def multiplex_daemon(tmp_path, profiles=('warm', 'cold')):
 
 
 def desktop_ensure(env, root, profile):
-    """The exact child the Desktop spawns: ``hermes --profile <p> gateway ensure --json``."""
+    """The exact child the Desktop spawns: ``a2assistant --profile <p> gateway ensure --json``."""
     result = subprocess.run([sys.executable, '-m', 'hermes_cli.main', '--profile', profile,
                              'gateway', 'ensure', '--json', '--timeout', '30'],
                             cwd=root, env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=60, check=False)

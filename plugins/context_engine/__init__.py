@@ -1,5 +1,5 @@
 """Context engine plugin discovery: bundled ``plugins/context_engine/<name>/`` then user
-``$HERMES_HOME/plugins/<name>/`` (bundled wins on collision) → ``ContextEngine``. Separate from the
+``$A2ASSISTANT_HOME/plugins/<name>/`` (bundled wins on collision) → ``ContextEngine``. Separate from the
 general plugin system: ``context.engine`` in config.yaml names the active engine (default
 ``"compressor"``, the built-in ContextCompressor), so a user-installed engine needs no
 ``plugins.enabled`` entry to be selectable."""

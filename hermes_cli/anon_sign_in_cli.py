@@ -69,7 +69,7 @@ def render_sign_in_cli(
 
 
 def upgrade_guest(args) -> int:
-    """``hermes auth upgrade``: sign in with a Nous account; a free tier it replaces hands its apps over.
+    """``a2assistant auth upgrade``: sign in with a Nous account; a free tier it replaces hands its apps over.
 
     Returns 0 on success (or when already signed in), 1 otherwise, 130 on Ctrl-C. Nothing is saved
     before the token grant.

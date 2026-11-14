@@ -23,7 +23,7 @@ def desktop_stamp(tmp_path, monkeypatch):
         }))
         monkeypatch.setattr("hermes_cli.config.get_project_root", lambda: root)
         monkeypatch.setattr("pm.paths.repo_root", lambda: root)
-        monkeypatch.delenv("HERMES_INSTALL_ROOT", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_INSTALL_ROOT", raising=False)
         from hermes_cli.version_info import _reset_version_info_cache
         _reset_version_info_cache()
         return root

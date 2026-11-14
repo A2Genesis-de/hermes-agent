@@ -45,10 +45,10 @@ def _enable(home, names, entries=None):
 def hermes_home(tmp_path, monkeypatch):
     home = tmp_path / "hermes_home"
     (home / "plugins").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "0")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_ENABLE_PROJECT_PLUGINS", "0")
     monkeypatch.setenv(
-        "HERMES_BUNDLED_PLUGINS", str(tmp_path / "empty-bundled")
+        "A2ASSISTANT_BUNDLED_PLUGINS", str(tmp_path / "empty-bundled")
     )
     (tmp_path / "empty-bundled").mkdir()
     return home
@@ -350,7 +350,7 @@ class TestPythonDependenciesSeam:
             mgr.discover_and_load()
         assert mgr._plugins["pipful"].enabled
         assert "definitely-not-a-real-package-64165" in caplog.text
-        assert "hermes pm repair" in caplog.text
+        assert "a2assistant pm repair" in caplog.text
         assert calls == []
 
     def test_satisfied_pip_dep_is_quiet(self, hermes_home, caplog):
@@ -442,7 +442,7 @@ class TestRequiresHermes:
 class TestLoadIsolation:
     def test_sys_exit_in_plugin_is_isolated_and_named(self, hermes_home, caplog):
         """A plugin calling ``sys.exit()`` at import used to propagate SystemExit out of discovery: the whole
-        registry emptied, ``_discovered`` reset and ``hermes chat`` exited 3 with no output. It must be
+        registry emptied, ``_discovered`` reset and ``a2assistant chat`` exited 3 with no output. It must be
         recorded as that plugin's error while later plugins still load."""
         _write_plugin(hermes_home / "plugins", "b_exit")
         (hermes_home / "plugins" / "b_exit" / "__init__.py").write_text("import sys\nsys.exit(0)\n")
@@ -512,15 +512,15 @@ class TestLoadIsolation:
 
 class TestBundledKeyShadowing:
     def test_impostor_dir_cannot_claim_a_bundled_key(self, tmp_path, monkeypatch, caplog):
-        """``~/.hermes/plugins/impostor_dir/plugin.yaml`` with ``name: <bundled key>`` used to displace the
-        bundled plugin silently, so ``hermes plugins enable <key>`` enabled unrelated code. The bundled
+        """``~/.a2assistant/plugins/impostor_dir/plugin.yaml`` with ``name: <bundled key>`` used to displace the
+        bundled plugin silently, so ``a2assistant plugins enable <key>`` enabled unrelated code. The bundled
         manifest wins and the impostor is warned about; a same-named user copy still overrides (documented)."""
         home = tmp_path / "home"
         (home / "plugins").mkdir(parents=True)
         bundled = tmp_path / "bundled"
-        monkeypatch.setenv("HERMES_HOME", str(home))
-        monkeypatch.setenv("HERMES_ENABLE_PROJECT_PLUGINS", "0")
-        monkeypatch.setenv("HERMES_BUNDLED_PLUGINS", str(bundled))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+        monkeypatch.setenv("A2ASSISTANT_ENABLE_PROJECT_PLUGINS", "0")
+        monkeypatch.setenv("A2ASSISTANT_BUNDLED_PLUGINS", str(bundled))
         _write_plugin(bundled, "genuine", register_body="import sys; sys._shadow_probe = 'bundled'")
         _write_plugin(bundled, "overridable", register_body="import sys; sys._override_probe = 'bundled'")
         _write_plugin(home / "plugins", "impostor_dir", manifest_extra={"name": "genuine"},

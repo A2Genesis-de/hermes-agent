@@ -72,7 +72,7 @@ def test_mixed_provenance_diagnostic_is_read_only(tmp_path, monkeypatch, capsys)
 
 
 def test_check_is_read_only(tmp_path, monkeypatch, capsys):
-    """The check must not create or modify anything under HERMES_HOME —
+    """The check must not create or modify anything under A2ASSISTANT_HOME —
     no plugins/ mkdir; a missing dir is informational, not a warning."""
     import hermes_constants as config_mod
 

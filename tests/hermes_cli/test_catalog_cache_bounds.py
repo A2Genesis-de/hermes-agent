@@ -58,8 +58,8 @@ def test_models_dev_is_parsed_on_first_xai_read_not_at_import(tmp_path):
     (home / "models_dev_cache.json").write_text(json.dumps(
         {"xai": {"id": "xai", "models": {"grok-disk-only": {}}}, "openai": {"id": "openai", "models": {"gpt-x": {}}}}))
     repo = Path(__file__).resolve().parents[2]
-    env = {k: v for k, v in os.environ.items() if not k.startswith("HERMES_")}
-    env.update(HERMES_HOME=str(home), HOME=str(tmp_path), PYTHONPATH=str(repo))
+    env = {k: v for k, v in os.environ.items() if not k.startswith("A2ASSISTANT_")}
+    env.update(A2ASSISTANT_HOME=str(home), HOME=str(tmp_path), PYTHONPATH=str(repo))
     out = subprocess.run([sys.executable, "-c", _LAZY_PROBE], check=False, cwd=repo, env=env, capture_output=True, text=True, timeout=120)
     assert out.returncode == 0, out.stderr[-2000:]
     got = json.loads(out.stdout.strip().splitlines()[-1])

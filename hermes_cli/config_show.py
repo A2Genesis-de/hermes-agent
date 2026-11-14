@@ -1,4 +1,4 @@
-"""``hermes config`` / ``hermes config show``: the read-only configuration summary.
+"""``a2assistant config`` / ``a2assistant config show``: the read-only configuration summary.
 
 Split out of ``hermes_cli.config``; config names are read through the module at call time
 (``_cfg.<name>``) so ``hermes_cli.config.<name>`` patch seams hold.
@@ -46,12 +46,12 @@ def _show_model_section(config: dict[str, Any]) -> None:
     # Read the .env FILE directly so a stale HERMES_MAX_ITERATIONS ghost is caught even when the
     # gateway bridge already overrode os.environ.
     try:
-        env_ghost = _cfg.load_env().get("HERMES_MAX_ITERATIONS")
+        env_ghost = _cfg.load_env().get("A2ASSISTANT_MAX_ITERATIONS")
     except Exception:
         env_ghost = None
     if env_ghost is not None and str(env_ghost).strip() != str(cfg_max_turns).strip():
-        print(color(f"                ⚠ .env has stale HERMES_MAX_ITERATIONS={env_ghost} "
-                    f"(run 'hermes doctor --fix' to remove)", Colors.YELLOW))
+        print(color(f"                ⚠ .env has stale A2ASSISTANT_MAX_ITERATIONS={env_ghost} "
+                    f"(run 'a2assistant doctor --fix' to remove)", Colors.YELLOW))
 
 
 def _show_display_section(config: dict[str, Any]) -> None:
@@ -186,7 +186,7 @@ def show_config():
 
     print()
     print(color("─" * 60, Colors.DIM))
-    print(color("  hermes config edit     # Edit config file", Colors.DIM))
-    print(color("  hermes config set <key> <value>", Colors.DIM))
-    print(color("  hermes setup           # Run setup wizard", Colors.DIM))
+    print(color("  a2assistant config edit     # Edit config file", Colors.DIM))
+    print(color("  a2assistant config set <key> <value>", Colors.DIM))
+    print(color("  a2assistant setup           # Run setup wizard", Colors.DIM))
     print()

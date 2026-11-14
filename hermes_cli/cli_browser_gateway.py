@@ -11,8 +11,8 @@ from hermes_cli.cli_commands_session_tools import _say_block, _t
 
 def _gateway_is_remote() -> bool:
     """True when this CLI attaches to an explicitly named gateway WebSocket that is not loopback
-    (``HERMES_TUI_GATEWAY_URL``): Desktop's ``mode === 'remote'``."""
-    raw = os.environ.get("HERMES_TUI_GATEWAY_URL", "").strip()
+    (``A2ASSISTANT_TUI_GATEWAY_URL``): Desktop's ``mode === 'remote'``."""
+    raw = os.environ.get("A2ASSISTANT_TUI_GATEWAY_URL", "").strip()
     if not raw:
         return False
     host = (urlparse(raw).hostname or "").lower()

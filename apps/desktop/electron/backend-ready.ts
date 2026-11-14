@@ -1,15 +1,15 @@
 import fs from 'node:fs'
 
-// `hermes serve` announces HERMES_BACKEND_READY; the legacy `hermes dashboard`
-// backend announces HERMES_DASHBOARD_READY. Accept either so the desktop spawn
+// `a2assistant serve` announces A2ASSISTANT_BACKEND_READY; the legacy `a2assistant dashboard`
+// backend announces A2ASSISTANT_DASHBOARD_READY. Accept either so the desktop spawn
 // works against both the headless backend and old/dashboard runtimes.
-const _READY_RE = /^HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)/m
+const _READY_RE = /^A2ASSISTANT_(?:BACKEND|DASHBOARD)_READY port=(\d+)/m
 
 // Same sentinel inside a MERGED stdout+stderr buffer (the spawn-time output tail, a remote
 // `>> log 2>&1` file): uvicorn's stderr chunks end without a newline, so the sentinel can be
-// spliced onto them (`...process [4711]HERMES_BACKEND_READY port=65238`) and `^` never lines up
+// spliced onto them (`...process [4711]A2ASSISTANT_BACKEND_READY port=65238`) and `^` never lines up
 // (#103792). Match on a token boundary instead; `port=<digits>` keeps prose mentions out.
-export const READY_IN_MERGED_OUTPUT_RE = /(?<!\w)HERMES_(?:BACKEND|DASHBOARD)_READY port=(\d+)/
+export const READY_IN_MERGED_OUTPUT_RE = /(?<!\w)A2ASSISTANT_(?:BACKEND|DASHBOARD)_READY port=(\d+)/
 
 // The announcement clock starts the instant the backend process is spawned —
 // before uvicorn binds its socket. On a cold install the child must first
@@ -25,7 +25,7 @@ const DEFAULT_PORT_ANNOUNCE_TIMEOUT_MS = 90_000
 const MIN_PORT_ANNOUNCE_TIMEOUT_MS = 45_000
 
 // While the backend prints venv_sync's source-update completion banners it is
-// finishing an owed update tail BEFORE `hermes serve` starts, and that tail
+// finishing an owed update tail BEFORE `a2assistant serve` starts, and that tail
 // legitimately runs minutes (dependency sync alone measured at ~19-22 min,
 // #122206) — far past the 90s cold-start budget, which is sized for imports
 // and AV scans, not repairs. Killing the child mid-repair and respawning it
@@ -50,12 +50,12 @@ function realNow() {
 
 /**
  * Resolve the port-announcement deadline. Honors the
- * HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS env override (for users on slow
+ * A2ASSISTANT_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS env override (for users on slow
  * disks / aggressive AV who need an even longer cold-start window), clamped
  * to a sane floor so a bad value can't make boot flakier than the default.
  */
 function resolvePortAnnounceTimeoutMs(env = process.env) {
-  const parsed = Number(env.HERMES_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS)
+  const parsed = Number(env.A2ASSISTANT_DESKTOP_PORT_ANNOUNCE_TIMEOUT_MS)
 
   if (Number.isFinite(parsed) && parsed > 0) {
     return Math.max(MIN_PORT_ANNOUNCE_TIMEOUT_MS, Math.round(parsed))
@@ -65,7 +65,7 @@ function resolvePortAnnounceTimeoutMs(env = process.env) {
 }
 
 /**
- * Watch a child process's stdout for the `HERMES_(BACKEND|DASHBOARD)_READY
+ * Watch a child process's stdout for the `A2ASSISTANT_(BACKEND|DASHBOARD)_READY
  * port=<N>` line that web_server.py prints after uvicorn binds its socket.
  *
  * Returns the parsed port. Rejects if:
@@ -112,7 +112,7 @@ function waitForDashboardPort(
     let buf = ''
     let done = false
     // #122206: the child is finishing an owed source-update completion
-    // (venv_sync banners) before `hermes serve` starts. While that repair is
+    // (venv_sync banners) before `a2assistant serve` starts. While that repair is
     // visibly in progress the 90s deadline is re-armed, up to the total cap,
     // instead of killing a healthy repair mid-run.
     const startedAt = realNow()
@@ -170,7 +170,7 @@ function waitForDashboardPort(
         }
 
         // venv_sync's banner is the signal that an owed source-update tail is
-        // running ahead of `hermes serve` (#122206): re-arm the deadline so a
+        // running ahead of `a2assistant serve` (#122206): re-arm the deadline so a
         // healthy multi-minute repair is not killed and re-run per boot.
         if (SOURCE_COMPLETION_BANNER_RE.test(line)) {
           completionInProgress = true

@@ -5,7 +5,7 @@ from hermes_state import SessionDB
 
 
 def test_disband_forgets_the_rooms_member_homes(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     with SessionDB(tmp_path / 'state.db') as db:
         gateway_id = hosted_rooms.local_authority_gateway_id()
         for room_id in ('room', 'other'):

@@ -41,8 +41,8 @@ def test_tui_import_exposes_auth_registry_to_provider_plugins(tmp_path):
     )
 
     env = os.environ.copy()
-    env["HERMES_HOME"] = str(hermes_home)
-    env.pop("HERMES_PROFILE", None)
+    env["A2ASSISTANT_HOME"] = str(hermes_home)
+    env.pop("A2ASSISTANT_PROFILE", None)
     env["PYTHONPATH"] = os.pathsep.join([
         str(REPO_ROOT),
         env.get("PYTHONPATH", ""),

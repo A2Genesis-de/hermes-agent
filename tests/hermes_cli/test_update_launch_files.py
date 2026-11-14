@@ -1,4 +1,4 @@
-"""``hermes update`` rewrites the launch files it owns before it starts or restarts any gateway.
+"""``a2assistant update`` rewrites the launch files it owns before it starts or restarts any gateway.
 
 A service manager starts a gateway from the definition it holds, so the rewrite has to land
 after the update steps that change what the generators write (the Node dependency preparation
@@ -32,7 +32,7 @@ def systemd_update(tmp_path, monkeypatch):
     """One user unit on disk, a paused gateway, and the real completion ordering around them."""
     root = tmp_path / "checkout"
     root.mkdir()
-    unit = tmp_path / "systemd" / "hermes-gateway.service"
+    unit = tmp_path / "systemd" / "a2assistant-gateway.service"
     unit.parent.mkdir()
     unit.write_text(STALE_UNIT, encoding="utf-8")
     events: list[tuple] = []

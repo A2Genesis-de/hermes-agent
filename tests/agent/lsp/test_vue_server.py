@@ -16,8 +16,8 @@ from agent.lsp.servers import ServerContext, find_server_for_file
 
 
 def _stage(tmp_path, monkeypatch, vue_version: str, *, js_sdk: bool):
-    """Fake ``<HERMES_HOME>/lsp`` tree: a staged launcher, the Vue package, optionally a JS TypeScript SDK."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    """Fake ``<A2ASSISTANT_HOME>/lsp`` tree: a staged launcher, the Vue package, optionally a JS TypeScript SDK."""
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     node_modules = tmp_path / "lsp" / "node_modules"
     pkg = node_modules / "@vue" / "language-server"
     (pkg / "bin").mkdir(parents=True)

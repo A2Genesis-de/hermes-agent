@@ -17,7 +17,7 @@ def test_torn_custody_modules_cannot_authorize_uncontained_repair(tmp_path, live
     package.mkdir(parents=True)
     for name in ("__init__.py", "_early_recovery.py", "update_lock.py", "update_custody.py"):
         shutil.copy2(source / "hermes_cli" / name, package / name)
-    env = {**os.environ, "HOME": str(tmp_path / "home"), "HERMES_HOME": str(tmp_path / "state"),
+    env = {**os.environ, "HOME": str(tmp_path / "home"), "A2ASSISTANT_HOME": str(tmp_path / "state"),
            "GIT_CONFIG_NOSYSTEM": "1", "GIT_CONFIG_GLOBAL": os.devnull,
            "PYTHONDONTWRITEBYTECODE": "1"}
     # The child owns a newly created Git repo, not the checkout running pytest.

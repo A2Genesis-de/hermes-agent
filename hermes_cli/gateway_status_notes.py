@@ -1,4 +1,4 @@
-"""Notes `hermes gateway status` prints beside the running/not-running verdict."""
+"""Notes `a2assistant gateway status` prints beside the running/not-running verdict."""
 from __future__ import annotations
 
 from hermes_cli.config import get_hermes_home
@@ -27,7 +27,7 @@ def report_incompatible_owner(pids) -> bool:
     print(f"✗ {running} but cannot serve this A2Assistant ({stale})")
     print("  It was started by another A2Assistant version; TUI, Desktop and chat cannot attach to it.")
     print("  Replace it with this version:")
-    print("    hermes gateway restart")
+    print("    a2assistant gateway restart")
     return True
 
 

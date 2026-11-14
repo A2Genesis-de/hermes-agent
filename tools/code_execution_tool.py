@@ -253,7 +253,7 @@ _call_lock = threading.Lock()
 def _connect():
     """Connect to the parent's RPC server via the transport it picked.
 
-    HERMES_RPC_SOCKET can be either:
+    A2ASSISTANT_RPC_SOCKET can be either:
       - a filesystem path (POSIX Unix domain socket — the default on
         Linux and macOS)
       - a string of the form ``tcp://127.0.0.1:<port>`` (Windows, where
@@ -261,7 +261,7 @@ def _connect():
     """
     global _sock
     if _sock is None:
-        endpoint = os.environ["HERMES_RPC_SOCKET"]
+        endpoint = os.environ["A2ASSISTANT_RPC_SOCKET"]
         if endpoint.startswith("tcp://"):
             # tcp://host:port  (host is always 127.0.0.1 in practice — we
             # only bind loopback server-side)
@@ -280,12 +280,12 @@ def _call(tool_name, args):
     request = json.dumps({
         "tool": tool_name,
         "args": args,
-        "token": os.environ.get("HERMES_RPC_TOKEN", ""),
+        "token": os.environ.get("A2ASSISTANT_RPC_TOKEN", ""),
     }) + "\\n"
     # Session kernels outlive the RPC server's 300s idle window, so their
     # connection can be legitimately gone by the next cell. The server
-    # re-accepts (HERMES_RPC_PERSISTENT=1); retry once on a fresh socket.
-    _attempts = 2 if os.environ.get("HERMES_RPC_PERSISTENT") == "1" else 1
+    # re-accepts (A2ASSISTANT_RPC_PERSISTENT=1); retry once on a fresh socket.
+    _attempts = 2 if os.environ.get("A2ASSISTANT_RPC_PERSISTENT") == "1" else 1
     with _call_lock:
         for _attempt in range(_attempts):
             try:
@@ -327,7 +327,7 @@ _FILE_TRANSPORT_HEADER = '''\
 """Auto-generated A2Assistant tools RPC stubs (file-based transport)."""
 import json, os, shlex, tempfile, threading, time
 
-_RPC_DIR = os.environ.get("HERMES_RPC_DIR") or os.path.join(tempfile.gettempdir(), "hermes_rpc")
+_RPC_DIR = os.environ.get("A2ASSISTANT_RPC_DIR") or os.path.join(tempfile.gettempdir(), "hermes_rpc")
 _seq = 0
 # `_seq += 1` is not atomic (read-modify-write), so concurrent _call()
 # invocations from multiple threads could allocate the same sequence number
@@ -358,7 +358,7 @@ def _call(tool_name, args):
             "tool": tool_name,
             "args": args,
             "seq": seq,
-            "token": os.environ.get("HERMES_RPC_TOKEN", ""),
+            "token": os.environ.get("A2ASSISTANT_RPC_TOKEN", ""),
         }, f)
     os.rename(tmp, req_file)
 
@@ -465,11 +465,11 @@ def _ship_env_file_and_launch(env, remote_dir: str, env_name: str, launch: str, 
     The subshell is load-bearing: every env.execute() runs inside the backend's
     session wrapper, which re-dumps ``export -p`` into the shared session
     snapshot after each command. A plain ``set -a; . file`` in the outer shell
-    would export HERMES_RPC_TOKEN/PYTHONPATH/TZ into that snapshot and re-export
+    would export A2ASSISTANT_RPC_TOKEN/PYTHONPATH/TZ into that snapshot and re-export
     them into every later command on the backend (the #71296 snapshot-leak
     class). The token also stays off the remote shell's argv, which co-tenant
     users can read via ps for the command's lifetime."""
-    env_map = {"HERMES_RPC_DIR": rpc_dir, "HERMES_RPC_TOKEN": rpc_token,
+    env_map = {"A2ASSISTANT_RPC_DIR": rpc_dir, "A2ASSISTANT_RPC_TOKEN": rpc_token,
                "PYTHONDONTWRITEBYTECODE": "1", **extra_env}
     tz = get_timezone_name()  # routed profile's timezone, not the bridged default's
     if tz:

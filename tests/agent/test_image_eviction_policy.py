@@ -319,7 +319,7 @@ def test_retirement_is_latched_when_an_upload_leaves_the_request(tmp_path, monke
     from agent.chat_completion_helpers import _iteration_summary_api_messages
     from run_agent import AIAgent
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     agent = AIAgent(api_key="k", base_url="https://api.anthropic.com", provider="anthropic",
                     model="claude-sonnet-4-5", quiet_mode=True, skip_context_files=True, skip_memory=True)
     agent._cached_system_prompt = "SYS"

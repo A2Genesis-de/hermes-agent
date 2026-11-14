@@ -43,7 +43,7 @@ def homes(tmp_path, monkeypatch):
             plugin = home / "plugins" / "model-providers" / SLUG
             plugin.mkdir(parents=True)
             (plugin / "__init__.py").write_text(_plugin(models), encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(found["a"]))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(found["a"]))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)

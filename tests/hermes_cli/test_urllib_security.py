@@ -339,7 +339,7 @@ def test_anthropic_profile_drops_x_api_key_on_redirect(monkeypatch):
 
 def _clear_ca_bundle_env(monkeypatch) -> None:
     for name in (
-        "HERMES_CA_BUNDLE",
+        "A2ASSISTANT_CA_BUNDLE",
         "SSL_CERT_FILE",
         "REQUESTS_CA_BUNDLE",
         "CURL_CA_BUNDLE",
@@ -379,7 +379,7 @@ def test_resolved_https_context_defers_to_the_platform_store(monkeypatch, tmp_pa
 
     assert urllib_security._resolved_https_context() is None
 
-    for var in ("HERMES_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"):
+    for var in ("A2ASSISTANT_CA_BUNDLE", "SSL_CERT_FILE", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE"):
         monkeypatch.setenv(var, str(tmp_path / "nope.pem"))
     assert urllib_security._resolved_https_context() is None
 

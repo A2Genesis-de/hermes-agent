@@ -24,6 +24,6 @@ export const esErrorCodes: Partial<ThreadCopy['errorCodes']> = {
     title: 'No se puede acceder al servidor de modelos local',
     body: 'El servidor de modelos local aún no está en ejecución: puede que todavía se esté iniciando. Reintenta en un momento o cambia a otro modelo.',
     bodyNoRetry:
-      'El servidor de modelos local está apagado. Inícialo desde la app de escritorio de A2Assistant o con `hermes model` en una terminal, o cambia a otro modelo.'
+      'El servidor de modelos local está apagado. Inícialo desde la app de escritorio de A2Assistant o con `a2assistant model` en una terminal, o cambia a otro modelo.'
   }
 }

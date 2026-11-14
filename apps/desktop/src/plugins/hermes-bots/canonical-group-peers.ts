@@ -539,7 +539,7 @@ export function peerSetupText(reason: string, connection: string, labels: Pick<C
 }
 
 /** Why `name` has not joined, in the reader's words: Desktop's own finding or the gateway's refusal
- *  (`message` is its reason on the gateway, its detail on `hermes serve`). */
+ *  (`message` is its reason on the gateway, its detail on `a2assistant serve`). */
 export function peerJoinText(error: unknown, name: string, labels: PeerLabels): string {
   const refusal = error as { data?: { reason?: unknown; detail?: unknown }; message?: unknown; reason?: unknown } | null
 

@@ -12,12 +12,12 @@ from hermes_cli.install_state import Evidence, Places
 
 @pytest.fixture
 def machine(tmp_path, monkeypatch):
-    """An empty active root (``HERMES_HOME``) plus one other root the probe is told about."""
+    """An empty active root (``A2ASSISTANT_HOME``) plus one other root the probe is told about."""
     active = tmp_path / "active"
     other = tmp_path / "other-root"
     active.mkdir()
     other.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(active))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(active))
     places = Places(markers=(tmp_path / "state" / ".machine",),
                     sources=(install_state._active_root, lambda: (other,)))
     monkeypatch.setattr(install_state, "machine_places", lambda: places)
@@ -150,10 +150,10 @@ def test_claiming_marks_the_machine_and_the_next_probe_sees_it(machine):
 
 def test_gateway_service_definitions_name_their_homes(tmp_path, monkeypatch):
     home = tmp_path / "gw-home"
-    unit = tmp_path / "hermes-gateway.service"
-    unit.write_text(f'[Service]\nEnvironment="HERMES_HOME={home}"\n', encoding="utf-8")
+    unit = tmp_path / "a2assistant-gateway.service"
+    unit.write_text(f'[Service]\nEnvironment="A2ASSISTANT_HOME={home}"\n', encoding="utf-8")
     vbs = tmp_path / "Hermes_Gateway.vbs"
-    vbs.write_text(f'env.Item("HERMES_HOME") = "{home}-win"\r\n', encoding="utf-8")
+    vbs.write_text(f'env.Item("A2ASSISTANT_HOME") = "{home}-win"\r\n', encoding="utf-8")
     from hermes_platform.resolver import known_dirs
     monkeypatch.setattr(known_dirs, "gateway_service_definition_globs", lambda: (str(tmp_path / "*Gateway*"),
                                                                                 str(tmp_path / "*gateway*")))
@@ -201,12 +201,12 @@ def test_a_gateway_service_counts_only_for_the_account_it_runs_as(tmp_path, monk
     me = getpass.getuser()
     units = {"mine": f"User={me}\n", "theirs": "User=nobody\n" if me != "nobody" else "User=root\n", "root": ""}
     for name, identity in units.items():
-        (tmp_path / f"hermes-gateway-{name}.service").write_text(
-            f'[Service]\n{identity}Environment="HERMES_HOME={tmp_path / name}"\n', encoding="utf-8")
+        (tmp_path / f"a2assistant-gateway-{name}.service").write_text(
+            f'[Service]\n{identity}Environment="A2ASSISTANT_HOME={tmp_path / name}"\n', encoding="utf-8")
     monkeypatch.setattr(known_dirs, "gateway_service_definition_globs",
-                        lambda: (str(tmp_path / "hermes-gateway-[mt]*.service"),))
+                        lambda: (str(tmp_path / "a2assistant-gateway-[mt]*.service"),))
     monkeypatch.setattr(known_dirs, "system_gateway_service_definition_globs",
-                        lambda: (str(tmp_path / "hermes-gateway-root.service"),), raising=False)
+                        lambda: (str(tmp_path / "a2assistant-gateway-root.service"),), raising=False)
 
     homes = set(install_state._service_homes())
 

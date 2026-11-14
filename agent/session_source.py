@@ -37,9 +37,9 @@ def create_surface(source: str) -> str:
 
 
 def session_source_for(platform: Optional[str]) -> str:
-    source = str(get_session_env("HERMES_SESSION_SOURCE", "") or "").strip()
-    single_query = get_session_env("HERMES_SINGLE_QUERY_SESSION", "") == "1"
-    explicit = get_session_env("HERMES_SESSION_SOURCE_EXPLICIT", "") == "1"
+    source = str(get_session_env("A2ASSISTANT_SESSION_SOURCE", "") or "").strip()
+    single_query = get_session_env("A2ASSISTANT_SINGLE_QUERY_SESSION", "") == "1"
+    explicit = get_session_env("A2ASSISTANT_SESSION_SOURCE_EXPLICIT", "") == "1"
     if single_query and not explicit and source in UI_TRANSPORT_SOURCES:
         source = ""
     if single_query and not source and (platform or "cli") == "cli":

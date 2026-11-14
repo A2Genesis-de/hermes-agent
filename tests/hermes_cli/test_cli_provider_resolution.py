@@ -298,7 +298,7 @@ def test_runtime_resolution_failure_is_not_sticky(monkeypatch):
 
 
 def test_ensure_runtime_credentials_passes_cli_model_as_target_model(monkeypatch):
-    """`hermes -m mimo-v2.5 --provider opencode-go` must resolve credentials for the model the
+    """`a2assistant -m mimo-v2.5 --provider opencode-go` must resolve credentials for the model the
     CLI will send: the Zen/Go rungs key off the effective model, and without target_model a
     `*-free` config default decides the api_mode/base_url for an explicit paid model (#112600)."""
     cli = _import_cli()
@@ -346,7 +346,7 @@ def test_fallback_runtime_labels_quota_outage_and_bad_credentials_distinctly(mon
 
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     printed = []
     monkeypatch.setattr("cli._cprint", printed.append, raising=False)
     monkeypatch.setattr(
@@ -372,7 +372,7 @@ def test_ensure_runtime_credentials_records_quota_vs_bad_key(monkeypatch, tmp_pa
 
     home = tmp_path / "hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr("cli._cprint", lambda *a, **k: None, raising=False)
 
     def _raise_quota(**kw):
@@ -422,7 +422,7 @@ def test_model_flow_nous_does_not_restore_stale_custom_api_key(tmp_path, monkeyp
 
     config_home = tmp_path / "hermes"
     config_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(config_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(config_home))
 
     config_path = config_home / "config.yaml"
     config_path.write_text(
@@ -492,7 +492,7 @@ def _seed_stale_custom_model(tmp_path, monkeypatch):
 
     config_home = tmp_path / "hermes"
     config_home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(config_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(config_home))
     config_path = config_home / "config.yaml"
     config_path.write_text(
         yaml.safe_dump(
@@ -595,7 +595,7 @@ def test_startup_fallback_re_resolves_reasoning_for_the_fallback_model(monkeypat
 
 
 def test_custom_entry_model_swap_re_resolves_reasoning(monkeypatch):
-    """`hermes chat --model <custom-provider-name>`: the runtime's explicit `model` replaces the
+    """`a2assistant chat --model <custom-provider-name>`: the runtime's explicit `model` replaces the
     slug, so the CLI-level reasoning_config must follow to that model's per-model override."""
     cli = _import_cli()
     monkeypatch.setattr(cli, "_cprint", lambda *a, **k: None)
@@ -827,11 +827,11 @@ def test_save_custom_provider_references_the_key_instead_of_inlining_it(monkeypa
         "http://localhost:11434/v1",
         api_key="sk-secret",
         name="Ollama",
-        key_env="HERMES_CUSTOM_LOCALHOST_11434_API_KEY",
+        key_env="A2ASSISTANT_CUSTOM_LOCALHOST_11434_API_KEY",
     )
 
     entry = saved["custom_providers"][0]
-    assert entry["key_env"] == "HERMES_CUSTOM_LOCALHOST_11434_API_KEY"
+    assert entry["key_env"] == "A2ASSISTANT_CUSTOM_LOCALHOST_11434_API_KEY"
     assert "api_key" not in entry
     assert "sk-secret" not in yaml.safe_dump(saved)
 

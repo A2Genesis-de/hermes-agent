@@ -1,4 +1,4 @@
-"""`hermes pm environment`: the shell entry skills use for a named side environment."""
+"""`a2assistant pm environment`: the shell entry skills use for a named side environment."""
 
 from __future__ import annotations
 

@@ -29,6 +29,8 @@ export function resolveVenvDir(updateRoot: string): string {
   return path.join(updateRoot, 'venv')
 }
 
+import { CLI_COMMANDS } from '../../shared/src/product-names.mjs'
+
 import { platformDefaultHermesHome } from './data-paths'
 import { hiddenWindowsChildOptions } from './windows-child-options'
 
@@ -36,7 +38,7 @@ import { hiddenWindowsChildOptions } from './windows-child-options'
 export function resolveInstallationLauncher(
   updateRoot: string,
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.HERMES_HOME ?? ''
+  hermesHome: string = process.env.A2ASSISTANT_HOME ?? ''
 ): string | null {
   const staged: string | null = stagedInstallationLauncher(updateRoot, isWindows)
 
@@ -62,7 +64,7 @@ export function resolveInstallationLauncher(
 export async function resolveInstallationLauncherAsync(
   updateRoot: string,
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.HERMES_HOME ?? ''
+  hermesHome: string = process.env.A2ASSISTANT_HOME ?? ''
 ): Promise<string | null> {
   const staged: string | null = stagedInstallationLauncher(updateRoot, isWindows)
 
@@ -81,8 +83,12 @@ export async function resolveInstallationLauncherAsync(
   return legacyInstallationLauncher(updateRoot, isWindows)
 }
 
+function launcherNames(isWindows: boolean): string[] {
+  return CLI_COMMANDS.flatMap((name: string): string[] => (isWindows ? [`${name}.exe`, `${name}.cmd`] : [name]))
+}
+
 function stagedInstallationLauncher(updateRoot: string, isWindows: boolean): string | null {
-  const names: string[] = isWindows ? ['hermes.exe', 'hermes.cmd'] : ['hermes']
+  const names: string[] = launcherNames(isWindows)
 
   return names.map(name => path.join(updateRoot, '.hermes', 'bin', name)).find(stagedFileExists) ?? null
 }
@@ -122,7 +128,7 @@ const CMD_UNSAFE_PATH: RegExp = /["%&|<>^\r\n]/
 
 /** Published user-bin launchers, at fixed locations: a GUI launch's PATH may omit them. */
 function userBinLaunchers(isWindows: boolean, hermesHome: string, extraDirs: string[] = []): string[] {
-  const names: string[] = isWindows ? ['hermes.exe', 'hermes.cmd'] : ['hermes']
+  const names: string[] = launcherNames(isWindows)
   const defaultHome: string = platformDefaultHermesHome(os.homedir(), process.env, isWindows ? 'win32' : 'linux')
 
   const dirs: string[] = isWindows
@@ -142,7 +148,7 @@ function userBinLaunchers(isWindows: boolean, hermesHome: string, extraDirs: str
  */
 export function userLauncherInstallRoot(
   isWindows: boolean = process.platform === 'win32',
-  hermesHome: string = process.env.HERMES_HOME ?? ''
+  hermesHome: string = process.env.A2ASSISTANT_HOME ?? ''
 ): { launcher: string; root: string } | null {
   for (const launcher of userBinLaunchers(isWindows, hermesHome)) {
     const root: string | null = launcherInstallDirectory(launcher)
@@ -167,7 +173,7 @@ export function launcherTargetsInstallation(launcher: string, root: string): boo
 
 // A launcher's install directory cannot move while this process lives, and the
 // backend resolver runs once per surface (startup, TUI resume, pool backends, and
-// every tick of reensureDuringRestart), so the HERMES_DESKTOP_HERMES rung memoizes
+// every tick of reensureDuringRestart), so the A2ASSISTANT_DESKTOP_HERMES rung memoizes
 // each launcher's root. The probe is async: `--version` may take seconds (it also
 // runs the passive update check) and must never stall Electron's main thread.
 // Concurrent resolves share one in-flight probe. A miss (no `Install directory:`
@@ -189,6 +195,7 @@ export function launcherInstallRoot(launcher: string): Promise<string | undefine
   const cached = launcherInstallRoots.get(launcher)
 
   if (cached) {return cached}
+
   const flight = launcherInstallDirectoryAsync(launcher).then(root => {
     if (root === null) {
       launcherInstallRoots.delete(launcher)
@@ -228,7 +235,7 @@ function launcherVersionProbe(launcher: string, root?: string): LauncherVersionP
       timeout: 15000,
       windowsHide: true,
       windowsVerbatimArguments: viaCmd,
-      env: root ? { ...process.env, HERMES_INSTALL_ROOT: root } : process.env
+      env: root ? { ...process.env, A2ASSISTANT_INSTALL_ROOT: root } : process.env
     }
   }
 }
@@ -319,7 +326,7 @@ export interface UpdateScriptHandoff {
  * published — which historically lags main by months and strands users on
  * long-fixed bugs (cache resolver #67369, marker self-adopt #74782; the
  * 2026-08-09 incident chain). `scripts/desktop-update/windows.ps1` lives in the repo
- * checkout instead: every `hermes update` refreshes the code that drives the
+ * checkout instead: every `a2assistant update` refreshes the code that drives the
  * NEXT update, and only PowerShell itself is frozen.
  *
  * Returns the spawn recipe when the script exists in the checkout, or null
@@ -363,13 +370,13 @@ export function resolveUpdateScriptHandoff(
  * Repo-owned POSIX update hand-off (the mac/linux twin of the above).
  *
  * Replaces the in-app posix updater: the Desktop spawns the script detached
- * and QUITS, the script waits it out, runs `hermes update`, swaps/relaunches
+ * and QUITS, the script waits it out, runs `a2assistant update`, swaps/relaunches
  * the app, and writes .hermes-update-result.json. With the app gone before
- * the update starts, the HERMES_DESKTOP_CHILD_PID reaper-exclusion dance is
+ * the update starts, the A2ASSISTANT_DESKTOP_CHILD_PID reaper-exclusion dance is
  * unnecessary — there are no live desktop backends to spare.
  *
  * Null when the checkout predates the script (caller surfaces the manual
- * `hermes update` card — old checkouts pull the script on their next update).
+ * `a2assistant update` card — old checkouts pull the script on their next update).
  */
 export function resolvePosixScriptHandoff(
   updateRoot: string,
@@ -540,7 +547,7 @@ function stagedFileMtimeMs(candidate: string): number | null {
 /**
  * Decide which staged installer binary — if any — may be handed an update.
  *
- * The Tauri installer self-copies into HERMES_HOME on *every* platform
+ * The Tauri installer self-copies into A2ASSISTANT_HOME on *every* platform
  * (`hermes-setup.exe` on Windows, `hermes-setup` elsewhere — see
  * apps/bootstrap-installer `paths::installer_dest` and
  * `bootstrap::copy_self_to_hermes_home`), so finding that binary on macOS or
@@ -551,7 +558,7 @@ function stagedFileMtimeMs(candidate: string): number | null {
  * running desktop from rewriting its own bits; macOS and Linux have no such
  * lock and update in place through applyUpdatesPosixInApp(). Off Windows the
  * hand-off therefore buys nothing and costs a great deal: a staged binary older
- * than the hand-off protocol holds the update marker, spawns `hermes update`,
+ * than the hand-off protocol holds the update marker, spawns `a2assistant update`,
  * and that child refuses its own parent — wedging the in-app Update button for
  * good, with no route (update, re-download, reinstall) to a newer binary
  * (#74836). Returning null off Windows is what routes those platforms to the
@@ -587,11 +594,11 @@ export function resolveStagedUpdaterBinary(
  * updater reads its own claim as a foreign live owner and aborts with
  * "Another Hermes update is already running (PID <itself>, started 1s ago)" —
  * the observed infinite "Install didn't finish" loop. Skipping the pre-write
- * for those binaries lets them acquire cleanly and run `hermes update`, which
+ * for those binaries lets them acquire cleanly and run `a2assistant update`, which
  * pulls the permanent fixes. See shouldPrewriteUpdateMarker.
  *
  * We cannot ask the binary its version without executing it, so use its mtime:
- * the installer is written to HERMES_HOME at install/repair time, making mtime
+ * the installer is written to A2ASSISTANT_HOME at install/repair time, making mtime
  * a faithful stamp of which installer generation produced it.
  *
  * Unreadable mtime counts as UNSUPPORTED — the pre-write is a best-effort

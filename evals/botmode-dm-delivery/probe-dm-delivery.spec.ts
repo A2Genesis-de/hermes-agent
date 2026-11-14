@@ -27,9 +27,9 @@ test.beforeAll(async () => {
   const bin = path.join(sandbox.root, 'bin')
   fs.mkdirSync(bin)
   fs.writeFileSync(path.join(bin, 'hermes'), `#!/bin/sh\ncd ${repo}\nexec ${python} -m hermes_cli.main "$@"\n`, { mode: 0o755 })
-  env = buildAppEnv(sandbox, { HOME: sandbox.root, HERMES_DESKTOP_PYTHON: python,
-    HERMES_DESKTOP_HERMES: path.join(bin, 'hermes'), PATH: `${bin}:${process.env.PATH}`,
-    PYTHONPATH: repo, HERMES_SINGLE_QUERY_LINGER_SECONDS: '30' })
+  env = buildAppEnv(sandbox, { HOME: sandbox.root, A2ASSISTANT_DESKTOP_PYTHON: python,
+    A2ASSISTANT_DESKTOP_HERMES: path.join(bin, 'hermes'), PATH: `${bin}:${process.env.PATH}`,
+    PYTHONPATH: repo, A2ASSISTANT_SINGLE_QUERY_LINGER_SECONDS: '30' })
   const { app, page } = await launchDesktop(env)
   fixture = { app, page, sandbox, mock, mockUrl: mock.url, cleanup: async () => {
     await app.close().catch(() => undefined)
@@ -46,7 +46,7 @@ test('cron output waits for a CLI-only owner and arrives after owner release', a
   test.setTimeout(240_000)
   const output = fs.openSync(path.join(evidence, 'cli-owner.log'), 'w')
   const child = spawn(python, ['-m', 'hermes_cli.main', '-p', 'beta', 'chat', '--in', '~', '-c', 'Bot Chat', '--create-if-missing', '-Q', '-q', 'CLI_OWNER_HOLD'], { cwd: repo, env, stdio: ['ignore', output, output] })
-  const cronEnv = { ...env, HERMES_HOME: fixture.sandbox.hermesHome }
+  const cronEnv = { ...env, A2ASSISTANT_HOME: fixture.sandbox.hermesHome }
   try {
     await fixture.mock.waitForHeldCompletion()
     const script = 'import json; from cron.scheduler_delivery import _deliver_to_bot_chat; j={"id":"cli-residual","name":"CLI residual","execution_id":"fixed-execution"}; result=_deliver_to_bot_chat(j,"CLI_OWNER_CRON_SENTINEL","beta"); print(json.dumps({"result":result,"job":j}))'

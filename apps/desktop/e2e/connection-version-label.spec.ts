@@ -40,7 +40,7 @@ const { WebSocketServer } = createRequire(import.meta.url)('ws') as {
 }
 
 const outPath = (file: string): string =>
-  process.env.HERMES_E2E_OUT ? path.join(process.env.HERMES_E2E_OUT, file) : test.info().outputPath(file)
+  process.env.A2ASSISTANT_E2E_OUT ? path.join(process.env.A2ASSISTANT_E2E_OUT, file) : test.info().outputPath(file)
 
 interface FakeGateway {
   url: string
@@ -184,7 +184,7 @@ test('client version label follows a switch to another connection', async () => 
     { encoding: 'utf8', mode: 0o600 }
   )
 
-  const { app, page } = await launchDesktop(buildAppEnv(sandbox, { HERMES_DESKTOP_DEV_SERVER: '' }))
+  const { app, page } = await launchDesktop(buildAppEnv(sandbox, { A2ASSISTANT_DESKTOP_DEV_SERVER: '' }))
 
   const dump = (tag: string) =>
     fs.writeFileSync(outPath(`${tag}.log`), [`A hits:`, ...a.hits, '', 'B hits:', ...b.hits].join('\n'))

@@ -202,7 +202,7 @@ import { readFileSync } from 'node:fs'
 import { answer } from '@hermes/ink'
 import { pythonHelperPath } from './pythonHelpers'
 console.log(JSON.stringify({ answer, helpers: ['gateway_bootstrap.py', 'clipboard_image.py'].map(name =>
-  readFileSync(pythonHelperPath(name, process.env.HERMES_PYTHON_SRC_ROOT), 'utf8')) }))`)
+  readFileSync(pythonHelperPath(name, process.env.A2ASSISTANT_PYTHON_SRC_ROOT), 'utf8')) }))`)
   dependency(source, 'ui-tui', 'esbuild')
   const out = path.join(base, 'product one')
   execFileSync(process.execPath, [path.join(repo, 'scripts/build/tui.mjs'), '--source', source, '--out', out], { cwd: base })
@@ -214,7 +214,7 @@ console.log(JSON.stringify({ answer, helpers: ['gateway_bootstrap.py', 'clipboar
   const pythonRoot = path.join(base, 'site-packages')
   mkdirSync(pythonRoot)
   const result = execFileSync(process.execPath, [entry], {
-    cwd: base, encoding: 'utf8', env: { ...process.env, HERMES_PYTHON_SRC_ROOT: pythonRoot },
+    cwd: base, encoding: 'utf8', env: { ...process.env, A2ASSISTANT_PYTHON_SRC_ROOT: pythonRoot },
   })
   expect(JSON.parse(result)).toEqual({
     answer: 'prepared source',
@@ -466,7 +466,7 @@ test('a Webapp rebuild keeps the previous generation for tabs that booted it, ne
     if (generation === 'gen-two') {
       // An update that could not rebuild gen-two marks it (hermes_cli/webapp.py mark_webapp_stale):
       // the marker still forces the rebuild, and must not cost gen-two's tabs their chunks.
-      writeFileSync(path.join(out, '.hermes-stale'), 'hermes update could not rebuild this bundle\n')
+      writeFileSync(path.join(out, '.hermes-stale'), 'a2assistant update could not rebuild this bundle\n')
       expect(productCurrent({ source, product: 'webapp', out })).toBe(false)
     }
   }

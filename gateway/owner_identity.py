@@ -6,7 +6,7 @@ tab, a standalone dashboard's forwarded login or a phone signed in through the d
 that same person: sign-in only decides whether a browser may open the Webapp at all, it never names a
 second owner. So every authenticated non-native principal acts as :func:`host_owner_subject`, and
 the login stamps older builds stored (``auth:v1:[provider, issuer, user]`` subjects, the
-``<provider>:<user>`` labels ``hermes serve`` stamped on Desktop rows) read as the owner's too. A
+``<provider>:<user>`` labels ``a2assistant serve`` stamped on Desktop rows) read as the owner's too. A
 ``local`` stamp names an OS user, so it matches this machine's account only. Every comparison of a
 stored owner with a caller goes through :func:`same_owner`, so the sidebar, the open, adoption and the
 room controls cannot disagree about who owns a row.
@@ -61,7 +61,7 @@ def _owner_login(provider: str, user: str) -> bool:
 
 
 def _login_label(value: str) -> bool:
-    """``<provider>:<user>`` for a dashboard sign-in: the label ``hermes serve`` stamped for a login
+    """``<provider>:<user>`` for a dashboard sign-in: the label ``a2assistant serve`` stamped for a login
     (session_transports). Any other prefix (``telegram:42``, ``uid:501``) names someone else, and a
     ``nous:`` stamp keeps its own rule (``legacy_account_label``: a Desktop row's account label)."""
     provider, sep, user = value.partition(':')

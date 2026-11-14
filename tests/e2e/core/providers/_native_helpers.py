@@ -1,7 +1,7 @@
 """Shared harness for the native-dialect provider wire suites (``test_native_*.py``).
 
-Every scenario drives the REAL ``hermes`` CLI (``python -m hermes_cli.main chat -q ... -Q``) as a
-subprocess with a hermetic fake HOME / HERMES_HOME, a config.yaml that selects a native provider,
+Every scenario drives the REAL ``a2assistant`` CLI (``python -m hermes_cli.main chat -q ... -Q``) as a
+subprocess with a hermetic fake HOME / A2ASSISTANT_HOME, a config.yaml that selects a native provider,
 and the provider's endpoint redirected to a loopback fake from ``tests/fakes/providers/``. Only the
 vendor boundary is faked; runtime resolution, the adapter, the agent loop, tools and SQLite are real.
 
@@ -35,7 +35,7 @@ _PASSTHROUGH_ENV = frozenset({
 
 @dataclass
 class NativeHome:
-    """One hermetic fake HOME with ``HOME/.hermes`` as HERMES_HOME and a project dir as cwd."""
+    """One hermetic fake HOME with ``HOME/.hermes`` as A2ASSISTANT_HOME and a project dir as cwd."""
 
     root: Path
 
@@ -56,21 +56,21 @@ class NativeHome:
         return self.hermes_home / "state.db"
 
     def env(self, extra: dict[str, str] | None = None) -> dict[str, str]:
-        """Allowlisted env: no inherited credentials, HERMES_* or TERMINAL_* can reroute the child."""
+        """Allowlisted env: no inherited credentials, A2ASSISTANT_* or TERMINAL_* can reroute the child."""
         env = {
             k: v for k, v in os.environ.items()
             if (k in _PASSTHROUGH_ENV or k.startswith("LC_")) and not k.endswith(_SECRET_ENV_SUFFIXES)
         }
         env.update({
             "HOME": str(self.home),
-            "HERMES_HOME": str(self.hermes_home),
+            "A2ASSISTANT_HOME": str(self.hermes_home),
             "PYTHONPATH": str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1",
             "NO_COLOR": "1",
             "TERM": "dumb",
             # The child's ~/.hermes/state.db IS the tmp home's db; under a pytest ancestor the
             # live-DB guard would refuse it. Documented child escape hatch; path is tmp by construction.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
             # Never reach real AWS/GCP metadata endpoints or shared config from a fake home.
             "AWS_EC2_METADATA_DISABLED": "true",
             "AWS_CONFIG_FILE": str(self.home / ".aws" / "config"),
@@ -122,7 +122,7 @@ class ChatResult:
 
 def run_chat(nh: NativeHome, prompt: str, *, resume: str | None = None, env: dict[str, str] | None = None,
              args: tuple[str, ...] = (), timeout: float = TURN_TIMEOUT) -> ChatResult:
-    """One real ``hermes chat -q`` turn (optionally ``--resume <id>``) against the fake provider."""
+    """One real ``a2assistant chat -q`` turn (optionally ``--resume <id>``) against the fake provider."""
     argv = [sys.executable, "-m", "hermes_cli.main", "chat", "-q", prompt, "-Q", *args]
     if resume:
         argv += ["--resume", resume]

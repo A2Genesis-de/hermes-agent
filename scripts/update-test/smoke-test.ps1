@@ -9,7 +9,7 @@ $ErrorActionPreference = 'Stop'
 $Script = Join-Path $PSScriptRoot 'hermes-update-rehearsal.ps1'
 # A python is needed for the sqlite assertions. Prefer an explicit checkout, then
 # a hermes-agent checkout next to this kit (the usual layout while developing).
-$Checkout = $env:HERMES_REHEARSAL_CHECKOUT
+$Checkout = $env:A2ASSISTANT_REHEARSAL_CHECKOUT
 if (-not $Checkout) {
   $sibling = Join-Path (Split-Path -Parent $PSScriptRoot) 'hermes-agent'
   if (Test-Path -LiteralPath $sibling) { $Checkout = $sibling }
@@ -99,11 +99,11 @@ $env:USERPROFILE = Join-Path $Root 'home'
 New-Item -ItemType Directory -Force -Path $env:USERPROFILE | Out-Null
 $env:GIT_CONFIG_GLOBAL = Join-Path $Root 'gitconfig-test'
 Set-Content -LiteralPath $env:GIT_CONFIG_GLOBAL -Value @()
-$env:HERMES_HOME = Join-Path $env:USERPROFILE '.hermes'
-$env:HERMES_DESKTOP_USER_DATA_DIR = Join-Path $Root 'electron-user-data'
-Remove-Item Env:\HERMES_DATA_DIR_SUFFIX -ErrorAction SilentlyContinue
+$env:A2ASSISTANT_HOME = Join-Path $env:USERPROFILE '.hermes'
+$env:A2ASSISTANT_DESKTOP_USER_DATA_DIR = Join-Path $Root 'electron-user-data'
+Remove-Item Env:\A2ASSISTANT_DATA_DIR_SUFFIX -ErrorAction SilentlyContinue
 
-$H = $env:HERMES_HOME
+$H = $env:A2ASSISTANT_HOME
 $Install = Join-Path $H 'hermes-agent'
 $Backups = Join-Path $Root 'backups'
 Write-Host "fixture under $Root"
@@ -209,11 +209,11 @@ if /i "%~1"=="backup" if /i "%~2"=="-o" (
 echo hermes
 '@ | Set-Content -LiteralPath (Join-Path $H 'bin\hermes.cmd') -Encoding ASCII
 
-  New-Item -ItemType Directory -Force -Path (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'Local Storage\leveldb'), (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'Cache') | Out-Null
-  Set-Content -LiteralPath (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'Preferences') -Value '{"window":{}}'
-  Set-Content -LiteralPath (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'connection.json') -Value '{"session":"t"}'
-  Set-Content -LiteralPath (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'Local Storage\leveldb\000001.ldb') -Value 'x'
-  Set-Content -LiteralPath (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'Cache\data.bin') -Value 'junk'
+  New-Item -ItemType Directory -Force -Path (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'Local Storage\leveldb'), (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'Cache') | Out-Null
+  Set-Content -LiteralPath (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'Preferences') -Value '{"window":{}}'
+  Set-Content -LiteralPath (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'connection.json') -Value '{"session":"t"}'
+  Set-Content -LiteralPath (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'Local Storage\leveldb\000001.ldb') -Value 'x'
+  Set-Content -LiteralPath (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'Cache\data.bin') -Value 'junk'
 }
 
 function Get-ShadowCapC {
@@ -233,7 +233,7 @@ try {
   $statusBefore = (& git -C $Install status --porcelain | Out-String)
   # Both trees as they are right now: post is checked against this for exactness.
   $homeBefore = Get-TreeListing $H
-  $userDataBefore = Get-TreeListing $env:HERMES_DESKTOP_USER_DATA_DIR
+  $userDataBefore = Get-TreeListing $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR
   $r = Invoke-Rehearsal -Arguments @('pre', '-Source', $Install, '-BackupRoot', $Backups)
   Check 'pre exits 0' ($r.Code -eq 0)
   $Snap = (Get-ChildItem -LiteralPath $Backups -Directory | Sort-Object Name)[-1].FullName
@@ -270,9 +270,9 @@ try {
   Set-Content -LiteralPath (Join-Path $Install 'added_by_update.py') -Value 'print(2)'
   New-Item -ItemType Directory -Force -Path (Join-Path $H 'photon\sidecar\node_modules\newdep') | Out-Null
   Set-Content -LiteralPath (Join-Path $H 'photon\sidecar\node_modules\newdep\index.js') -Value 'x'
-  Set-Content -LiteralPath (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'Preferences') -Value '{"window":{"changed":true}}'
-  Set-Content -LiteralPath (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'new-after-update.json') -Value '{}'
-  Check 'the simulated update changed HERMES_HOME' ((Get-TreeListing $H) -ne $homeBefore)
+  Set-Content -LiteralPath (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'Preferences') -Value '{"window":{"changed":true}}'
+  Set-Content -LiteralPath (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'new-after-update.json') -Value '{}'
+  Check 'the simulated update changed A2ASSISTANT_HOME' ((Get-TreeListing $H) -ne $homeBefore)
 
   Write-Host "`n--- post ---"
   $r = Invoke-Rehearsal -Arguments @('post', '-BackupRoot', $Backups, '-Yes')
@@ -286,7 +286,7 @@ try {
   Check 'checkout restored' (Test-Path -LiteralPath (Join-Path $Install '.git'))
   Check 'checkout HEAD restored' (((& git -C $Install rev-parse HEAD | Out-String).Trim()) -eq $HeadSha)
   Check 'origin remote restored' (((& git -C $Install config --get remote.origin.url | Out-String).Trim()) -eq 'https://github.com/NousResearch/hermes-agent.git')
-  Check 'userData connection.json restored' (Test-Path -LiteralPath (Join-Path $env:HERMES_DESKTOP_USER_DATA_DIR 'connection.json'))
+  Check 'userData connection.json restored' (Test-Path -LiteralPath (Join-Path $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR 'connection.json'))
   $cfg2 = (& git -C $Install config --local --get-regexp 'insteadOf' 2>$null | Out-String)
   if (-not $cfg2) { $cfg2 = '' }
   Check 'no stale insteadOf left in the checkout' ((([regex]::Matches($cfg2, 'insteadOf', 'IgnoreCase')).Count) -eq 0)
@@ -298,12 +298,12 @@ try {
   Check 'post put the shadow storage cap back exactly' ((Get-ShadowCapC) -eq $CapBefore)
   Write-Host "`n--- the acceptance criterion: every file identical before/after ---"
   $homeAfter = Get-TreeListing $H
-  Check 'HERMES_HOME identical to before pre' ($homeAfter -eq $homeBefore)
+  Check 'A2ASSISTANT_HOME identical to before pre' ($homeAfter -eq $homeBefore)
   if ($homeAfter -ne $homeBefore) {
     Compare-Object ($homeBefore -split "`n") ($homeAfter -split "`n") |
       ForEach-Object { Write-Host "    $($_.SideIndicator) $($_.InputObject)" }
   }
-  $userDataAfter = Get-TreeListing $env:HERMES_DESKTOP_USER_DATA_DIR
+  $userDataAfter = Get-TreeListing $env:A2ASSISTANT_DESKTOP_USER_DATA_DIR
   Check 'userData identical to before pre' ($userDataAfter -eq $userDataBefore)
   if ($userDataAfter -ne $userDataBefore) {
     Compare-Object ($userDataBefore -split "`n") ($userDataAfter -split "`n") |

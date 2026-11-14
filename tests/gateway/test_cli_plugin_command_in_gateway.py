@@ -43,9 +43,9 @@ def register(ctx):
         from agent.runtime_cwd import resolve_agent_cwd
         from gateway.session_context import get_session_env
         return "WHERE=" + json.dumps({"cwd": str(resolve_agent_cwd()), "getcwd": os.getcwd(),
-                                      "source": get_session_env("HERMES_SESSION_SOURCE"),
-                                      "platform": get_session_env("HERMES_SESSION_PLATFORM"),
-                                      "key": get_session_env("HERMES_SESSION_KEY")})
+                                      "source": get_session_env("A2ASSISTANT_SESSION_SOURCE"),
+                                      "platform": get_session_env("A2ASSISTANT_SESSION_PLATFORM"),
+                                      "key": get_session_env("A2ASSISTANT_SESSION_KEY")})
     ctx.register_command("probe-cwd", where, description="Where the handler runs")
 
     def sid(arg):  # the session a background job started from the handler records as its parent
@@ -53,8 +53,8 @@ def register(ctx):
         from tools.process_registry import process_registry
         started = json.loads(ctx.dispatch_tool("terminal", {"command": "true", "background": True}))
         job = process_registry.get(started.get("session_id") or "")
-        return "SID=" + json.dumps({"id": get_session_env("HERMES_SESSION_ID"),
-                                    "key": get_session_env("HERMES_SESSION_KEY"),
+        return "SID=" + json.dumps({"id": get_session_env("A2ASSISTANT_SESSION_ID"),
+                                    "key": get_session_env("A2ASSISTANT_SESSION_KEY"),
                                     "parent": getattr(job, "parent_session_id", None), "started": started})
     ctx.register_command("probe-sid", sid, description="The calling session")
     ctx.register_command("probe-args", lambda arg: "ARGS=" + json.dumps(arg), description="Echo the argument")
@@ -92,7 +92,7 @@ def _plugin_home(tmp_path, source):
         'plugins': {'enabled': ['probe-cmd'], 'entries': {'probe-cmd': {'mcp_allowlist': ['probe-mcp']}}},
     }))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1',
                PYTHONDONTWRITEBYTECODE='1')
     try:
@@ -239,7 +239,7 @@ def test_a_redial_to_a_restarted_gateway_and_slash_new_reread_the_plugin_command
     monkeypatch.setattr(cli_mod, 'get_skill_bundles', dict)
     monkeypatch.setattr(HermesCLI, '_run_skill_slash_command', lambda self, *a: ran_skill.append(a[0]))
     with _plugin_home(tmp_path, _LIFE.replace('NAME', 'alpha')) as (root, home, env):
-        monkeypatch.setenv('HERMES_HOME', str(home))
+        monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
         conn = GatewayConnection(connect=_dial_running(home))
         sent, real, real_until = [], conn.call_tagged, conn.call_until
 
@@ -313,7 +313,7 @@ _TWIN = 'ctx.register_command("pptwin", lambda arg: "PLUGIN_TWIN", description="
 @pytest.mark.parametrize("unload", ["disable", "stop_registering"])
 def test_a_command_a_plugin_reload_removed_is_dispatched_again(tmp_path, monkeypatch, capsys, unload):
     """The open CLI cached the session's catalog; then the running gateway reloads its plugins (what
-    ``hermes plugins disable`` asks for) without the command, in the same session and gateway life.
+    ``a2assistant plugins disable`` asks for) without the command, in the same session and gateway life.
     The cached name gets ``unsupported_command`` from ``slash.exec`` once: the CLI re-reads the catalog
     and dispatches the name again, so a same-named skill runs, and a name nothing else matches gets
     the "no longer has this plugin command" line, never the raw code, on that try or a later one."""
@@ -473,7 +473,7 @@ def test_a_plugin_command_outliving_the_rpc_limit_prints_its_reply_and_ctrl_c_st
     marks.mkdir()
     source = _SLOW.replace('GATE', repr(str(gate))).replace('MARKS', repr(str(marks)))
     with _plugin_home(tmp_path, source) as (root, home, env):
-        monkeypatch.setenv('HERMES_HOME', str(home))
+        monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
         conn = GatewayConnection(connect=_dial_running(home))
         c = HermesCLI()
         c.agent, c._session_db, c._gateway_session_open = None, GatewaySessionStore(conn), False

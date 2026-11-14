@@ -106,7 +106,7 @@ def test_finalize_turn_fires_review_when_flag_unset() -> None:
 
 
 def test_persistence_failure_error_fallback_is_pinned_and_leaves_final_response_empty(monkeypatch, tmp_path) -> None:
-    """With no model text, result["error"] carries a profile-pinned `hermes doctor`, while the
+    """With no model text, result["error"] carries a profile-pinned `a2assistant doctor`, while the
     memory sync and the background-review gate still see the turn as having produced nothing."""
     from hermes_constants import profile_cli_selector
 
@@ -114,7 +114,7 @@ def test_persistence_failure_error_fallback_is_pinned_and_leaves_final_response_
     # opens agent.log under the ACTIVE home and refuses to materialize a missing profile.
     profile_home = tmp_path / ".hermes" / "profiles" / "research"
     profile_home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(profile_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile_home))
     selector = profile_cli_selector()
     assert selector.strip()
     agent = _make_agent()

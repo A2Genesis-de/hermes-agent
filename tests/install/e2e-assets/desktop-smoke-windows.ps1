@@ -17,10 +17,10 @@ function Start-DesktopJourneyMock([string]$Node, [string]$Assets, [string]$Work,
             if ($mock.HasExited -or (Get-Date) -ge $deadline) { throw 'Desktop mock did not become ready' }
             Start-Sleep -Milliseconds 200
         }
-        $env:HERMES_E2E_MOCK_URL = (Get-Content -LiteralPath $urlFile -Raw).Trim()
-        Invoke-RestMethod -Uri "$env:HERMES_E2E_MOCK_URL/__e2e__/prompts" -TimeoutSec 5 | Out-Null
+        $env:A2ASSISTANT_E2E_MOCK_URL = (Get-Content -LiteralPath $urlFile -Raw).Trim()
+        Invoke-RestMethod -Uri "$env:A2ASSISTANT_E2E_MOCK_URL/__e2e__/prompts" -TimeoutSec 5 | Out-Null
         $configWriter = [IO.Path]::GetFullPath((Join-Path $Assets '..\..\..\tests-js\scripts\mock-provider-config.ts'))
-        & $Node $configWriter $HermesHome $env:HERMES_E2E_MOCK_URL
+        & $Node $configWriter $HermesHome $env:A2ASSISTANT_E2E_MOCK_URL
         if ($LASTEXITCODE -ne 0) { throw 'Desktop mock configuration failed' }
         return $mock
     } catch {

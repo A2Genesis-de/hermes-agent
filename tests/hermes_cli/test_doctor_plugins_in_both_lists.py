@@ -1,4 +1,4 @@
-"""`hermes doctor` reports a plugin listed in both plugins.enabled and plugins.disabled.
+"""`a2assistant doctor` reports a plugin listed in both plugins.enabled and plugins.disabled.
 
 Such a plugin loads nowhere because the disable wins. Older updates left plugins in that state when
 they had to turn them off (#131216), and nothing else said so.
@@ -18,9 +18,9 @@ def test_plugin_in_both_lists_is_an_issue_with_the_command_that_settles_it(tmp_p
         (plugin / "__init__.py").write_text("def register(ctx):\n    pass\n", encoding="utf-8")
     (home / "config.yaml").write_text(
         "plugins:\n  enabled: [kept, intake-probe]\n  disabled: [obs/intake, parked]\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     finding = _check_plugins_in_both_lists(False)
 
     assert len(finding.manual_issues) == 1
-    assert "hermes plugins enable obs/intake" in finding.manual_issues[0]
+    assert "a2assistant plugins enable obs/intake" in finding.manual_issues[0]

@@ -2,13 +2,13 @@
 
 Failure class: the release that introduced the unified gateway runtime (#106742, eb75627faf5)
 changed who owns ``gateway.lock`` and how it is opened. A user upgrading from the release before
-it has that OLD gateway running and holding ``gateway.lock`` when ``hermes update`` starts. The
+it has that OLD gateway running and holding ``gateway.lock`` when ``a2assistant update`` starts. The
 update must stop it, take the checkout to the new release, start the NEW gateway on that same
 lock, and leave every file the gateway needs usable by the same user without elevation:
 
 * ``base``: the release before the merge (``d04056d609b``, its first parent), installed with
   ITS OWN ``install.ps1`` from the local origin, exactly what that user ran then.
-* ``hermes update`` to this checkout's HEAD (current main plus nothing but tests).
+* ``a2assistant update`` to this checkout's HEAD (current main plus nothing but tests).
 
 Two journeys, one per file-level fixture, each on its own fresh profile:
 
@@ -16,7 +16,7 @@ Two journeys, one per file-level fixture, each on its own fresh profile:
   and updates. Afterwards the same user WITHOUT elevation (a UAC filtered-shape token, see
   ``_tokens.py``) must be able to read and write ``gateway.lock`` and the gateway's state, and,
   once the elevated gateway is stopped, start their own gateway on that lock, see it in
-  ``hermes gateway status`` and get a reply.
+  ``a2assistant gateway status`` and get a reply.
 * ``standard user``: the whole journey under the filtered token: install, old gateway, update,
   new gateway, status, turn.
 """
@@ -44,7 +44,7 @@ pytestmark = [pytest.mark.platforms("windows"), pytest.mark.integration,
               pytest.mark.live_system_guard_bypass, REQUIRES_OPT_IN]
 
 # The first parent of the #106742 merge (eb75627faf5): the last main before the unified runtime.
-PRE_RUNTIME_RELEASE = os.environ.get("HERMES_E2E_W4_BASE", "d04056d609bb53530843a6c630493243b2ebdc24")
+PRE_RUNTIME_RELEASE = os.environ.get("A2ASSISTANT_E2E_W4_BASE", "d04056d609bb53530843a6c630493243b2ebdc24")
 _STATUS_LINE = re.compile(r"^.*[✓✗].*[Gg]ateway.*$", re.MULTILINE)
 _RESTART_FAILURE = re.compile(
     r"^.*(recovery failed|restart could not be verified|restart incomplete|not verified alive).*$", re.MULTILINE)
@@ -240,7 +240,7 @@ def _assert_update_replaced_gateway(j: Journey) -> None:
     m, run = j.machine, j["update"]
     failure = _RESTART_FAILURE.search(run.stdout)
     assert run.returncode == 0 and failure is None and m.installed_head() == m.next, fail_with(
-        m, f"hermes update over the running pre-runtime gateway failed (rc={run.returncode}, checkout "
+        m, f"a2assistant update over the running pre-runtime gateway failed (rc={run.returncode}, checkout "
            f"{m.installed_head()}, expected {m.next}): "
            f"{failure.group(0).strip() if failure else '<no restart message>'}", run)
     state = j["new_state"]
@@ -254,7 +254,7 @@ def _assert_status_sees(j: Journey, status_key: str, state_key: str, who: str) -
     m, status, state = j.machine, j[status_key], j[state_key]
     line = _status_line(status.stdout)
     assert status.returncode == 0 and line.startswith("✓") and str(_pid(state)) in line, fail_with(
-        m, f"`hermes gateway status` ({who}) does not see the running gateway (pid {_pid(state)}): {line!r}",
+        m, f"`a2assistant gateway status` ({who}) does not see the running gateway (pid {_pid(state)}): {line!r}",
         status)
 
 
@@ -303,7 +303,7 @@ def test_elevated_upgrade_then_user_gateway_takes_lock(elevated: Journey) -> Non
     m = elevated.machine
     stop = elevated["stop_admin"]
     assert stop.returncode == 0 and elevated["admin_stopped"], fail_with(
-        m, f"`hermes gateway stop` left the elevated gateway (pid {_pid(elevated['new_state'])}) running", stop)
+        m, f"`a2assistant gateway stop` left the elevated gateway (pid {_pid(elevated['new_state'])}) running", stop)
     elevated["spawn_user"]
     state = elevated["user_state"]
     sha = str(state.get("code_sha") or "")
@@ -312,7 +312,7 @@ def test_elevated_upgrade_then_user_gateway_takes_lock(elevated: Journey) -> Non
     _assert_status_sees(elevated, "user_status", "user_state", "same user, not elevated")
     _assert_turn(elevated, "user_turn", "same user, not elevated")
     assert elevated["stop_user"].returncode == 0 and elevated["user_stopped"], fail_with(
-        m, f"the unelevated `hermes gateway stop` left its gateway (pid {_pid(state)}) running",
+        m, f"the unelevated `a2assistant gateway stop` left its gateway (pid {_pid(state)}) running",
         elevated["stop_user"])
 
 
@@ -336,5 +336,5 @@ def test_standard_user_status_and_turn_after_update(standard_user: Journey) -> N
     _assert_turn(standard_user, "user_turn", "standard user")
     m = standard_user.machine
     assert standard_user["stop_user"].returncode == 0 and standard_user["user_stopped"], fail_with(
-        m, f"`hermes gateway stop` left the gateway (pid {_pid(standard_user['new_state'])}) running",
+        m, f"`a2assistant gateway stop` left the gateway (pid {_pid(standard_user['new_state'])}) running",
         standard_user["stop_user"])

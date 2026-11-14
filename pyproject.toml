@@ -27,7 +27,7 @@ dependencies = [
   # captured by `mistralai>=2.3.0,<3` rather than an exact pin, every
   # install in the hours before the quarantine would have pulled it.
   #
-  # After a pin change, run `hermes pm lock` so the transitive resolution
+  # After a pin change, run `a2assistant pm lock` so the transitive resolution
   # stays consistent. Do not introduce ranges
   # without a written justification.
   #
@@ -186,8 +186,8 @@ dependencies = [
   # libs needed), so it's safe in the base install alongside Pillow.
   "pillow-heif>=1.4.0,<2; python_version >= '3.14'",
   # SVG rendering for the icon generator (scripts/generate_icons.py). Source
-  # builds render icons with the runtime interpreter (`hermes desktop`,
-  # `hermes update`), so a source install carries its renderer instead of
+  # builds render icons with the runtime interpreter (`a2assistant desktop`,
+  # `a2assistant update`), so a source install carries its renderer instead of
   # preparing a separate environment at launch. abi3 wheels for every
   # shipped platform, including Windows ARM64 and Android.
   "resvg-py==0.5.0; python_version >= '3.14'",
@@ -234,7 +234,7 @@ uvloop = [
 # OpenRouter or other aggregators).
 anthropic = ["anthropic==0.125.0"] # CVE-2026-34450, CVE-2026-34452
 # Web search backends — each only loaded when the user picks it as their
-# search provider (configured via `hermes tools` or config.yaml).
+# search provider (configured via `a2assistant tools` or config.yaml).
 exa = ["exa-py==2.26.0"]
 firecrawl = ["firecrawl-py==4.53.2"]
 parallel-web = ["parallel-web==0.6.0"]
@@ -299,7 +299,7 @@ matrix = [
 # here to keep the dependency local to wecom_callback's threat model.
 wecom = ["defusedxml==0.7.1"]
 # Opt-in OS-keychain storage for the local credential vault key (vault.key_storage: keychain).
-# Lazy-installed by `hermes vault key migrate --to keychain`, so NOT in [all].
+# Lazy-installed by `a2assistant vault key migrate --to keychain`, so NOT in [all].
 keychain = ["keyring==25.7.0"]
 tts-premium = ["elevenlabs==1.59.0"]
 voice = [
@@ -391,7 +391,7 @@ documents = [
   "pypdf==6.21.4",
 ]
 # PDF text extraction and rasterization for skills/productivity/pdf. Only in
-# the skills' side environment (`hermes pm environment documents --extra
+# the skills' side environment (`a2assistant pm environment documents --extra
 # documents --extra documents-pdf`), never baked: ~17 MB of pdfminer/pdfium.
 documents-pdf = [
   "pdfplumber==0.11.10",
@@ -515,7 +515,7 @@ youtube = [
   # at first invocation with ModuleNotFoundError (issue #22243).
   "youtube-transcript-api==1.2.4",
 ]
-# `hermes dashboard` (localhost SPA + API).  Not in core to keep the default install lean.
+# `a2assistant dashboard` (localhost SPA + API).  Not in core to keep the default install lean.
 # starlette==1.3.1 pinned for CVE-2026-48710 (BadHost) — fastapi pulls Starlette
 # transitively and pre-1.0.1 is the vulnerable range. See the mcp extra above.
 # uvicorn pin without [standard] — httptools / watchfiles are now core deps,
@@ -601,7 +601,7 @@ hermes-acp = "acp_adapter.entry:main"
 # misaki[en]: installed when the user picks it, not preinstalled.
 opt-in-extras = ["kittentts"]
 
-# What `hermes update` compiles before it moves the checkout to this tree, and again after: the
+# What `a2assistant update` compiles before it moves the checkout to this tree, and again after: the
 # launcher and `hermes_bootstrap` import closure plus the CLI entry modules. Every file listed here
 # must exist; an update to a tree that lacks one is refused. A change that moves one of these
 # files updates its path here.
@@ -687,7 +687,7 @@ override-dependencies = [
   "spacy-curated-transformers; sys_platform == 'never'",
 ]
 # Release-age check: Hermes's dependencies must be at least 3 days old when Hermes
-# locks them. It runs where uv.lock is resolved (`hermes pm lock`, and CI's lock
+# locks them. It runs where uv.lock is resolved (`a2assistant pm lock`, and CI's lock
 # check), never on users' machines: PM installs from this vetted lock and drops the
 # cutoff from what it generates (pm/workspace.py::_trust_core_lock), because many
 # package mirrors publish no upload times and uv rejects a file it cannot date

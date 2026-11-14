@@ -29,7 +29,7 @@ def test_derived_version_shows_plus_question_for_dirty_unknown_distance():
 
 def test_display_version_names_the_distance_without_the_commit():
     """Labels say how far past the release an install is; the commit is shown
-    beside them where there is room (`hermes --version` keeps `.g<sha>`)."""
+    beside them where there is room (`a2assistant --version` keeps `.g<sha>`)."""
     ahead = VersionInfo("0.21.5", "0.21.5+1913.gf83a9e9", 1913, "f83a9e9" + "0" * 33, "main", "git")
     assert ahead.display_version == "0.21.5+1913"
     assert VersionInfo("0.21.5", "0.21.5", 0, None, None, "git").display_version == "0.21.5"
@@ -220,10 +220,10 @@ def test_get_version_info_takes_the_version_a_calver_only_release_shipped(tmp_pa
 
 
 def test_resolve_stamp_file_honors_install_root(tmp_path, monkeypatch):
-    """Sealed installs (the Nix wrapper) point HERMES_INSTALL_ROOT at the stamp dir."""
+    """Sealed installs (the Nix wrapper) point A2ASSISTANT_INSTALL_ROOT at the stamp dir."""
     stamp = {"commit": "e" * 40, "source": "nix", "distribution": "nix", "updateMechanism": "external"}
     (tmp_path / "install-stamp.json").write_text(json.dumps(stamp))
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(tmp_path))
 
     assert _resolve_stamp_file() == tmp_path / "install-stamp.json"
 
@@ -234,12 +234,12 @@ def test_resolve_stamp_file_honors_install_root(tmp_path, monkeypatch):
 
 
 def test_resolve_stamp_file_install_root_without_stamp_is_none(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(tmp_path))
     assert _resolve_stamp_file() is None
 
 
 def test_resolve_stamp_file_falls_back_to_code_root_when_env_unset(tmp_path, monkeypatch):
-    monkeypatch.delenv("HERMES_INSTALL_ROOT", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_INSTALL_ROOT", raising=False)
     stamp = {"commit": "f" * 40, "source": "docker", "updateMechanism": "external"}
     (tmp_path / "install-stamp.json").write_text(json.dumps(stamp))
     monkeypatch.setattr("pm.paths.repo_root", lambda: tmp_path)
@@ -263,7 +263,7 @@ def test_old_updater_version_stub_reads_the_same_stamp_as_version_info(tmp_path)
     )
 
     def read(install_root: Path) -> list[str]:
-        env = {**os.environ, "HERMES_INSTALL_ROOT": str(install_root)}
+        env = {**os.environ, "A2ASSISTANT_INSTALL_ROOT": str(install_root)}
         return subprocess.run(
             [sys.executable, "-c", probe], env=env, capture_output=True, text=True, check=True
         ).stdout.split()

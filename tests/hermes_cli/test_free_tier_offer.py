@@ -25,7 +25,7 @@ class _Clock:
 
 @pytest.fixture
 def clock(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "root" / "profiles" / "setup"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "root" / "profiles" / "setup"))
     monkeypatch.setattr(anon_auth, "free_inference_active", lambda state=None: True)
     fake = _Clock()
     monkeypatch.setattr(free_tier_offer, "_clock", fake)
@@ -100,7 +100,7 @@ def test_concurrent_claims_grant_exactly_one(clock):
 
 def test_record_is_install_wide_across_profiles(clock, tmp_path, monkeypatch):
     free_tier_offer.record_task_done()
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "root" / "profiles" / "work"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "root" / "profiles" / "work"))
     assert free_tier_offer.offer_due_in() == DELAY
 
 

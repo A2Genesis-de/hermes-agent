@@ -60,10 +60,10 @@ test.skipIf(process.platform === 'win32').each(['legacy', 'protocol-2'])(
         env: {
           ...process.env,
           HOME: fixture,
-          HERMES_HOME: home,
+          A2ASSISTANT_HOME: home,
           TMPDIR: temp,
-          HERMES_UPDATE_STARTED_AT: String(startedAt),
-          HERMES_UPDATE_SHIM_GRACE_SECONDS: '0'
+          A2ASSISTANT_UPDATE_STARTED_AT: String(startedAt),
+          A2ASSISTANT_UPDATE_SHIM_GRACE_SECONDS: '0'
         },
         stdio: ['ignore', 'pipe', 'pipe']
       }

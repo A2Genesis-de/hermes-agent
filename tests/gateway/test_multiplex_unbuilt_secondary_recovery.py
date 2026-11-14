@@ -290,7 +290,7 @@ class TestSecondaryAdapterUnavailableRecovery:
     @pytest.mark.asyncio
     @pytest.mark.parametrize("heals", [True, False])
     async def test_unbuilt_platform_status_names_the_cause(self, monkeypatch, heals):
-        """``hermes status`` shows an unbuilt secondary platform as adapter_unavailable: retrying when its plugin
+        """``a2assistant status`` shows an unbuilt secondary platform as adapter_unavailable: retrying when its plugin
         can still load, fatal when only a config change helps."""
         runner = _secondary_recovery_runner()
         _install_plugin_platform_context(monkeypatch, runner, _PluginPlatformRecoveryAdapter())

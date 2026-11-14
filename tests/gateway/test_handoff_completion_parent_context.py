@@ -79,7 +79,7 @@ class ScriptedModel(BaseHTTPRequestHandler):
         if (last['role'] == 'user' and state.first_proc and f'Background process {state.first_proc}' in text
                 and not state.second_started):
             state.second_started = True
-            return _call('terminal', command='sleep 2; echo SECOND_DONE fence=${HERMES_DELEGATED_CHILD_CONTEXT:-none}', background=True, notify_on_complete=True)
+            return _call('terminal', command='sleep 2; echo SECOND_DONE fence=${A2ASSISTANT_DELEGATED_CHILD_CONTEXT:-none}', background=True, notify_on_complete=True)
         return 'PARENT_ACK'
 
     def do_POST(self):
@@ -165,8 +165,8 @@ def test_handed_off_completion_turn_runs_as_the_parent(tmp_path):
     _profile_home(home, 'LAUNCH', config)
     _profile_home(secondary, 'SECOND', config)
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
-               XDG_CONFIG_HOME=str(user / '.config'), HERMES_GATEWAY_LOCK_DIR=str(tmp_path / 'locks'),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
+               XDG_CONFIG_HOME=str(user / '.config'), A2ASSISTANT_GATEWAY_LOCK_DIR=str(tmp_path / 'locks'),
                OPENROUTER_API_KEY='loopback-only', OPENAI_API_KEY='loopback-only', PYTHONUNBUFFERED='1')
     out = {}
 

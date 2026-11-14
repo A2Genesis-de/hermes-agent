@@ -49,7 +49,7 @@ def test_unknown_method_is_named_unavailable_on_both_routes(tmp_path, monkeypatc
 
     home = tmp_path / "state"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     with SessionDB(home / "state.db") as db:
         authority = SimpleNamespace(profile_id=str(home), instance_id="owner", db=db, events={}, sessions={})
         connection = AuthorityConnection(authority, object(), {"user_id": "reader"})
@@ -66,7 +66,7 @@ def home(tmp_path, monkeypatch):
     path.mkdir()
     (path / "profiles" / "ops").mkdir(parents=True)
     (path / "profiles" / "ops" / "config.yaml").write_text("{}\n")
-    monkeypatch.setenv("HERMES_HOME", str(path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(path))
     monkeypatch.setattr(srv, "_run_idempotency_store", DurableRunStore(), raising=False)
     methods_groups.stop_hosted_room_service(timeout=1.0)
     methods_groups.start_hosted_room_service()
@@ -104,7 +104,7 @@ def test_tui_route_uploads_sends_and_downloads_a_group_file(home):
 
 @pytest.fixture
 def db(tmp_path: Path, monkeypatch) -> Path:
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "member-home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "member-home"))
     path = tmp_path / "rooms.db"
     hosted_rooms.create_room(
         path, room_id=ROOM_ID, name="Release room", members=[{"profile": PROFILE, "handle": PROFILE}],

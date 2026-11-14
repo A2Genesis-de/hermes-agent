@@ -25,7 +25,7 @@ def test_owner_progress_reaches_the_firers_ledger_row(tmp_path, monkeypatch):
     from hermes_state import SessionDB
     from hermes_state_runtime import begin_runtime_epoch, claim_session_input, settle_session_input
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(executions_mod, 'EXECUTIONS_FILE', tmp_path / 'cron' / 'executions.db')
     monkeypatch.setattr(jobs, 'get_job', lambda jid: {'id': jid, 'prompt': 'p', 'model': 'm'})
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'model': {}, 'platform_toolsets': {'cli': []}})

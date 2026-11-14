@@ -36,7 +36,7 @@ test('a logs dir that cannot be created degrades to no logging, never a dead she
   const switches: string[] = []
   let reporterStarted = false
 
-  // Read-only or invalid HERMES_HOME/logs: mkdir throws before app readiness.
+  // Read-only or invalid A2ASSISTANT_HOME/logs: mkdir throws before app readiness.
   enableLinuxCrashDiagnostics(linuxCrashDiagnostics('/read-only/logs', 'linux'), '/read-only/logs', {
     ensureLogsDir: () => {
       throw new Error('EROFS: read-only file system')

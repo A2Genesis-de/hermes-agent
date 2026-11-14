@@ -3,7 +3,7 @@
 Author an A2Assistant **skin** — one YAML file that themes the CLI, the TUI, and the
 desktop GUI at once. The skin engine (`hermes_cli/skin_engine.py`) resolves the
 active skin and the gateway pushes it to every surface, so a file dropped in
-`~/.hermes/skins/` is the theme analogue of a plugin: no code, all surfaces. This
+`~/.a2assistant/skins/` is the theme analogue of a plugin: no code, all surfaces. This
 skill covers writing a good skin and activating it; it does not build GUI theme
 editors or ship built-in presets.
 
@@ -17,7 +17,7 @@ editors or ship built-in presets.
 
 ## Prerequisites
 
-- Write access to the A2Assistant home dir — `~/.hermes` by default, or `$HERMES_HOME`
+- Write access to the A2Assistant home dir — `~/.a2assistant` by default, or `$A2ASSISTANT_HOME`
   / the active profile's dir. Skins live in `<hermes-home>/skins/`.
 - Native tools: `write_file` (create the YAML), `read_file` / `search_files`
   (inspect existing skins), `terminal` (activate via `a2assistant config set`).
@@ -70,7 +70,7 @@ so to recolor *only* tool calls (the classic "change the gold `●`") set `ui_to
 3. **Apply it yourself — never hand-edit `config.yaml`.** Run the safe writer via
    `terminal`:
    ```
-   hermes config set display.skin <name>
+   a2assistant config set display.skin <name>
    ```
    The gateway's skin watcher notices the change and **repaints every surface live
    within ~a second** — CLI, TUI, and desktop — and the skin appears in
@@ -87,7 +87,7 @@ background"), use the one deterministic command — it edits the ACTIVE skin's O
 key in place, so everything else (background included) is untouched:
 
 ```
-hermes skin set <key> <hex>      # e.g. hermes skin set ui_tool "#00FFFF"
+a2assistant skin set <key> <hex>      # e.g. a2assistant skin set ui_tool "#00FFFF"
 ```
 
 It edits the active skin's file (a built-in is forked into an editable copy that
@@ -99,8 +99,8 @@ enumerate.
 
 ## Pitfalls
 
-- **Don't hardcode `~/.hermes`** when a profile is active — resolve the real home
-  from `$HERMES_HOME` first, falling back to `~/.hermes`.
+- **Don't hardcode `~/.a2assistant`** when a profile is active — resolve the real home
+  from `$A2ASSISTANT_HOME` first, falling back to `~/.a2assistant`.
 - **Keep `#rrggbb` hex.** Shorthand `#rgb`, `rgb()`, and named colors are not
   guaranteed to parse on every surface.
 - **Set `background`.** Without it the GUI has to guess a base surface from text

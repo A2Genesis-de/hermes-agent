@@ -18,8 +18,8 @@ from hermes_cli import kanban_db_dispatch as kbd
 
 @pytest.fixture
 def board(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_KANBAN_CRASH_GRACE_SECONDS", "0")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_CRASH_GRACE_SECONDS", "0")
     conn = kbc.connect(tmp_path / "kanban.db")
     try:
         yield conn

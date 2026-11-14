@@ -59,7 +59,7 @@ def test_admitted_failure_publishes_tag_info_without_promoting_channel(tmp_path,
         "import json, sys\n"
         f"sys.exit(1) if not {gh_available!r} else None\n"
         "if sys.argv[1:3] == ['release', 'view']:\n"
-        "    print(json.dumps({'body': '<!-- HERMES_BUILDS_TABLE -->'}))\n"
+        "    print(json.dumps({'body': '<!-- A2ASSISTANT_BUILDS_TABLE -->'}))\n"
         "elif sys.argv[1:3] == ['release', 'edit']:\n"
         "    assert 'Build incomplete' in sys.stdin.read()\n"
         "else: raise AssertionError(sys.argv)\n",
@@ -76,7 +76,7 @@ def test_admitted_failure_publishes_tag_info_without_promoting_channel(tmp_path,
         needs[name]["result"] = "failure"
     needs[windows_publisher]["result"] = "skipped"
     result = shell_step(tmp_path, r2_server, table, "Render", {
-        "HERMES_PAYLOAD_TAG": tag, "GITHUB_REPOSITORY": "o/r",
+        "A2ASSISTANT_PAYLOAD_TAG": tag, "GITHUB_REPOSITORY": "o/r",
         "RUN_URL": run_url,
         "RELEASE_NEEDS": json.dumps(needs), "CLOUDFLARE_R2_PUBLIC_URL": base,
         "CLOUDFLARE_R2_ACCOUNT_ID": "loopback", "CLOUDFLARE_R2_ACCESS_KEY_ID": "test-inert",

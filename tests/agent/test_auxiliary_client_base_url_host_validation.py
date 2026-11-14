@@ -25,7 +25,7 @@ class TestTryAnthropicBaseUrlHostValidation:
         """cfg.model.base_url=https://openrouter.ai/api/v1 must NOT override aux base_url."""
         import hermes_yaml as yaml
         from agent.auxiliary_client import _try_anthropic
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "config.yaml").write_text(yaml.safe_dump({
             "model": {
                 "provider": "anthropic",
@@ -60,7 +60,7 @@ class TestTryAnthropicBaseUrlHostValidation:
         """The common case (operator sets model.base_url to api.anthropic.com) must still apply."""
         import hermes_yaml as yaml
         from agent.auxiliary_client import _try_anthropic
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "config.yaml").write_text(yaml.safe_dump({
             "model": {
                 "provider": "anthropic",
@@ -92,7 +92,7 @@ class TestTryAnthropicBaseUrlHostValidation:
         """Generic non-Anthropic host must not be applied as auxiliary base_url."""
         import hermes_yaml as yaml
         from agent.auxiliary_client import _try_anthropic
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "config.yaml").write_text(yaml.safe_dump({
             "model": {
                 "provider": "anthropic",
@@ -129,7 +129,7 @@ class TestTryAnthropicBaseUrlHostValidation:
         so auxiliary/fallback calls hit the configured endpoint, not the default."""
         import hermes_yaml as yaml
         from agent.auxiliary_client import _try_anthropic
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "config.yaml").write_text(yaml.safe_dump({
             "model": {
                 "provider": "anthropic",
@@ -174,7 +174,7 @@ class TestTryAnthropicBaseUrlHostValidation:
         """api.anthropic.com with a path suffix must still pass the host check."""
         import hermes_yaml as yaml
         from agent.auxiliary_client import _try_anthropic
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "config.yaml").write_text(yaml.safe_dump({
             "model": {
                 "provider": "anthropic",

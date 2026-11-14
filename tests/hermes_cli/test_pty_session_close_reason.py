@@ -60,7 +60,7 @@ async def test_a_shell_reaped_while_its_redial_is_validated_closes_the_redial_as
 
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     identity = ("local", "owner")
     registry = HostTerminalRegistry()
     token = secrets.token_urlsafe(32)

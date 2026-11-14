@@ -23,7 +23,7 @@ _TIER1_SAMPLE = {
     "TELEGRAM_BOT_TOKEN": "bot-token",
     "SLACK_APP_TOKEN": "xapp-secret",
     "MODAL_TOKEN_SECRET": "modal-secret",
-    "HERMES_DASHBOARD_SESSION_TOKEN": "dash-secret",
+    "A2ASSISTANT_DASHBOARD_SESSION_TOKEN": "dash-secret",
 }
 
 _PROVIDER_SAMPLE = {
@@ -119,8 +119,8 @@ class TestTierInvariants:
 
     def test_tier1_covers_dashboard_auth(self):
         # Credentialed CLIs (claude/codex) must not be able to mint dashboard sessions.
-        assert {"HERMES_DASHBOARD_BASIC_AUTH_PASSWORD", "HERMES_DASHBOARD_BASIC_AUTH_SECRET",
-                "HERMES_DASHBOARD_OIDC_CLIENT_SECRET", "HERMES_DASHBOARD_DRAIN_SECRET"} <= _ALWAYS_STRIP_KEYS
+        assert {"A2ASSISTANT_DASHBOARD_BASIC_AUTH_PASSWORD", "A2ASSISTANT_DASHBOARD_BASIC_AUTH_SECRET",
+                "A2ASSISTANT_DASHBOARD_OIDC_CLIENT_SECRET", "A2ASSISTANT_DASHBOARD_DRAIN_SECRET"} <= _ALWAYS_STRIP_KEYS
 
 
 class TestDelegatedChildMarker:
@@ -131,23 +131,23 @@ class TestDelegatedChildMarker:
             os.environ,
             {
                 **_SAFE_SAMPLE,
-                "HERMES_KANBAN_TASK": "t_parent",
-                "HERMES_KANBAN_RUN_ID": "123",
-                "HERMES_KANBAN_DB": "/tmp/parent-kanban.db",
-                "HERMES_KANBAN_WORKSPACE": "/tmp/parent-workspace",
+                "A2ASSISTANT_KANBAN_TASK": "t_parent",
+                "A2ASSISTANT_KANBAN_RUN_ID": "123",
+                "A2ASSISTANT_KANBAN_DB": "/tmp/parent-kanban.db",
+                "A2ASSISTANT_KANBAN_WORKSPACE": "/tmp/parent-workspace",
             },
             clear=True,
         ):
             with delegated_child_context():
                 env = hermes_subprocess_env(inherit_credentials=True)
 
-        assert env["HERMES_DELEGATED_CHILD_CONTEXT"]  # fenced board root (path), not a bare flag
+        assert env["A2ASSISTANT_DELEGATED_CHILD_CONTEXT"]  # fenced board root (path), not a bare flag
         # Worker identity is scrubbed; board location and workspace routing survive so the
         # fenced descendant can still read the board it belongs to.
-        assert "HERMES_KANBAN_TASK" not in env
-        assert "HERMES_KANBAN_RUN_ID" not in env
-        assert env["HERMES_KANBAN_DB"] == "/tmp/parent-kanban.db"
-        assert env["HERMES_KANBAN_WORKSPACE"] == "/tmp/parent-workspace"
+        assert "A2ASSISTANT_KANBAN_TASK" not in env
+        assert "A2ASSISTANT_KANBAN_RUN_ID" not in env
+        assert env["A2ASSISTANT_KANBAN_DB"] == "/tmp/parent-kanban.db"
+        assert env["A2ASSISTANT_KANBAN_WORKSPACE"] == "/tmp/parent-workspace"
         assert env["MY_APP_VAR"] == "keep-me"
 
 

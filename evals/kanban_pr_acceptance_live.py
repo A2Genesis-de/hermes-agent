@@ -10,7 +10,7 @@ import tempfile
 
 root = Path(sys.argv[1]).resolve()
 sys.path.insert(0, str(root))
-os.environ.pop('HERMES_DELEGATED_CHILD_CONTEXT', None)
+os.environ.pop('A2ASSISTANT_DELEGATED_CHILD_CONTEXT', None)
 import pytest
 from hermes_cli import kanban_db as kb
 from hermes_cli.kanban_db_connect import connect

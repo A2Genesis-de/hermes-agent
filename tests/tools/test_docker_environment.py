@@ -158,7 +158,7 @@ def test_init_env_args_uses_hermes_dotenv_for_empty_shell_env(monkeypatch):
 
     Regression: the disk fallback used to fire only on `value is None`, so a
     present-but-empty `MY_SECRET=""` skipped it and was forwarded as `-e
-    MY_SECRET=`, clobbering the correct value sitting in ~/.hermes/.env.
+    MY_SECRET=`, clobbering the correct value sitting in ~/.a2assistant/.env.
     """
     env = _make_execute_only_env(["MY_SECRET"])
 
@@ -757,7 +757,7 @@ def test_symlinked_skills_tree_reuses_container_across_processes(monkeypatch, tm
     (skills_dir / "some-skill").mkdir(parents=True)
     (skills_dir / "some-skill" / "SKILL.md").write_text("# skill")
     (skills_dir / "link").symlink_to(tmp_path / "outside")  # forces the safe-copy path
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     _mock_subprocess_run(monkeypatch)
 
     config = {"image": "python:3.11", "volumes": ["volume-a:/workspace"]}
@@ -804,7 +804,7 @@ def test_reuse_probe_filters_on_environment_fingerprint(monkeypatch, tmp_path, c
     """Reuse and recovery must select the requested configuration, not stale mounts."""
     monkeypatch.setattr(docker_env, "find_docker", lambda: "/usr/bin/docker")
     monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "default")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "alpha"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "alpha"))
     # Keep the auto-mounted skills directory present from the first startup.
     for name in ("alpha", "beta"):
         (tmp_path / name / "skills").mkdir(parents=True)
@@ -825,7 +825,7 @@ def test_reuse_probe_filters_on_environment_fingerprint(monkeypatch, tmp_path, c
     assert reuse_filters() == original_filters
 
     if changed_setting == "hermes_home":
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / "beta"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "beta"))
     else:
         config[changed_setting] = {"image": "python:3.12", "volumes": ["volume-b:/workspace"]}[changed_setting]
     calls.clear()
@@ -846,10 +846,10 @@ def test_shared_container_key_replaces_profile_identity(monkeypatch, tmp_path):
     monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "research")
     _mock_subprocess_run(monkeypatch)
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "research"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "research"))
     a = _make_dummy_env(task_id="abc", shared_container_key="team/workspace")
     monkeypatch.setattr(docker_env, "_get_active_profile_name", lambda: "coding")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "coding"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "coding"))
     b = _make_dummy_env(
         task_id="abc", shared_container_key="team/workspace",
         image="python:3.12", volumes=["team-volume:/workspace"],

@@ -196,7 +196,7 @@ async def test_a_same_second_output_doc_is_not_pinned_on_the_earlier_execution(
 @pytest.mark.parametrize('overlap_finishes_after_doc', [False, True])
 async def test_an_overlapping_attempt_claimed_before_a_runs_doc_keeps_its_own_row(
         owner, clock, overlap_finishes_after_doc):
-    """A manual ``hermes cron run`` overlapping a tick: attempt B is claimed while run A is still
+    """A manual ``a2assistant cron run`` overlapping a tick: attempt B is claimed while run A is still
     going, before A writes its doc, and fails without creating a session. B is the doc's newest
     candidate, but the doc is A's: it folds into A's session, and B keeps its own failed row."""
     job = jobs.create_job(prompt='report', schedule='every 1h', deliver='local')['id']

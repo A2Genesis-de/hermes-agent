@@ -190,7 +190,7 @@ async def test_lost_ack_restart_and_regrouped_batch_note_each_result_once(tmp_pa
     assert lost and lost[0][0] == 'complete', 'the acknowledgement was the step that got lost'
     monkeypatch.undo()
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(delegation, '_CLAIM_LEASE_S', -1.0)  # the dead owner's claim is reclaimable
     runner, authority = await _restart(tmp_path, monkeypatch, authority)
     from gateway.session_authority import SessionAuthority

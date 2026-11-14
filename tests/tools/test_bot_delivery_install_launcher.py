@@ -91,7 +91,7 @@ def test_real_delivery_launcher_imports_new_generation(tmp_path, monkeypatch):
         "from pathlib import Path\nfrom pm.environments import activate_dependencies\n"
         "activate_dependencies(Path(__file__).resolve().parent)\n", encoding="utf-8")
     runtime = tmp_path / "runtime"
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(runtime))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(runtime))
     out = root / ".hermes" / "bin"
     out.mkdir(parents=True)
     published = _launchers.mint_launcher("hermes", root, out, real_python, None)

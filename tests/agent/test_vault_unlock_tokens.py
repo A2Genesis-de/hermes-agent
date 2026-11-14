@@ -56,7 +56,7 @@ def _held_by_unlock(token: str, *, closures: bool) -> bool:
 
 @pytest.fixture(autouse=True)
 def _profile(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     unlock.lock()
     yield
     unlock.lock()

@@ -54,16 +54,16 @@ async def test_messaging_debug_is_refused_without_collecting():
             patch.object(socket.socket, 'connect', guard):
         out = await _runner()._handle_debug_command(_event(Platform.TELEGRAM, '/debug'))
     assert guard.calls == []
-    assert 'hermes debug share' in out
+    assert 'a2assistant debug share' in out
 
 
 @pytest.mark.asyncio
 async def test_local_debug_real_collector_opens_no_socket(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     guard = _NoNetwork()
     with patch.object(socket.socket, 'connect', guard), \
             patch.object(socket.socket, 'connect_ex', guard), \
             patch('socket.create_connection', guard):
         out = await _runner()._handle_debug_command(_event(Platform.LOCAL, '/debug'))
     assert guard.calls == []
-    assert 'hermes dump' in out
+    assert 'a2assistant dump' in out

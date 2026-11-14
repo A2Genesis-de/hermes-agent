@@ -1,4 +1,4 @@
-"""Proxy-only egress: ``hermes update`` on a network whose ONLY way out is an HTTP(S) proxy.
+"""Proxy-only egress: ``a2assistant update`` on a network whose ONLY way out is an HTTP(S) proxy.
 
 Every command runs in its own network namespace (no route, no DNS; proven per module by
 ``_seed.assert_isolated``). The proxy is what a corporate network runs: it tunnels ``CONNECT``,
@@ -54,7 +54,7 @@ def _assert_updated_through_proxy(inst: S.Installed, r: S.Result, new: str) -> N
     stray = sorted(edge.proxy.hosts("refused") | edge.proxy.hosts("tls-rejected"))
     assert not stray, f"the update tried to reach hosts the proxy does not route: {stray}\n" + r.report(inst)
     v = inst.version_works()
-    assert v.rc == 0 and I.TRACEBACK not in v.out, "`hermes --version` broken after the update\n" + I.describe(v.cp)
+    assert v.rc == 0 and I.TRACEBACK not in v.out, "`a2assistant --version` broken after the update\n" + I.describe(v.cp)
 
 
 def test_update_through_tls_inspecting_proxy_lands_on_the_new_commit(inst):

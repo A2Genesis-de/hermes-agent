@@ -20,7 +20,7 @@ describe('pending input destination', () => {
     { profile: 'beta', sid: 'same-session' }
   ])('does not drain or edit another destination: $profile/$sid', async destination => {
     const home = mkdtempSync(join(tmpdir(), 'ink-pending-'))
-    vi.stubEnv('HERMES_HOME', home)
+    vi.stubEnv('A2ASSISTANT_HOME', home)
     patchUiState({ info: null, sid: null })
     let queue!: ReturnType<typeof useQueue>
 

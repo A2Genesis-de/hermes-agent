@@ -11,7 +11,7 @@ the version is the ``file_signature`` stat tuple, reads are ``open`` + ``fast_sa
 exactly what those raise (``FileNotFoundError`` for an absent file, ``OSError``, YAML errors), and
 writes are the ruamel round-trip writers in ``utils``. Callers keep their own error handling, so a
 backend whose layer always exists simply never takes the "no file" branches. It is the only backend
-this build provides: any other ``HERMES_CONFIG_BACKEND`` value fails closed.
+this build provides: any other ``A2ASSISTANT_CONFIG_BACKEND`` value fails closed.
 
 The managed scope (``/etc/hermes``) is NOT a backend concern: it stays an overlay applied on top of
 whatever user layer the backend returns.
@@ -27,7 +27,7 @@ from pathlib import Path
 from typing import Any, Mapping, Optional, Protocol, Union, runtime_checkable
 
 CONFIG_FILENAME = "config.yaml"
-BACKEND_ENV = "HERMES_CONFIG_BACKEND"
+BACKEND_ENV = "A2ASSISTANT_CONFIG_BACKEND"
 
 PathLike = Union[str, "os.PathLike[str]"]
 
@@ -121,7 +121,7 @@ class ConfigBackend(Protocol):
         ...
 
     def doctor_warnings(self, home: Path) -> tuple:
-        """``(warning, hint, issue)`` triples ``hermes doctor`` reports after a successful read."""
+        """``(warning, hint, issue)`` triples ``a2assistant doctor`` reports after a successful read."""
         ...
 
     def apply_in_memory(self, home: Path, doc: dict) -> None:
@@ -323,7 +323,7 @@ def _bootstrap(home: Optional[Path], project_env: Optional[Path], *, once: bool)
 
 
 def get_config_backend() -> ConfigBackend:
-    """The backend selected by ``HERMES_CONFIG_BACKEND`` (default ``file``).
+    """The backend selected by ``A2ASSISTANT_CONFIG_BACKEND`` (default ``file``).
 
     Read from the environment on every call, before any config read, so no config value can
     select it (D11). Raises :class:`ConfigBackendUnavailable` for a backend this build lacks.

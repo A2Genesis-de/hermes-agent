@@ -1,6 +1,6 @@
 """Start the gateway's listener the way the runtime does and report what native clients and a browser get.
 
-Run as ``python webapp_fallback_peer.py '<spec json>'`` with an isolated ``HERMES_HOME``. The spec:
+Run as ``python webapp_fallback_peer.py '<spec json>'`` with an isolated ``A2ASSISTANT_HOME``. The spec:
 
 - ``webapp``: the ``webapp:`` block written to config.yaml, or null for none;
 - ``dashboard_public_url``: ``dashboard.public_url``, or null;
@@ -14,15 +14,15 @@ Run as ``python webapp_fallback_peer.py '<spec json>'`` with an isolated ``HERME
   and starts listening while the gateway mounts the dashboard (Linux only);
 - ``connect_during_mount``: a client connects to the Webapp's port while the dashboard mounts;
 - ``built``: whether the Webapp bundle has its ``index.html``;
-- ``update_fails``: before the gateway starts, ``hermes update``'s Webapp step runs for this home and its
-  build fails; once the gateway serves, ``hermes webapp``'s build succeeds;
+- ``update_fails``: before the gateway starts, ``a2assistant update``'s Webapp step runs for this home and its
+  build fails; once the gateway serves, ``a2assistant webapp``'s build succeeds;
 - ``probe_host``: a Host header to send (a public hostname), or null;
 - ``credential``: the stored browser credential this gateway finds: ``"folder-is-a-file"`` (a plain
   file where the ``webapp/`` folder goes), ``"token-is-a-folder"`` (a folder where
   ``webapp/session-token`` goes), ``"not-utf8"`` (the token saved as UTF-16), or null for a
   readable token an earlier gateway stored.
 
-Writes ``receipt.json`` into ``HERMES_HOME`` (the gateway redirects stdout). No inference: the model points
+Writes ``receipt.json`` into ``A2ASSISTANT_HOME`` (the gateway redirects stdout). No inference: the model points
 at a closed port and no turn is submitted. Tests start it with :func:`run`.
 """
 import asyncio
@@ -54,7 +54,7 @@ def run(tmp_path, spec) -> dict:
     for path in (home, user):
         path.mkdir()
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1")
     result = subprocess.run([sys.executable, __file__, json.dumps(spec)], cwd=root, env=env,
                             capture_output=True, text=True, timeout=120, check=False)
@@ -122,7 +122,7 @@ def _fail_startup_once():
 
 
 def _fail_webapp_update(home, checkout):
-    """``hermes update``'s Webapp step for an install whose only home is *home*, with a build that
+    """``a2assistant update``'s Webapp step for an install whose only home is *home*, with a build that
     fails as a broken npm install would."""
     import hermes_cli.webapp
     from hermes_cli import source_build
@@ -144,7 +144,7 @@ def _fail_webapp_update(home, checkout):
 
 
 def _rebuild_webapp(checkout, dist):
-    """``hermes webapp``'s build, with the compiler stood in by one that writes a new bundle."""
+    """``a2assistant webapp``'s build, with the compiler stood in by one that writes a new bundle."""
     import hermes_cli.webapp
     from hermes_cli import source_build
 
@@ -212,7 +212,7 @@ async def probe(spec):
     from gateway.session_authority import initialize_session_authority
     import hermes_cli.webapp
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     (home / "config.yaml").write_text(_config(spec), encoding="utf-8")
     # A file where the folder belongs (``credential_unusable``) is the ``folder-is-a-file`` case.
     _seed_credential(home, "folder-is-a-file" if spec.get("credential_unusable") else spec.get("credential"))
@@ -315,7 +315,7 @@ async def probe(spec):
 
 
 def main():
-    receipt = Path(os.environ["HERMES_HOME"]) / "receipt.json"
+    receipt = Path(os.environ["A2ASSISTANT_HOME"]) / "receipt.json"
     try:
         receipt.write_text(json.dumps(asyncio.run(probe(json.loads(sys.argv[1])))))
     except BaseException:

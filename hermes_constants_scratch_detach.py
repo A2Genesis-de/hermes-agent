@@ -2,7 +2,7 @@
 
 A pass can take seconds to minutes (the idle scan of a large tree, the ``rmtree`` of a multi-GB
 entry). Inline, it held every process start; on a daemon thread it died with every short-lived
-``hermes`` command, the hourly stamp already spent. A detached child outlives the command that
+``a2assistant`` command, the hourly stamp already spent. A detached child outlives the command that
 launched it, so each due pass runs to the end, with the same rules as an inline one.
 """
 from __future__ import annotations

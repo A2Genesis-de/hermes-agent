@@ -3,7 +3,7 @@
 Each ``shutdown_mcp_servers`` call waits up to its own timeout on the MCP loop, so N per-profile
 passes at the 15s default consumed the whole 5s caller budget and the trailing WILDCARD pass — the
 only one that stops the shared loop — never ran. And the teardown worker must start from a FRESH
-context: a caller sitting inside a served profile's scope would otherwise hand its HERMES_HOME
+context: a caller sitting inside a served profile's scope would otherwise hand its A2ASSISTANT_HOME
 override to the launch-profile pass, which documents that it has none.
 """
 
@@ -23,7 +23,7 @@ def homes(tmp_path, monkeypatch):
         home = tmp_path / name
         home.mkdir()
         homes.append((name, home))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "launch"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "launch"))
     (tmp_path / "launch").mkdir()
     monkeypatch.setattr(gateway_run, "_multiplex_profile_homes", lambda _cfg: homes)
     return homes
@@ -59,7 +59,7 @@ async def test_teardown_thread_does_not_inherit_the_callers_home_override(tmp_pa
     poison = tmp_path / "profiles" / "poison"
     for path in (launch, poison):
         path.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
 
     seen: list = []
     monkeypatch.setattr(

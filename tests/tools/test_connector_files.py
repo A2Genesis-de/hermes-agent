@@ -89,7 +89,7 @@ class Storage:
 @pytest.fixture(autouse=True)
 def _fresh_schema_cache(monkeypatch):
     monkeypatch.setattr(files, "_FILE_INPUTS", {})
-    for name in ("HERMES_MEDIA_DELIVERY_STRICT", "TERMINAL_ENV", "TERMINAL_DOCKER_VOLUMES", "TERMINAL_CWD"):
+    for name in ("A2ASSISTANT_MEDIA_DELIVERY_STRICT", "TERMINAL_ENV", "TERMINAL_DOCKER_VOLUMES", "TERMINAL_CWD"):
         monkeypatch.delenv(name, raising=False)
 
 
@@ -235,8 +235,8 @@ def test_a_replayed_file_without_a_link_passes_through():
 
 
 def test_strict_mode_refuses_a_fresh_file_but_resends_a_downloaded_one(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_MEDIA_DELIVERY_STRICT", "1")
-    monkeypatch.setenv("HERMES_MEDIA_TRUST_RECENT_FILES", "0")
+    monkeypatch.setenv("A2ASSISTANT_MEDIA_DELIVERY_STRICT", "1")
+    monkeypatch.setenv("A2ASSISTANT_MEDIA_TRUST_RECENT_FILES", "0")
     output = {"name": "invoice.pdf", "mimetype": "application/pdf", "url": DOWNLOAD_URL}
     downloaded = _execute(Gateway(data=output), Storage(content=b"%PDF received"), {"id": "1"})["response"]["path"]
 

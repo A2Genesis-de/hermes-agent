@@ -464,7 +464,7 @@ class TestHomeWorkingDirGuard:
 
     def test_rebound_tracker_stays_inside_the_project(self, home_tree):
         """After rebind, hints outside the adopted project stay suppressed (a stray
-        read of ~/.hermes does not resurrect the home-subtree scan)."""
+        read of ~/.a2assistant does not resurrect the home-subtree scan)."""
         project = home_tree / "projects" / "app2"
         project.mkdir(parents=True)
         (project / "AGENTS.md").write_text("App2 rules", encoding="utf-8")

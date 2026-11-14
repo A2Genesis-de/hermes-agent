@@ -1,6 +1,6 @@
 """The detached gateway restart watcher must survive on an interpreter without the dependency env.
 
-``hermes update`` finishes on the bare store Python (dependencies come from ``hermes_bootstrap``,
+``a2assistant update`` finishes on the bare store Python (dependencies come from ``hermes_bootstrap``,
 not site-packages) and spawns the watcher as ``sys.executable -c <watcher>``. A watcher that imports
 a third-party-backed Hermes module (``gateway.status`` -> ``utils`` -> ``ruamel``) dies before it
 relaunches the gateway, leaving a manually started gateway down after every update.
@@ -40,7 +40,7 @@ def test_restart_watcher_relaunches_from_an_interpreter_without_site_packages(tm
     marker = tmp_path / "respawned"
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     # The watcher must find the checkout on its own, not through an inherited cwd.
     monkeypatch.chdir(tmp_path)
     monkeypatch.setattr(sys, "executable", str(bare))

@@ -51,7 +51,7 @@ def two_homes(tmp_path, monkeypatch):
     _profile(a, "https://a.example/v1")
     _profile(b, "https://b.example/v1")
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: fake_home))
-    monkeypatch.setenv("HERMES_HOME", str(a))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(a))
     monkeypatch.delenv("NOUS_INFERENCE_BASE_URL", raising=False)
     # The hermetic conftest pins ``hermes_state.DEFAULT_DB_PATH`` at one sandbox store whenever
     # hermes_state is already imported, and that pin WINS over ``get_hermes_home()`` inside
@@ -111,7 +111,7 @@ def test_multiplexed_auto_archive_tick_sweeps_every_served_profile_store(two_hom
     """The auto-archive sweep reaches each served profile's OWN state.db.
 
     ``acquire()`` resolves through ``get_hermes_home()``, so an unscoped tick archived the
-    launch profile's store only — and `hermes serve`/the dashboard defer to the gateway for
+    launch profile's store only — and `a2assistant serve`/the dashboard defer to the gateway for
     every profile it owns, so a served secondary would have had no archiver at all.
     """
     from agent.secret_scope import set_multiplex_active

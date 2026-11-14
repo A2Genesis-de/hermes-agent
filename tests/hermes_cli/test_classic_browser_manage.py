@@ -47,7 +47,7 @@ def _browser_calls(conn):
 
 def test_classic_browser_connect_is_the_gateways_browser_manage(gateway_cli, monkeypatch, capsys):
     monkeypatch.delenv("BROWSER_CDP_URL", raising=False)
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_GATEWAY_URL", raising=False)
     cli, conn = gateway_cli(**{"browser.manage": lambda p: (
         {"connected": True, "url": p.get("url"), "messages": ["Chrome is already listening"]}
         if p["action"] == "connect" else {"connected": True, "url": "http://127.0.0.1:9333"})})
@@ -74,7 +74,7 @@ def test_classic_browser_use_is_gone_and_prints_usage(gateway_cli, capsys):
 
 def test_classic_browser_connect_against_a_remote_gateway_is_refused(gateway_cli, monkeypatch, capsys):
     """Desktop's rule: connect/disconnect manage a browser on the gateway HOST."""
-    monkeypatch.setenv("HERMES_TUI_GATEWAY_URL", "wss://gateway.example.com/api/ws")
+    monkeypatch.setenv("A2ASSISTANT_TUI_GATEWAY_URL", "wss://gateway.example.com/api/ws")
     cli, conn = gateway_cli(**{"browser.manage": {"connected": False}})
     for line in ("/browser connect", "/browser disconnect"):
         cli.process_command(line)
@@ -102,7 +102,7 @@ def homes(tmp_path, monkeypatch):
     launch = tmp_path / "root"
     bee = launch / "profiles" / "bee"
     bee.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(server, "_hermes_home", launch)
     monkeypatch.delenv("BROWSER_CDP_URL", raising=False)
     import tools.browser_session_lifecycle as lifecycle

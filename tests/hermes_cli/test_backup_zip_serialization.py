@@ -14,7 +14,7 @@ from hermes_cli import backup
 def test_zip_captures_live_wal_and_cleans_failed_staging(tmp_path, monkeypatch, automatic):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     output = tmp_path / "archive"
     output.mkdir()

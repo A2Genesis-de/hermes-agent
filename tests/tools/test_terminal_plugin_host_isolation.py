@@ -1,7 +1,7 @@
 """A user terminal backend under ``plugins.isolation: host``: the plugin's environment object cannot cross
 the host boundary (its methods would run outside the Hermes process's interrupt, activity and terminal-scope
 state), so creating it refuses with the setting to change before the host starts a sandbox nobody can use
-or clean up. Real plugin, real host process, real loader against a temp HERMES_HOME.
+or clean up. Real plugin, real host process, real loader against a temp A2ASSISTANT_HOME.
 """
 
 from __future__ import annotations
@@ -51,7 +51,7 @@ def _load(tmp_path, monkeypatch, isolation):
     empty_bundled = tmp_path / "bundled"
     empty_bundled.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path / "os-home"))
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: empty_bundled)
     manager = PluginManager()
     manager.discover_and_load()

@@ -1,6 +1,6 @@
 """Peer turns into the canonical Bot Chat under session authority.
 
-``hermes peer dm`` (``/api/sessions/{id}/chat[/stream]``) and ``hermes peer run`` (``/v1/runs``)
+``a2assistant peer dm`` (``/api/sessions/{id}/chat[/stream]``) and ``a2assistant peer run`` (``/v1/runs``)
 aim at the profile's Bot Chat. Under session authority that chat is a LOCAL session whose only
 writer is the authority FIFO — a Desktop showing it is a viewer, never a lease-holding executor —
 so the API edge admits the turn through the same door as ``bot_relay.deliver``
@@ -32,7 +32,7 @@ def _authority(runner):
 
 
 async def create_peer_bot_chat(adapter, body):
-    """``POST /api/sessions`` titled "Bot Chat" (``hermes peer dm``'s create-if-missing) under session
+    """``POST /api/sessions`` titled "Bot Chat" (``a2assistant peer dm``'s create-if-missing) under session
     authority: the owner mints the chat through the step a first ``bot_relay.deliver`` takes
     (``session_bot._create_bot_chat``), so a headless gateway's Bot Chat is a LOCAL session its FIFO
     owns, not an API row no remote sender can ever bind (#139370). None when the ordinary handler
@@ -75,7 +75,7 @@ def _refusal(authority, tip, exc):
         from hermes_state_local_migration import validate_legacy_row
         try:
             validate_legacy_row(authority.db, tip)
-            reason, hint = 'bot_chat_unbound', 'open it once with `hermes chat -c "Bot Chat"` on that host'
+            reason, hint = 'bot_chat_unbound', 'open it once with `a2assistant chat -c "Bot Chat"` on that host'
         except RuntimeStoreError:
             from gateway.session_bot import displaceable_bot_chat
             reason = 'bot_chat_not_local'
@@ -92,7 +92,7 @@ def _refusal(authority, tip, exc):
 async def reset_local_title_owner(db, title, include_hidden, source=None):
     """``[row]`` for the exact-title lookup of a LOCAL conversation that was reset (``/new``, the
     compression-exhaustion auto-reset), else ``[]``. The listing shows a reset lineage as its latest,
-    untitled segment, so ``hermes peer dm`` stopped finding its Bot Chat and its create collided
+    untitled segment, so ``a2assistant peer dm`` stopped finding its Bot Chat and its create collided
     with the title. The titled creation id still owns the FIFO and is what the chat door admits.
     It applies the listing's own filters: hidden only with ``include_hidden``, never an archived
     row (a deliberate archive stays put; the reaper-archive resurrection is the caller's), and

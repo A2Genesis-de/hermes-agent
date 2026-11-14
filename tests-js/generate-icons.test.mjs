@@ -7,8 +7,8 @@ import { generateIcons } from '../scripts/generate-icons.mjs'
 
 test('the real wrapper builds and checks native icon artifacts in an independent output', () => {
   const out = fs.mkdtempSync(path.join(os.tmpdir(), 'hermes-icons-'))
-  const env = { ...process.env, HERMES_HOME: path.join(out, 'home'),
-    HERMES_RUNTIME_DIR: path.join(out, 'tools'), HERMES_PAYLOAD_TAG: 'v1.2.3', HERMES_BUILD_COMMIT: '',
+  const env = { ...process.env, A2ASSISTANT_HOME: path.join(out, 'home'),
+    A2ASSISTANT_RUNTIME_DIR: path.join(out, 'tools'), A2ASSISTANT_PAYLOAD_TAG: 'v1.2.3', A2ASSISTANT_BUILD_COMMIT: '',
     PYTHONPATH: path.join(out, 'foreign-site'), PYTHONHOME: path.join(out, 'foreign-python') }
   try {
     const args = ['--source', fileURLToPath(new URL('..', import.meta.url)), '--out', out]

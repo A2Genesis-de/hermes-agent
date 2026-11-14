@@ -41,7 +41,7 @@ from hermes_constants import get_hermes_home
 
 
 def _launch_cwd_for_session(source: str) -> Optional[str]:
-    """cwd to stamp on a new session row (``hermes -c`` / ``--resume``), or None.
+    """cwd to stamp on a new session row (``a2assistant -c`` / ``--resume``), or None.
 
     Only local CLI sessions record one: gateway/cron/remote backends (non-"local" ``TERMINAL_ENV``) have no
     stable host cwd for the agent's tools.
@@ -308,7 +308,7 @@ class AIAgent(
 
     def _session_row_model_config(self) -> Any:
         """``model_config`` for the lazily created session row: the init config plus a live /yolo toggled
-        before the first turn (``hermes --resume`` restores it)."""
+        before the first turn (``a2assistant --resume`` restores it)."""
         from tools.approval_yolo import with_session_yolo
         return with_session_yolo(self._session_init_model_config, self.session_id)
 
@@ -539,13 +539,13 @@ class AIAgent(
 
     def _resolved_api_call_timeout(self) -> float:
         """Per-call request timeout: per-model ``timeout_seconds`` > provider ``request_timeout_seconds`` >
-        ``HERMES_API_TIMEOUT`` > 1800s."""
+        ``A2ASSISTANT_API_TIMEOUT`` > 1800s."""
         cfg = get_provider_request_timeout(self.provider, self.model)
-        return cfg if cfg is not None else env_float("HERMES_API_TIMEOUT", 1800.0)
+        return cfg if cfg is not None else env_float("A2ASSISTANT_API_TIMEOUT", 1800.0)
 
     def _resolved_api_call_stale_timeout_base(self) -> tuple[float, bool]:
         """Base non-stream stale timeout: per-model ``stale_timeout_seconds`` > provider-wide >
-        ``HERMES_API_CALL_STALE_TIMEOUT`` > reasoning floor > 90s.
+        ``A2ASSISTANT_API_CALL_STALE_TIMEOUT`` > reasoning floor > 90s.
 
         Returns ``(seconds, uses_implicit_default)``; the implicit flag lets callers auto-disable the detector
         for local endpoints only when the user configured nothing.
@@ -553,7 +553,7 @@ class AIAgent(
         cfg = get_provider_stale_timeout(self.provider, self.model)
         if cfg is not None:
             return cfg, False
-        env_timeout = os.getenv("HERMES_API_CALL_STALE_TIMEOUT")
+        env_timeout = os.getenv("A2ASSISTANT_API_CALL_STALE_TIMEOUT")
         if env_timeout is not None:
             return float(env_timeout), False
         # Reasoning-model floor (cloud gateways idle-kill mid-think); not "implicit" so the local-endpoint
@@ -593,7 +593,7 @@ class AIAgent(
         """True when the user explicitly configured the stale timeout (config or env var); implicit values
         (reasoning floors, the 90s default) yield to the run-budget cap, explicit ones never do."""
         return (get_provider_stale_timeout(self.provider, self.model) is not None
-                or os.getenv("HERMES_API_CALL_STALE_TIMEOUT") is not None)
+                or os.getenv("A2ASSISTANT_API_CALL_STALE_TIMEOUT") is not None)
 
     def _codex_silent_hang_hint(self, model: Optional[str] = None) -> Optional[str]:
         """Actionable hint when the request matches a known Codex silent-reject shape (currently the ``gpt-5.5``

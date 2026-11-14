@@ -1616,7 +1616,7 @@ const deBaseOverrides = {
         'Standardmäßig lokal. Verwenden Sie Remote, wenn diese App ein A2Assistant-Backend an einem anderen Ort steuern soll. Gateway-Verbindungen gelten pro Gerät; Profile werden von den Gateways ermittelt, mit denen Sie sich verbinden.',
       envOverrideTitle: 'Umgebungsvariablen steuern diese Desktop-Session.',
       envOverrideDesc:
-        'Entfernen Sie HERMES_DESKTOP_REMOTE_URL und HERMES_DESKTOP_REMOTE_TOKEN, um die unten gespeicherte Einstellung zu verwenden.',
+        'Entfernen Sie A2ASSISTANT_DESKTOP_REMOTE_URL und A2ASSISTANT_DESKTOP_REMOTE_TOKEN, um die unten gespeicherte Einstellung zu verwenden.',
       modeTitle: 'Verbindungsmodus',
       localTitle: 'Lokales Gateway',
       localDesc: 'Startet ein privates A2Assistant-Backend auf localhost. Das ist der Standard und funktioniert offline.',
@@ -2342,7 +2342,7 @@ const deBaseOverrides = {
     unlockedHint: 'Sperren, damit der Agent diesen Skill nicht ändert. Du kannst ihn weiterhin selbst bearbeiten.',
     archive: 'Archivieren',
     skillArchivedTitle: 'Skill archiviert',
-    skillArchivedMessage: 'Wiederherstellbar über „hermes curator restore“.',
+    skillArchivedMessage: 'Wiederherstellbar über „a2assistant curator restore“.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Agent-Plugins',
@@ -2949,7 +2949,7 @@ const deBaseOverrides = {
     failedImport: 'Profil konnte nicht importiert werden',
     failedExport: 'Profil konnte nicht exportiert werden',
     exportNeedsHost: name =>
-      `Der Browser kann kein Profilarchiv speichern. Führe auf dem A2Assistant-Host aus: hermes profile export ${name}`,
+      `Der Browser kann kein Profilarchiv speichern. Führe auf dem A2Assistant-Host aus: a2assistant profile export ${name}`,
     allProfiles: 'Alle Profile',
     showAllProfiles: 'Alle Profile anzeigen',
     notServedHere: 'Hier nicht bereitgestellt',
@@ -3861,9 +3861,9 @@ const deBaseOverrides = {
     versionDetailsDistributionDesktopMsix: 'Desktop-App (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Desktop-App (Installer)',
     versionDetailsDistributionSourceInstaller: 'Quellcode (Installationsskript)',
-    versionDetailsDistributionSourceInstallerDesktop: 'Quellcode (Installationsskript) + hermes desktop',
+    versionDetailsDistributionSourceInstallerDesktop: 'Quellcode (Installationsskript) + a2assistant desktop',
     versionDetailsDistributionSource: 'Quellcode',
-    versionDetailsDistributionSourceDesktop: 'Quellcode + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Quellcode + a2assistant desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: 'Laufzeit',
     versionDetailsRuntimeEmbedded: 'Eingebettete Laufzeit',
@@ -4837,7 +4837,7 @@ const deBaseOverrides = {
       reject: 'Ablehnen',
       alwaysTitle: 'Diesen Befehl immer erlauben?',
       alwaysDescription: pattern =>
-        `Dies fügt das Muster „${pattern}“ Ihrer dauerhaften Zulassungsliste hinzu (~/.hermes/config.yaml). A2Assistant fragt bei solchen Befehlen nicht mehr nach – weder in dieser noch in zukünftigen Sessions.`,
+        `Dies fügt das Muster „${pattern}“ Ihrer dauerhaften Zulassungsliste hinzu (~/.a2assistant/config.yaml). A2Assistant fragt bei solchen Befehlen nicht mehr nach – weder in dieser noch in zukünftigen Sessions.`,
       alwaysAllow: 'Immer erlauben'
     },
     clarify: deClarify,
@@ -5210,7 +5210,7 @@ const deBaseOverrides = {
       success: platform => `Übergeben an ${platform}. Jederzeit hier fortsetzen.`,
       systemNote: platform => `↻ Übergeben an ${platform} — jederzeit hier fortsetzen.`,
       failed: error => `Übergabe fehlgeschlagen: ${error}`,
-      timedOut: 'Zeitüberschreitung beim Warten auf das Gateway. Läuft `hermes gateway`?',
+      timedOut: 'Zeitüberschreitung beim Warten auf das Gateway. Läuft `a2assistant gateway`?',
       startMessaging: 'Messaging starten'
     }
   },

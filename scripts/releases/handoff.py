@@ -285,8 +285,8 @@ def _fetch_receipts(receipts: list[dict], root: Path,
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("command", choices=["stage", "fetch"])
-    parser.add_argument("--tag", default=os.environ.get("HERMES_PAYLOAD_TAG") or os.environ.get("RELEASE_TAG"), required=False)
-    parser.add_argument("--commit-build", default=os.environ.get("HERMES_BUILD_COMMIT"),
+    parser.add_argument("--tag", default=os.environ.get("A2ASSISTANT_PAYLOAD_TAG") or os.environ.get("RELEASE_TAG"), required=False)
+    parser.add_argument("--commit-build", default=os.environ.get("A2ASSISTANT_BUILD_COMMIT"),
                         help="Commit-only mode: stage/fetch under releases/commit/<sha>/ "
                              "with schema-2 receipts (no tag; exact full SHA required)")
     parser.add_argument("--channel-request", type=Path, help="Pinned admitted channel request JSON")

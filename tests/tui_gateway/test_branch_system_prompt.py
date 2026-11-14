@@ -16,7 +16,7 @@ def test_persist_branch_copies_the_parent_system_prompt(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     with SessionDB(home / "state.db") as db:
         db.create_session("parent", source="desktop", model="test-model")

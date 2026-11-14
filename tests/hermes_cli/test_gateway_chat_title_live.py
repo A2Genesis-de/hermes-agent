@@ -27,7 +27,7 @@ def test_title_create_if_missing_then_resume_by_title_is_deterministic(tmp_path,
         "auxiliary": {"title_generation": {"enabled": False}},
     }), encoding="utf-8")
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=model_url)
     witness = tmp_path / "client-owner.json"
     wrapper = tmp_path / "client.py"

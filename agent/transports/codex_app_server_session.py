@@ -241,7 +241,7 @@ class CodexAppServerSession:
         # scratch: a resumed thread already holds the conversation (agent/codex_runtime_history_seed.py).
         self._history_seed = history_seed
         self._permission_profile = permission_profile or _HERMES_TO_CODEX_PERMISSION_PROFILE.get(
-            os.environ.get("HERMES_TERMINAL_SECURITY_MODE", "auto"), "workspace-write"
+            os.environ.get("A2ASSISTANT_TERMINAL_SECURITY_MODE", "auto"), "workspace-write"
         )
         self._approval_callback = approval_callback
         self._on_event = on_event  # Display hook (kawaii spinner ticks etc.)

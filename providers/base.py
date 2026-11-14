@@ -480,7 +480,7 @@ class ProviderProfile:
         """Whether discovery surfaces may offer this provider.
 
         Every non-``hidden`` profile is listed. A ``hidden`` (pre-release) one surfaces once the user
-        opted in by name (``hermes auth add <name>`` put a row in its credential pool), so the
+        opted in by name (``a2assistant auth add <name>`` put a row in its credential pool), so the
         pickers can then offer it. Reads auth.json only: it runs on every picker build.
         """
         if not self.hidden:
@@ -507,7 +507,7 @@ class ProviderProfile:
         through to its existing construction path.
 
         This is the hook that lets a provider ship *outside* this tree: with it,
-        a profile registered from ``~/.hermes/plugins/model-providers/`` or a
+        a profile registered from ``~/.a2assistant/plugins/model-providers/`` or a
         pip entry point can supply its own transport without any core edit. See
         ``website/docs/developer-guide/model-provider-plugin.md``.
         """
@@ -640,13 +640,13 @@ class ProviderProfile:
     def seed_pool_credentials(self, *, suppressed_sources: frozenset[str],
                               explicitly_configured: bool) -> list[dict] | None:
         """Pool rows ``{source, access_token, base_url, label}`` this provider seeds itself; skip any source in
-        ``suppressed_sources`` (``hermes auth remove``). Plain data, so it crosses ``plugins.isolation: host``.
+        ``suppressed_sources`` (``a2assistant auth remove``). Plain data, so it crosses ``plugins.isolation: host``.
         Overriding it replaces generic env seeding (that loop would overwrite exchanged tokens with the raw env
         value), so an override returns ``[]`` for none; only the base implementation keeps generic env seeding."""
         return None
 
     def remove_credential_source(self, source: str) -> tuple[tuple[str, ...], tuple[str, ...]] | None:
-        """``hermes auth remove`` of *source*: ``(sources_to_suppress, hints)``; None = generic removal."""
+        """``a2assistant auth remove`` of *source*: ``(sources_to_suppress, hints)``; None = generic removal."""
         return None
 
     def refresh_runtime_credentials(self, *, reason: str) -> tuple[str, str | None] | None:

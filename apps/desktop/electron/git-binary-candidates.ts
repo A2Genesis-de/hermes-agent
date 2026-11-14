@@ -20,7 +20,7 @@ const UGIT_APP_PREFIX = 'app-'
 /** Where the UGit-bundled Git-for-Windows puts git.exe inside an app dir. */
 const UGIT_GIT_REL = path.join('resources', 'app', 'git', 'cmd', 'git.exe')
 /** PM-managed Git tool directories under the Hermes local application root. */
-const HERMES_TOOLS_DIR = path.join('hermes', 'tools')
+const A2ASSISTANT_TOOLS_DIR = path.join('hermes', 'tools')
 const MANAGED_GIT_PREFIX = 'git-'
 
 /**
@@ -62,7 +62,7 @@ export function ugitGitBinaries(localAppData: string, fs: GitCandidateFs): strin
  * rather than assuming a particular Git release.
  */
 export function managedGitBinaries(localAppData: string, fs: GitCandidateFs): string[] {
-  const toolsRoot = path.join(localAppData, HERMES_TOOLS_DIR)
+  const toolsRoot = path.join(localAppData, A2ASSISTANT_TOOLS_DIR)
 
   let entries: string[]
 

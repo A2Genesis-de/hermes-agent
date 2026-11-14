@@ -41,8 +41,8 @@ def shell_spec() -> tuple[list[str], str]:
 
     POSIX honours ``$SHELL``, then /bin/zsh, /bin/bash, /bin/sh. Windows ignores ``$SHELL``
     (usually a stray MSYS/Git path) and takes PowerShell 7, Windows PowerShell, ``COMSPEC``,
-    then cmd.exe. Electron's ``HERMES_DESKTOP_SHELL`` override is not read here: settings do
-    not ride on ``HERMES_*`` environment variables.
+    then cmd.exe. Electron's ``A2ASSISTANT_DESKTOP_SHELL`` override is not read here: settings do
+    not ride on ``A2ASSISTANT_*`` environment variables.
     """
     if os.name == "nt":
         system_root = os.environ.get("SystemRoot") or os.environ.get("windir") or r"C:\Windows"
@@ -148,7 +148,7 @@ def resolve_argv(
     env["TERM"] = "xterm-256color"
     env["TERM_PROGRAM"] = "Hermes"
     env["TERM_PROGRAM_VERSION"] = __version__
-    env["HERMES_DESKTOP_TERMINAL"] = "1"
+    env["A2ASSISTANT_DESKTOP_TERMINAL"] = "1"
     if lc_ctype := terminal_lc_ctype(env, os_family()):
         env["LC_CTYPE"] = lc_ctype
 

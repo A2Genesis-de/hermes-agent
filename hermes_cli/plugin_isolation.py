@@ -92,7 +92,7 @@ def _plugins_config(config: Optional[Mapping[str, Any]] = None) -> Mapping[str, 
 
 # Set in the plugin host's environment: inside the host, plugin code is already out of Hermes, so
 # every loader there imports directly (a host must never spawn a host of its own).
-HOST_PROCESS_ENV = "HERMES_PLUGIN_HOST_PROCESS"
+HOST_PROCESS_ENV = "A2ASSISTANT_PLUGIN_HOST_PROCESS"
 
 
 def isolation_mode(config: Optional[Mapping[str, Any]] = None) -> str:

@@ -13,7 +13,7 @@
 # Container mode: hermes runs from /nix/store bind-mounted read-only into a
 # plain Ubuntu container. The writable layer (apt/pip/npm installs) persists
 # across restarts and agent updates. Only image/volume/options changes trigger
-# container recreation. Environment variables are written to $HERMES_HOME/.env
+# container recreation. Environment variables are written to $A2ASSISTANT_HOME/.env
 # and read by hermes at startup — no container recreation needed for env changes.
 #
 # Tool resolution: the hermes wrapper uses --suffix PATH for nix store tools,
@@ -53,7 +53,7 @@
       effectiveWorkDir = if cfg.container.enable then containerWorkDir else cfg.workingDirectory;
 
       # config.yaml mode: group-writable (0660) when interactive users share this
-      # HERMES_HOME via addToSystemPackages, so they can save settings through the
+      # A2ASSISTANT_HOME via addToSystemPackages, so they can save settings through the
       # CLI/TUI without hitting EACCES; otherwise group-read-only (0640). Secrets
       # (.env) stay 0640 regardless.
       configYamlMode = if cfg.addToSystemPackages then "0660" else "0640";
@@ -75,26 +75,26 @@
       containerEntrypoint = pkgs.writeShellScript "hermes-container-entrypoint" ''
         set -eu
 
-        HERMES_UID="''${HERMES_UID:?HERMES_UID must be set}"
-        HERMES_GID="''${HERMES_GID:?HERMES_GID must be set}"
+        A2ASSISTANT_UID="''${A2ASSISTANT_UID:?A2ASSISTANT_UID must be set}"
+        A2ASSISTANT_GID="''${A2ASSISTANT_GID:?A2ASSISTANT_GID must be set}"
 
-        # ── Group: ensure a group with GID=$HERMES_GID exists ──
+        # ── Group: ensure a group with GID=$A2ASSISTANT_GID exists ──
         # Check by GID (not name) to avoid collisions with pre-existing groups
         # (e.g. GID 100 = "users" on Ubuntu)
-        EXISTING_GROUP=$(getent group "$HERMES_GID" 2>/dev/null | cut -d: -f1 || true)
+        EXISTING_GROUP=$(getent group "$A2ASSISTANT_GID" 2>/dev/null | cut -d: -f1 || true)
         if [ -n "$EXISTING_GROUP" ]; then
           GROUP_NAME="$EXISTING_GROUP"
         else
           GROUP_NAME="hermes"
           if command -v groupadd >/dev/null 2>&1; then
-            groupadd -g "$HERMES_GID" "$GROUP_NAME"
+            groupadd -g "$A2ASSISTANT_GID" "$GROUP_NAME"
           elif command -v addgroup >/dev/null 2>&1; then
-            addgroup -g "$HERMES_GID" "$GROUP_NAME" 2>/dev/null || true
+            addgroup -g "$A2ASSISTANT_GID" "$GROUP_NAME" 2>/dev/null || true
           fi
         fi
 
-        # ── User: ensure a user with UID=$HERMES_UID exists ──
-        PASSWD_ENTRY=$(getent passwd "$HERMES_UID" 2>/dev/null || true)
+        # ── User: ensure a user with UID=$A2ASSISTANT_UID exists ──
+        PASSWD_ENTRY=$(getent passwd "$A2ASSISTANT_UID" 2>/dev/null || true)
         if [ -n "$PASSWD_ENTRY" ]; then
           TARGET_USER=$(echo "$PASSWD_ENTRY" | cut -d: -f1)
           TARGET_HOME=$(echo "$PASSWD_ENTRY" | cut -d: -f6)
@@ -102,22 +102,22 @@
           TARGET_USER="hermes"
           TARGET_HOME="/home/hermes"
           if command -v useradd >/dev/null 2>&1; then
-            useradd -u "$HERMES_UID" -g "$HERMES_GID" -m -d "$TARGET_HOME" -s /bin/bash "$TARGET_USER"
+            useradd -u "$A2ASSISTANT_UID" -g "$A2ASSISTANT_GID" -m -d "$TARGET_HOME" -s /bin/bash "$TARGET_USER"
           elif command -v adduser >/dev/null 2>&1; then
-            adduser -u "$HERMES_UID" -D -h "$TARGET_HOME" -s /bin/sh -G "$GROUP_NAME" "$TARGET_USER" 2>/dev/null || true
+            adduser -u "$A2ASSISTANT_UID" -D -h "$TARGET_HOME" -s /bin/sh -G "$GROUP_NAME" "$TARGET_USER" 2>/dev/null || true
           fi
         fi
         mkdir -p "$TARGET_HOME"
-        chown "$HERMES_UID:$HERMES_GID" "$TARGET_HOME"
+        chown "$A2ASSISTANT_UID:$A2ASSISTANT_GID" "$TARGET_HOME"
         chmod 0750 "$TARGET_HOME"
 
-        # Ensure HERMES_HOME is owned by the target user.
+        # Ensure A2ASSISTANT_HOME is owned by the target user.
         # Use find instead of chown -R: chown strips the setgid bit (kernel
         # behavior), destroying the 2770 permissions the NixOS activation
         # script sets for group access by hostUsers.  Only touch files with
         # wrong ownership so correctly-owned dirs keep their permission bits.
-        if [ -n "''${HERMES_HOME:-}" ] && [ -d "$HERMES_HOME" ]; then
-          find "$HERMES_HOME" \! -user "$HERMES_UID" -exec chown "$HERMES_UID:$HERMES_GID" {} +
+        if [ -n "''${A2ASSISTANT_HOME:-}" ] && [ -d "$A2ASSISTANT_HOME" ]; then
+          find "$A2ASSISTANT_HOME" \! -user "$A2ASSISTANT_UID" -exec chown "$A2ASSISTANT_UID:$A2ASSISTANT_GID" {} +
         fi
 
         # ── Provision apt packages (first boot only, cached in writable layer) ──
@@ -167,7 +167,7 @@
         fi
 
         if command -v setpriv >/dev/null 2>&1; then
-          exec setpriv --reuid="$HERMES_UID" --regid="$HERMES_GID" --init-groups "$@"
+          exec setpriv --reuid="$A2ASSISTANT_UID" --regid="$A2ASSISTANT_GID" --init-groups "$@"
         elif command -v su >/dev/null 2>&1; then
           exec su -s /bin/sh "$TARGET_USER" -c 'exec "$0" "$@"' -- "$@"
         else
@@ -178,7 +178,7 @@
 
       # Identity hash — only recreate container when structural config changes.
       # Package and entrypoint use stable symlinks (current-package, current-entrypoint)
-      # so they can update without recreation. Env vars go through $HERMES_HOME/.env.
+      # so they can update without recreation. Env vars go through $A2ASSISTANT_HOME/.env.
       containerIdentity = builtins.hashString "sha256" (
         builtins.toJSON {
           schema = 4; # bump when identity inputs change (4: Node 18→22 via NodeSource)
@@ -283,7 +283,7 @@
             stateDir = mkOption {
               type = types.str;
               default = "/var/lib/hermes";
-              description = "State directory. Contains .hermes/ subdir (HERMES_HOME).";
+              description = "State directory. Contains .hermes/ subdir (A2ASSISTANT_HOME).";
             };
 
             addToSystemPackages = mkOption {
@@ -291,7 +291,7 @@
               default = false;
               description = ''
                 Add the hermes CLI to environment.systemPackages and export
-                HERMES_HOME system-wide (via environment.variables) so interactive
+                A2ASSISTANT_HOME system-wide (via environment.variables) so interactive
                 shells share state with the gateway service.
               '';
             };
@@ -332,7 +332,7 @@
                 type = types.listOf types.str;
                 default = [ ];
                 description = ''
-                  Interactive users who get a ~/.hermes symlink to the service
+                  Interactive users who get a ~/.a2assistant symlink to the service
                   stateDir. These users are automatically added to the hermes group.
                 '';
                 example = [ "sidbin" ];
@@ -372,12 +372,12 @@
           })
 
           # ── Host CLI ──────────────────────────────────────────────────────
-          # Add the hermes CLI to system PATH and export HERMES_HOME system-wide
+          # Add the hermes CLI to system PATH and export A2ASSISTANT_HOME system-wide
           # so interactive shells share state (sessions, skills, cron) with the
-          # gateway service instead of creating a separate ~/.hermes/.
+          # gateway service instead of creating a separate ~/.a2assistant/.
           (lib.mkIf cfg.addToSystemPackages {
             environment.systemPackages = [ effectivePackage ];
-            environment.variables.HERMES_HOME = hermesHome;
+            environment.variables.A2ASSISTANT_HOME = hermesHome;
           })
 
           # ── Host user group membership ─────────────────────────────────────
@@ -530,7 +530,7 @@
                   }
 
                   # ── Symlink bridge for interactive users ───────────────────────
-                  # Create ~/.hermes -> stateDir/.hermes for each hostUser so the
+                  # Create ~/.a2assistant -> stateDir/.hermes for each hostUser so the
                   # host CLI shares state with the container service.
                   # Only runs when container mode is enabled.
                   ${lib.optionalString cfg.container.enable (
@@ -579,7 +579,7 @@
               ++ lib.optional lingerEnabled "linger-users.service";
 
               # cfg.environment and cfg.environmentFiles are written to
-              # $HERMES_HOME/.env by the activation script. load_hermes_dotenv()
+              # $A2ASSISTANT_HOME/.env by the activation script. load_hermes_dotenv()
               # reads them at Python startup — no systemd EnvironmentFile needed.
               environment = commonUnitEnvironment;
 
@@ -611,9 +611,9 @@
             };
           })
 
-          # ── The backend: hermes serve or hermes dashboard ─────────────────
+          # ── The backend: a2assistant serve or a2assistant dashboard ─────────────────
           # This is a different process from the gateway. Both use one
-          # HERMES_HOME.
+          # A2ASSISTANT_HOME.
           (lib.mkIf (!cfg.container.enable && cfg.backend.mode != "none") {
             systemd.services.hermes-backend = {
               description = common.backendDescription cfg;
@@ -669,8 +669,8 @@
 
                 if [ "$NEED_CREATE" = "true" ]; then
                   # Resolve numeric UID/GID — passed to entrypoint for in-container user setup
-                  HERMES_UID=$(${pkgs.coreutils}/bin/id -u ${cfg.user})
-                  HERMES_GID=$(${pkgs.coreutils}/bin/id -g ${cfg.user})
+                  A2ASSISTANT_UID=$(${pkgs.coreutils}/bin/id -u ${cfg.user})
+                  A2ASSISTANT_GID=$(${pkgs.coreutils}/bin/id -g ${cfg.user})
 
                   echo "Creating container..."
                   ${containerBin} create \
@@ -681,10 +681,10 @@
                     --volume ${cfg.stateDir}:${containerDataDir} \
                     --volume ${cfg.stateDir}/home:${containerHomeDir} \
                     ${lib.concatStringsSep " " (map (v: "--volume ${v}") cfg.container.extraVolumes)} \
-                    --env HERMES_UID="$HERMES_UID" \
-                    --env HERMES_GID="$HERMES_GID" \
-                    --env HERMES_HOME=${containerDataDir}/.hermes \
-                    --env HERMES_MANAGED=true \
+                    --env A2ASSISTANT_UID="$A2ASSISTANT_UID" \
+                    --env A2ASSISTANT_GID="$A2ASSISTANT_GID" \
+                    --env A2ASSISTANT_HOME=${containerDataDir}/.hermes \
+                    --env A2ASSISTANT_MANAGED=true \
                     --env HOME=${containerHomeDir} \
                     ${lib.concatStringsSep " " cfg.container.extraOptions} \
                     ${cfg.container.image} \

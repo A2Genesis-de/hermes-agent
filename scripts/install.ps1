@@ -1,6 +1,6 @@
 # Hermes Agent bootstrap: git checkout + venv + hermes command on PATH.
 # Heavy dependencies (tool binaries, browsers, node) are pm's job after
-# this: `hermes pm install`. Stage protocol kept for Hermes-Setup:
+# this: `a2assistant pm install`. Stage protocol kept for Hermes-Setup:
 #   -Manifest             print the stage list as JSON
 #   -Stage NAME [-Json]   run one stage
 #   -NonInteractive       skip stages that need input
@@ -8,25 +8,25 @@
 #   -IncludeDesktop       add the desktop build stage
 #   -ProtocolVersion      print the stage protocol version
 #   -SkipBrowser          do not install the browser (Chromium); remembered by
-#                         later installs and `hermes update`, undone by
-#                         `hermes pm install chromium`
+#                         later installs and `a2assistant update`, undone by
+#                         `a2assistant pm install chromium`
 #   -SkipComputerUse      do not install the computer-use driver (cua-driver);
 #                         remembered the same way, undone by
-#                         `hermes pm install cua-driver`
+#                         `a2assistant pm install cua-driver`
 #   -Verbose              stream every child command's output (the default
 #                         with redirected output and in CI)
 #   -Channel stable|main  stable (default): the latest published release, then
 #                         release to release; main: every commit. Also
-#                         $env:HERMES_INSTALL_CHANNEL (the only way under
+#                         $env:A2ASSISTANT_INSTALL_CHANNEL (the only way under
 #                         `irm | iex`); an explicit choice is saved like
-#                         `hermes update --set-channel`
+#                         `a2assistant update --set-channel`
 [CmdletBinding(PositionalBinding=$false)]
 param(
     [string]$Branch = "main",
     [string]$Commit = "",
-    [string]$Channel = $(if ($env:HERMES_INSTALL_CHANNEL) { $env:HERMES_INSTALL_CHANNEL } else { "" }),
-    [string]$HermesHome = $(if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:LOCALAPPDATA\hermes" }),
-    [string]$InstallDir = $(if ($env:HERMES_HOME) { "$env:HERMES_HOME\hermes-agent" } else { "$env:LOCALAPPDATA\hermes\hermes-agent" }),
+    [string]$Channel = $(if ($env:A2ASSISTANT_INSTALL_CHANNEL) { $env:A2ASSISTANT_INSTALL_CHANNEL } else { "" }),
+    [string]$HermesHome = $(if ($env:A2ASSISTANT_HOME) { $env:A2ASSISTANT_HOME } else { "$env:LOCALAPPDATA\hermes" }),
+    [string]$InstallDir = $(if ($env:A2ASSISTANT_HOME) { "$env:A2ASSISTANT_HOME\hermes-agent" } else { "$env:LOCALAPPDATA\hermes\hermes-agent" }),
     [switch]$Manifest,
     [string]$Stage,
     [switch]$ProtocolVersion,
@@ -37,8 +37,8 @@ param(
     [switch]$Json,
     [switch]$IncludeDesktop,
     # Same opt-out as install.sh --skip-browser: PM records it, so later
-    # installs and `hermes update` keep the browser off until
-    # `hermes pm install chromium` opts back in.
+    # installs and `a2assistant update` keep the browser off until
+    # `a2assistant pm install chromium` opts back in.
     [switch]$SkipBrowser,
     [switch]$SkipComputerUse,
     # Print the paths this install would use, as JSON on stdout, and exit
@@ -76,7 +76,7 @@ $script:BoundParams = $PSBoundParameters
 # Under iex, script scope is the caller's session and outlives a run; start
 # each run without the previous run's answer (see Set-LauncherUserPath).
 $script:BinDirOnCallerPath = $null
-$RepoUrl = if ($env:HERMES_REPO_URL) { $env:HERMES_REPO_URL } else { "https://github.com/NousResearch/hermes-agent.git" }
+$RepoUrl = if ($env:A2ASSISTANT_REPO_URL) { $env:A2ASSISTANT_REPO_URL } else { "https://github.com/NousResearch/hermes-agent.git" }
 
 # --- BEGIN GENERATED: bootstrap pins (scripts/gen-bootstrap-pins.py) ---
 # Derived from pm/lock.json. DO NOT EDIT BY HAND:
@@ -117,7 +117,7 @@ $script:GitPinFiles = @{
 # contains a space ("First Last" -> FIRST~1.LAS), a dot, or an accented
 # character. It can then expose %TEMP%, %TMP%, %LOCALAPPDATA%, %APPDATA% and
 # %USERPROFILE% -- plus everything derived from them, including the default
-# HERMES_HOME and InstallDir -- in that short form:
+# A2ASSISTANT_HOME and InstallDir -- in that short form:
 #   C:\Users\FIRST~1.LAS\AppData\Local\Temp
 # PowerShell's FileSystem provider mishandles the aliased component once it
 # reaches a provider cmdlet (Tee-Object -FilePath, Out-File, New-Item,
@@ -327,7 +327,7 @@ function Initialize-ResolvedPaths {
         ConvertTo-LongPath $HermesHome
     } else {
         ConvertTo-LongPath $(
-            if ($env:HERMES_HOME) { $env:HERMES_HOME } else { "$env:LOCALAPPDATA\hermes" }
+            if ($env:A2ASSISTANT_HOME) { $env:A2ASSISTANT_HOME } else { "$env:LOCALAPPDATA\hermes" }
         )
     }
     $resolvedDir = if ($script:BoundParams.ContainsKey('InstallDir')) {
@@ -340,16 +340,16 @@ function Initialize-ResolvedPaths {
     # occupied-directory preflight then refuses every retry after the first
     # run populated it, and `git stash --include-untracked` would sweep the
     # toolchain into the stash. Refuse before anything downloads (#124526)
-    # unless HERMES_RUNTIME_DIR parks the store outside the checkout.
-    # The store lands in HERMES_RUNTIME_DIR when set (Get-PmStoreRoot), else under HermesHome.
-    $cmpStore = if ($env:HERMES_RUNTIME_DIR) { "$env:HERMES_RUNTIME_DIR" } else { "$resolvedHome" }
+    # unless A2ASSISTANT_RUNTIME_DIR parks the store outside the checkout.
+    # The store lands in A2ASSISTANT_RUNTIME_DIR when set (Get-PmStoreRoot), else under HermesHome.
+    $cmpStore = if ($env:A2ASSISTANT_RUNTIME_DIR) { "$env:A2ASSISTANT_RUNTIME_DIR" } else { "$resolvedHome" }
     $cmpStore = $cmpStore.TrimEnd('\', '/')
     $cmpDir = "$resolvedDir".TrimEnd('\', '/')
     $dirPrefix = $cmpDir + [IO.Path]::DirectorySeparatorChar
     $storeInside = $cmpStore -eq $cmpDir -or
         $cmpStore.StartsWith($dirPrefix, [StringComparison]::OrdinalIgnoreCase)
     if ($storeInside) {
-        Fail "HermesHome ($resolvedHome) cannot be the install directory or live inside it ($resolvedDir): the tool store would land inside the checkout. Use a separate -HermesHome, or point HERMES_RUNTIME_DIR outside -InstallDir."
+        Fail "HermesHome ($resolvedHome) cannot be the install directory or live inside it ($resolvedDir): the tool store would land inside the checkout. Use a separate -HermesHome, or point A2ASSISTANT_RUNTIME_DIR outside -InstallDir."
     }
     # The param() variables live in the CALLER's scope, which is the script
     # scope only under -File. Under the documented
@@ -360,7 +360,7 @@ function Initialize-ResolvedPaths {
     # (-File, scriptblock, dot-source).
     Set-Variable -Scope 1 -Name HermesHome -Value $resolvedHome
     Set-Variable -Scope 1 -Name InstallDir -Value $resolvedDir
-    $env:HERMES_HOME = $resolvedHome
+    $env:A2ASSISTANT_HOME = $resolvedHome
 
     # Captured here, where the values are final. The report goes to STDOUT as
     # JSON under -ShowResolvedPaths: on Windows a child's stderr does not
@@ -378,9 +378,9 @@ function Initialize-ResolvedPaths {
 }
 
 # Resolve the pm store root (same resolution as pm's store_root()):
-# $env:HERMES_RUNTIME_DIR wins, else <HermesHome>\tools.
+# $env:A2ASSISTANT_RUNTIME_DIR wins, else <HermesHome>\tools.
 function Get-PmStoreRoot {
-    if ($env:HERMES_RUNTIME_DIR) { return $env:HERMES_RUNTIME_DIR }
+    if ($env:A2ASSISTANT_RUNTIME_DIR) { return $env:A2ASSISTANT_RUNTIME_DIR }
     return (Join-Path $HermesHome "tools")
 }
 
@@ -717,7 +717,7 @@ function Invoke-Native([scriptblock]$Command, [switch]$Utf8Output) {
 # Hermes-Setup -Json driver, E2E transcripts -- keep the full stream those
 # readers parse.
 function Test-QuietOutput {
-    if ($env:CI -or $env:GITHUB_ACTIONS -or $env:HERMES_INSTALL_VERBOSE) { return $false }
+    if ($env:CI -or $env:GITHUB_ACTIONS -or $env:A2ASSISTANT_INSTALL_VERBOSE) { return $false }
     if ($VerbosePreference -ne 'SilentlyContinue') { return $false }
     try { return -not [Console]::IsOutputRedirected } catch { return $false }
 }
@@ -883,7 +883,7 @@ $Stages = @(
     @{ name = "venv"; title = "Create Python environment"; category = "runtime"; needs_user_input = $false },
     @{ name = "python-deps"; title = "Install Python dependencies"; category = "runtime"; needs_user_input = $false },
     @{ name = "config"; title = "Prepare config and skills"; category = "configuration"; needs_user_input = $false },
-    # The shared completion tail -- the same call `hermes update` makes -- so
+    # The shared completion tail -- the same call `a2assistant update` makes -- so
     # the manifest and the run cannot disagree. -IncludeDesktop selects the
     # desktop product inside this stage instead of adding a second build stage.
     @{ name = "products"; title = $ProductTitle; category = "runtime"; needs_user_input = $false },
@@ -900,7 +900,7 @@ function Stage-Prerequisites {
 
 # A treeless checkout must never write a commit-graph: over a graph with changed-path
 # data that lazy-fetches the trees of every unseen commit, in a loop (#127711).
-# gc.auto stays on: `hermes update` folds lazy-fetch packs with `gc --auto`.
+# gc.auto stays on: `a2assistant update` folds lazy-fetch packs with `gc --auto`.
 function Disable-TreelessGraphWrites([string]$Dir) {
     foreach ($key in 'maintenance.commit-graph.enabled', 'gc.writeCommitGraph', 'fetch.writeCommitGraph') {
         Invoke-Native { git -C $Dir config $key false } | Out-Null
@@ -954,7 +954,7 @@ function Get-ChosenChannel {
     return ''
 }
 
-# The latest published stable release (vX.Y.Z), the release `hermes update` resolves for the
+# The latest published stable release (vX.Y.Z), the release `a2assistant update` resolves for the
 # stable channel. github.com's /releases/latest redirect answers when the API quota is spent, and
 # origin's highest vX.Y.Z tag (final tags are pushed by the publication run) when github.com's web
 # endpoints are unreachable but git is not. Returns '' when none answers.
@@ -1008,7 +1008,7 @@ function Receive-StableRelease([string]$Dir, [string]$Release) {
 }
 
 # Stable applies but cannot be reached. A fresh install stops (installing main instead would be a
-# channel nobody chose); a rerun keeps its checkout for `hermes update`, unless stable was asked
+# channel nobody chose); a rerun keeps its checkout for `a2assistant update`, unless stable was asked
 # for by name. $What says what failed.
 function Confirm-StableUnreachable([string]$What) {
     if ((Test-Path (Join-Path $InstallDir '.git')) -and $Channel -cne 'stable') {
@@ -1039,7 +1039,7 @@ function Stage-Repository {
     # initial commit, where stash/checkout abort ("You do not have the initial
     # commit yet", #40998); a killed update or a sync tool can leave one git
     # rejects outright (empty HEAD, a gitdir: file pointing nowhere), where
-    # `hermes update` cannot fetch. Move it aside -- never delete it, it may
+    # `a2assistant update` cannot fetch. Move it aside -- never delete it, it may
     # hold something the user wants -- and clone fresh below.
     if (Test-Path (Join-Path $InstallDir ".git")) {
         Invoke-Native { git -C $InstallDir rev-parse --verify HEAD 2>$null } | Out-Null
@@ -1050,7 +1050,7 @@ function Stage-Repository {
         }
     }
     if (Test-Path (Join-Path $InstallDir ".git")) {
-        # A chosen channel (stable, a preview) owns where this checkout sits: `hermes update`
+        # A chosen channel (stable, a preview) owns where this checkout sits: `a2assistant update`
         # moves it. Switching it to the installer's branch would leave it on main while its
         # channel still says otherwise, and the next check would offer the release as an update.
         # Only an explicit -Commit pin outranks the choice.
@@ -1058,13 +1058,13 @@ function Stage-Repository {
         if (-not $Commit -and -not $Channel) { $chosen = Get-ChosenChannel }
         # A checkout cloned before longpaths was set: a deep path past MAX_PATH fails checkout.
         Invoke-Native { git -C $InstallDir config core.longpaths true } | Out-Null
-        # An explicit HERMES_REPO_URL names the source for reruns too, not
+        # An explicit A2ASSISTANT_REPO_URL names the source for reruns too, not
         # just the first clone.
-        if ($env:HERMES_REPO_URL) {
+        if ($env:A2ASSISTANT_REPO_URL) {
             Invoke-Native { git -C $InstallDir remote set-url origin $RepoUrl }
             if ($LASTEXITCODE) { Fail "cannot point origin at $RepoUrl" git_fetch_failed }
         }
-        # No recorded choice: an official checkout tracks stable, as `hermes update` does.
+        # No recorded choice: an official checkout tracks stable, as `a2assistant update` does.
         if (-not $chosen) {
             # The configured URL, as hermes_cli.update_channel reads it (`remote get-url`
             # applies insteadOf rewrites).
@@ -1097,12 +1097,12 @@ function Stage-Repository {
             Disable-TreelessGraphWrites $InstallDir
             # A treeless (tree:0) checkout from a late-September installer downloads whole
             # directory snapshots again on every history walk (#129514). Fetch its trees once; the
-            # new filter is recorded only after that succeeds, so `hermes update` retries otherwise.
+            # new filter is recorded only after that succeeds, so `a2assistant update` retries otherwise.
             $partialFilter = Invoke-Native { git -C $InstallDir config --get remote.origin.partialclonefilter }
             if ("$partialFilter".Trim() -eq 'tree:0') {
                 Invoke-Logged -MayFail "Fetching directory history once (treeless checkout)" { git -C $InstallDir -c gc.auto=0 -c maintenance.auto=false fetch --refetch --filter=blob:none origin "+refs/heads/${Branch}:refs/remotes/origin/${Branch}" }
                 if ($LASTEXITCODE) {
-                    Write-Warn "could not fetch the directory history; the next hermes update retries it"
+                    Write-Warn "could not fetch the directory history; the next a2assistant update retries it"
                 } else {
                     Invoke-Native { git -C $InstallDir config remote.origin.partialclonefilter blob:none }
                     if ($LASTEXITCODE) { Write-Warn "could not record the blobless filter in $InstallDir" }
@@ -1110,7 +1110,7 @@ function Stage-Repository {
             }
         }
         if ($chosen) {
-            Log "Keeping its checkout: ``hermes update`` moves it (``hermes update --set-channel main`` follows main)"
+            Log "Keeping its checkout: ``a2assistant update`` moves it (``a2assistant update --set-channel main`` follows main)"
             return
         }
         if ($release -and -not (Receive-StableRelease $InstallDir $release)) {
@@ -1120,16 +1120,16 @@ function Stage-Repository {
         if ($release) {
             # A rerun only moves a checkout forward onto the release. Any other move (a main
             # checkout diverged from a release cut on release/*, one already past it, a shallow
-            # one that cannot tell) is `hermes update`'s: it refuses a release that predates the
+            # one that cannot tell) is `a2assistant update`'s: it refuses a release that predates the
             # session stores this checkout wrote (update_downgrade_guard).
             Invoke-Native { git -C $InstallDir merge-base --is-ancestor $release HEAD 2>$null } | Out-Null
             if (-not $LASTEXITCODE) {
-                Log "Keeping its checkout: it already has $release (``hermes update`` moves it to the next release)"
+                Log "Keeping its checkout: it already has $release (``a2assistant update`` moves it to the next release)"
                 return
             }
             Invoke-Native { git -C $InstallDir merge-base --is-ancestor HEAD $release 2>$null } | Out-Null
             if ($LASTEXITCODE) {
-                Log "Keeping its checkout: $release does not descend from it (``hermes update`` decides that move)"
+                Log "Keeping its checkout: $release does not descend from it (``a2assistant update`` decides that move)"
                 return
             }
         } else {
@@ -1155,7 +1155,7 @@ function Stage-Repository {
             Write-Warn "local changes stashed as hermes-install-autostash-$stamp"
         }
         if ($release) {
-            # Detached at the release commit, the way `hermes update` places a stable checkout;
+            # Detached at the release commit, the way `a2assistant update` places a stable checkout;
             # branches (and any commits on them) stay where they are.
             Invoke-Logged "Checking out $release" { git -C $InstallDir checkout --detach $release }
             if ($LASTEXITCODE) { Fail "git checkout failed$(Get-NativeDetail)" git_checkout_failed }
@@ -1180,7 +1180,7 @@ function Stage-Repository {
             # A release cut off the main line, a force-pushed remote, or the
             # user's own commits cannot fast-forward. Every stage below reads
             # files only the new tree has (pm/), so an install left on the old
-            # tree cannot finish -- match the remote the way `hermes update`
+            # tree cannot finish -- match the remote the way `a2assistant update`
             # does, after parking the old tip. Mirrors scripts/install.sh.
             # Keep commits absent from origin in the updater's rescue namespace.
             $droppedText = (Invoke-Native { git -C $InstallDir rev-list --count "origin/$Branch..HEAD" 2>$null })
@@ -1229,7 +1229,7 @@ function Stage-Repository {
         if ($Commit -or $release) { $checkout = @('--no-checkout') }
         # Staging dir + deepest tracked path (~160) pass MAX_PATH (260) once LOCALAPPDATA
         # is longer than ~55 characters (a ~33-character user name), and checkout dies with
-        # "Filename too long". --config lands before checkout and stays for `hermes update`.
+        # "Filename too long". --config lands before checkout and stays for `a2assistant update`.
         $longPaths = @('--config', 'core.longpaths=true')
         try {
             $cloned = $false
@@ -1309,7 +1309,7 @@ function Stage-Venv {
 
 # Delegate the whole python+venv+tools install to pm: stage the pinned uv,
 # let uv locate Python and exit before PM starts. PM provisions the interpreter,
-# the venv (default extras = [all], matching `hermes update`), and the
+# the venv (default extras = [all], matching `a2assistant update`), and the
 # tool store — all hash-verified against pm/lock.json + uv.lock. install.ps1
 # no longer runs `uv sync` directly; pm is the single install authority
 # (the run_locked_uv_sync contract moved into pm/environment.py).
@@ -1430,7 +1430,7 @@ function Set-LauncherUserPath([string]$binDir) {
         Write-Ok "added $binDir to your user PATH (new shells pick it up)"
     }
     # The registry write only reaches shells started later. $env:Path is
-    # process-wide, so prepending it here makes `hermes` resolve in the
+    # process-wide, so prepending it here makes `a2assistant` resolve in the
     # caller's own window whenever this code runs in the caller's process
     # (`irm | iex`, `& .\install.ps1`); a -File child just discards it.
     # Recorded before the first prepend only (the -IncludeDesktop ladder
@@ -1445,7 +1445,7 @@ function Write-PathReloadHint {
     # A script file may be a separate powershell.exe (-File), whose $env:Path
     # dies with it; the parent keeps the PATH it started with until reloaded.
     # iex'd text always runs in the caller's process, where the prepend in
-    # Set-LauncherUserPath already made `hermes` resolvable.
+    # Set-LauncherUserPath already made `a2assistant` resolvable.
     if (-not $script:RunAsFile -or $script:BinDirOnCallerPath -ne $false) { return }
     Log 'Restart your terminal to use hermes, or run: $env:Path = [Environment]::GetEnvironmentVariable(''Path'',''User'') + '';'' + [Environment]::GetEnvironmentVariable(''Path'',''Machine'')'
 }
@@ -1660,7 +1660,7 @@ Initialize-ResolvedPaths
 $env:UV_NO_CONFIG = "1"
 # Children that collapse their own output (windows-build-deps.ps1 under pm,
 # when its stdout is still the console) stream too once -Verbose asked for it.
-if ($VerbosePreference -ne 'SilentlyContinue') { $env:HERMES_INSTALL_VERBOSE = "1" }
+if ($VerbosePreference -ne 'SilentlyContinue') { $env:A2ASSISTANT_INSTALL_VERBOSE = "1" }
 
 if ($ProtocolVersion) { Write-Output 1; exit 0 }
 

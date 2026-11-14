@@ -100,7 +100,7 @@ def test_gateway_approval_captures_routed_profiles_timeout(tmp_path, monkeypatch
     for home, timeout in ((default, 300), (routed, 3600)):
         home.mkdir()
         (home / "config.yaml").write_text(f"approvals:\n  timeout: {timeout}\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(default))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default))
     monkeypatch.setattr(wait_mod._ctx, "_fire_approval_hook", lambda name, **kw: None)
     observed = []
 

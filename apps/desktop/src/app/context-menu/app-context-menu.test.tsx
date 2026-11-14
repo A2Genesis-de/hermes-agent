@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { FileEntryContextMenu, InlineRenameInput } from '@/app/right-sidebar/file-actions'
 import { registerTerminalContextMenu } from '@/app/right-sidebar/terminal/terminal-context-menu'
 import { DirectiveContent } from '@/components/assistant-ui/directive-text'
-import { ContextMenu, ContextMenuTrigger, HERMES_CONTEXT_MENU_TRIGGER_ATTR } from '@/components/ui/context-menu'
+import { A2ASSISTANT_CONTEXT_MENU_TRIGGER_ATTR, ContextMenu, ContextMenuTrigger } from '@/components/ui/context-menu'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { $previewTabs, closeRightRail } from '@/store/preview'
 import { $connection } from '@/store/session'
@@ -170,7 +170,7 @@ describe('AppContextMenu', () => {
 
   // The skip-marked and radix-surface tests below cover these markers in
   // Electron; in the Webapp a late marker check would also cancel the native menu.
-  it.each([HERMES_CONTEXT_MENU_TRIGGER_ATTR, 'data-slot="context-menu-trigger"', 'data-context-menu-skip'])(
+  it.each([A2ASSISTANT_CONTEXT_MENU_TRIGGER_ATTR, 'data-slot="context-menu-trigger"', 'data-context-menu-skip'])(
     'leaves the gesture untouched in the browser Webapp for a surface owning %s',
     marker => {
       installBridge()
@@ -835,6 +835,6 @@ describe('ContextMenuTrigger asChild', () => {
     const footer = screen.getByText('bar')
 
     expect(footer.getAttribute('data-slot')).toBe('statusbar')
-    expect(footer.hasAttribute(HERMES_CONTEXT_MENU_TRIGGER_ATTR)).toBe(true)
+    expect(footer.hasAttribute(A2ASSISTANT_CONTEXT_MENU_TRIGGER_ATTR)).toBe(true)
   })
 })

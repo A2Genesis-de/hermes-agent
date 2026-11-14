@@ -12,7 +12,7 @@ removed.
 
 ## What is in it
 
-- **Surfaces:** CLI and TUI (`hermes`, alias `a2assistant`), desktop app (macOS, Apple Silicon),
+- **Surfaces:** CLI and TUI (`a2assistant`; `hermes` is a deprecated alias), desktop app (macOS, Apple Silicon),
   gateway as a LaunchAgent with Telegram and the local API server, web dashboard.
 - **Models:** any OpenAI-compatible endpoint (`provider: custom`), LM Studio (`lmstudio`, used as
   fallback) and Anthropic-compatible endpoints.
@@ -28,22 +28,27 @@ removed.
 git clone https://github.com/A2Genesis-de/a2assistant.git
 cd a2assistant
 source ./activate            # bash/zsh; provisions the pinned toolchain and the venv
-hermes --help
+a2assistant --help
 ```
 
-Use an isolated `HERMES_HOME` while developing. Commands, architecture and rules: [AGENTS.md](AGENTS.md).
+Use an isolated `A2ASSISTANT_HOME` while developing. Commands, architecture and rules: [AGENTS.md](AGENTS.md).
 Project knowledge (decisions, pitfalls, later work): [docs/knowledge/index.md](docs/knowledge/index.md).
 
 ## Deployment
 
-`a2-macbook` runs a git clone in `~/.hermes/hermes-agent` on channel `main`:
+`a2-macbook` runs a git clone in `~/.a2assistant/app` on channel `main`:
 
 ```bash
-hermes update --yes
+a2assistant update --yes
 ```
 
-`hermes update` fetches `origin/main`, reinstalls dependencies, rebuilds the desktop app and
-restarts the gateway (LaunchAgent `ai.hermes.gateway`). Never edit the clone on the MacBook.
+`a2assistant update` fetches `origin/main`, reinstalls dependencies, rebuilds the desktop app and
+restarts the gateway (LaunchAgent `de.a2genesis.a2assistant.gateway`). Never edit the clone on the
+MacBook.
+
+Installs from before 2026-11-14 used `~/.hermes`, `HERMES_*` and `ai.hermes.gateway`.
+`a2assistant migrate` (or the next `a2assistant update`) moves them; `--dry-run` shows the plan and
+`--rollback` restores the previous layout. Details: [docs/knowledge/rename.md](docs/knowledge/rename.md).
 
 ## Based on Hermes Agent
 

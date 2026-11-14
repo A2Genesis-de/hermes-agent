@@ -15,15 +15,15 @@ from hermes_cli.kanban_parser import build_parser
     [(None, None, "alpha"), ("beta", None, "beta"), ("alpha", "beta", "beta")],
 )
 def test_watch_names_resolved_board(tmp_path, monkeypatch, capsys, environment, explicit, expected):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_KANBAN_HOME", str(tmp_path))
-    monkeypatch.delenv("HERMES_KANBAN_DB", raising=False)
-    monkeypatch.delenv("HERMES_KANBAN_BOARD", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_HOME", str(tmp_path))
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_DB", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_BOARD", raising=False)
     kb.create_board("alpha")
     kb.create_board("beta")
     kb.set_current_board("alpha")
     if environment:
-        monkeypatch.setenv("HERMES_KANBAN_BOARD", environment)
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_BOARD", environment)
     parser = argparse.ArgumentParser()
     build_parser(parser.add_subparsers())
     argv = ["kanban"] + (["--board", explicit] if explicit else []) + ["watch"]

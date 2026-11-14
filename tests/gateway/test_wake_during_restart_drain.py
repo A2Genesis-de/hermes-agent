@@ -44,7 +44,7 @@ def wake_route():
 async def test_kanban_wake_during_restart_drain_runs_after_restart(
     tmp_path, monkeypatch
 ):
-    monkeypatch.setenv("HERMES_KANBAN_DB", str(tmp_path / "board.db"))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_DB", str(tmp_path / "board.db"))
     runner, adapter, source, turns = wake_route()
     with kbc.connect() as conn:
         tid = kb.create_task(conn, title="long task", assignee="worker")

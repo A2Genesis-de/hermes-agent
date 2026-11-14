@@ -54,7 +54,7 @@ def _resolve_prefill_messages_file(config: dict[str, Any]) -> str:
     from agent.session_client_env import session_env
     agent_cfg = config.get("agent", {})
     return (
-        session_env("HERMES_PREFILL_MESSAGES_FILE").strip()
+        session_env("A2ASSISTANT_PREFILL_MESSAGES_FILE").strip()
         or str(config.get("prefill_messages_file", "") or "").strip()
         or (str(agent_cfg.get("prefill_messages_file", "") or "").strip() if isinstance(agent_cfg, dict) else "")
     )
@@ -170,13 +170,13 @@ def _mirror_config_to_env(defaults, _file_has_terminal_config):
     if isinstance(security_config, dict):
         redact = security_config.get("redact_secrets")
         if redact is not None:
-            os.environ["HERMES_REDACT_SECRETS"] = str(redact).lower()
+            os.environ["A2ASSISTANT_REDACT_SECRETS"] = str(redact).lower()
 
     # Session-search index knobs (hermes_state reads the env carriers).
     sessions_config = defaults.get("sessions", {})
     if isinstance(sessions_config, dict):
         if "search_slow_ms" in sessions_config:
-            os.environ["HERMES_SEARCH_SLOW_MS"] = str(sessions_config["search_slow_ms"])
+            os.environ["A2ASSISTANT_SEARCH_SLOW_MS"] = str(sessions_config["search_slow_ms"])
 
 
 def _cli_config_defaults():
@@ -253,9 +253,9 @@ def _merge_file_config(defaults: dict[str, Any], file_config: dict[str, Any]) ->
 
 
 def load_cli_config() -> dict[str, Any]:
-    """~/.hermes/config.yaml over built-in defaults; env vars win.
+    """~/.a2assistant/config.yaml over built-in defaults; env vars win.
 
-    ``HERMES_IGNORE_USER_CONFIG=1`` skips the user config entirely (``.env`` still loads).
+    ``A2ASSISTANT_IGNORE_USER_CONFIG=1`` skips the user config entirely (``.env`` still loads).
     """
     from cli import _cli_config_defaults, _hermes_home, _merge_file_config, _mirror_config_to_env
     from hermes_cli.config_backend import config_exists, read_config_doc
@@ -266,7 +266,7 @@ def load_cli_config() -> dict[str, Any]:
     # Only a file's terminal section may overwrite terminal env vars already set by .env.
     _file_has_terminal_config = False
 
-    if os.environ.get("HERMES_IGNORE_USER_CONFIG") != "1" and config_exists(config_path):
+    if os.environ.get("A2ASSISTANT_IGNORE_USER_CONFIG") != "1" and config_exists(config_path):
         try:
             from hermes_cli.config import _normalize_root_model_keys
 

@@ -207,7 +207,7 @@ def _readable_file(raw: str, task_id: Optional[str]) -> str:
     from gateway.session_context import get_session_env
 
     candidate = _backend_path(raw, task_id)
-    allowed = validate_media_delivery_path(candidate, session_key=get_session_env("HERMES_SESSION_KEY", ""))
+    allowed = validate_media_delivery_path(candidate, session_key=get_session_env("A2ASSISTANT_SESSION_KEY", ""))
     if allowed:
         return allowed
     if not Path(candidate).is_file():

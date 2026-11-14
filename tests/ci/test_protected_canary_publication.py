@@ -102,10 +102,10 @@ def canary(tmp_path, r2_server, monkeypatch):
            "FIXTURE_RELEASE": str(release_state), "FIXTURE_WINDOWS_VERSION": windows_version, "GITHUB_ACTIONS": "true",
            "GITHUB_EVENT_NAME": "workflow_dispatch", "GITHUB_REPOSITORY": "NousResearch/hermes-agent",
            "GITHUB_WORKFLOW_REF": "NousResearch/hermes-agent/.github/workflows/desktop-bundled-release.yml@refs/heads/main",
-           "RELEASE_TAG": tag, "TAG": tag, "HERMES_PAYLOAD_TAG": tag,
+           "RELEASE_TAG": tag, "TAG": tag, "A2ASSISTANT_PAYLOAD_TAG": tag,
            "RELEASE_TAG_OBJECT": tag_object,
-           "RELEASE_COMMIT": commit, "RELEASE_PHASE": "", "HERMES_DESKTOP_VARIANT": "bundled",
-           "HERMES_BUILD_COMMIT": "", "CHANNEL_BUILD": "", "R2_DISPOSABLE_RUN": "",
+           "RELEASE_COMMIT": commit, "RELEASE_PHASE": "", "A2ASSISTANT_DESKTOP_VARIANT": "bundled",
+           "A2ASSISTANT_BUILD_COMMIT": "", "CHANNEL_BUILD": "", "R2_DISPOSABLE_RUN": "",
            "CLOUDFLARE_R2_PUBLIC_URL": base,
            "RELEASE_NEEDS": json.dumps({name: {"result": "success"} for name in canary_job()["needs"]})}
 
@@ -149,13 +149,13 @@ def native_leg(root, identity, env, platform, arch):
 ])
 def test_canary_metadata_is_recorded_and_receipt_bound(canary, r2_server, platform, variant, phase, commit_build):
     clone, identity, original_env, run = canary
-    env = {**original_env, "HERMES_DESKTOP_VARIANT": variant, "RELEASE_PHASE": phase}
+    env = {**original_env, "A2ASSISTANT_DESKTOP_VARIANT": variant, "RELEASE_PHASE": phase}
     if phase == "candidate":
-        env["RELEASE_TAG"] = env["HERMES_PAYLOAD_TAG"] = "v0.1.2"
+        env["RELEASE_TAG"] = env["A2ASSISTANT_PAYLOAD_TAG"] = "v0.1.2"
         env["FIXTURE_WINDOWS_VERSION"] = "0.1.2.0"
     if commit_build:
-        env["RELEASE_TAG"] = env["HERMES_PAYLOAD_TAG"] = ""
-        env["HERMES_BUILD_COMMIT"] = env["RELEASE_COMMIT"]
+        env["RELEASE_TAG"] = env["A2ASSISTANT_PAYLOAD_TAG"] = ""
+        env["A2ASSISTANT_BUILD_COMMIT"] = env["RELEASE_COMMIT"]
     root = clone / "apps/desktop/release"
     arch = "x64" if platform == "win32" else "arm64"
     native_leg(root, identity, env, platform, arch)
@@ -287,7 +287,7 @@ def test_published_canary_workflow_advances_only_after_every_gate(canary, r2_ser
     _git("tag", "-a", newer_tag, "-m", '{"schema":1}', cwd=clone)
     newer_object = _git("rev-parse", f"{newer_tag}^{{tag}}", cwd=clone)
     _git("push", "origin", newer_tag, cwd=clone)
-    newer = {**env, "RELEASE_TAG": newer_tag, "HERMES_PAYLOAD_TAG": newer_tag,
+    newer = {**env, "RELEASE_TAG": newer_tag, "A2ASSISTANT_PAYLOAD_TAG": newer_tag,
              "RELEASE_TAG_OBJECT": newer_object,
              "FIXTURE_WINDOWS_VERSION": "26.913.0.1100"}
     stage_canary(clone, identity, newer, run)

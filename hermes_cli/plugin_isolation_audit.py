@@ -14,7 +14,7 @@ What it cannot see in a process boundary it flags:
 * gateway platform adapters (``kind: platform``), model-provider profiles that build their own SDK
   client (``create_client``), and dashboard APIs that stream (the host bridge buffers responses).
 
-``hermes plugins validate`` prints the verdict.
+``a2assistant plugins validate`` prints the verdict.
 """
 
 from __future__ import annotations

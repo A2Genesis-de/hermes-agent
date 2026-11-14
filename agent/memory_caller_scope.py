@@ -5,7 +5,7 @@ its own provider instance, bound by ``initialize_all`` to one profile home; the 
 the rule is the multiplexing contract in ``agent/memory_provider.py``. The manager's half lives here:
 
 - a tool call or lifecycle hook runs only when the caller explicitly names the profile the manager was
-  initialized for (the context's HERMES_HOME override, or the home its secret scope was built for).
+  initialized for (the context's A2ASSISTANT_HOME override, or the home its secret scope was built for).
   On a multiplexed process a caller that names no profile is refused, never resolved to the process's
   own profile; a single-profile process falls back to its home as before;
 - one provider instance serves one profile: a plugin that hands several agents the same instance is
@@ -35,7 +35,7 @@ _claims_lock = threading.RLock()  # reentrant: a weakref callback can fire from 
 
 def refused_tool_message(tool_name: str) -> str:
     """What the model/chat sees for a refused memory tool call: no check name, no home paths."""
-    return f"Memory tool '{tool_name}' refused. Ask the operator to check `hermes logs errors`."
+    return f"Memory tool '{tool_name}' refused. Ask the operator to check `a2assistant logs errors`."
 
 
 def _home_key(home: Any) -> Optional[str]:
@@ -49,7 +49,7 @@ def _home_key(home: Any) -> Optional[str]:
 
 
 def _explicit_caller_home() -> Optional[str]:
-    """The profile the caller's context names: its HERMES_HOME override, else the home its secret
+    """The profile the caller's context names: its A2ASSISTANT_HOME override, else the home its secret
     scope was built for. None when the context names no profile (``get_hermes_home()`` would only fall
     back to the process home, which proves nothing on a multiplexed process)."""
     from agent.secret_scope import current_secret_scope_home
@@ -138,7 +138,7 @@ def claim_instance(provider: Any, home: Any) -> bool:
 
 
 def in_owner_home(bound: Optional[dict[str, Any]], fn: Callable[[], Any]) -> Callable[[], Any]:
-    """``fn`` run under the owning profile's HERMES_HOME override, set explicitly: a background
+    """``fn`` run under the owning profile's A2ASSISTANT_HOME override, set explicitly: a background
     worker must not depend on the submitter's context having carried it."""
     home = (bound or {}).get("hermes_home")
     if not home:

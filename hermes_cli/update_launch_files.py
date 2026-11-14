@@ -1,4 +1,4 @@
-"""Rewrite the launch files Hermes owns before ``hermes update`` starts any gateway.
+"""Rewrite the launch files Hermes owns before ``a2assistant update`` starts any gateway.
 
 A service manager starts a gateway from the definition it holds, so a unit, plist or task script
 left from the previous release starts the new code under the old command line and environment.
@@ -8,16 +8,17 @@ gateway start or restart.
 
 Each file is independent: a failure is reported as the ``launch_files`` follow-up and the rest
 are still rewritten. A failure never keeps the source-update tail pending: every
-``hermes gateway start``/``restart`` and every gateway boot regenerates its own file again.
+``a2assistant gateway start``/``restart`` and every gateway boot regenerates its own file again.
 """
 
 from __future__ import annotations
 
+from hermes_constants import unset_env
 import os
 import sys
 
 FOLLOWUP_STEP = "launch_files"
-_RETRY = "the next `hermes update` or `hermes gateway restart` rewrites it"
+_RETRY = "the next `a2assistant update` or `a2assistant gateway restart` rewrites it"
 
 
 def refresh_launch_files() -> None:
@@ -49,18 +50,18 @@ def refresh_launch_files() -> None:
 
 
 def _refresh_systemd_system_unit() -> None:
-    """The invoking home's system unit; the refresh adopts the unit's ``HERMES_HOME`` into the
+    """The invoking home's system unit; the refresh adopts the unit's ``A2ASSISTANT_HOME`` into the
     environment, which the rest of the update must not inherit."""
     from hermes_cli.gateway import refresh_systemd_unit_if_needed
 
-    launch_home = os.environ.get("HERMES_HOME")
+    launch_home = os.environ.get("A2ASSISTANT_HOME")
     try:
         refresh_systemd_unit_if_needed(system=True)
     finally:
         if launch_home is None:
-            os.environ.pop("HERMES_HOME", None)
+            unset_env(os.environ, "HOME")
         else:
-            os.environ["HERMES_HOME"] = launch_home
+            os.environ["A2ASSISTANT_HOME"] = launch_home
 
 
 def _refreshers():

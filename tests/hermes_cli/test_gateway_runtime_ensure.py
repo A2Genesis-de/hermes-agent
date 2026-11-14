@@ -17,7 +17,7 @@ def test_unmanaged_runtime_drops_session_config_bypass_flags(tmp_path, monkeypat
     from hermes_cli import gateway_runtime_start as start
     from hermes_cli import gateway_windows
 
-    flags = ('HERMES_SAFE_MODE', 'HERMES_IGNORE_USER_CONFIG')
+    flags = ('A2ASSISTANT_SAFE_MODE', 'A2ASSISTANT_IGNORE_USER_CONFIG')
     for key in flags:
         monkeypatch.setenv(key, '1')
     monkeypatch.setenv('RUNTIME_TEST_SENTINEL', 'retained')
@@ -85,8 +85,8 @@ def test_installed_service_start_is_nonmutating_and_failed_manager_never_spawns(
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     home = tmp_path / "profile"
     home.mkdir(mode=0o700)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    unit = tmp_path / ".config/systemd/user" / f"hermes-gateway-{service_suffix(home)}.service"
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    unit = tmp_path / ".config/systemd/user" / f"a2assistant-gateway-{service_suffix(home)}.service"
     unit.parent.mkdir(parents=True)
     unit.write_text("[Service]\nExecStart=/owned/inert/gateway\n", encoding="utf-8")
     original = unit.read_bytes()
@@ -95,7 +95,7 @@ def test_installed_service_start_is_nonmutating_and_failed_manager_never_spawns(
     from hermes_cli.gateway_runtime_service_identity import SYSTEMD_IDENTITY_PROPERTIES
     identity = {key: "" for key in SYSTEMD_IDENTITY_PROPERTIES}
     identity.update(User=str(os.getuid()), DynamicUser="no",
-                    Environment=f'"HERMES_HOME={home}"',
+                    Environment=f'"A2ASSISTANT_HOME={home}"',
                     ExecStart=f'{{ path={sys.executable} ; argv[]={sys.executable} -m hermes_cli.main gateway run ; ignore_errors=no ; }}')
     effective = "\n".join(f"{key}={value}" for key, value in identity.items())
     helper.write_text('#!' + sys.executable + '\nimport json,sys,time\nfrom pathlib import Path\n'
@@ -147,7 +147,7 @@ def test_public_ensure_json_deadline_and_invalid_invocation(tmp_path):
     (home / ".hermes-update-in-progress").write_text(
         f"{os.getpid()}\n{int(time.time())}\nct:{process_create_time():.3f}\nrun:private-token-not-for-stdout\n",
         encoding="utf-8")
-    env = {**os.environ, "HERMES_HOME": str(home)}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home)}
     result = subprocess.run([sys.executable, "-m", "hermes_cli.main", "gateway", "ensure", "--json"],
                             env=env, stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=15, check=False)
     assert result.returncode == 6, result.stderr
@@ -207,13 +207,13 @@ def test_unmanaged_child_uses_explicit_home_and_survives_launcher_exit(tmp_path,
         " if 'hermes_cli.main' not in argv: return real(argv, **kw)  # e.g. git from the env builder\n"
         " assert argv[-3:] == ['gateway','run','--quiet']\n"
         " assert '--replace' not in argv and '--force' not in argv\n"
-        " assert kw['env']['HERMES_HOME'] == str(home)\n"
-        " code=\"import os,json,time; from pathlib import Path; h=Path(os.environ['HERMES_HOME']); (h/'child.json').write_text(json.dumps({'pid':os.getpid(),'sid':os.getsid(0),'home':str(h)}));\\nwhile not (h/'exit').exists(): time.sleep(.02)\"\n"
+        " assert kw['env']['A2ASSISTANT_HOME'] == str(home)\n"
+        " code=\"import os,json,time; from pathlib import Path; h=Path(os.environ['A2ASSISTANT_HOME']); (h/'child.json').write_text(json.dumps({'pid':os.getpid(),'sid':os.getsid(0),'home':str(h)}));\\nwhile not (h/'exit').exists(): time.sleep(.02)\"\n"
         " return real([sys.executable,'-c',code], **kw)\n"
         "start.subprocess.Popen=boundary\n"
         "child=spawn_unmanaged_gateway(home, deadline=time.monotonic()+5)\n"
         "print(child.pid, flush=True)\n", encoding="utf-8")
-    env = {**os.environ, "PYTHONPATH": str(Path.cwd()), "HERMES_HOME": str(tmp_path / "wrong")}
+    env = {**os.environ, "PYTHONPATH": str(Path.cwd()), "A2ASSISTANT_HOME": str(tmp_path / "wrong")}
     result = subprocess.run([sys.executable, str(launcher)], env=env, stdin=subprocess.DEVNULL,
                             capture_output=True, text=True, timeout=10, check=False)
     try:
@@ -245,14 +245,14 @@ def test_unmanaged_runtime_does_not_inherit_client_launch_flags(tmp_path, monkey
         + f'sys.path.insert(0, {str(repo)!r})\n'
         + 'from tools import approval\n'
         + f'Path({str(witness)!r}).write_text(json.dumps('
-        + "{'yolo': approval._YOLO_MODE_FROZEN, 'ignore_rules': os.environ.get('HERMES_IGNORE_RULES'),"
+        + "{'yolo': approval._YOLO_MODE_FROZEN, 'ignore_rules': os.environ.get('A2ASSISTANT_IGNORE_RULES'),"
         + " 'sentinel': os.environ.get('RUNTIME_TEST_SENTINEL')}))\n",
         encoding='utf-8',
     )
     executable.chmod(0o700)
     monkeypatch.setattr(sys, 'executable', str(executable))
-    monkeypatch.setenv('HERMES_YOLO_MODE', '1')
-    monkeypatch.setenv('HERMES_IGNORE_RULES', '1')
+    monkeypatch.setenv('A2ASSISTANT_YOLO_MODE', '1')
+    monkeypatch.setenv('A2ASSISTANT_IGNORE_RULES', '1')
     monkeypatch.setenv('RUNTIME_TEST_SENTINEL', 'retained')
     child = start.spawn_unmanaged_gateway(home, deadline=time.monotonic() + 5)
     try:
@@ -262,7 +262,7 @@ def test_unmanaged_runtime_does_not_inherit_client_launch_flags(tmp_path, monkey
             child.kill()
             child.wait(timeout=5)
     assert json.loads(witness.read_text()) == {'yolo': False, 'ignore_rules': None, 'sentinel': 'retained'}
-    assert os.environ['HERMES_YOLO_MODE'] == os.environ['HERMES_IGNORE_RULES'] == '1'
+    assert os.environ['A2ASSISTANT_YOLO_MODE'] == os.environ['A2ASSISTANT_IGNORE_RULES'] == '1'
 
 
 @pytest.mark.platforms("linux")
@@ -354,7 +354,7 @@ def test_unmanaged_root_home_child_ignores_sticky_active_profile(tmp_path, monke
         assert argv[:3] == [sys.executable, "-m", "hermes_cli.main"]
         # Same argv and env as the real child; the module-import bootstrap is what resolves the profile.
         code = ("import json, os, sys\nsys.argv = ['hermes', *sys.argv[1:]]\nimport hermes_cli.main\n"
-                f"open({str(witness)!r}, 'w').write(json.dumps({{'home': os.environ['HERMES_HOME'], 'argv': sys.argv}}))")
+                f"open({str(witness)!r}, 'w').write(json.dumps({{'home': os.environ['A2ASSISTANT_HOME'], 'argv': sys.argv}}))")
         return real([sys.executable, "-c", code, *argv[3:]], **kwargs)
 
     monkeypatch.setattr(start.subprocess, "Popen", boundary)
@@ -459,7 +459,7 @@ def _standalone_host(tmp_path, monkeypatch, record):
     return home, spawned
 
 
-_REASON = "duplicate Telegram token; run hermes gateway migrate --multiplex"
+_REASON = "duplicate Telegram token; run a2assistant gateway migrate --multiplex"
 
 
 def test_ensure_reports_a_standalone_host_reason_for_an_unserved_named_profile(tmp_path, monkeypatch):

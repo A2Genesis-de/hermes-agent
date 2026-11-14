@@ -75,7 +75,7 @@ class TestCategoryNamespaceRecursion:
         """``<root>/image_gen/openai/plugin.yaml`` is discovered with key
         ``image_gen/openai`` when the ``image_gen`` parent has no manifest."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["A2ASSISTANT_HOME"])  # set by hermetic conftest fixture
         user_plugins = hermes_home / "plugins"
 
         _write_plugin(user_plugins, ["image_gen", "openai"])
@@ -98,7 +98,7 @@ class TestCategoryNamespaceRecursion:
         two segments.
         """
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["A2ASSISTANT_HOME"])  # set by hermetic conftest fixture
         user_plugins = hermes_home / "plugins"
 
         _write_plugin(user_plugins, ["a", "b", "c"])
@@ -127,7 +127,7 @@ class TestForeignHarnessManifestDirs:
         They must be skipped silently; the plugin's real Hermes manifest
         (``.hermes-plugin/plugin.yaml``) is still discovered."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["A2ASSISTANT_HOME"])  # set by hermetic conftest fixture
         sp = hermes_home / "plugins" / "superpowers"
         (sp / ".hermes-plugin").mkdir(parents=True)
         (sp / ".hermes-plugin" / "plugin.yaml").write_text(
@@ -166,7 +166,7 @@ class TestForeignHarnessManifestDirs:
         """A genuinely broken portable plugin.json (not a foreign-harness
         convention directory) must still surface its parse warning."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["A2ASSISTANT_HOME"])  # set by hermetic conftest fixture
         broken = hermes_home / "plugins" / "broken-portable"
         broken.mkdir(parents=True)
         (broken / "plugin.json").write_text(json.dumps({"name": "broken"}))
@@ -187,7 +187,7 @@ class TestForeignHarnessManifestDirs:
 class TestKindField:
     def test_unknown_kind_falls_back_to_standalone(self, tmp_path, monkeypatch, caplog):
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["A2ASSISTANT_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
             hermes_home / "plugins",
             ["p1"],
@@ -213,7 +213,7 @@ class TestBackendGate:
         """User-installed ``kind: backend`` plugins still require opt-in —
         they're not trusted by default."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["A2ASSISTANT_HOME"])  # set by hermetic conftest fixture
         user_plugins = hermes_home / "plugins"
 
         _write_plugin(
@@ -235,7 +235,7 @@ class TestBackendGate:
         """``kind: exclusive`` plugins are recorded but not loaded — the
         category's own discovery system handles them (memory today)."""
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["A2ASSISTANT_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
             hermes_home / "plugins",
             ["some-backend"],
@@ -287,7 +287,7 @@ class TestRegisterImageGenProvider:
                 return {"success": True, "image": "test://fake"}
 
         import os
-        hermes_home = Path(os.environ["HERMES_HOME"])  # set by hermetic conftest fixture
+        hermes_home = Path(os.environ["A2ASSISTANT_HOME"])  # set by hermetic conftest fixture
         _write_plugin(
             hermes_home / "plugins",
             ["my-img-plugin"],

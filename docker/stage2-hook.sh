@@ -17,7 +17,7 @@
 
 set -eu
 
-HERMES_HOME="${HERMES_HOME:-/opt/data}"
+A2ASSISTANT_HOME="${A2ASSISTANT_HOME:-/opt/data}"
 INSTALL_DIR="/opt/hermes"
 
 # Drop to hermes via s6-setuidgid, but skip it when already non-root.
@@ -32,18 +32,18 @@ as_hermes() { [ "$(id -u)" = 0 ] || { "$@"; return; }; s6-setuidgid hermes "$@";
 # ownership, config seeding) requires root, and it is skipped when the container
 # starts non-root. The baked install tree under /opt/hermes is intentionally
 # root-owned and non-writable; mutable runtime state must live under
-# $HERMES_HOME. An arbitrary `--user` UID therefore cannot repair or populate
+# $A2ASSISTANT_HOME. An arbitrary `--user` UID therefore cannot repair or populate
 # the data volume, and startup fails with EACCES. See #34837 for the
 # supervision-tree side of this.
 #
 # The supported way to match host-side ownership is to start as root (the image
-# default) and pass HERMES_UID/HERMES_GID — or the PUID/PGID aliases — which the
+# default) and pass A2ASSISTANT_UID/A2ASSISTANT_GID — or the PUID/PGID aliases — which the
 # remap block below consumes via usermod/groupmod + targeted chown. That gives
 # the exact same outcome (files owned by your host UID) without breaking s6.
 #
 # preinit runs setuid-root (euid=0) but cont-init.d hooks run with the real UID
 # the container was started as, so `id -u` here is the host UID (e.g. 1000), and
-# `id -u hermes` is the unremapped build UID (10000) because no root-only remap
+# `id -u a2assistant` is the unremapped build UID (10000) because no root-only remap
 # could run. root starts (id -u = 0) and the normal supervised drop to the
 # hermes UID are both unaffected.
 cur_uid="$(id -u)"
@@ -60,7 +60,7 @@ will fail.
 To make container-written files match your HOST user, DON'T use --user.
 Start the container as root (the default) and pass your host UID/GID instead:
 
-    docker run -e HERMES_UID=\$(id -u) -e HERMES_GID=\$(id -g) ...
+    docker run -e A2ASSISTANT_UID=\$(id -u) -e A2ASSISTANT_GID=\$(id -g) ...
 
 NAS users (Synology / unRAID / UGOS) can use the PUID/PGID aliases:
 
@@ -73,17 +73,17 @@ EOF
     exit 1
 fi
 
-# --- Bootstrap HERMES_HOME as root ---
+# --- Bootstrap A2ASSISTANT_HOME as root ---
 # Create the directory (and any missing parents) while we still have root
 # privileges so the chown checks below see real metadata and the later
 # `s6-setuidgid hermes mkdir -p` block doesn't EACCES on root-owned
-# ancestors. Without this, custom HERMES_HOME paths whose parents only
-# root can create (e.g. `HERMES_HOME=/home/hermes/.hermes` in a Compose
+# ancestors. Without this, custom A2ASSISTANT_HOME paths whose parents only
+# root can create (e.g. `A2ASSISTANT_HOME=/home/hermes/.hermes` in a Compose
 # file, or any path under a fresh / not pre-populated by the image)
 # fail on first boot with `mkdir: cannot create directory '/...': Permission
 # denied` and the cont-init hook exits non-zero. Idempotent — `mkdir -p`
 # is a no-op if the dir already exists. (#18482, salvages #18488)
-mkdir -p "$HERMES_HOME"
+mkdir -p "$A2ASSISTANT_HOME"
 
 # Numeric UID/GID validation: must be digits only, non-root, 1-65534.
 # NAS hosts such as Unraid commonly use low non-root IDs (99:100).
@@ -95,24 +95,24 @@ validate_uid_gid() {
 }
 
 # --- UID/GID remap ---
-# Accept PUID/PGID as aliases for HERMES_UID/HERMES_GID.  NAS users (UGOS,
+# Accept PUID/PGID as aliases for A2ASSISTANT_UID/A2ASSISTANT_GID.  NAS users (UGOS,
 # Synology, unRAID) expect the LinuxServer.io PUID/PGID convention and
 # bind-mount /opt/data from a host directory owned by their own UID; without
 # this alias those vars are silently ignored and the s6-setuidgid drop to
-# UID 10000 leaves the runtime unable to read the volume.  HERMES_UID/
-# HERMES_GID still win when both are set.  See #15290, salvages #25872.
-HERMES_UID="${HERMES_UID:-${PUID:-}}"
-HERMES_GID="${HERMES_GID:-${PGID:-}}"
+# UID 10000 leaves the runtime unable to read the volume.  A2ASSISTANT_UID/
+# A2ASSISTANT_GID still win when both are set.  See #15290, salvages #25872.
+A2ASSISTANT_UID="${A2ASSISTANT_UID:-${PUID:-}}"
+A2ASSISTANT_GID="${A2ASSISTANT_GID:-${PGID:-}}"
 
-if [ -n "${HERMES_UID:-}" ] && validate_uid_gid "$HERMES_UID" && [ "$HERMES_UID" != "$(id -u hermes)" ]; then
-    echo "[stage2] Changing hermes UID to $HERMES_UID"
-    usermod -u "$HERMES_UID" hermes
+if [ -n "${A2ASSISTANT_UID:-}" ] && validate_uid_gid "$A2ASSISTANT_UID" && [ "$A2ASSISTANT_UID" != "$(id -u hermes)" ]; then
+    echo "[stage2] Changing hermes UID to $A2ASSISTANT_UID"
+    usermod -u "$A2ASSISTANT_UID" hermes
 fi
-if [ -n "${HERMES_GID:-}" ] && validate_uid_gid "$HERMES_GID" && [ "$HERMES_GID" != "$(id -g hermes)" ]; then
-    echo "[stage2] Changing hermes GID to $HERMES_GID"
+if [ -n "${A2ASSISTANT_GID:-}" ] && validate_uid_gid "$A2ASSISTANT_GID" && [ "$A2ASSISTANT_GID" != "$(id -g hermes)" ]; then
+    echo "[stage2] Changing hermes GID to $A2ASSISTANT_GID"
     # -o allows non-unique GID (e.g. macOS GID 20 "staff" may already
     # exist as "dialout" in the Debian-based container image).
-    groupmod -o -g "$HERMES_GID" hermes 2>/dev/null || true
+    groupmod -o -g "$A2ASSISTANT_GID" hermes 2>/dev/null || true
 fi
 
 # --- Docker socket group membership (docker-in-docker / DooD) ---
@@ -172,9 +172,9 @@ for sock in /var/run/docker.sock /run/docker.sock; do
 done
 
 # --- Fix ownership of data volume ---
-# When HERMES_UID is remapped or the top-level $HERMES_HOME isn't owned by
+# When A2ASSISTANT_UID is remapped or the top-level $A2ASSISTANT_HOME isn't owned by
 # the runtime hermes UID, restore ownership to hermes — but ONLY for the
-# directories hermes actually writes to. The full $HERMES_HOME may be a
+# directories hermes actually writes to. The full $A2ASSISTANT_HOME may be a
 # host-mounted bind containing unrelated user files; `chown -R` would
 # silently destroy host ownership of those (see issue #19788).
 #
@@ -184,7 +184,7 @@ actual_hermes_uid=$(id -u hermes)
 
 path_has_symlink_component() {
     path="$1"
-    root="${2:-$HERMES_HOME}"
+    root="${2:-$A2ASSISTANT_HOME}"
     while [ -n "$path" ] && [ "$path" != "/" ]; do
         if [ -L "$path" ]; then
             return 0
@@ -222,34 +222,34 @@ chown_hermes_tree() {
 
 tree_has_non_hermes_owner() {
     target="$1"
-    find "$target" \( ! -user hermes -o ! -group hermes \) -print -quit 2>/dev/null | grep -q .
+    find "$target" \( ! -user a2assistant -o ! -group hermes \) -print -quit 2>/dev/null | grep -q .
 }
 
 needs_chown=false
-if [ "$(stat -c %u "$HERMES_HOME" 2>/dev/null)" != "$actual_hermes_uid" ]; then
+if [ "$(stat -c %u "$A2ASSISTANT_HOME" 2>/dev/null)" != "$actual_hermes_uid" ]; then
     needs_chown=true
 fi
 if [ "$needs_chown" = true ]; then
-    echo "[stage2] Fixing ownership of $HERMES_HOME (targeted) to hermes ($actual_hermes_uid)"
+    echo "[stage2] Fixing ownership of $A2ASSISTANT_HOME (targeted) to hermes ($actual_hermes_uid)"
     # In rootless Podman the container's "root" is mapped to an
     # unprivileged host UID — chown will fail. That's fine: the volume
     # is already owned by the mapped user on the host side.
     #
-    # Top-level $HERMES_HOME: chown the directory itself (not its contents)
+    # Top-level $A2ASSISTANT_HOME: chown the directory itself (not its contents)
     # so hermes can mkdir new subdirs but bind-mounted host files keep
     # their existing ownership.
-    if refuse_symlinked_path "chown" "$HERMES_HOME"; then
+    if refuse_symlinked_path "chown" "$A2ASSISTANT_HOME"; then
         :
     else
-        chown hermes:hermes "$HERMES_HOME" 2>/dev/null || \
-            echo "[stage2] Warning: chown $HERMES_HOME failed (rootless container?) — continuing"
+        chown hermes:hermes "$A2ASSISTANT_HOME" 2>/dev/null || \
+            echo "[stage2] Warning: chown $A2ASSISTANT_HOME failed (rootless container?) — continuing"
     fi
     # Hermes-owned subdirs: recursive chown is safe here because these are
     # created and managed exclusively by hermes (see the s6-setuidgid mkdir
     # -p block below for the canonical list).
     for sub in cron sessions logs hooks memories skills skins plans workspace home profiles pairing platforms/pairing; do
-        if [ -e "$HERMES_HOME/$sub" ] && tree_has_non_hermes_owner "$HERMES_HOME/$sub"; then
-            chown_hermes_tree "$HERMES_HOME/$sub"
+        if [ -e "$A2ASSISTANT_HOME/$sub" ] && tree_has_non_hermes_owner "$A2ASSISTANT_HOME/$sub"; then
+            chown_hermes_tree "$A2ASSISTANT_HOME/$sub"
         fi
     done
 fi
@@ -257,13 +257,13 @@ fi
 # --- Immutable install tree ---
 # Do not chown runtime code or dependency trees under $INSTALL_DIR back to the
 # hermes user. Hosted/container instances keep mutable state under
-# $HERMES_HOME (/opt/data) and run with PYTHONDONTWRITEBYTECODE. Keeping
+# $A2ASSISTANT_HOME (/opt/data) and run with PYTHONDONTWRITEBYTECODE. Keeping
 # /opt/hermes root-owned and non-writable prevents an agent session from
 # self-modifying the installed source, venv, TUI bundle, or node_modules and
 # bricking the gateway. On-demand dependency installs go to PM generations
-# under $HERMES_HOME/installs, never into this tree.
+# under $A2ASSISTANT_HOME/installs, never into this tree.
 
-# Always reset ownership of $HERMES_HOME/profiles to hermes on every
+# Always reset ownership of $A2ASSISTANT_HOME/profiles to hermes on every
 # boot. Profile dirs and files can land owned by root when commands
 # are invoked via `docker exec <container> hermes …` (which defaults
 # to root unless `-u` is passed), and that breaks the cont-init
@@ -271,56 +271,56 @@ fi
 # the profiles dir. Skip the recursive walk when the tree is already
 # owned correctly so warm boots do not rescan huge profile caches.
 # Idempotent; skipped on rootless containers where chown would fail.
-if [ -d "$HERMES_HOME/profiles" ] && tree_has_non_hermes_owner "$HERMES_HOME/profiles"; then
-    chown_hermes_tree "$HERMES_HOME/profiles"
+if [ -d "$A2ASSISTANT_HOME/profiles" ] && tree_has_non_hermes_owner "$A2ASSISTANT_HOME/profiles"; then
+    chown_hermes_tree "$A2ASSISTANT_HOME/profiles"
 fi
 
-# Always reset ownership of $HERMES_HOME/cron on every boot for the same
+# Always reset ownership of $A2ASSISTANT_HOME/cron on every boot for the same
 # docker-exec/root-write reason as profiles/. The cron scheduler state
 # (jobs.json) must stay readable by the unprivileged hermes runtime even
 # after root-context maintenance commands or scheduler writes. Skip the
 # recursive walk when the tree is already owned correctly (same warm-boot
 # gate as profiles/).
-if [ -d "$HERMES_HOME/cron" ] && tree_has_non_hermes_owner "$HERMES_HOME/cron"; then
-    chown_hermes_tree "$HERMES_HOME/cron"
+if [ -d "$A2ASSISTANT_HOME/cron" ] && tree_has_non_hermes_owner "$A2ASSISTANT_HOME/cron"; then
+    chown_hermes_tree "$A2ASSISTANT_HOME/cron"
 fi
 
 # Always ensure logs/gateways is hermes-owned (#45258). Formerly healed by
 # restartable gateway log/run chown — removed due to symlink TOCTOU
 # (CWE-59/367). The targeted data-volume chown above only runs when the
-# top-level $HERMES_HOME is mis-owned, so a warm volume with hermes-owned
-# HERMES_HOME but root-owned logs/gateways would otherwise leave
+# top-level $A2ASSISTANT_HOME is mis-owned, so a warm volume with hermes-owned
+# A2ASSISTANT_HOME but root-owned logs/gateways would otherwise leave
 # s6-setuidgid hermes mkdir failing with Permission denied. Non-recursive:
 # profile leaf dirs are each created/owned by their own log/run as hermes.
-if [ -d "$HERMES_HOME/logs/gateways" ]; then
-    if refuse_symlinked_path "chown" "$HERMES_HOME/logs/gateways"; then
+if [ -d "$A2ASSISTANT_HOME/logs/gateways" ]; then
+    if refuse_symlinked_path "chown" "$A2ASSISTANT_HOME/logs/gateways"; then
         :
     else
-        chown hermes:hermes "$HERMES_HOME/logs/gateways" 2>/dev/null || true
+        chown hermes:hermes "$A2ASSISTANT_HOME/logs/gateways" 2>/dev/null || true
     fi
 fi
 
 # Always reset ownership of pairing data on every boot, same docker-exec/
 # root-write reason as profiles/ and cron/. `docker exec <container>
-# hermes pairing approve …` defaults to uid=0 and writes 0600 root-owned
-# approval files that the unprivileged hermes gateway cannot read,
+# a2assistant pairing approve …` defaults to uid=0 and writes 0600 root-owned
+# approval files that the unprivileged a2assistant gateway cannot read,
 # silently leaving the approved user unauthorized (#10270). The targeted
-# data-volume chown above only runs when the top-level $HERMES_HOME is
+# data-volume chown above only runs when the top-level $A2ASSISTANT_HOME is
 # mis-owned, so warm boots skip it — this block makes a container restart
 # self-heal. Tiny directory (a handful of small JSON files), so even the
 # ownership pre-scan is negligible; gated for consistency with profiles/
 # and cron/.
-if [ -d "$HERMES_HOME/platforms/pairing" ] && tree_has_non_hermes_owner "$HERMES_HOME/platforms/pairing"; then
-    chown_hermes_tree "$HERMES_HOME/platforms/pairing"
+if [ -d "$A2ASSISTANT_HOME/platforms/pairing" ] && tree_has_non_hermes_owner "$A2ASSISTANT_HOME/platforms/pairing"; then
+    chown_hermes_tree "$A2ASSISTANT_HOME/platforms/pairing"
 fi
 # Legacy location (pre-consolidated layout).
-if [ -d "$HERMES_HOME/pairing" ] && tree_has_non_hermes_owner "$HERMES_HOME/pairing"; then
-    chown_hermes_tree "$HERMES_HOME/pairing"
+if [ -d "$A2ASSISTANT_HOME/pairing" ] && tree_has_non_hermes_owner "$A2ASSISTANT_HOME/pairing"; then
+    chown_hermes_tree "$A2ASSISTANT_HOME/pairing"
 fi
 
 # Reset ownership of hermes-owned top-level state files on every boot.
 # The targeted data-volume chown above only covers hermes-owned
-# *subdirectories*; loose state files living directly under $HERMES_HOME
+# *subdirectories*; loose state files living directly under $A2ASSISTANT_HOME
 # are missed. When those files are created or rewritten by
 # `docker exec <container> hermes …` (root unless `-u` is passed) they
 # land root-owned, and the unprivileged hermes runtime then hits
@@ -328,7 +328,7 @@ fi
 # auth.json), producing a gateway restart loop.
 #
 # We use an explicit allowlist rather than a blanket `find -user root`
-# sweep so host-owned files in a bind-mounted $HERMES_HOME are never
+# sweep so host-owned files in a bind-mounted $A2ASSISTANT_HOME are never
 # touched — same targeted-ownership contract as the subdir chown above
 # (issue #19788, PR #19795). The list mirrors the top-level *file*
 # entries of hermes_cli.profile_distribution.USER_OWNED_EXCLUDE plus the
@@ -340,11 +340,11 @@ for f in \
     response_store.db response_store.db-shm response_store.db-wal \
     gateway.pid gateway.lock gateway_state.json processes.json \
     active_profile; do
-    if [ -e "$HERMES_HOME/$f" ]; then
-        if refuse_symlinked_path "chown" "$HERMES_HOME/$f"; then
+    if [ -e "$A2ASSISTANT_HOME/$f" ]; then
+        if refuse_symlinked_path "chown" "$A2ASSISTANT_HOME/$f"; then
             :
         else
-            chown hermes:hermes "$HERMES_HOME/$f" 2>/dev/null || true
+            chown hermes:hermes "$A2ASSISTANT_HOME/$f" 2>/dev/null || true
         fi
     fi
 done
@@ -352,12 +352,12 @@ done
 # --- config.yaml permissions ---
 # Ensure config.yaml is readable by the hermes runtime user even if it
 # was edited on the host after initial ownership setup.
-if [ -f "$HERMES_HOME/config.yaml" ]; then
-    if refuse_symlinked_path "chown/chmod" "$HERMES_HOME/config.yaml"; then
+if [ -f "$A2ASSISTANT_HOME/config.yaml" ]; then
+    if refuse_symlinked_path "chown/chmod" "$A2ASSISTANT_HOME/config.yaml"; then
         :
     else
-        chown hermes:hermes "$HERMES_HOME/config.yaml" 2>/dev/null || true
-        chmod 640 "$HERMES_HOME/config.yaml" 2>/dev/null || true
+        chown hermes:hermes "$A2ASSISTANT_HOME/config.yaml" 2>/dev/null || true
+        chmod 640 "$A2ASSISTANT_HOME/config.yaml" 2>/dev/null || true
     fi
 fi
 
@@ -366,30 +366,30 @@ fi
 # under rootless Podman where chown back to root would fail).
 #
 # Use direct `mkdir -p` invocation (no `sh -c "..."` wrapper) so the
-# shell isn't a second interpreter — defends against $HERMES_HOME values
+# shell isn't a second interpreter — defends against $A2ASSISTANT_HOME values
 # containing shell metacharacters. PR #30136 review item O2.
 as_hermes mkdir -p \
-    "$HERMES_HOME/backups" \
-    "$HERMES_HOME/cron" \
-    "$HERMES_HOME/sessions" \
-    "$HERMES_HOME/logs" \
-    "$HERMES_HOME/logs/gateways" \
-    "$HERMES_HOME/hooks" \
-    "$HERMES_HOME/memories" \
-    "$HERMES_HOME/skills" \
-    "$HERMES_HOME/skins" \
-    "$HERMES_HOME/plans" \
-    "$HERMES_HOME/workspace" \
-    "$HERMES_HOME/home" \
-    "$HERMES_HOME/pairing" \
-    "$HERMES_HOME/platforms/pairing"
+    "$A2ASSISTANT_HOME/backups" \
+    "$A2ASSISTANT_HOME/cron" \
+    "$A2ASSISTANT_HOME/sessions" \
+    "$A2ASSISTANT_HOME/logs" \
+    "$A2ASSISTANT_HOME/logs/gateways" \
+    "$A2ASSISTANT_HOME/hooks" \
+    "$A2ASSISTANT_HOME/memories" \
+    "$A2ASSISTANT_HOME/skills" \
+    "$A2ASSISTANT_HOME/skins" \
+    "$A2ASSISTANT_HOME/plans" \
+    "$A2ASSISTANT_HOME/workspace" \
+    "$A2ASSISTANT_HOME/home" \
+    "$A2ASSISTANT_HOME/pairing" \
+    "$A2ASSISTANT_HOME/platforms/pairing"
 
 # --- XDG_RUNTIME_DIR ---
 # 0700 as dbus requires. It lives in world-writable /tmp under a predictable name
 # and holds the display-allocation lock, so it is a security boundary: refuse a
 # symlink or a directory someone else owns (chowning that one would hand hermes a
 # directory whose creator keeps an fd into it), and chown rather than assume —
-# `usermod -u` above does not chown outside the home dir, so a HERMES_UID remap
+# `usermod -u` above does not chown outside the home dir, so a A2ASSISTANT_UID remap
 # would leave it owned by the old uid and every Xfce/dbus/lock open would EACCES.
 if [ -n "${XDG_RUNTIME_DIR:-}" ]; then
     xdg_owner=""
@@ -412,20 +412,20 @@ fi
 # --- Install-method stamp ---
 # The 'docker' stamp is baked into the immutable install tree at
 # /opt/hermes/.install_method (see Dockerfile), NOT written here into
-# $HERMES_HOME. detect_install_method() reads the code-scoped stamp first.
+# $A2ASSISTANT_HOME. detect_install_method() reads the code-scoped stamp first.
 #
-# Why we no longer stamp $HERMES_HOME: it is a shared DATA volume, commonly
-# bind-mounted from the host (~/.hermes:/opt/data) and sometimes shared with a
+# Why we no longer stamp $A2ASSISTANT_HOME: it is a shared DATA volume, commonly
+# bind-mounted from the host (~/.a2assistant:/opt/data) and sometimes shared with a
 # host-side Desktop/CLI install. Stamping 'docker' here clobbered that host
 # install's marker, so its in-app updater read 'docker' and refused to run
-# 'hermes update'. To heal homes already poisoned by older images, remove a
-# stale 'docker' stamp from $HERMES_HOME if one is present (the host install's
+# 'a2assistant update'. To heal homes already poisoned by older images, remove a
+# stale 'docker' stamp from $A2ASSISTANT_HOME if one is present (the host install's
 # own installer re-creates its code-scoped stamp; a genuine container relies on
 # the baked /opt/hermes stamp, so deleting the data-dir copy is safe).
-if [ -f "$HERMES_HOME/.install_method" ]; then
-    stamped="$(tr -d '[:space:]' < "$HERMES_HOME/.install_method" 2>/dev/null || true)"
+if [ -f "$A2ASSISTANT_HOME/.install_method" ]; then
+    stamped="$(tr -d '[:space:]' < "$A2ASSISTANT_HOME/.install_method" 2>/dev/null || true)"
     if [ "$stamped" = "docker" ]; then
-        rm -f "$HERMES_HOME/.install_method" 2>/dev/null || true
+        rm -f "$A2ASSISTANT_HOME/.install_method" 2>/dev/null || true
     fi
 fi
 
@@ -433,11 +433,11 @@ fi
 seed_one() {
     dest=$1
     src=$2
-    if [ ! -f "$HERMES_HOME/$dest" ] && [ -f "$INSTALL_DIR/$src" ]; then
-        if refuse_symlinked_path "seed" "$HERMES_HOME/$dest"; then
+    if [ ! -f "$A2ASSISTANT_HOME/$dest" ] && [ -f "$INSTALL_DIR/$src" ]; then
+        if refuse_symlinked_path "seed" "$A2ASSISTANT_HOME/$dest"; then
             :
         else
-            as_hermes cp "$INSTALL_DIR/$src" "$HERMES_HOME/$dest"
+            as_hermes cp "$INSTALL_DIR/$src" "$A2ASSISTANT_HOME/$dest"
         fi
     fi
 }
@@ -467,12 +467,12 @@ seed_one "SOUL.md" "docker/SOUL.md"
 #
 # OPERATOR-PROVIDED KEYS WIN: if the container environment already carries
 # API_SERVER_KEY (documented `docker run -e API_SERVER_KEY=...` flow), do
-# not generate one. Hermes loads $HERMES_HOME/.env with override=True, so
+# not generate one. Hermes loads $A2ASSISTANT_HOME/.env with override=True, so
 # a generated key written here would silently SHADOW the operator's env
 # key and 401 every client still using the supplied credential.
 if [ -n "${API_SERVER_KEY:-}" ]; then
-    if [ -f "$HERMES_HOME/.env" ] && grep -q '^API_SERVER_KEY=..*' "$HERMES_HOME/.env" 2>/dev/null; then
-        echo "[stage2] Warning: API_SERVER_KEY is set in both the container environment and $HERMES_HOME/.env — the .env value wins at runtime (loaded with override=True)"
+    if [ -f "$A2ASSISTANT_HOME/.env" ] && grep -q '^API_SERVER_KEY=..*' "$A2ASSISTANT_HOME/.env" 2>/dev/null; then
+        echo "[stage2] Warning: API_SERVER_KEY is set in both the container environment and $A2ASSISTANT_HOME/.env — the .env value wins at runtime (loaded with override=True)"
     else
         # The env key is the effective key on this boot (no .env key wins
         # over it). The api_server startup guard refuses keys shorter than
@@ -489,53 +489,53 @@ if [ -n "${API_SERVER_KEY:-}" ]; then
         # override=True and python-dotenv sets the empty string, which fails
         # the api_server's startup guard — the exact silent-cron-loss symptom
         # this hook exists to prevent. Drop it so the operator key wins.
-        if [ -f "$HERMES_HOME/.env" ] && ! refuse_symlinked_path "clean" "$HERMES_HOME/.env"; then
-            sed -i '/^API_SERVER_KEY=$/d' "$HERMES_HOME/.env" 2>/dev/null || true
+        if [ -f "$A2ASSISTANT_HOME/.env" ] && ! refuse_symlinked_path "clean" "$A2ASSISTANT_HOME/.env"; then
+            sed -i '/^API_SERVER_KEY=$/d' "$A2ASSISTANT_HOME/.env" 2>/dev/null || true
         fi
         echo "[stage2] API_SERVER_KEY provided via container environment — skipping generation"
     fi
-elif ! grep -q '^API_SERVER_KEY=..*' "$HERMES_HOME/.env" 2>/dev/null; then
-    if refuse_symlinked_path "append" "$HERMES_HOME/.env"; then
+elif ! grep -q '^API_SERVER_KEY=..*' "$A2ASSISTANT_HOME/.env" 2>/dev/null; then
+    if refuse_symlinked_path "append" "$A2ASSISTANT_HOME/.env"; then
         :
     else
-        if [ ! -f "$HERMES_HOME/.env" ]; then
+        if [ ! -f "$A2ASSISTANT_HOME/.env" ]; then
             # Create an empty, owner-only .env so the append below (and any
             # later runtime save_env_value writes) have a durable target.
             # Created under a restrictive umask so the file is 0600 from the
             # first instant — no touch→chmod window, and no dependence on a
             # silenced chmod succeeding. The chown/chmod block below still
             # re-tightens perms every boot.
-            (umask 077 && as_hermes touch "$HERMES_HOME/.env") 2>/dev/null || true
+            (umask 077 && as_hermes touch "$A2ASSISTANT_HOME/.env") 2>/dev/null || true
         fi
-        if [ -f "$HERMES_HOME/.env" ]; then
+        if [ -f "$A2ASSISTANT_HOME/.env" ]; then
             _gen_key=$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')
             if [ -n "$_gen_key" ]; then
                 # Drop an empty assignment line if the seed left one behind,
                 # then append the generated key. The append is guarded: on a
                 # read-only volume / full disk it must degrade to the warning
                 # below, not abort the whole stage2 hook under `set -e`.
-                sed -i '/^API_SERVER_KEY=$/d' "$HERMES_HOME/.env" 2>/dev/null || true
-                if printf 'API_SERVER_KEY=%s\n' "$_gen_key" >> "$HERMES_HOME/.env" 2>/dev/null; then
+                sed -i '/^API_SERVER_KEY=$/d' "$A2ASSISTANT_HOME/.env" 2>/dev/null || true
+                if printf 'API_SERVER_KEY=%s\n' "$_gen_key" >> "$A2ASSISTANT_HOME/.env" 2>/dev/null; then
                     echo "[stage2] Generated API_SERVER_KEY for the loopback gateway api_server"
                 else
-                    echo "[stage2] Warning: could not write API_SERVER_KEY to $HERMES_HOME/.env (read-only volume?) — gateway api_server (cron fires) will be unavailable"
+                    echo "[stage2] Warning: could not write API_SERVER_KEY to $A2ASSISTANT_HOME/.env (read-only volume?) — gateway api_server (cron fires) will be unavailable"
                 fi
             fi
             unset _gen_key
         else
-            echo "[stage2] Warning: could not create $HERMES_HOME/.env — gateway api_server (cron fires) will be unavailable"
+            echo "[stage2] Warning: could not create $A2ASSISTANT_HOME/.env — gateway api_server (cron fires) will be unavailable"
         fi
     fi
 fi
 
 # --- Sync deploy-injected Nous routing overrides into every profile .env ---
-# Under multiplex, hermes_cli.auth_nous reads HERMES_PORTAL_BASE_URL (or its
+# Under multiplex, hermes_cli.auth_nous reads A2ASSISTANT_PORTAL_BASE_URL (or its
 # NOUS_PORTAL_BASE_URL alias) and NOUS_INFERENCE_BASE_URL through the profile
 # secret scope (agent.secret_scope.get_secret, #108319 / #111809), built from
 # <profile>/.env with no os.environ fallback — a value that lives only in the
 # container env is invisible on every routed turn, the Portal URL heals to
 # production and a non-production login is quarantined. The deploy therefore
-# carries the value into $HERMES_HOME/.env and every profiles/*/.env: the
+# carries the value into $A2ASSISTANT_HOME/.env and every profiles/*/.env: the
 # container wins over a stale line, an already-correct line is left alone, and
 # lines written here carry a marker so a boot WITHOUT the variable removes them
 # again (a hand-set line is never touched). Known gap: a profile created while the container
@@ -570,7 +570,7 @@ sync_routing_overrides() {
     if refuse_symlinked_path "sync" "$_file"; then
         return 0
     fi
-    for _name in HERMES_PORTAL_BASE_URL NOUS_PORTAL_BASE_URL NOUS_INFERENCE_BASE_URL; do
+    for _name in A2ASSISTANT_PORTAL_BASE_URL NOUS_PORTAL_BASE_URL NOUS_INFERENCE_BASE_URL; do
         eval "_value=\${$_name:-}"
         _managed="^$_name=.* $_ROUTING_MARK\$"
         if [ -z "$_value" ]; then
@@ -592,8 +592,8 @@ sync_routing_overrides() {
         fi
     done
 }
-sync_routing_overrides "$HERMES_HOME/.env"
-for _profile_dir in "$HERMES_HOME"/profiles/*/; do
+sync_routing_overrides "$A2ASSISTANT_HOME/.env"
+for _profile_dir in "$A2ASSISTANT_HOME"/profiles/*/; do
     [ -d "$_profile_dir" ] || continue
     sync_routing_overrides "${_profile_dir}.env"
 done
@@ -602,12 +602,12 @@ unset _profile_dir _file _name _value _managed _line _rest _rc
 # .env holds API keys and secrets — restrict to owner-only access. Applied
 # unconditionally (not only on first-seed) so a host-mounted .env that was
 # created with a permissive umask gets tightened on every container start.
-if [ -f "$HERMES_HOME/.env" ]; then
-    if refuse_symlinked_path "chown/chmod" "$HERMES_HOME/.env"; then
+if [ -f "$A2ASSISTANT_HOME/.env" ]; then
+    if refuse_symlinked_path "chown/chmod" "$A2ASSISTANT_HOME/.env"; then
         :
     else
-        chown hermes:hermes "$HERMES_HOME/.env" 2>/dev/null || true
-        chmod 600 "$HERMES_HOME/.env" 2>/dev/null || true
+        chown hermes:hermes "$A2ASSISTANT_HOME/.env" 2>/dev/null || true
+        chmod 600 "$A2ASSISTANT_HOME/.env" 2>/dev/null || true
     fi
 fi
 
@@ -615,7 +615,7 @@ fi
 # On Fly, flyd mounts the local Machines API ("flaps") unix socket at /.fly/api
 # owned root:root 0755. The gateway's scale-to-zero self-suspend
 # (gateway/scale_to_zero.py suspend_self) must POST to it, but the gateway runs
-# as the unprivileged `hermes` user — without this it gets EACCES on every
+# as the unprivileged `a2assistant` user — without this it gets EACCES on every
 # suspend attempt and the machine can never sleep (fail-awake; verified live on
 # staging 2026-08-20: "flaps suspend request failed: [Errno 13]"). This hook
 # runs as root before user services (the gateway) start, so grant group access
@@ -636,18 +636,18 @@ fi
 
 # --- Migrate persisted config schema ---
 # Docker image upgrades replace the code under $INSTALL_DIR but preserve
-# $HERMES_HOME on the mounted volume. Run the same safe, non-interactive
-# config-schema migrations that `hermes update` runs for non-Docker installs,
+# $A2ASSISTANT_HOME on the mounted volume. Run the same safe, non-interactive
+# config-schema migrations that `a2assistant update` runs for non-Docker installs,
 # after first-boot seeding and before supervised gateway services start.
-# Set HERMES_SKIP_CONFIG_MIGRATION=1 for controlled/manual migrations.
-if [ -f "$HERMES_HOME/config.yaml" ]; then
+# Set A2ASSISTANT_SKIP_CONFIG_MIGRATION=1 for controlled/manual migrations.
+if [ -f "$A2ASSISTANT_HOME/config.yaml" ]; then
     s6-setuidgid hermes "$INSTALL_DIR/.venv/bin/python" "$INSTALL_DIR/scripts/docker_config_migrate.py" \
         || echo "[stage2] Warning: docker_config_migrate.py failed; continuing"
 fi
 
 # --- Refresh the dependency generation for this image ---
 # Opt-in dependencies (lazy extras, plugin deps) live in PM generations on the
-# volume, selected by $HERMES_HOME/installs/*/facts.json. An image upgrade
+# volume, selected by $A2ASSISTANT_HOME/installs/*/facts.json. An image upgrade
 # replaces uv.lock under that durable selection, so re-resolve it here, before
 # any supervised service boots onto a generation built for the previous image.
 # On failure (e.g. offline) PM falls back to the image's own environment and
@@ -669,13 +669,13 @@ print("[stage2] collected", len(removed), "unused dependency generations")
 # auth.json: bootstrap from env on first boot only. Same semantics as the
 # pre-s6 entrypoint — the [ ! -f ] guard is critical to avoid clobbering
 # rotated refresh tokens on container restart.
-if [ ! -f "$HERMES_HOME/auth.json" ] && [ -n "${HERMES_AUTH_JSON_BOOTSTRAP:-}" ]; then
-    if refuse_symlinked_path "seed" "$HERMES_HOME/auth.json"; then
+if [ ! -f "$A2ASSISTANT_HOME/auth.json" ] && [ -n "${A2ASSISTANT_AUTH_JSON_BOOTSTRAP:-}" ]; then
+    if refuse_symlinked_path "seed" "$A2ASSISTANT_HOME/auth.json"; then
         :
     else
-        printf '%s' "$HERMES_AUTH_JSON_BOOTSTRAP" > "$HERMES_HOME/auth.json"
-        chown hermes:hermes "$HERMES_HOME/auth.json" 2>/dev/null || true
-        chmod 600 "$HERMES_HOME/auth.json"
+        printf '%s' "$A2ASSISTANT_AUTH_JSON_BOOTSTRAP" > "$A2ASSISTANT_HOME/auth.json"
+        chown hermes:hermes "$A2ASSISTANT_HOME/auth.json" 2>/dev/null || true
+        chmod 600 "$A2ASSISTANT_HOME/auth.json"
     fi
 fi
 
@@ -689,14 +689,14 @@ fi
 # freshly-provisioned container comes up with the gateway down until
 # someone starts it (e.g. from the dashboard). An orchestrator that
 # provisions a fresh volume and wants the gateway running from first boot
-# can set HERMES_GATEWAY_BOOTSTRAP_STATE=running; we seed the state file
+# can set A2ASSISTANT_GATEWAY_BOOTSTRAP_STATE=running; we seed the state file
 # here, BEFORE 02-reconcile-profiles runs (cont-init.d scripts run in
 # lexicographic order), so the reconciler sees prior_state=running and
 # brings the supervised slot up on the very first boot.
 #
 # This is a generic container contract, not specific to any host: it seeds
 # the SAME gateway_state.json the reconciler already consults, exactly as
-# HERMES_AUTH_JSON_BOOTSTRAP seeds auth.json. The [ ! -f ] guard is the
+# A2ASSISTANT_AUTH_JSON_BOOTSTRAP seeds auth.json. The [ ! -f ] guard is the
 # load-bearing part — on every subsequent boot the persisted state wins,
 # so a gateway the operator deliberately stopped stays stopped across
 # restarts and we never clobber real runtime state.
@@ -704,14 +704,14 @@ fi
 # Only a literal "running" is honoured (the sole value in the reconciler's
 # _AUTOSTART_STATES); any other value is ignored so a typo can't write a
 # bogus state the reconciler would treat as "no prior state" anyway.
-if [ ! -f "$HERMES_HOME/gateway_state.json" ] && \
-        [ "${HERMES_GATEWAY_BOOTSTRAP_STATE:-}" = "running" ]; then
-    if refuse_symlinked_path "seed" "$HERMES_HOME/gateway_state.json"; then
+if [ ! -f "$A2ASSISTANT_HOME/gateway_state.json" ] && \
+        [ "${A2ASSISTANT_GATEWAY_BOOTSTRAP_STATE:-}" = "running" ]; then
+    if refuse_symlinked_path "seed" "$A2ASSISTANT_HOME/gateway_state.json"; then
         :
     else
-        printf '{"gateway_state":"running"}\n' > "$HERMES_HOME/gateway_state.json"
-        chown hermes:hermes "$HERMES_HOME/gateway_state.json" 2>/dev/null || true
-        chmod 644 "$HERMES_HOME/gateway_state.json"
+        printf '{"gateway_state":"running"}\n' > "$A2ASSISTANT_HOME/gateway_state.json"
+        chown hermes:hermes "$A2ASSISTANT_HOME/gateway_state.json" 2>/dev/null || true
+        chmod 644 "$A2ASSISTANT_HOME/gateway_state.json"
     fi
 fi
 
@@ -728,7 +728,7 @@ fi
 
 # --- Check the pinned Chromium binary ---
 # The image's Dockerfile pm-provisions pinned full Chromium into
-# $HERMES_RUNTIME_DIR (/opt/hermes/tools) at BUILD time and bakes the
+# $A2ASSISTANT_RUNTIME_DIR (/opt/hermes/tools) at BUILD time and bakes the
 # resolved binary path into /etc/hermes/chromium-executable-path (the layout
 # differs per arch, so it is resolved at build time, not hard-coded). Hermes
 # reads that file itself (hermes_cli/browser_runtime.py) when pm's facts are

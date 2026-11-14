@@ -94,7 +94,7 @@ def test_only_one_process_of_a_profile_copies_its_real_profile_at_a_time(tmp_pat
         home.mkdir(exist_ok=True)
         sessions.append(subprocess.Popen(
             [sys.executable, "-c", _SESSION, str(chrome), str(src), str(log), str(gate)], cwd=_REPO,
-            env={**os.environ, "HERMES_HOME": str(home)}, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True))
+            env={**os.environ, "A2ASSISTANT_HOME": str(home)}, stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True))
     try:
         gate.touch()
         results = [json.loads(session.stdout.readline()) for session in sessions]

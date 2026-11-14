@@ -17,7 +17,7 @@ from agent import auxiliary_client as aux
 def _isolated_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("OPENCODE_GO_API_KEY", "sk-go-test")
     monkeypatch.setenv("OPENCODE_ZEN_API_KEY", "sk-zen-test")
     (home / "config.yaml").write_text(

@@ -64,11 +64,11 @@ def _zero_plugin_runtimes(monkeypatch) -> None:
 
 @pytest.fixture
 def metrics_home(tmp_path, monkeypatch):
-    """Real NeMo Relay runtime over a temp HERMES_HOME; ``policy['on']`` is the opt-in answer."""
+    """Real NeMo Relay runtime over a temp A2ASSISTANT_HOME; ``policy['on']`` is the opt-in answer."""
     _require_native_relay()
     home = tmp_path / "hermes-home"
     policy = {"on": True}
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(
         "hermes_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": policy["on"]}}},
@@ -132,7 +132,7 @@ def test_sigtermed_kanban_worker_writes_the_open_sessions_summary(metrics_home, 
     _finished_task_in_open_session()
     _wait_for(home, "hermes.task_run.finished")
     handlers = {}
-    monkeypatch.setenv("HERMES_KANBAN_TASK", "t-1")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", "t-1")
     monkeypatch.setattr(signal, "signal", lambda signum, handler: handlers.__setitem__(signum, handler))
     monkeypatch.setattr(signal, "alarm", lambda seconds: 0)
     for name in ("_arm_exit_watchdog_on_shutdown_signal", "_flush_logging_and_stdio"):
@@ -199,7 +199,7 @@ def test_exit_flush_applies_each_profiles_own_consent(tmp_path, monkeypatch):
     _write_policy(launch, enabled=True, send=True, endpoint="http://127.0.0.1:9/never")
     _write_policy(send_off, enabled=True, send=False)
     _write_policy(revoked, enabled=True, send=False)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     _zero_plugin_runtimes(monkeypatch)
     try:
         for home in (send_off, revoked):  # routed turns, each under its own profile scope
@@ -294,7 +294,7 @@ def test_graceful_exit_drains_the_root_profiles_deferred_host_count(tmp_path, mo
     profile = root / "profiles" / "work"
     profile.mkdir(parents=True)
     _write_policy(root, enabled=True, send=False)
-    monkeypatch.setenv("HERMES_HOME", str(profile))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
     resource = {"architecture": "x86_64", "hermes_version": "0.0.0", "install_method": "git", "os_family": "linux"}
     profile_store = SharedMetricsStore(_store(profile), _store(profile).parent / "outbox")
     engagement._root_store(root)  # the store exists; another process now holds its write lock

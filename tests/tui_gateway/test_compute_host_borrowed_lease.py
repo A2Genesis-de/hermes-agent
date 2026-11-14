@@ -83,7 +83,7 @@ def _foreign_acquire(key: str):
 
 
 def _registry() -> list[dict]:
-    path = os.path.join(os.environ["HERMES_HOME"], "runtime", "active_sessions.json")
+    path = os.path.join(os.environ["A2ASSISTANT_HOME"], "runtime", "active_sessions.json")
     with open(path, "r", encoding="utf-8") as fh:
         return json.load(fh).get("entries", [])
 
@@ -100,7 +100,7 @@ def isolated_env(monkeypatch, tmp_path):
     """Real _build_server_session → _init_session → _run_prompt_submit → _admit_prompt_turn pipeline,
     with the environment-heavy side paths neutralized. The turn BODY is cut right after admission
     (``_prepare_turn_input`` → None), so the lease path under test runs REAL against the
-    conftest-sandboxed HERMES_HOME registry while nothing calls a provider."""
+    conftest-sandboxed A2ASSISTANT_HOME registry while nothing calls a provider."""
     agent = _stub_agent(["a ", "b "])
     monkeypatch.setattr(server, "_make_agent", lambda *a, **kw: agent)
     monkeypatch.setattr(server, "_wire_callbacks", lambda sid: None)

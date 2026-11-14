@@ -61,7 +61,7 @@ function appendUniquePathEntries(entries, { delimiter = path.delimiter } = {}) {
 
 function resolveHermesHomePath(hermesHome, { pathModule, homedir = os.homedir() }: any) {
   // fish (and any shell when the value is quoted) hands a literal `~` through; path.resolve()
-  // would pin it under cwd and the Python backend inherits that absolute path via HERMES_HOME.
+  // would pin it under cwd and the Python backend inherits that absolute path via A2ASSISTANT_HOME.
   let raw = String(hermesHome)
 
   if (raw === '~' || raw.startsWith('~/') || (pathModule === path.win32 && raw.startsWith('~\\'))) {
@@ -92,7 +92,7 @@ function normalizeHermesHomeRoot(
 const PROCESS_ENV_NAMES = new Set([
   'APPDATA',
   'COMSPEC',
-  'HERMES_HOME',
+  'A2ASSISTANT_HOME',
   'HOME',
   'LANG',
   'LC_ALL',
@@ -128,9 +128,9 @@ function readTextOrEmpty(fsModule, file) {
 }
 
 /**
- * Parent env for a local `hermes serve` child of `profile` (#68367).
+ * Parent env for a local `a2assistant serve` child of `profile` (#68367).
  *
- * `hermes desktop` loads its launch profile's `.env`/`.op.env` into os.environ
+ * `a2assistant desktop` loads its launch profile's `.env`/`.op.env` into os.environ
  * before exec'ing Electron, so `process.env` carries that profile's platform
  * credentials. A child for ANOTHER profile would inherit them ahead of its own
  * dotenv (`.op.env` is even skipped once OP_SERVICE_ACCOUNT_TOKEN is set) and,
@@ -141,7 +141,7 @@ function readTextOrEmpty(fsModule, file) {
  * declared pass through everywhere.
  *
  * `profile` null/empty means no `--profile` flag: the child follows the sticky
- * `active_profile` like a bare `hermes serve` (`_apply_profile_override`).
+ * `active_profile` like a bare `a2assistant serve` (`_apply_profile_override`).
  */
 function profileBackendParentEnv({
   hermesHome,
@@ -158,7 +158,7 @@ function profileBackendParentEnv({
   }
 
   const fold = platform === 'win32' ? (value: string) => value.toUpperCase() : (value: string) => value
-  const inheritedHome = currentEnv?.HERMES_HOME ? resolveHermesHomePath(currentEnv.HERMES_HOME, { pathModule }) : null
+  const inheritedHome = currentEnv?.A2ASSISTANT_HOME ? resolveHermesHomePath(currentEnv.A2ASSISTANT_HOME, { pathModule }) : null
   const launchHome = inheritedHome && isProfileHome(inheritedHome, pathModule) ? inheritedHome : hermesHome
   const name = profile || readTextOrEmpty(fsModule, pathModule.join(hermesHome, 'active_profile')).trim()
   const targetHome = !name || name === 'default' ? hermesHome : pathModule.join(hermesHome, 'profiles', name)
@@ -184,12 +184,12 @@ function profileBackendParentEnv({
 }
 
 /**
- * PATH with the entries under the PM store (HERMES_RUNTIME_DIR, else
+ * PATH with the entries under the PM store (A2ASSISTANT_RUNTIME_DIR, else
  * <hermes home>/tools, as pm.environments.store_root resolves it) moved to the
  * front, every other entry kept in order. Hermes's own children must run the
  * store's uv/node/npm, but shell-path.ts puts the user's login-shell entries
  * (nvm, Homebrew, ~/.local/bin) ahead of the inherited PATH, which is where
- * `hermes desktop` put the store dirs.
+ * `a2assistant desktop` put the store dirs.
  */
 function storeFirstPath(
   pathValue: string,
@@ -198,7 +198,7 @@ function storeFirstPath(
   const pathModule = pathModuleForPlatform(platform)
   const delimiter = delimiterForPlatform(platform)
   const hermesHome = resolveDesktopHermesHome({ home: homedir, env: currentEnv, platform })
-  const roots = [currentEnv?.HERMES_RUNTIME_DIR, pathModule.join(hermesHome, 'tools')].filter(Boolean)
+  const roots = [currentEnv?.A2ASSISTANT_RUNTIME_DIR, pathModule.join(hermesHome, 'tools')].filter(Boolean)
 
   const owned = (entry: string) =>
     roots.some(root => {

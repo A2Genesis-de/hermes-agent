@@ -33,7 +33,7 @@ def _auto_continue_config() -> tuple[bool, float, int]:
 
 
 def _session_home(session: dict) -> Path:
-    """The HERMES_HOME the session's durable state lives in (profile-aware)."""
+    """The A2ASSISTANT_HOME the session's durable state lives in (profile-aware)."""
     return Path(session.get("profile_home") or _hermes_home)
 
 

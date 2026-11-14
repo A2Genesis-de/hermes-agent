@@ -3,7 +3,7 @@
 Entering ``_profile_runtime_scope`` costs a config.yaml load, a ``.env`` parse, secret hydration and a
 terminal-policy build; on a multiplex gateway the pollers paid that per profile per tick with nothing
 to do. Each gate answers "does this profile's store hold work?" from the goals-cached SessionDB with
-ONLY the HERMES_HOME contextvar installed. Every gate fails OPEN: an unavailable store, a failing
+ONLY the A2ASSISTANT_HOME contextvar installed. Every gate fails OPEN: an unavailable store, a failing
 read or a corrupt row is "cannot prove emptiness", never "idle".
 """
 from __future__ import annotations

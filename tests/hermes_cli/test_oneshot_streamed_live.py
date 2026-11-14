@@ -1,4 +1,4 @@
-"""`hermes -z` against a real gateway with streaming on: the one-shot prints the reply (#139666).
+"""`a2assistant -z` against a real gateway with streaming on: the one-shot prints the reply (#139666).
 
 With ``streaming.enabled`` the local route's stream consumer "delivers" the reply through
 ``LocalSessionAdapter`` (every send acknowledges), the turn is marked ``already_sent`` and the
@@ -38,7 +38,7 @@ def test_streamed_oneshot_prints_the_reply(tmp_path):
         "model": {"provider": "custom", "default": "oneshot-model", "base_url": url},
         "auxiliary": {"title_generation": {"enabled": False}}}))
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
 
     def hermes(*args):

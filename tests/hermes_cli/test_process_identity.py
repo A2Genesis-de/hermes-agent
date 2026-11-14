@@ -4,8 +4,8 @@ ledger, and the updater's ledger-identified reap rung.
 Layer context (Aug 2026, after the 12-minute Windows update hang): reapers
 previously inferred process lineage from PPIDs and cmdline shape. These
 primitives make identity positive instead: spawners stamp children
-(HERMES_SPAWN), long-lived processes self-register (pid, create_time,
-purpose, spawner) in spawn-ledger.json, and `hermes update` reaps holders the
+(A2ASSISTANT_SPAWN), long-lived processes self-register (pid, create_time,
+purpose, spawner) in spawn-ledger.json, and `a2assistant update` reaps holders the
 ledger PROVES are orphaned backends — in any update context, no hand-off
 contract needed.
 
@@ -192,8 +192,8 @@ def test_register_self_falls_back_to_desktop_parent_env(tmp_path):
     ledger = tmp_path / "spawn-ledger.json"
     fake = _fake_psutil({999: 50.0})
     env = {
-        "HERMES_PARENT_PID": "888",
-        "HERMES_PARENT_START_MARKER": "winms:1755689000123",
+        "A2ASSISTANT_PARENT_PID": "888",
+        "A2ASSISTANT_PARENT_START_MARKER": "winms:1755689000123",
     }
     with patch.dict(sys.modules, {"psutil": fake}), \
          patch.dict(pi.os.environ, env, clear=False), \
@@ -241,7 +241,7 @@ def test_ledger_entries_filters_dead_reused_and_foreign(tmp_path):
 
 @pytest.mark.platforms("posix")
 def test_ledger_entries_excludes_a_killed_but_unreaped_process(tmp_path):
-    """A zombie is dead even though it keeps its create_time until reaped: ``hermes update``
+    """A zombie is dead even though it keeps its create_time until reaped: ``a2assistant update``
     books the stopped dashboard gone, then must not find it again as a pre-update survivor."""
     import psutil
 
@@ -348,11 +348,11 @@ def test_updater_ledger_rung_never_raises():
 
 
 def test_desktop_ssh_backend_spawn_shape_is_desktop_owned(monkeypatch):
-    """Desktop's SSH spawn is ``env HERMES_DESKTOP=1 hermes serve --isolated ... --ssh-session-token-file F``
+    """Desktop's SSH spawn is ``env A2ASSISTANT_DESKTOP=1 a2assistant serve --isolated ... --ssh-session-token-file F``
     with NO token env var (its tests assert the var name never appears on the wire). Missing that
     shape made the SSH child claim ROLE_SERVE on the remote host (the #119824 shape there)."""
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
     ssh_argv = ["serve", "--isolated", "--host", "127.0.0.1", "--port", "0",
                 "--ssh-session-token-file", "/home/u/.hermes/desktop-ssh/abc.token"]
 
@@ -485,7 +485,7 @@ def test_concurrent_processes_never_drop_each_others_ledger_rows(tmp_path):
     from pathlib import Path
 
     repo = str(Path(__file__).resolve().parents[2])
-    env = {**os.environ, "HERMES_HOME": str(tmp_path / "home")}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(tmp_path / "home")}
     start_at = time.time() + 2.0
     writers = [subprocess.Popen([sys.executable, "-c", _CONCURRENT_WRITER, repo, str(start_at), "15"],
                                 stdin=subprocess.PIPE, stdout=subprocess.PIPE, text=True, env=env)
@@ -511,7 +511,7 @@ def test_a_stalled_ledger_lock_holder_never_blocks_register_child(tmp_path, monk
     import logging
     import threading
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(pi, "_LEDGER_LOCK_TIMEOUT_S", 0.3)
     monkeypatch.setattr(pi, "_ledger_lock_warned", False)
     caplog.set_level(logging.DEBUG, logger=pi.logger.name)

@@ -80,8 +80,8 @@ _DISPATCHED_SOURCES = frozenset({"a2a", "kanban"})
 
 
 def _with_launch_entrypoint(event: dict[str, Any]) -> dict[str, Any]:
-    """Declare the entrypoint of a finite CLI run (``hermes -z``, ``chat -q`` off a TTY, ``-Q``): the
-    ``HERMES_SINGLE_QUERY_SESSION`` marker those paths set (the same one ``cache_ttl: auto`` and the session
+    """Declare the entrypoint of a finite CLI run (``a2assistant -z``, ``chat -q`` off a TTY, ``-Q``): the
+    ``A2ASSISTANT_SINGLE_QUERY_SESSION`` marker those paths set (the same one ``cache_ttl: auto`` and the session
     source read). ``background`` for a dispatcher-spawned child, else ``one_shot``; the REPL, other surfaces,
     delegated children and an already-declared entrypoint are untouched."""
     if (event.get("entrypoint") or event.get("parent_task_id") or event.get("parent_session_id")
@@ -93,7 +93,7 @@ def _with_launch_entrypoint(event: dict[str, Any]) -> dict[str, Any]:
         return event
     from gateway.session_context import get_session_env
 
-    source = str(get_session_env("HERMES_SESSION_SOURCE", "") or "").strip().lower()
+    source = str(get_session_env("A2ASSISTANT_SESSION_SOURCE", "") or "").strip().lower()
     return {**event, "entrypoint": "background" if source in _DISPATCHED_SOURCES else "one_shot"}
 
 
@@ -1399,7 +1399,7 @@ def start_task_run(
 
 def shutdown_runtimes() -> None:
     """Run each live runtime's exit flush now, for a process that leaves through ``os._exit`` (the
-    ``hermes -z`` exit) and so never reaches the atexit hook that closes sessions and writes
+    ``a2assistant -z`` exit) and so never reaches the atexit hook that closes sessions and writes
     ``task_run.finished`` / ``session.count``. Each runtime binds its own profile while it does."""
     with _RUNTIME_LOCK:
         runtimes = [runtime for runtime in _RUNTIMES.values() if isinstance(runtime, _Runtime)]

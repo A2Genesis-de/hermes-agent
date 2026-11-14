@@ -1,4 +1,4 @@
-"""``hermes plugins validate`` — language-pack checks (``provides_locales``).
+"""``a2assistant plugins validate`` — language-pack checks (``provides_locales``).
 
 For every declared id the pack must ship ``locales/<id>.yaml`` that parses and is text-only (a number,
 list or null leaf is an error: ``t()`` would silently drop it). Keys the English catalogs do not have

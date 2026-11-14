@@ -31,7 +31,7 @@ def test_restore_refuses_live_authority_without_changing_data(tmp_path):
         'platform_toolsets': {'cli': []},
     }))
     env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url)
 
     def rows():
@@ -135,7 +135,7 @@ def test_import_and_startup_exclude_each_other_before_publication(tmp_path, monk
         assert arrived.wait(20)
         root = Path(__file__).resolve().parents[2]
         env = {k: os.environ[k] for k in ('PATH', 'LANG', 'TZ', 'TIRITH_ENABLED') if k in os.environ}
-        env.update(HOME=str(tmp_path / 'user'), HERMES_HOME=str(home), PYTHONPATH=str(root))
+        env.update(HOME=str(tmp_path / 'user'), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root))
         contender = subprocess.run([sys.executable, '-c',
             "import logging, runpy; logging.basicConfig(level=logging.INFO); runpy.run_module('gateway.run', run_name='__main__')"], cwd=root, env=env,
                                    stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=25, check=False)
@@ -156,7 +156,7 @@ def test_import_and_startup_exclude_each_other_before_publication(tmp_path, monk
             restore()
         assert before == ((home / 'config.yaml').read_bytes(), (home / 'state.db').read_bytes())
         from argparse import Namespace
-        monkeypatch.setenv('HERMES_HOME', str(home))
+        monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
         def forbidden_revival(*args):
             raise AssertionError('refused import must not revive a service')
         monkeypatch.setattr(backup, '_revive_gateway_after_import', forbidden_revival)

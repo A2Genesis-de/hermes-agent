@@ -2,11 +2,11 @@
 //!
 //! Mirrors `hermes_constants.get_hermes_home()` from the Python CLI:
 //!   Windows: %LOCALAPPDATA%\hermes
-//!   macOS:   ~/.hermes
-//!   Linux:   ~/.hermes  (override via $HERMES_HOME)
+//!   macOS:   ~/.a2assistant
+//!   Linux:   ~/.a2assistant  (override via $A2ASSISTANT_HOME)
 //!
 //! NOTE (macOS): Python's get_hermes_home(), scripts/install.sh, and the
-//! Electron desktop's resolveHermesHome() ALL use ~/.hermes on macOS — there
+//! Electron desktop's resolveHermesHome() ALL use ~/.a2assistant on macOS — there
 //! is no ~/Library/Application Support branch anywhere else. An earlier
 //! version of this file used Application Support, which drifted from every
 //! other component: the installer wrote the install to one dir and the
@@ -21,9 +21,9 @@ use std::path::{Path, PathBuf};
 use std::process::Command;
 use tracing_appender::non_blocking::WorkerGuard;
 
-/// Returns the canonical Hermes home directory, respecting $HERMES_HOME if set.
+/// Returns the canonical Hermes home directory, respecting $A2ASSISTANT_HOME if set.
 pub fn hermes_home() -> PathBuf {
-    if let Ok(override_path) = std::env::var("HERMES_HOME") {
+    if let Ok(override_path) = std::env::var("A2ASSISTANT_HOME") {
         if !override_path.trim().is_empty() {
             return PathBuf::from(override_path);
         }
@@ -32,13 +32,13 @@ pub fn hermes_home() -> PathBuf {
 }
 
 /// Root of the profile tree that holds this process's home. Mirrors
-/// `hermes_constants.get_default_hermes_root()`: a HERMES_HOME under the
+/// `hermes_constants.get_default_hermes_root()`: a A2ASSISTANT_HOME under the
 /// platform default resolves to the default; otherwise a
-/// `<root>/profiles/<name>` home resolves to `<root>`; any other HERMES_HOME
+/// `<root>/profiles/<name>` home resolves to `<root>`; any other A2ASSISTANT_HOME
 /// is its own root; unset means the platform default. Host-wide state (the
 /// update marker) must live here, never in a per-profile home.
 pub fn hermes_root() -> PathBuf {
-    let env_home = std::env::var("HERMES_HOME").ok();
+    let env_home = std::env::var("A2ASSISTANT_HOME").ok();
     hermes_root_from(env_home.as_deref(), &platform_default_home())
 }
 
@@ -62,10 +62,10 @@ fn hermes_root_from(env_home: Option<&str>, native_home: &Path) -> PathBuf {
 }
 
 fn platform_default_home() -> PathBuf {
-    platform_default_home_with(&std::env::var("HERMES_DATA_DIR_SUFFIX").unwrap_or_default())
+    platform_default_home_with(&std::env::var("A2ASSISTANT_DATA_DIR_SUFFIX").unwrap_or_default())
 }
 
-/// `suffix` is HERMES_DATA_DIR_SUFFIX, appended literally to the leaf exactly as
+/// `suffix` is A2ASSISTANT_DATA_DIR_SUFFIX, appended literally to the leaf exactly as
 /// `hermes_constants._get_platform_default_hermes_home()` and the desktop's
 /// `platformDefaultHermesHome()` do: channel builds keep their own data dir,
 /// and with it their own update marker.
@@ -78,7 +78,7 @@ fn platform_default_home_with(suffix: &str) -> PathBuf {
         }
     }
 
-    // macOS + Linux + fallback: ~/.hermes (matches Python get_hermes_home(),
+    // macOS + Linux + fallback: ~/.a2assistant (matches Python get_hermes_home(),
     // install.sh, and the Electron desktop's resolveHermesHome()).
     if let Some(home) = dirs::home_dir() {
         return home.join(format!(".hermes{suffix}"));
@@ -104,7 +104,7 @@ pub fn bootstrap_cache_dir() -> PathBuf {
 /// Stable location the installer copies itself to after a successful install.
 /// The desktop app re-invokes this with `--update`, and the start-menu /
 /// desktop shortcuts can point users back to it. Lives directly under
-/// HERMES_HOME so it survives repo checkout deletion (unlike anything under
+/// A2ASSISTANT_HOME so it survives repo checkout deletion (unlike anything under
 /// hermes-agent/).
 ///
 /// On Windows this is `%LOCALAPPDATA%\hermes\hermes-setup.exe`; on other
@@ -127,7 +127,7 @@ pub fn installer_dest() -> PathBuf {
 /// Lives directly under the profile-tree ROOT (`hermes_root`), never a
 /// `profiles/<name>` home: it is one host-wide lock shared with
 /// `hermes_cli/update_lock.py` and the Electron gate, so a profile-scoped
-/// HERMES_HOME must not split it into a second, unguarded file.
+/// A2ASSISTANT_HOME must not split it into a second, unguarded file.
 pub fn update_in_progress_marker() -> PathBuf {
     hermes_root().join(".hermes-update-in-progress")
 }
@@ -167,7 +167,7 @@ pub fn copy_self_to_hermes_home() -> std::io::Result<()> {
     }
     std::fs::copy(&src, &dest)?;
     repair_macos_installer_helper(&dest);
-    tracing::info!(?src, ?dest, "copied installer to HERMES_HOME");
+    tracing::info!(?src, ?dest, "copied installer to A2ASSISTANT_HOME");
     Ok(())
 }
 
@@ -206,7 +206,7 @@ pub fn likely_bootstrap_marker(install_root: &Path) -> PathBuf {
     install_root.join(".hermes-bootstrap-complete")
 }
 
-/// Initializes tracing to bootstrap-installer.log under HERMES_HOME/logs/.
+/// Initializes tracing to bootstrap-installer.log under A2ASSISTANT_HOME/logs/.
 /// Returns a guard that flushes the appender on drop — keep it alive for
 /// the lifetime of the process.
 pub fn init_logging() -> Option<WorkerGuard> {
@@ -221,7 +221,7 @@ pub fn init_logging() -> Option<WorkerGuard> {
     let file_appender = tracing_appender::rolling::never(&dir, "bootstrap-installer.log");
     let (non_blocking, guard) = tracing_appender::non_blocking(file_appender);
 
-    let env_filter = tracing_subscriber::EnvFilter::try_from_env("HERMES_BOOTSTRAP_LOG")
+    let env_filter = tracing_subscriber::EnvFilter::try_from_env("A2ASSISTANT_BOOTSTRAP_LOG")
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info"));
 
     tracing_subscriber::fmt()

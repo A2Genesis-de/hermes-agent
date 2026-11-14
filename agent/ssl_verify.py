@@ -263,7 +263,7 @@ _PLATFORM_STORE_BUNDLE: Optional[str] = None
 
 
 def _platform_store_bundle() -> Optional[str]:
-    """The OS store's CA certificates written once to a PEM file under HERMES_HOME."""
+    """The OS store's CA certificates written once to a PEM file under A2ASSISTANT_HOME."""
     global _PLATFORM_STORE_BUNDLE
     if _PLATFORM_STORE_BUNDLE and Path(_PLATFORM_STORE_BUNDLE).is_file():
         return _PLATFORM_STORE_BUNDLE

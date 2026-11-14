@@ -1,8 +1,8 @@
-"""``$HERMES_HOME`` model-provider plugins resolve for the profile home bound at lookup time (#88143).
+"""``$A2ASSISTANT_HOME`` model-provider plugins resolve for the profile home bound at lookup time (#88143).
 
 One process serves several profiles (multiplex gateway, Desktop ``serve``); discovery used to read the
 plugins of whichever home was bound first and never look again, so a plugin installed in a secondary
-profile was ``Unknown provider`` from Desktop while ``hermes -p <profile>`` in a terminal worked.
+profile was ``Unknown provider`` from Desktop while ``a2assistant -p <profile>`` in a terminal worked.
 """
 
 from __future__ import annotations
@@ -41,7 +41,7 @@ def homes(tmp_path, monkeypatch):
     secondary = tmp_path / "profiles" / "scaleup"
     launch.mkdir()
     secondary.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setattr(providers, "_REGISTRY", dict(providers._REGISTRY))
     monkeypatch.setattr(providers, "_ALIASES", dict(providers._ALIASES))
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)

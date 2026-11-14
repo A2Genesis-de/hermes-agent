@@ -73,7 +73,7 @@ let
         default = null;
         description = ''
           Authentication method. Set to "oauth" for OAuth 2.1 PKCE flow
-          (remote MCP servers). Tokens are stored in $HERMES_HOME/mcp-tokens/.
+          (remote MCP servers). Tokens are stored in $A2ASSISTANT_HOME/mcp-tokens/.
         '';
       };
 
@@ -276,7 +276,7 @@ let
 
           The merge into the config.yaml on disk is also a deep merge. These
           keys replace the keys on disk. The module keeps all other keys,
-          which includes the keys that `hermes config set` and the settings
+          which includes the keys that `a2assistant config set` and the settings
           panes of the TUI and the desktop app write at runtime.
         '';
         example = literalExpression ''
@@ -299,7 +299,7 @@ let
         description = ''
           The paths to environment files that contain secrets, for example
           API keys and tokens. Activation adds the contents of these files to
-          $HERMES_HOME/.env. Hermes reads that file at each start, with
+          $A2ASSISTANT_HOME/.env. Hermes reads that file at each start, with
           load_hermes_dotenv().
 
           Each activation writes .env again from the start. Thus a secret
@@ -313,7 +313,7 @@ let
         default = { };
         description = ''
           Environment variables that are not secret. Activation writes them
-          to $HERMES_HOME/.env.
+          to $A2ASSISTANT_HOME/.env.
 
           CAUTION: Do not put secrets in this option. All users can read the
           Nix store. Use environmentFiles for secrets.
@@ -348,7 +348,7 @@ let
 
           Use this option for the project context that the agent reads from
           its working directory, for example AGENTS.md, notes and checklists.
-          Hermes reads SOUL.md and memories/ from HERMES_HOME, so put those
+          Hermes reads SOUL.md and memories/ from A2ASSISTANT_HOME, so put those
           files in `hermesHomeFiles`.
 
           If you set this option, you must also set `workingDirectory`. The
@@ -367,11 +367,11 @@ let
         type = documentsType;
         default = { };
         description = ''
-          Files that the module installs into HERMES_HOME. Each key is a path
+          Files that the module installs into A2ASSISTANT_HOME. Each key is a path
           relative to that directory, and the module makes the necessary
           subdirectories. Each value is a string or a path.
 
-          Hermes reads SOUL.md and the memory files from HERMES_HOME and not
+          Hermes reads SOUL.md and the memory files from A2ASSISTANT_HOME and not
           from the working directory. Declare those files here, or Hermes
           does not load them.
         '';
@@ -420,7 +420,7 @@ let
         type = types.listOf types.package;
         default = [ ];
         description = ''
-          Directory-based plugin packages to symlink into the hermes plugins
+          Directory-based plugin packages to symlink into the a2assistant plugins
           directory. Each package must contain a plugin.yaml and __init__.py
           at its root. Hermes discovers these automatically on startup.
         '';
@@ -489,7 +489,7 @@ let
       extraArgs = mkOption {
         type = types.listOf types.str;
         default = [ ];
-        description = "Extra command-line arguments for `hermes gateway`.";
+        description = "Extra command-line arguments for `a2assistant gateway`.";
       };
 
       restart = mkOption {
@@ -504,8 +504,8 @@ let
         description = "The systemd RestartSec= value. Darwin does not use this option.";
       };
 
-      # ── The backend: `hermes serve` or `hermes dashboard` ──────────────
-      # `hermes serve` and `hermes dashboard` are the same entry point,
+      # ── The backend: `a2assistant serve` or `a2assistant dashboard` ──────────────
+      # `a2assistant serve` and `a2assistant dashboard` are the same entry point,
       # hermes_cli.main:cmd_dashboard, with one flag of difference. serve runs
       # without a user interface. dashboard also serves the web application.
       # Both give the /api/ws and /api/pty sockets that Hermes Desktop
@@ -513,7 +513,7 @@ let
       # Thus this option is an enum and not two booleans.
       #
       # The backend does not run the messaging gateway. web_server.py only
-      # controls an external gateway, with `hermes gateway restart`. It does
+      # controls an external gateway, with `a2assistant gateway restart`. It does
       # not contain a gateway.
       backend = {
         mode = mkOption {
@@ -640,7 +640,7 @@ let
             on one line.
 
             The backend reads the file at each start and gives the value to
-            HERMES_DASHBOARD_SESSION_TOKEN. That token authorizes the /api
+            A2ASSISTANT_DASHBOARD_SESSION_TOKEN. That token authorizes the /api
             routes and the /api/ws socket. Hermes Desktop presents the same
             value, so the application reaches this backend and starts no
             second one.
@@ -660,7 +660,7 @@ let
   # ── The removal of installPackage ───────────────────────────────────────
   # The programs./services. split replaced this option. It defaulted to true,
   # so a person who never named it still got the command line, and a silent
-  # removal leaves them with no `hermes` on the PATH and no message. The
+  # removal leaves them with no `a2assistant` on the PATH and no message. The
   # module refuses the configuration with this text.
   #
   # A function, and not a literal in the module, so a check can call the same
@@ -673,7 +673,7 @@ let
       separates the installation from the services, which is the
       Home Manager convention:
 
-        programs.hermes-agent.enable = ${lib.boolToString (value != false)};  # the hermes CLI, and HERMES_HOME for your shells
+        programs.hermes-agent.enable = ${lib.boolToString (value != false)};  # the hermes CLI, and A2ASSISTANT_HOME for your shells
         programs.hermes-agent.desktop.enable = true;  # the desktop application
 
       `services.hermes-agent` keeps the state, the configuration and
@@ -755,7 +755,7 @@ let
           if builtins.isPath value || lib.isStorePath value then
             "${mkdir}\ncp ${value} $out/${name}"
           else
-            "${mkdir}\ncat > $out/${name} <<'HERMES_DOC_EOF'\n${value}\nHERMES_DOC_EOF"
+            "${mkdir}\ncat > $out/${name} <<'A2ASSISTANT_DOC_EOF'\n${value}\nHERMES_DOC_EOF"
         ) documents
       )
     );
@@ -820,7 +820,7 @@ let
       stateDirs ? [ ],
       # The module writes this value into the .managed marker. An
       # interactive shell reads the marker, because it does not see the
-      # HERMES_MANAGED variable of the service. The value tells the shell
+      # A2ASSISTANT_MANAGED variable of the service. The value tells the shell
       # which system owns the install and which rebuild command to name.
       managedSystem ? "nixos",
     }:
@@ -952,7 +952,7 @@ let
   # The token never rides through this script: it travels as a file path in
   # the unit environment (backendSessionEnvironment), which is not a secret,
   # and hermes reads the file itself at startup
-  # as HERMES_DASHBOARD_SESSION_TOKEN=file:<path>, which hermes expands). A
+  # as A2ASSISTANT_DASHBOARD_SESSION_TOKEN=file:<path>, which hermes expands). A
   # shell wrapper that read the file
   # had to escapeShellArg the path, which froze any "${XDG_RUNTIME_DIR}"
   # placeholder into a literal and crash-looped the unit (agenix's Home
@@ -1042,7 +1042,7 @@ let
   # path is not a secret, so it can sit in a systemd Environment= or a
   # launchd EnvironmentVariables value without putting anything readable
   # into the store. hermes expands the file: prefix of
-  # HERMES_DASHBOARD_SESSION_TOKEN and reads that file at startup, failing
+  # A2ASSISTANT_DASHBOARD_SESSION_TOKEN and reads that file at startup, failing
   # loudly when it is missing or empty.
   #
   # The path must be absolute. A "$XDG_RUNTIME_DIR"-style placeholder that a
@@ -1053,7 +1053,7 @@ let
   backendSessionEnvironment =
     { cfg }:
     lib.optionalAttrs (cfg.backend.sessionTokenFile != null) {
-      HERMES_DASHBOARD_SESSION_TOKEN = "file:" + cfg.backend.sessionTokenFile;
+      A2ASSISTANT_DASHBOARD_SESSION_TOKEN = "file:" + cfg.backend.sessionTokenFile;
     };
 
   backendArgv =
@@ -1076,7 +1076,7 @@ let
 
   # The environment that each Hermes process needs, from either module.
   #
-  # managedSystem gives the value of HERMES_MANAGED. The CLI reads that
+  # managedSystem gives the value of A2ASSISTANT_MANAGED. The CLI reads that
   # variable to refuse a configuration change that it cannot keep, and to
   # name the correct rebuild command. The answer is different on each module,
   # so each module gives its own value.
@@ -1086,8 +1086,8 @@ let
       managedSystem ? "true",
     }:
     {
-      HERMES_HOME = hermesHome;
-      HERMES_MANAGED = managedSystem;
+      A2ASSISTANT_HOME = hermesHome;
+      A2ASSISTANT_MANAGED = managedSystem;
     };
 
   processPath =
@@ -1134,7 +1134,7 @@ let
 
           To give Hermes an identity and a memory, use
           ${optionPath}.hermesHomeFiles instead. Those files go to
-          HERMES_HOME. Hermes reads SOUL.md and memories/ only from there.
+          A2ASSISTANT_HOME. Hermes reads SOUL.md and memories/ only from there.
         '';
       }
     ];
@@ -1168,7 +1168,7 @@ let
       }
     ];
 
-  # The subdirectories of HERMES_HOME that both modules make.
+  # The subdirectories of A2ASSISTANT_HOME that both modules make.
   stateSubdirs = [
     "cron"
     "sessions"

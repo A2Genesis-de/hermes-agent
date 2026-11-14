@@ -240,7 +240,7 @@ async function withWebapp(
   let browser: Browser | null = null
 
   try {
-    browser = await chromium.launch({ executablePath: process.env.HERMES_E2E_CHROMIUM || undefined })
+    browser = await chromium.launch({ executablePath: process.env.A2ASSISTANT_E2E_CHROMIUM || undefined })
     await body(sandbox, provider, browser)
   } finally {
     await browser?.close().catch(() => undefined)

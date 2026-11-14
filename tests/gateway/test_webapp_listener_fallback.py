@@ -3,9 +3,9 @@
 When the Webapp's listener cannot start, even after its dashboard mount is up (another process won the
 race to listen on the port, or the browser credential in the home cannot be read or written), the
 gateway comes up on main's private loopback listener instead: native Desktop, CLI and TUI clients still
-connect, the mount carries none of the Webapp's state, and ``hermes webapp --status`` says why the
+connect, the mount carries none of the Webapp's state, and ``a2assistant webapp --status`` says why the
 Webapp is not served. Each case runs a real gateway listener in a child process
-(``fixtures/webapp_fallback_peer.py``) with its own ``HERMES_HOME``.
+(``fixtures/webapp_fallback_peer.py``) with its own ``A2ASSISTANT_HOME``.
 """
 import ipaddress
 from urllib.parse import urlsplit
@@ -74,7 +74,7 @@ def test_a_browser_credential_that_cannot_be_stored_leaves_native_clients_mains_
 
 
 def test_a_browser_credential_that_cannot_be_stored_is_the_reason_given(unusable_credential):
-    """The reason ``hermes webapp --status`` prints names the credential file, not the port."""
+    """The reason ``a2assistant webapp --status`` prints names the credential file, not the port."""
     reason = unusable_credential["status"]["reason"]
     assert "could not listen" not in reason, reason
     assert "session-token" in reason and "credential" in reason, reason

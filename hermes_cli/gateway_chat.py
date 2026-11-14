@@ -23,24 +23,24 @@ _POLICY = ("model", "provider", "reasoning", "toolsets", "max_turns", "base_url"
            "yolo", "safe_mode", "ignore_user_config", "skills", "checkpoints", "accept_hooks", "pass_session_id")
 # Where each refused option lives now; the refusal names it so the user is not left guessing.
 _RELOCATED = {
-    "image": "`hermes --tui` or the Desktop app to attach the image",
-    "worktree": "`hermes --tui -w`",
-    "w": "`hermes --tui -w`",
+    "image": "`a2assistant --tui` or the Desktop app to attach the image",
+    "worktree": "`a2assistant --tui -w`",
+    "w": "`a2assistant --tui -w`",
     "no_restore_cwd": "`--in <dir>` (the gateway keeps the session's frozen cwd)",
     "run_budget": "`agent.run_budget_seconds` in config.yaml",
-    "verbose": "`hermes logs --follow`, or `hermes chat --tui -v`",
+    "verbose": "`a2assistant logs --follow`, or `a2assistant chat --tui -v`",
     "compact": "`display.compact: true` in config.yaml",
     "create-if-missing without -c <name>": "`-c <name> --create-if-missing`",
 }
-_SAFE_MODE_EXAMPLE = 'hermes chat --safe-mode --provider openrouter --model anthropic/claude-sonnet-4 -q "hello"'
+_SAFE_MODE_EXAMPLE = 'a2assistant chat --safe-mode --provider openrouter --model anthropic/claude-sonnet-4 -q "hello"'
 
 
 # The documented environment equivalents of creation flags (the set Ink's localCreationOptions
 # maps). The auto-started owner no longer inherits them (R14 scrub), so they only take effect
 # by riding THIS session's session.create; a resume keeps the frozen route.
-_ENV_LAUNCH_FLAGS = (("yolo", "HERMES_YOLO_MODE"), ("ignore_rules", "HERMES_IGNORE_RULES"),
-                     ("safe_mode", "HERMES_SAFE_MODE"), ("ignore_user_config", "HERMES_IGNORE_USER_CONFIG"),
-                     ("accept_hooks", "HERMES_ACCEPT_HOOKS"))
+_ENV_LAUNCH_FLAGS = (("yolo", "A2ASSISTANT_YOLO_MODE"), ("ignore_rules", "A2ASSISTANT_IGNORE_RULES"),
+                     ("safe_mode", "A2ASSISTANT_SAFE_MODE"), ("ignore_user_config", "A2ASSISTANT_IGNORE_USER_CONFIG"),
+                     ("accept_hooks", "A2ASSISTANT_ACCEPT_HOOKS"))
 
 
 def env_launch_flags() -> dict:
@@ -104,7 +104,7 @@ def validate_options(args):
     # A resume reuses the frozen route and reads no default (the TUI launcher's rule too).
     resuming = getattr(args, "resume", None) or getattr(args, "continue_last", None)
     if bypass_launch(args) and not getattr(args, "model", None) and not resuming:
-        raise GatewayClientError("--safe-mode / --ignore-user-config (or HERMES_SAFE_MODE / HERMES_IGNORE_USER_CONFIG) "
+        raise GatewayClientError("--safe-mode / --ignore-user-config (or A2ASSISTANT_SAFE_MODE / A2ASSISTANT_IGNORE_USER_CONFIG) "
                                  "read no profile default: pass --model explicitly."
                                  f"\n  Example: {_SAFE_MODE_EXAMPLE}")
 
@@ -155,8 +155,8 @@ async def _resume_latest(client, args):
     except GatewayClientError as exc:
         if str(exc) != "not_found":
             raise
-        raise GatewayClientError("No previous CLI session to continue. Start a new one with `hermes`, "
-                                 "or list sessions with `hermes sessions list`.") from None
+        raise GatewayClientError("No previous CLI session to continue. Start a new one with `a2assistant`, "
+                                 "or list sessions with `a2assistant sessions list`.") from None
 
 
 async def run_gateway_chat(args, emitter=None):
@@ -191,7 +191,7 @@ async def run_gateway_chat(args, emitter=None):
                     if str(exc) != "not_found":
                         raise
                     raise GatewayClientError(
-                        f"No session found matching '{name}'. Use 'hermes sessions list' to see available "
+                        f"No session found matching '{name}'. Use 'a2assistant sessions list' to see available "
                         "sessions, or pass -c <name> --create-if-missing to start a new session with that title.")
             check_resume_policy(args, snapshot)
         else:
@@ -324,7 +324,7 @@ def check_resume_policy(args, snapshot):
 
 
 def _register_terminal_process() -> None:
-    """The chat client is still a terminal on this HERMES_HOME: record it in the process ledger
+    """The chat client is still a terminal on this A2ASSISTANT_HOME: record it in the process ledger
     (purpose ``cli`` is never update-reapable) and warn once when another install shares the home."""
     from hermes_cli.process_identity import register_self
     from hermes_cli.shared_profile_warning import shared_profile_warning

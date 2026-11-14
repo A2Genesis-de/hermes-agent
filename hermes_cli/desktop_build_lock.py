@@ -20,7 +20,7 @@ class DesktopBuildLock:
 
     The build also writes the checkout an update writes, so the lock first takes the
     checkout lock every updater holds (``update_lock``; review C5), then its own: one lock
-    order (checkout, then desktop build) for a direct ``hermes desktop`` build and for the
+    order (checkout, then desktop build) for a direct ``a2assistant desktop`` build and for the
     update's build (which already holds the checkout lock and only joins it again), and no
     gap in which an updater could take the checkout while pnpm still writes.  Holding the
     checkout lock also puts the build in the update custody (``update_custody``): its

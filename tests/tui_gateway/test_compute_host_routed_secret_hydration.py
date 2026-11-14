@@ -23,7 +23,7 @@ def test_routed_session_build_sees_the_profiles_external_secret_source(monkeypat
 
     launch = tmp_path / ".hermes"
     launch.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("VAULT_ONLY_KEY", "from-launch-env")
     env_loader.reset_secret_source_cache()
     monkeypatch.setattr("agent.secret_scope._MULTIPLEX_ACTIVE", False)

@@ -285,7 +285,7 @@ def installed_in_selected_environment(requirements: list[str]) -> bool:
     """Whether every one of *requirements* is in the dependency environment PM currently selects.
 
     Activation is a boot decision (``pm.environments.activate_dependencies``): a gateway or dashboard
-    that was running when ``hermes plugins enable`` committed a new generation keeps the old one. A
+    that was running when ``a2assistant plugins enable`` committed a new generation keeps the old one. A
     requirement it cannot import that the selected generation carries therefore needs a restart, not
     a repair. False when unknown."""
     try:
@@ -303,7 +303,7 @@ class PluginLoaderMixin:
         """Subscribe to "a discovery sweep loaded plugins this process did not have": fires from INSIDE
         :meth:`discover_and_load` (never emitted by an install RPC) with one
         ``{name, key, activated_now, deferred}`` summary per NEWLY loaded plugin — every plugin at boot,
-        just the newcomer after a mid-run ``hermes plugins install/enable``, Desktop / dashboard /
+        just the newcomer after a mid-run ``a2assistant plugins install/enable``, Desktop / dashboard /
         ``plugins.manage`` install-enable-update, a tool-triggered force re-discovery or the gateway's
         ``reload-plugins`` verb (all of which run ``discover_plugins(force=True)``; a non-forced call
         short-circuits on ``_discovered`` and never fires). See
@@ -352,7 +352,7 @@ class PluginLoaderMixin:
     def _register_deferred_platform(self, manifest: PluginManifest) -> None:
         """Register a lazy loader for a bundled platform: the adapter imports only when the
         ``platform_registry`` is first asked for it; a placeholder ``LoadedPlugin`` keeps it visible in
-        ``hermes plugins list`` until then."""
+        ``a2assistant plugins list`` until then."""
         from hermes_cli.plugins import LoadedPlugin
         lookup_key = manifest_key(manifest)
         loaded = LoadedPlugin(manifest=manifest, enabled=True, deferred=True)
@@ -426,13 +426,13 @@ class PluginLoaderMixin:
     def _register_deferred_platform_tools(self, manifest: PluginManifest, loaded: LoadedPlugin) -> None:
         """Register a deferred platform's *client* tools without its adapter. Deferring the plugin would
         otherwise defer its outbound tools too, so CLI/TUI processes (which never materialize platforms)
-        would miss them in ``hermes tools`` / ``platform_toolsets``. Opt-in is explicit via ``provides_tools``;
+        would miss them in ``a2assistant tools`` / ``platform_toolsets``. Opt-in is explicit via ``provides_tools``;
         tools live in a ``tools`` submodule so ``__init__`` stays import-light.
 
         A platform plugin can ship two independent things: an inbound adapter (heavy — it imports the
         platform SDK) and outbound client tools the agent calls like any other tool. Deferring the plugin
         defers both, so in a CLI/TUI process the client tools never register at all: ``resolve_toolset()``
-        returns ``[]``, the toolset is missing from the ``hermes tools`` checklist, and even an explicit
+        returns ``[]``, the toolset is missing from the ``a2assistant tools`` checklist, and even an explicit
         ``platform_toolsets`` entry is dropped because the key is unknown. The same tools work in
         gateway/web processes only because those materialize every platform at startup (issue #78050).
         Opting in is explicit: the manifest must declare ``provides_tools`` (the field the plugin list and
@@ -524,13 +524,13 @@ class PluginLoaderMixin:
             logger.warning(
                 "Plugin %s's Python dependencies were installed after this process started: %s. "
                 "A running process never switches dependency environments; restart A2Assistant "
-                "(hermes gateway restart for the gateway) to load them.",
+                "(a2assistant gateway restart for the gateway) to load them.",
                 key, ", ".join(missing),
             )
         else:
             logger.warning(
                 "Plugin %s declares Python dependencies that are not "
-                "installed: %s. For an enabled plugin, run hermes pm repair, "
+                "installed: %s. For an enabled plugin, run a2assistant pm repair, "
                 "then restart A2Assistant. Discovery does not install dependencies.",
                 key, ", ".join(missing),
             )

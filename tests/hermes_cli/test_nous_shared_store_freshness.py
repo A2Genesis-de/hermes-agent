@@ -45,8 +45,8 @@ def homes(tmp_path, monkeypatch):
     hermes_home, shared = tmp_path / "hermes", tmp_path / "shared"
     hermes_home.mkdir()
     shared.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
-    monkeypatch.setenv("HERMES_SHARED_AUTH_DIR", str(shared))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_SHARED_AUTH_DIR", str(shared))
     return hermes_home, shared
 
 

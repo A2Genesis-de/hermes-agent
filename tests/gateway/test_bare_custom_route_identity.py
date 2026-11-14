@@ -93,8 +93,8 @@ async def test_a_following_session_switches_model_with_an_inline_secret_outside_
 def test_source_desktop_is_sent_as_the_gui_surface_the_create_contract_lists(monkeypatch):
     from hermes_cli.gateway_session_store import GatewaySessionStore
     from tui_gateway.contracts.registry import CANONICAL_METHODS, canonical_param_problems
-    monkeypatch.setenv('HERMES_SESSION_SOURCE', 'desktop')
-    monkeypatch.setenv('HERMES_SESSION_SOURCE_EXPLICIT', '1')
+    monkeypatch.setenv('A2ASSISTANT_SESSION_SOURCE', 'desktop')
+    monkeypatch.setenv('A2ASSISTANT_SESSION_SOURCE_EXPLICIT', '1')
     sent = {}
 
     def call(method, **params):

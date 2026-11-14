@@ -38,14 +38,14 @@ accept_installer_marker() {
 # Hand out a command to DRIVE the next ordinary startup, even when the
 # published launcher is not there yet.
 #
-# A pre-handoff release cannot flip during `hermes update` -- there is no
+# A pre-handoff release cannot flip during `a2assistant update` -- there is no
 # retired-hook seam on its update path to reach, so the update ends with the
 # tree at HEAD and no `.hermes/bin/*`. The NEXT ordinary startup is what
 # completes it: hermes_bootstrap calls prepare_launch() before importing
 # anything, which syncs PM and publishes the launchers.
 #
 # Deliberately NOT used for `--version` probes: those stay under
-# HERMES_DISABLE_LAZY_INSTALLS so a probe can never complete an unfinished
+# A2ASSISTANT_DISABLE_LAZY_INSTALLS so a probe can never complete an unfinished
 # update. Only a real startup may heal.
 source_hermes_for_startup() {
   local root="$1" command="$1/.hermes/bin/hermes"

@@ -8,8 +8,8 @@ notification (fire-and-forget). Containment: the schema is injected ONLY into a
 bot's canonical "Bot Chat" session on a Bot-Mode-managed install (same gate as
 ``tools/bot_mode_probe.py``; never in the registry or any toolset), and dispatch
 re-checks that gate so a forged call returns a structured error. Transports:
-local → ``hermes -p <name> chat --in ~ -c "Bot Chat" --create-if-missing -Q
---query-file <tmp>``; peer → ``hermes peer dm <peer>[/<name>] < <tmp>``; both via
+local → ``a2assistant -p <name> chat --in ~ -c "Bot Chat" --create-if-missing -Q
+--query-file <tmp>``; peer → ``a2assistant peer dm <peer>[/<name>] < <tmp>``; both via
 ``terminal_tool(background=True, notify_on_complete=True)``.
 """
 
@@ -670,7 +670,7 @@ def _live_target_state(dm_file: str | os.PathLike | None) -> Optional[str]:
 
 def _local_delivery_home(argv: list[str]) -> Path | None:
     cli = (argv[0] if argv else "").rsplit("\\", 1)[-1].rsplit("/", 1)[-1]
-    if len(argv) < 3 or cli not in ("hermes", "hermes.exe") or argv[1] != "-p":
+    if len(argv) < 3 or cli.removesuffix(".exe") not in ("hermes", "a2assistant") or argv[1] != "-p":
         return None
     from tools.bot_mode_probe import _hermes_root, _roster
 

@@ -1,5 +1,5 @@
 /**
- * Pure parse + judge of the update marker `HERMES_HOME/.hermes-update-in-progress`
+ * Pure parse + judge of the update marker `A2ASSISTANT_HOME/.hermes-update-in-progress`
  * (A7 rule 4, contract in `tests/fixtures/update_marker_corpus.json`).
  *
  * The corpus is authoritative: every reader (Python, Rust, bash, PowerShell,

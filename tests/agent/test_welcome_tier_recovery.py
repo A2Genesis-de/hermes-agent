@@ -280,7 +280,7 @@ class TestFreeTierCooldownCutoff:
 
     @pytest.fixture(autouse=True)
     def _no_inherited_source(self, monkeypatch):
-        for name in ("HERMES_SESSION_SOURCE", "HERMES_SINGLE_QUERY_SESSION", "HERMES_SESSION_SOURCE_EXPLICIT"):
+        for name in ("A2ASSISTANT_SESSION_SOURCE", "A2ASSISTANT_SINGLE_QUERY_SESSION", "A2ASSISTANT_SESSION_SOURCE_EXPLICIT"):
             monkeypatch.delenv(name, raising=False)
 
     def test_an_attended_desktop_session_ends_the_turn_and_names_the_reset(self):
@@ -306,7 +306,7 @@ class TestFreeTierCooldownCutoff:
             clear_session_vars(tokens)
 
     def test_a_gateway_admitted_finite_cli_turn_keeps_waiting(self):
-        """``hermes chat -q`` over the daemon carries its one-shot fact on the admission, not in env."""
+        """``a2assistant chat -q`` over the daemon carries its one-shot fact on the admission, not in env."""
         from agent.turn_recovery import free_tier_cooldown_ends_turn
         from gateway.session_finite import finite_turn_scope
         with finite_turn_scope(True):

@@ -1,7 +1,7 @@
 """Hermetic subprocess harness for the OAuth E2E tests (fake HOME, tagged tree).
 
-Every ``hermes`` child runs with an allowlisted environment (no inherited
-credentials or ``HERMES_*``), ``HOME``/``HERMES_HOME`` under ``tmp_path``, and
+Every ``a2assistant`` child runs with an allowlisted environment (no inherited
+credentials or ``A2ASSISTANT_*``), ``HOME``/``A2ASSISTANT_HOME`` under ``tmp_path``, and
 a unique ``OAUTH_E2E_TAG`` so cleanup signals only this test's processes.
 """
 
@@ -47,17 +47,17 @@ class FakeHome:
         real_root = Path(pwd.getpwuid(os.getuid()).pw_dir, ".hermes").resolve()
         fixture = self.hermes_home.resolve()
         assert fixture != real_root and fixture.parent != real_root / "profiles", (
-            f"fixture HERMES_HOME {fixture} is the real install's live home")
+            f"fixture A2ASSISTANT_HOME {fixture} is the real install's live home")
         env = {
             k: v for k, v in os.environ.items()
             if (k in _PASSTHROUGH_ENV or k.startswith("LC_")) and not k.endswith(_SECRET_ENV_SUFFIXES)
         }
         env.update({
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home),
+            "HOME": str(self.home), "A2ASSISTANT_HOME": str(self.hermes_home),
             "PYTHONPATH": str(REPO_ROOT), "PYTHONUNBUFFERED": "1", "NO_COLOR": "1", "TERM": "dumb",
             TAG_VAR: self.tag,
             # The child's ~/.hermes/state.db IS the tmp home's db; see parity/_helpers.py.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
         })
         env.update(extra or {})
         return env

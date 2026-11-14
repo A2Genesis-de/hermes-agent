@@ -11,7 +11,7 @@ provider fails ``test_snapshot_covers_every_provider`` until its wire is reviewe
 
 Intentional wire changes: regenerate and review the JSON diff in the same PR::
 
-    HERMES_UPDATE_WIRE_SNAPSHOT=1 .venv/bin/python -m pytest tests/agent/transports/test_provider_wire_snapshot.py
+    A2ASSISTANT_UPDATE_WIRE_SNAPSHOT=1 .venv/bin/python -m pytest tests/agent/transports/test_provider_wire_snapshot.py
 
 Regeneration is a read-merge-write of one JSON file per cell and rewrites the file with only the
 cells that still exist.
@@ -30,7 +30,7 @@ from unittest.mock import patch
 import pytest
 
 SNAPSHOT = Path(__file__).resolve().parents[2] / "fixtures" / "provider_wire_snapshot.json"
-UPDATE = os.environ.get("HERMES_UPDATE_WIRE_SNAPSHOT") == "1"
+UPDATE = os.environ.get("A2ASSISTANT_UPDATE_WIRE_SNAPSHOT") == "1"
 
 REASONING = {
     "unset": None,
@@ -123,11 +123,11 @@ def _cells() -> list[tuple[str, str, str]]:
 
 @pytest.fixture
 def offline(monkeypatch):
-    """No network, no ambient AWS profile and no ambient ``HERMES_*TIMEOUT*`` override.
+    """No network, no ambient AWS profile and no ambient ``A2ASSISTANT_*TIMEOUT*`` override.
     Capability probes (Ollama ``/api/show``, LM Studio, catalogs) must take their offline answer,
     or the recorded wire depends on a live server. Name resolution is blocked too: some clients
     connect through paths ``socket.connect`` misses. Timeouts are recorded (request ``timeout``,
-    stream socket timeouts), so a developer's ``HERMES_API_TIMEOUT`` must not reach them."""
+    stream socket timeouts), so a developer's ``A2ASSISTANT_API_TIMEOUT`` must not reach them."""
     real_connect = socket.socket.connect
 
     def guarded(sock, address, *args, **kwargs):
@@ -143,7 +143,7 @@ def offline(monkeypatch):
     monkeypatch.setenv("AWS_REGION", "us-east-1")
     monkeypatch.setenv("AWS_CONFIG_FILE", os.devnull)
     monkeypatch.setenv("AWS_SHARED_CREDENTIALS_FILE", os.devnull)
-    for name in [n for n in os.environ if n.startswith("HERMES_") and "TIMEOUT" in n]:
+    for name in [n for n in os.environ if n.startswith("A2ASSISTANT_") and "TIMEOUT" in n]:
         monkeypatch.delenv(name)
 
 
@@ -224,7 +224,7 @@ def _check(key: str, actual: dict[str, Any], meta: dict[str, Any], snapshot: Pat
            cell_keys: frozenset[str] = CELL_KEYS) -> None:
     """Compare *actual* with the recorded cell; *meta* (the cell's inputs) is stored beside it, not compared.
 
-    Under HERMES_UPDATE_WIRE_SNAPSHOT the cell is written instead, and entries outside *cell_keys*
+    Under A2ASSISTANT_UPDATE_WIRE_SNAPSHOT the cell is written instead, and entries outside *cell_keys*
     (the snapshot's current cells) are dropped."""
     if UPDATE:
         golden = {k: v for k, v in _load(snapshot).items() if k in cell_keys}

@@ -52,9 +52,9 @@ beforeEach(() => {
 
 it('/save renders through session.export and Ink writes the file itself (T10)', async () => {
   const dir = mkdtempSync(join(process.env.TMPDIR || tmpdir(), 'ink-save-'))
-  const saved = process.env.HERMES_HOME
+  const saved = process.env.A2ASSISTANT_HOME
 
-  process.env.HERMES_HOME = dir
+  process.env.A2ASSISTANT_HOME = dir
 
   try {
     const exported = { content: '{"messages": []}', filename: 'hermes_owner.json', format: 'json' }
@@ -80,7 +80,7 @@ it('/save renders through session.export and Ink writes the file itself (T10)', 
     expect(second.request).toHaveBeenCalledWith('session.export', { format: 'md', redact: true, session_id: 'owner' })
     expect(readFileSync(join(dir, 'out.md'), 'utf8')).toBe('# t')
   } finally {
-    process.env.HERMES_HOME = saved
+    process.env.A2ASSISTANT_HOME = saved
     rmSync(dir, { force: true, recursive: true })
   }
 })

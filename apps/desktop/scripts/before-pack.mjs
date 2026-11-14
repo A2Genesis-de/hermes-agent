@@ -23,7 +23,7 @@
  *   ENOENT: no such file or directory, rename
  *   '.../release/linux-unpacked/electron' -> '.../release/linux-unpacked/Hermes'
  *
- * This is a hard failure with no obvious cause for the user — `hermes desktop`
+ * This is a hard failure with no obvious cause for the user — `a2assistant desktop`
  * just prints "Desktop GUI build failed" and the only fix is to manually
  * `rm -rf` the release directory, which a normal user has no way to know.
  *
@@ -138,6 +138,6 @@ export default async function beforePack(context) {
   if (!platform || !arch) return
   const app = context.packager.projectDir
   const source = path.resolve(app, '../..')
-  const nativeDeps = process.env.HERMES_PREPARED_NATIVE_DEPS || path.join(app, 'build/native-deps')
+  const nativeDeps = process.env.A2ASSISTANT_PREPARED_NATIVE_DEPS || path.join(app, 'build/native-deps')
   copyNativeInputs({ source, nativeDeps, out: path.join(app, 'dist/node_modules'), platform, arch })
 }

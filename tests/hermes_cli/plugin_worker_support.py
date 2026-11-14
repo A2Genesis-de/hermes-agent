@@ -164,12 +164,12 @@ def plugin_world(tmp_path, monkeypatch, isolated_python):
     world = PluginWorld(tmp_path)
     uv = shutil.which("uv")
     assert uv, "real uv is required for the plugin lifecycle"
-    for key in ("HERMES_MANAGED_MODE", "HERMES_INSTALL_ROOT", "VIRTUAL_ENV"):
+    for key in ("A2ASSISTANT_MANAGED_MODE", "A2ASSISTANT_INSTALL_ROOT", "VIRTUAL_ENV"):
         monkeypatch.delenv(key, raising=False)
-    for key, value in {"HOME": tmp_path, "USERPROFILE": tmp_path, "HERMES_HOME": world.home,
-                       "HERMES_RUNTIME_DIR": tmp_path / "store", "UV_CACHE_DIR": tmp_path / "cache",
+    for key, value in {"HOME": tmp_path, "USERPROFILE": tmp_path, "A2ASSISTANT_HOME": world.home,
+                       "A2ASSISTANT_RUNTIME_DIR": tmp_path / "store", "UV_CACHE_DIR": tmp_path / "cache",
                        "XDG_CONFIG_HOME": tmp_path / "config", "XDG_CONFIG_DIRS": tmp_path / "config",
-                       "HERMES_DISABLE_LAZY_INSTALLS": "1", "UV_OFFLINE": "1"}.items():
+                       "A2ASSISTANT_DISABLE_LAZY_INSTALLS": "1", "UV_OFFLINE": "1"}.items():
         monkeypatch.setenv(key, str(value))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setattr(paths, "repo_root", lambda: world.core)

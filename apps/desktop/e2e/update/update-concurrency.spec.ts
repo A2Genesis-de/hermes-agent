@@ -4,7 +4,7 @@
  *
  * #123117: the About panel's update buttons let a second update start while
  * one was already running, and the panel's state stopped matching the
- * install. Here the user starts `hermes update` in a terminal, then clicks
+ * install. Here the user starts `a2assistant update` in a terminal, then clicks
  * "Update now" in the running app before the terminal update is done:
  *   - the app refuses and says an update is already running (no second
  *     updater process is started, the app stays up);
@@ -65,7 +65,7 @@ test('Update now while a terminal update runs is refused, and the panel is truth
     const explain = (extra = '') =>
       diagnostics(
         facts,
-        `${extra}\n── terminal hermes update (tail) ──\n${readText(cliLog).split('\n').slice(-40).join('\n')}\n${logTail()}`
+        `${extra}\n── terminal a2assistant update (tail) ──\n${readText(cliLog).split('\n').slice(-40).join('\n')}\n${logTail()}`
       )
 
     try {
@@ -77,7 +77,7 @@ test('Update now while a terminal update runs is refused, and the panel is truth
       await openAbout(page)
       await waitForUpdateOffer(page, target)
 
-      await test.step('a terminal `hermes update` is running', async () => {
+      await test.step('a terminal `a2assistant update` is running', async () => {
         const out = fs.openSync(cliLog, 'w')
 
         const cli = spawn(facts.hermes, ['update', '--yes'], {
@@ -123,7 +123,7 @@ test('Update now while a terminal update runs is refused, and the panel is truth
           interval: 1_000,
           explain
         })
-        expect(cliExit, `terminal hermes update exits 0\n${explain()}`).toBe(0)
+        expect(cliExit, `terminal a2assistant update exits 0\n${explain()}`).toBe(0)
         expect(git(facts.checkout, 'rev-parse', 'HEAD'), 'the checkout is on the new commit').toBe(target)
       })
 

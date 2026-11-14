@@ -1,7 +1,7 @@
 """POSIX pre-swap gateway pause: what survives a killed updater, and what a paused update asks.
 
 Real processes and a real record; the live stop/restart of real gateways is proven by
-``tests/e2e/core/upgrade/git/test_hostile_pause.py`` (a real ``hermes update`` in a sandbox).
+``tests/e2e/core/upgrade/git/test_hostile_pause.py`` (a real ``a2assistant update`` in a sandbox).
 """
 
 from __future__ import annotations
@@ -19,13 +19,13 @@ import pytest
 
 from tests.hermes_cli.test_update_pause_record import _child, _reap_children
 
-_UNIT = {"kind": "systemd", "scope": "user", "unit": "hermes-gateway-p2probe.service", "pid": 4242}
+_UNIT = {"kind": "systemd", "scope": "user", "unit": "a2assistant-gateway-p2probe.service", "pid": 4242}
 
 
 @pytest.mark.platforms("posix")
 @pytest.mark.live_system_guard_bypass
 def test_a_killed_updaters_supervised_units_are_adopted_by_the_next_update(tmp_path):
-    """The updater stopped a systemd unit and was SIGKILLed: the next ``hermes update`` must own
+    """The updater stopped a systemd unit and was SIGKILLed: the next ``a2assistant update`` must own
     restarting that unit (the record's only debt), never drop it."""
     owner = _child(f"""
         import time
@@ -34,7 +34,7 @@ def test_a_killed_updaters_supervised_units_are_adopted_by_the_next_update(tmp_p
                 owner=r.identity())
         print("written", flush=True)
         time.sleep(120)
-    """, env={"HERMES_HOME": str(tmp_path)})
+    """, env={"A2ASSISTANT_HOME": str(tmp_path)})
     assert owner.stdout.readline().strip() == "written"
     owner.send_signal(signal.SIGKILL)  # windows-footgun: ok — module skips on Windows
     owner.wait(timeout=10)
@@ -45,7 +45,7 @@ def test_a_killed_updaters_supervised_units_are_adopted_by_the_next_update(tmp_p
         adopted, claims = r.adopt_orphans()
         token = r.record_pause({"platform": "posix", "resume_needed": True, "unmapped": []}, adopted, claims)
         print(json.dumps({"units": token.get("posix_units"), "platform": token.get("platform")}))
-    """, env={"HERMES_HOME": str(tmp_path)})
+    """, env={"A2ASSISTANT_HOME": str(tmp_path)})
     out, _ = nxt.communicate(timeout=60)
     got = json.loads(out.strip().splitlines()[-1])
     assert got == {"units": [_UNIT], "platform": "posix"}, f"the adopted unit was lost: {got}"
@@ -57,7 +57,7 @@ def test_a_prompt_while_the_gateways_are_paused_takes_its_default_at_once(tmp_pa
     answer, so the prompt must not park the update (and the downtime) for its 300 s timeout."""
     from hermes_cli import update_cmd, update_cmd_posix_pause
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(update_cmd_posix_pause, "_RUN", {"platform": "posix", "posix_stopped": True, "resume_needed": True})
     got: list[str] = []
     t = threading.Thread(target=lambda: got.append(update_cmd._gateway_prompt("Restore local changes now?", "n")),
@@ -74,7 +74,7 @@ _KILLED_AFTER_RECORDING = """
     pid, kind, asked, home = int(sys.argv[1]), sys.argv[2], sys.argv[3] == "1", sys.argv[4]
     entry = {"pid": pid, "home": home}
     if kind == "systemd":
-        entry.update(kind="systemd", scope="user", unit="hermes-gateway-p2probe.service", cgroup=None)
+        entry.update(kind="systemd", scope="user", unit="a2assistant-gateway-p2probe.service", cgroup=None)
     else:
         entry["argv"] = ["hermes", "gateway", "run"]
     # Discovery is the seam (no real unit or install here); recording is the code under test.
@@ -104,7 +104,7 @@ def test_a_killed_updates_record_owes_only_what_it_stopped(tmp_path, kind, asked
                                stdin=subprocess.DEVNULL)
     try:
         owner = _child(_KILLED_AFTER_RECORDING, str(gateway.pid), kind, "1" if asked else "0", str(tmp_path),
-                       env={"HERMES_HOME": str(tmp_path)})
+                       env={"A2ASSISTANT_HOME": str(tmp_path)})
         owner.wait(timeout=60)
         assert owner.returncode == -signal.SIGKILL, "premise: the update was not killed mid-stop"  # windows-footgun: ok — POSIX-only test
         probe = _child("""
@@ -115,7 +115,7 @@ def test_a_killed_updates_record_owes_only_what_it_stopped(tmp_path, kind, asked
             draining = r.split_draining(token) if found else {}
             pids = lambda t: sorted(e["pid"] for key in ("unmapped", "posix_units") for e in t.get(key) or [])
             print(json.dumps({"recorded": bool(found), "relaunched": pids(token), "held": pids(draining)}))
-        """, env={"HERMES_HOME": str(tmp_path)})
+        """, env={"A2ASSISTANT_HOME": str(tmp_path)})
         out, _ = probe.communicate(timeout=60)
         got = json.loads(out.strip().splitlines()[-1])
         assert got["recorded"], "premise: the killed update left no record"
@@ -137,7 +137,7 @@ def test_a_record_that_cannot_be_written_leaves_the_update_unpaused_and_ungated(
     gateway = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(120)"], stdin=subprocess.DEVNULL)
     home = tmp_path / "home"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     entry = {"pid": gateway.pid, "argv": ["hermes", "gateway", "run"], "home": str(home)}
     monkeypatch.setattr(m, "_discover_systemd", list)
     monkeypatch.setattr(m, "_discover_launchd", list)
@@ -169,7 +169,7 @@ def test_a_replayed_gateway_keeps_its_own_exported_token_and_no_one_elses(tmp_pa
         root = sys.argv[1]
         print(json.dumps({who: _replay_env(home).get("TELEGRAM_BOT_TOKEN") for who, home in (
             ("alpha", root + "/profiles/alpha"), ("beta", root + "/profiles/beta"), ("root", root))}))
-    """, str(root), env={"HOME": str(tmp_path), "HERMES_HOME": str(root / "profiles" / "alpha"),
+    """, str(root), env={"HOME": str(tmp_path), "A2ASSISTANT_HOME": str(root / "profiles" / "alpha"),
                          "TELEGRAM_BOT_TOKEN": "exported-alpha-token"})
     out, _ = probe.communicate(timeout=60)
     got = json.loads(out.strip().splitlines()[-1])
@@ -181,7 +181,7 @@ def test_unknown_cgroup_membership_never_authorizes_stopping_the_unit():
     """A unit whose stop could kill this update stays running unless the update is PROVEN outside
     its cgroup; unreadable membership is unknown, never outside."""
     from hermes_cli.update_cmd_posix_pause import _escape_cgroup
-    assert _escape_cgroup({"unit": "hermes-gateway-p2probe.service", "pid": 4242, "cgroup": None}) is False
+    assert _escape_cgroup({"unit": "a2assistant-gateway-p2probe.service", "pid": 4242, "cgroup": None}) is False
 
 
 @pytest.mark.platforms("macos")

@@ -16,7 +16,7 @@ def test_packaged_desktop_build_restores_pm_git_for_stamp_and_pack(
 
     desktop = tmp_path / "apps" / "desktop"
     desktop.mkdir(parents=True)
-    original = {"PATH": "C:\\without-git", "HERMES_HOME": str(tmp_path)}
+    original = {"PATH": "C:\\without-git", "A2ASSISTANT_HOME": str(tmp_path)}
     calls: list[tuple[list[str], dict[str, str]]] = []
 
     def installed_git(*names: str, base_env: dict[str, str]) -> dict[str, str]:

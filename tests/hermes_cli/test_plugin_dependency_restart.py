@@ -1,10 +1,10 @@
 """A plugin whose Python dependencies were installed after a process booted needs a restart there.
 
-``hermes plugins enable`` commits a new dependency generation and nudges the running gateway to
+``a2assistant plugins enable`` commits a new dependency generation and nudges the running gateway to
 reload its plugins. Activation is a boot decision, so that gateway (and a running dashboard) keeps
 the generation it booted with and cannot import the new dependencies. Enable used to report
 "Gateway reloaded plugins; nothing of this plugin needs a session or restart", and discovery
-logged "run hermes pm repair" — on a hosted container the terminal backend then failed with
+logged "run a2assistant pm repair" — on a hosted container the terminal backend then failed with
 ``No module named '<dep>'`` until something restarted the gateway. The honest answer is: restart.
 """
 
@@ -59,7 +59,7 @@ def home(tmp_path, monkeypatch):
         f"name: depprobe\nversion: '1.0'\npython_dependencies:\n  - '{REQ}'\n", encoding="utf-8")
     (plugin / "__init__.py").write_text("def register(ctx):\n    pass\n", encoding="utf-8")
     (hermes_home / "config.yaml").write_text("plugins:\n  enabled: [depprobe]\n  disabled: []\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     return hermes_home
 
 
@@ -128,7 +128,7 @@ def test_enable_reports_restart_when_the_running_gateway_cannot_import_the_depen
     assert result["activation"]["missing_dependencies"] == [REQ]
     assert result["activation"]["missing_in"] == ["gateway"]
     assert "nothing of this plugin needs" not in hint
-    assert "installed after the running gateway" in hint and "hermes gateway restart" in hint
+    assert "installed after the running gateway" in hint and "a2assistant gateway restart" in hint
 
 
 def test_restart_names_only_the_process_that_cannot_import(home, monkeypatch):
@@ -143,7 +143,7 @@ def test_restart_names_only_the_process_that_cannot_import(home, monkeypatch):
     hint = plugins_activation.activation_hint(result)
 
     assert result["restart_required"] is True and result["activation"]["missing_in"] == ["backend"]
-    assert "desktop app" in hint and "hermes gateway restart" not in hint
+    assert "desktop app" in hint and "a2assistant gateway restart" not in hint
 
 
 def test_enable_reports_repair_when_the_dependency_was_never_installed(home, monkeypatch):

@@ -332,7 +332,7 @@ describe('host terminal after sign-out', () => {
     $desktopBoot.set({ ...$desktopBoot.get(), error: null, visible: false })
   })
 
-  // `hermes webapp --sign-out` closes the tab's sockets with 4401. That is final: redialing only
+  // `a2assistant webapp --sign-out` closes the tab's sockets with 4401. That is final: redialing only
   // hits a ticket route that answers 401, so the terminal stops at once and the tab shows the
   // sign-in view the chat shows.
   it('stops on a 4401 close without redialing and shows the Webapp sign-in view', async () => {

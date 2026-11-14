@@ -1,6 +1,6 @@
 """A phone app's self-labelled chat continues in Desktop; a plugin platform sharing the label is untouched.
 
-The pre-authority ``hermes serve`` stored whatever ``source`` a client sent, so phone apps signed in
+The pre-authority ``a2assistant serve`` stored whatever ``source`` a client sent, so phone apps signed in
 through the dashboard login left routeless rows labelled ``mobile``, ``ios`` and the like (#146814).
 They are the owner's chats: Desktop's resume adopts them as writable conversations, while a third-party
 WebUI's rows (its own agent writes them) still open read-only. The catalog plugin hermes-mobile
@@ -22,7 +22,7 @@ async def _owner(tmp_path, monkeypatch, toolsets):
     from gateway.session_authority import initialize_session_authority
     from gateway.session_controls import AuthorityConnection
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': toolsets})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     runner = SimpleNamespace(session_store=store, _session_db=store._db, adapters={}, _draining=False,

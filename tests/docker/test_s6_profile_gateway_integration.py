@@ -11,7 +11,7 @@ valid profile config). The full register → start → supervised-restart
 → unregister cycle is covered by Phase 4 once profile create/delete
 hooks land.
 
-Every ``docker exec`` here runs as the unprivileged ``hermes`` user
+Every ``docker exec`` here runs as the unprivileged ``a2assistant`` user
 (via :func:`docker_exec` in conftest); see the conftest module
 docstring. The gateway scandir ``/run/hermes-service`` is created
 hermes-owned by the ``02-reconcile-profiles`` cont-init.d script and

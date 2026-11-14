@@ -100,7 +100,7 @@ def _cli(store, session_id):
 def rig(tmp_path, monkeypatch):
     from gateway import run
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     loop = asyncio.new_event_loop()
     try:
         authority, owner = loop.run_until_complete(_compressed(tmp_path))

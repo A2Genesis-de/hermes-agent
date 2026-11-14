@@ -45,8 +45,8 @@ def project(tmp_path, monkeypatch):
     monkeypatch.setattr(cli, 'repo_root', lambda: repo)
     monkeypatch.setattr(paths, 'lockfile_path', lambda: lock.path)
     monkeypatch.setattr(Path, 'home', lambda: tmp_path / 'home')
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path / 'home'))
-    monkeypatch.setenv('HERMES_RUNTIME_DIR', str(tmp_path / 'store'))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path / 'home'))
+    monkeypatch.setenv('A2ASSISTANT_RUNTIME_DIR', str(tmp_path / 'store'))
     monkeypatch.chdir(caller)
 
     run_live = cli._run_live

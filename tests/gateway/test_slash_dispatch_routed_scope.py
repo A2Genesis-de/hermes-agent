@@ -23,7 +23,7 @@ def homes(tmp_path, monkeypatch):
     routed = tmp_path / "profiles" / "beta"
     (launch / "pending" / "memory").mkdir(parents=True)
     (routed / "pending" / "memory").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     return launch, routed
 
 

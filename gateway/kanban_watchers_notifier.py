@@ -35,7 +35,7 @@ def _pin_first():
     """Machine-flow board resolution: env pins outrank the enumerated slug.
 
     The slug here came from ``list_boards()``, not from a user — on a box whose
-    env pins ``HERMES_KANBAN_DB`` every board must resolve to the pinned file
+    env pins ``A2ASSISTANT_KANBAN_DB`` every board must resolve to the pinned file
     or the notifier reads per-slug DBs nobody writes (see
     ``kanban_db.pin_first_board_resolution``)."""
     from hermes_cli import kanban_db
@@ -133,7 +133,7 @@ def _warn_anchorless_thread_sub_once(sub: dict, platform: str) -> None:
     _ANCHORLESS_WARNED.add(key)
     logger.warning(
         "kanban notifier: subscription for %s on %s thread %s has no parent_chat_id anchor and matched no "
-        "profile route; it will not be delivered. Re-subscribe with `hermes kanban notify-subscribe ... "
+        "profile route; it will not be delivered. Re-subscribe with `a2assistant kanban notify-subscribe ... "
         "--parent-chat-id <channel id> [--guild-id <guild id>]`.",
         sub.get("task_id"), platform, sub.get("chat_id"),
     )
@@ -198,7 +198,7 @@ def _adapter_for_subscription(runner: Any, platform: Any, sub: dict, owner_profi
                     sub, platform,
                     "kanban notifier: subscription for %s on %s chat %s is stamped with profile %s but a "
                     "profile_routes entry pins that chat to profile %s; it will not be delivered. "
-                    "Re-subscribe with `hermes kanban notify-subscribe ... --notifier-profile %s`.",
+                    "Re-subscribe with `a2assistant kanban notify-subscribe ... --notifier-profile %s`.",
                     profile, route.profile, route.profile)
                 return None
             from gateway.run import _multiplex_profile_homes
@@ -608,7 +608,7 @@ class _KanbanNotification:
     def _served_wake_profile(self) -> Optional[str]:
         """The subscription's profile when THIS gateway is a multiplexer serving it, else ``None``.
 
-        ``None`` keeps the historical path: a standalone ``hermes -p <name>`` gateway owns its own
+        ``None`` keeps the historical path: a standalone ``a2assistant -p <name>`` gateway owns its own
         listener and key, so its api_server wakes keep using the HTTP self-post.
         """
         if not self.sub_profile:

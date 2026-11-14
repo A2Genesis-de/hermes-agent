@@ -18,7 +18,7 @@ def root(tmp_path, monkeypatch) -> Path:
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 
@@ -32,9 +32,9 @@ def _add_chat(home: Path) -> None:
 
 
 def _launch_under(monkeypatch, root: Path, name: str) -> Path:
-    """A pooled backend launched under ``-p <name>``: HERMES_HOME is the profile's home."""
+    """A pooled backend launched under ``-p <name>``: A2ASSISTANT_HOME is the profile's home."""
     home = profiles.create_profile(name, no_alias=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     assert onboarding_run.get_default_hermes_root() == root
     return home
 
@@ -72,7 +72,7 @@ def test_a_managed_run_false_wins_on_a_fresh_install(root, tmp_path, monkeypatch
     managed = tmp_path / "managed"
     managed.mkdir()
     (managed / "config.yaml").write_text("onboarding:\n  run: false\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
 
     assert onboarding_run.should_run() is False

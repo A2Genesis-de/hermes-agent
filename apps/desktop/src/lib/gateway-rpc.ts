@@ -41,8 +41,8 @@ export function isMissingRestEndpoint(error: unknown): boolean {
 /** Narrow twin of isMissingRestEndpoint for routes with path params: only a
  *  backend catch-all verdict (or the Electron HTML guard) proves the ROUTE is
  *  absent; a handler's own 404 (unknown session/profile) never matches. Two
- *  catch-alls exist: `hermes dashboard` answers unmatched `/api/*` with
- *  "No such API endpoint", and headless `hermes serve` (what Desktop's SSH
+ *  catch-alls exist: `a2assistant dashboard` answers unmatched `/api/*` with
+ *  "No such API endpoint", and headless `a2assistant serve` (what Desktop's SSH
  *  remotes launch) answers every unmatched GET with its fixed "web UI disabled"
  *  body. A bare `{"detail":"Not Found"}` is not a route verdict. */
 export function isUnroutedRestPath(error: unknown): boolean {
@@ -50,7 +50,7 @@ export function isUnroutedRestPath(error: unknown): boolean {
 
   return (
     /no such api endpoint|endpoint is likely missing/i.test(message) ||
-    /(?:^\s*|error:\s*)404:.*headless backend \(hermes serve\): web ui disabled/i.test(message)
+    /(?:^\s*|error:\s*)404:.*headless backend \(a2assistant serve\): web ui disabled/i.test(message)
   )
 }
 

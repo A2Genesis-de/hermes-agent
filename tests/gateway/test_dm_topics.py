@@ -160,7 +160,7 @@ async def test_setup_dm_topics_reuses_persisted_ids_after_adapter_rebuild(tmp_pa
     config_file.write_text(yaml.safe_dump(config_data), encoding="utf-8")
 
     with patch.object(Path, "home", return_value=tmp_path), \
-         patch.dict(os.environ, {"HERMES_HOME": str(home_dir)}):
+         patch.dict(os.environ, {"A2ASSISTANT_HOME": str(home_dir)}):
         await adapter._setup_dm_topics()
 
     # No API call: the persisted thread_ids are reused, not duplicated.
@@ -245,7 +245,7 @@ def test_persist_dm_topic_thread_id_writes_config(tmp_path):
     adapter = _make_adapter()
 
     with patch.object(Path, "home", return_value=tmp_path), \
-         patch.dict(os.environ, {"HERMES_HOME": str(tmp_path / ".hermes")}):
+         patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path / ".hermes")}):
         adapter._persist_dm_topic_thread_id(111, "General", 999)
 
     with open(config_file) as f:
@@ -291,7 +291,7 @@ def test_persist_dm_topic_thread_id_preserves_config_on_write_failure(tmp_path):
         raise RuntimeError("boom")
 
     with patch.object(Path, "home", return_value=tmp_path), \
-         patch.dict(os.environ, {"HERMES_HOME": str(tmp_path / ".hermes")}), \
+         patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path / ".hermes")}), \
          patch("ruamel.yaml.YAML.dump", side_effect=fail_dump):
         adapter._persist_dm_topic_thread_id(111, "General", 999)
 
@@ -352,7 +352,7 @@ def test_get_dm_topic_info_hot_reloads_from_config(tmp_path):
         yaml.safe_dump(config_data, f)
 
     with patch.object(Path, "home", return_value=tmp_path), \
-         patch.dict(os.environ, {"HERMES_HOME": str(tmp_path / ".hermes")}):
+         patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path / ".hermes")}):
         result = adapter._get_dm_topic_info("111", "555")
 
     assert result is not None
@@ -532,7 +532,7 @@ def test_recovered_lobby_message_carries_the_topics_prompt_inputs(lobby_thread_i
 
     dm_topics = [{"chat_id": 111, "topics": [{"name": "Research", "skill": "arxiv", "thread_id": 100}]}]
     # A General-topic lookup misses the cache and hot-reloads config.yaml, so it must hold the topics.
-    with open(Path(os.environ["HERMES_HOME"]) / "config.yaml", "w") as f:
+    with open(Path(os.environ["A2ASSISTANT_HOME"]) / "config.yaml", "w") as f:
         yaml.safe_dump({"platforms": {"telegram": {"extra": {"dm_topics": dm_topics}}}}, f)
     adapter = _make_adapter(dm_topics)
     adapter.config.extra["channel_prompts"] = {"111": "root prompt", "100": "research prompt"}

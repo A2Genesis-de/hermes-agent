@@ -3,7 +3,7 @@
 ``POST /api/providers/oauth/nous/start`` hands the renderer the device page and code; the poller
 takes the token grant, persists the account, moves a replaced free tier's apps, and settles the
 default model. Driven through the real FastAPI routes against a fake portal (the same fake
-``hermes auth upgrade`` is tested with).
+``a2assistant auth upgrade`` is tested with).
 """
 
 from __future__ import annotations

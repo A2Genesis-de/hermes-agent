@@ -2,9 +2,9 @@
 
 Covers the closed loop the rescoped PR is about:
 
-- ``hermes verify`` records into the evidence ledger (pass and fail),
+- ``a2assistant verify`` records into the evidence ledger (pass and fail),
 - a passing run satisfies the verify-on-stop guard,
-- the verify-on-stop nudge names ``hermes verify --json`` when the workspace
+- the verify-on-stop nudge names ``a2assistant verify --json`` when the workspace
   has a runnable recipe (start command or saved manifest),
 - the CLI's detect path merges ``detect_project_facts`` verify commands the
   recipe missed.
@@ -26,7 +26,7 @@ from hermes_cli.verify_cmd import run_verify_command
 @pytest.fixture(autouse=True)
 def _ledger_on(monkeypatch):
     """The ledger is inert unless verify-on-stop is enabled; these tests exercise the ledger."""
-    monkeypatch.setenv("HERMES_VERIFY_ON_STOP", "1")
+    monkeypatch.setenv("A2ASSISTANT_VERIFY_ON_STOP", "1")
 
 
 
@@ -48,8 +48,8 @@ def make_args(path, **overrides):
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes-home"))
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes-home"))
+    monkeypatch.delenv("A2ASSISTANT_SESSION_ID", raising=False)
     return tmp_path
 
 
@@ -82,7 +82,7 @@ def test_record_verify_run_marks_workspace_passed(hermes_home):
     assert event["kind"] == "verify"
     status = verification_status(session_id="s1", cwd=project)
     assert status["status"] == "passed"
-    assert status["evidence"]["canonical_command"] == "hermes verify"
+    assert status["evidence"]["canonical_command"] == "a2assistant verify"
 
 
 def test_record_verify_run_records_failure(hermes_home):
@@ -120,14 +120,14 @@ def test_cli_partial_run_records_targeted_scope(hermes_home, capsys):
 
 
 def test_cli_run_uses_hermes_session_id_env(hermes_home, capsys, monkeypatch):
-    monkeypatch.setenv("HERMES_SESSION_ID", "sess-42")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_ID", "sess-42")
     project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     run_verify_command(make_args(project))
     assert verification_status(session_id="sess-42", cwd=project)["status"] == "passed"
 
 
 def test_cli_verify_clears_stale_on_editing_session(hermes_home, capsys):
-    """Standalone ``hermes verify`` records under default; the editing session
+    """Standalone ``a2assistant verify`` records under default; the editing session
     must still see a pass (#103271)."""
     project = _workspace(hermes_home, manifest_recipe={"name": "Fake", "test": ["echo ok"]})
     changed = str(project / "src" / "app.ts")
@@ -170,7 +170,7 @@ def test_nudge_mentions_hermes_verify_when_recipe_has_start(hermes_home):
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
     assert nudge is not None
-    assert "hermes verify --json" in nudge
+    assert "a2assistant verify --json" in nudge
     # The cheap verify commands are still listed first.
     assert "npm run test" in nudge
 
@@ -186,7 +186,7 @@ def test_nudge_mentions_hermes_verify_when_manifest_exists(hermes_home):
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
     assert nudge is not None
-    assert "hermes verify --json" in nudge
+    assert "a2assistant verify --json" in nudge
 
 
 def test_nudge_keeps_plain_wording_without_recipe_start(hermes_home):
@@ -196,7 +196,7 @@ def test_nudge_keeps_plain_wording_without_recipe_start(hermes_home):
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
     assert nudge is not None
-    assert "hermes verify" not in nudge
+    assert "a2assistant verify" not in nudge
 
 
 def test_nudge_recipe_detection_failure_is_silent(hermes_home, monkeypatch):
@@ -212,7 +212,7 @@ def test_nudge_recipe_detection_failure_is_silent(hermes_home, monkeypatch):
     mark_workspace_edited(session_id="s1", cwd=project, paths=[changed])
     nudge = build_verify_on_stop_nudge(session_id="s1", changed_paths=[changed])
     assert nudge is not None
-    assert "hermes verify" not in nudge
+    assert "a2assistant verify" not in nudge
 
 
 # ---------------------------------------------------------------------------

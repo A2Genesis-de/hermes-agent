@@ -1,5 +1,5 @@
 """The shared owner's ``config.set`` refuses a key the administrator's managed scope pins, like
-``hermes config set``; before, it wrote the pinned key and answered success while the managed value
+``a2assistant config set``; before, it wrote the pinned key and answered success while the managed value
 kept winning on every read. A managed scope that pins something else must not block other keys.
 """
 from types import SimpleNamespace
@@ -19,7 +19,7 @@ def home(tmp_path, monkeypatch):
     managed.mkdir()
     (managed / "config.yaml").write_text("display:\n  skin: corp\n")
     (home / "config.yaml").write_text("display:\n  tui_theme: dark\n")
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     managed_scope.invalidate_managed_cache()
     yield home
     managed_scope.invalidate_managed_cache()
@@ -60,7 +60,7 @@ def test_owner_config_set_runs_its_edit_once(home, monkeypatch, managed, key, va
     if managed:
         (home.parent / "managed" / "config.yaml").write_text("display:\n  focus_view: true\n")
     else:
-        monkeypatch.delenv("HERMES_MANAGED_DIR")
+        monkeypatch.delenv("A2ASSISTANT_MANAGED_DIR")
     managed_scope.invalidate_managed_cache()
     calls = []
     assert _owner_write(home, key, value, calls) == expected

@@ -1,5 +1,5 @@
 """A gateway-owned session runs with ``provider_routing`` and ``prefill_messages_file`` from its own
-profile's config as of its creation, as a new ``hermes chat`` process read them once at startup on
+profile's config as of its creation, as a new ``a2assistant chat`` process read them once at startup on
 pre-merge main (CFG-6, CFG-7). The daemon-start snapshot on the runner never reaches it, and the
 in-process turn and a managed worker get the same values."""
 import json
@@ -95,7 +95,7 @@ def test_each_new_session_reads_its_profiles_prefill_once_and_workers_match(tmp_
     from gateway.session_local import _bypass_policy
     from gateway.session_policy import build_policy
     from gateway.session_worker_construct import construct_inputs
-    monkeypatch.delenv('HERMES_PREFILL_MESSAGES_FILE', raising=False)
+    monkeypatch.delenv('A2ASSISTANT_PREFILL_MESSAGES_FILE', raising=False)
     _prefill(tmp_path, 'prefill.json', 'FIRST')
     runner = SimpleNamespace(config=None, _prefill_messages=STALE, _refresh_fallback_model=lambda: None,
                              _get_system_prompt_for_channel=lambda *a: None)
@@ -140,7 +140,7 @@ def test_an_open_sessions_prefill_survives_cache_pressure_and_file_edits(tmp_pat
     started with on every later construction: a managed worker's and an in-process rebuild's."""
     from gateway.session_policy import build_policy
     from gateway.session_worker_construct import construct_inputs, session_prefill
-    monkeypatch.delenv('HERMES_PREFILL_MESSAGES_FILE', raising=False)
+    monkeypatch.delenv('A2ASSISTANT_PREFILL_MESSAGES_FILE', raising=False)
     _prefill(tmp_path, 'prefill.json', 'ORIGINAL')
     runner = SimpleNamespace(config=None, _prefill_messages=STALE, _refresh_fallback_model=lambda: None,
                              _get_system_prompt_for_channel=lambda *a: None)
@@ -161,7 +161,7 @@ async def test_prefill_is_read_when_the_session_is_created_and_dropped_with_it(t
     from gateway.session_mutations import retire_live_sessions
     from gateway.session_worker_construct import construct_inputs
     from tests.gateway.test_local_create_env_refs import _owner
-    monkeypatch.delenv('HERMES_PREFILL_MESSAGES_FILE', raising=False)
+    monkeypatch.delenv('A2ASSISTANT_PREFILL_MESSAGES_FILE', raising=False)
     home = tmp_path / 'home'
     home.mkdir()
     (home / 'config.yaml').write_text(CONFIG + 'prefill_messages_file: prefill.json\n')
@@ -240,7 +240,7 @@ def _create(owner, connection, home, request_id):
 
 async def _prefill_owner(tmp_path, monkeypatch):
     from tests.gateway.test_local_create_env_refs import _owner
-    monkeypatch.delenv('HERMES_PREFILL_MESSAGES_FILE', raising=False)
+    monkeypatch.delenv('A2ASSISTANT_PREFILL_MESSAGES_FILE', raising=False)
     home = tmp_path / 'home'
     home.mkdir()
     (home / 'config.yaml').write_text(CONFIG + 'prefill_messages_file: prefill.json\n')

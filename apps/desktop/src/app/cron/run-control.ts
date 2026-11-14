@@ -71,7 +71,7 @@ export function jobRunLive(job: RunFields, triggerStartedAt?: number): boolean {
   return !(claimedAt >= triggerStartedAt - TRIGGER_CLOCK_SLACK_MS)
 }
 
-/** The newest attempt's reason when it was stopped (Stop, `hermes cron cancel`, or removal). */
+/** The newest attempt's reason when it was stopped (Stop, `a2assistant cron cancel`, or removal). */
 export function jobLastCancelReason(job: Pick<CronJob, 'latest_execution'>): null | string {
   const execution = job.latest_execution
 

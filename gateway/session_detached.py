@@ -114,7 +114,7 @@ def chat_running_key(runner, route, entry) -> str:
 
 
 def session_env_source(runner, source):
-    """The source a turn's session variables (``HERMES_SESSION_PLATFORM``, ``_CHAT_ID``, ...) name.
+    """The source a turn's session variables (``A2ASSISTANT_SESSION_PLATFORM``, ``_CHAT_ID``, ...) name.
     A conversation its chat moved past binds the local view a Desktop session's turn binds
     (``local_source``): whatever it schedules for "here" reaches the apps, never the chat."""
     key = detached_route_of(source)

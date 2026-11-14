@@ -42,7 +42,7 @@ def _owner(home):
 def test_live_delivery_retry_keeps_receipt_across_owner_loss(tmp_path, monkeypatch):
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     source = tmp_path / "custom-home"
-    monkeypatch.setenv("HERMES_HOME", str(source))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(source))
     subprocess_run = Mock(side_effect=AssertionError("live owner must not spawn CLI"))
     monkeypatch.setattr(subprocess, "run", subprocess_run)
     from hermes_cli.profiles import get_profile_dir
@@ -82,7 +82,7 @@ def test_result_records_pending_until_terminal_receipt(tmp_path, monkeypatch):
     from cron import jobs
     from gateway import config
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.delenv("_HERMES_CRON_EXTERNAL_WORKER", raising=False)
     monkeypatch.setattr(mailbox, "find_canonical_live_owner", lambda home: _owner(tmp_path))
     authority = _FakeAuthority()

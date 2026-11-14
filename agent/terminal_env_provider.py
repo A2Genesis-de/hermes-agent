@@ -32,8 +32,8 @@ class TerminalEnvironmentProvider(ProviderBase):
       passed through, host-looking cwds sanitized, file tools use container path resolution.
     * ``skip_container_guards`` — sandbox disposable enough to skip dangerous-command approval
       prompts. Defaults to ``is_container``; backends that can mount host paths override to False.
-    * ``cache_path_base`` — where auto-synced ``~/.hermes/cache`` files land inside the backend
-      (``"~/.hermes"``, ``"/root/.hermes"``), or ``None`` when host paths remain correct.
+    * ``cache_path_base`` — where auto-synced ``~/.a2assistant/cache`` files land inside the backend
+      (``"~/.a2assistant"``, ``"/root/.hermes"``), or ``None`` when host paths remain correct.
     * ``strip_env_keys`` — vendor credential env vars, stripped from every subprocess the agent
       spawns so a model-authored command can never read them.
     * ``session_isolated_when_nonpersistent`` — non-persistent mode gives each session its own
@@ -98,14 +98,14 @@ class TerminalEnvironmentProvider(ProviderBase):
         return ("ready", "") if self.is_available() else ("needs_setup", f"{self.display_name} is not configured.")
 
     def setup_instructions(self) -> list[str]:
-        """Lines printed by ``hermes setup`` after selection (the wizard persists ``terminal.backend`` itself)."""
+        """Lines printed by ``a2assistant setup`` after selection (the wizard persists ``terminal.backend`` itself)."""
         return []
 
     def post_setup(self) -> None:
-        """Optional interactive hook run by ``hermes setup`` after selection (prompt for tokens, install SDKs)."""
+        """Optional interactive hook run by ``a2assistant setup`` after selection (prompt for tokens, install SDKs)."""
 
     def doctor_checks(self) -> list[tuple[bool, str, str]]:
-        """``hermes doctor`` rows ``(ok, label, detail)``; default reflects :meth:`is_available`."""
+        """``a2assistant doctor`` rows ``(ok, label, detail)``; default reflects :meth:`is_available`."""
         try:
             ok = bool(self.is_available())
         except Exception:

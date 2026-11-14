@@ -12,7 +12,7 @@
 > **Intel Macs:** the `Hermes-Setup.dmg` bootstrap installer is built for
 > Apple Silicon (arm64) only, so on an Intel Mac it reports "not supported on
 > this Mac". No release builds a native `darwin-x64` bundle; install the
-> [CLI](../../README.md) and run `hermes desktop`. See
+> [CLI](../../README.md) and run `a2assistant desktop`. See
 > [Platform Support](../../website/docs/getting-started/platform-support.md#build-targets-and-support-priority).
 
 <table>
@@ -33,7 +33,7 @@
 Already have the Hermes CLI? Just run:
 
 ```bash
-hermes desktop
+a2assistant desktop
 ```
 
 It builds and launches the GUI against your existing install — same config, keys, sessions, and skills. If Desktop cannot find a usable runtime or saved remote connection, first launch lets you connect to an existing Hermes gateway or install Hermes locally. Local onboarding then walks you through choosing a provider and model.
@@ -50,7 +50,7 @@ Update through the owner of the installed artifact: Windows App Installer for
 sideload MSIX, Microsoft Store for Store packages, and `electron-updater` for
 macOS bundles. Source-built apps use the checkout update handoff.
 
-`hermes update` updates managed source checkouts; it does not rewrite a bundled
+`a2assistant update` updates managed source checkouts; it does not rewrite a bundled
 payload. See [BUILDING.md](BUILDING.md) for package and release contracts.
 
 ---
@@ -96,10 +96,10 @@ On Windows x64, the first `pnpm run dev` (and `profile:main`) fetches `get-windo
 Point the app at a specific source checkout, or sandbox it away from your real config:
 
 ```bash
-# throwaway HERMES_HOME, separate Electron userData, distinct app name to avoid the single-instance lock
+# throwaway A2ASSISTANT_HOME, separate Electron userData, distinct app name to avoid the single-instance lock
 ../../scripts/dev-sandbox.sh pnpm run dev
-HERMES_DESKTOP_HERMES_ROOT=/path/to/clone pnpm run dev
-HERMES_HOME=$HOME/.hermes/cache/scratch/throwaway pnpm run dev
+A2ASSISTANT_DESKTOP_HERMES_ROOT=/path/to/clone pnpm run dev
+A2ASSISTANT_HOME=$HOME/.a2assistant/cache/scratch/throwaway pnpm run dev
 pnpm run dev:fake-boot   # exercise the startup overlay with deterministic delays
 ```
 
@@ -121,7 +121,7 @@ publishes Windows and macOS packages; Linux desktop legs are disabled.
 
 The bundled app carries the Electron shell, native React chat surface, and
 local agent payload. It runs the payload directly from resources. User data
-lives in `HERMES_HOME` outside the app. Bootstrap builds instead provision a
+lives in `A2ASSISTANT_HOME` outside the app. Bootstrap builds instead provision a
 source installation. A remote-only Light variant exists as a build target but
 is not published.
 
@@ -131,16 +131,16 @@ The app has three boundaries:
   filesystem/git/window capabilities, and exposes a narrow preload bridge.
 - **React** owns the Desktop routes, panes, interaction state, and
   `@assistant-ui/react` transcript.
-- **Hermes Agent** runs as a headless `hermes serve` process and exposes the
+- **Hermes Agent** runs as a headless `a2assistant serve` process and exposes the
   `tui_gateway` JSON-RPC/WebSocket API. The renderer connects through
   [`apps/shared`](../shared/), which is also used by the browser dashboard.
 
 A bundled artifact uses its payload. If that payload is unusable, the app
 reports damage rather than installing a second checkout. It does not adopt
-an arbitrary `hermes` command on PATH or a system Python installation.
+an arbitrary `a2assistant` command on PATH or a system Python installation.
 
 Non-bundled builds can use the explicit source-root override, development
-checkout, completed managed install, or `HERMES_DESKTOP_HERMES` deployment
+checkout, completed managed install, or `A2ASSISTANT_DESKTOP_HERMES` deployment
 override before offering bootstrap. Candidates are probed before use.
 A runtime that predates `serve` falls back to headless
 `dashboard --no-open`. This is compatibility for the backend command only and
@@ -233,17 +233,17 @@ release-path changes.
 
 ### Troubleshooting
 
-Boot logs land in `HERMES_HOME/logs/desktop.log` (includes backend output and recent Python tracebacks) — check it first if the app reports a boot failure.
+Boot logs land in `A2ASSISTANT_HOME/logs/desktop.log` (includes backend output and recent Python tracebacks) — check it first if the app reports a boot failure.
 
 **macOS / Linux:**
 
 ```bash
 # Force a clean first-launch setup
-rm "$HOME/.hermes/hermes-agent/.hermes-bootstrap-complete"
+rm "$HOME/.a2assistant/app/.hermes-bootstrap-complete"
 # Rebuild a broken Python venv
-rm -rf "$HOME/.hermes/hermes-agent/venv"
+rm -rf "$HOME/.a2assistant/app/venv"
 # Reset a stuck macOS microphone prompt (macOS only)
-tccutil reset Microphone com.nousresearch.hermes
+tccutil reset Microphone de.a2genesis.a2assistant
 ```
 
 **Windows (PowerShell):**
@@ -255,7 +255,7 @@ Remove-Item "$env:LOCALAPPDATA\hermes\hermes-agent\.hermes-bootstrap-complete"
 Remove-Item -Recurse -Force "$env:LOCALAPPDATA\hermes\hermes-agent\venv"
 ```
 
-> The default Hermes home on Windows is `%LOCALAPPDATA%\hermes`. Set the `HERMES_HOME` env var if you've relocated it.
+> The default Hermes home on Windows is `%LOCALAPPDATA%\hermes`. Set the `A2ASSISTANT_HOME` env var if you've relocated it.
 
 ---
 

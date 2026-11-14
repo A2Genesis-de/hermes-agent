@@ -23,7 +23,7 @@ NATIVE = {'provider': 'local', 'user_id': host_owner_subject(), 'profile_id': No
 
 @pytest.fixture
 def authority(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     (tmp_path / 'profiles' / 'two').mkdir(parents=True)
     (tmp_path / 'config.yaml').write_text(
         'hosted_rooms:\n  profiles:\n    two: ' + str((tmp_path / 'profiles' / 'two').resolve()) + '\n')
@@ -88,7 +88,7 @@ def test_only_sign_in_stamps_and_this_machines_account_read_as_the_owners(stamp,
 
 @pytest.fixture
 def store(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     with SessionDB(tmp_path / 'state.db') as db:
         yield SimpleNamespace(db=db, profile_id=str(tmp_path), sessions={}, _require_admission_open=lambda: None)
 

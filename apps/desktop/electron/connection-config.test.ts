@@ -423,7 +423,7 @@ const ROUTES = [
   },
   {
     // THE INVARIANT this collapse must not eat: a route the server cannot
-    // profile-scope has only the backend PROCESS's HERMES_HOME left as a
+    // profile-scope has only the backend PROCESS's A2ASSISTANT_HOME left as a
     // scope, so it keeps a pooled backend. /api/files/upload acts on host
     // paths and takes no `profile` even after #118275.
     name: 'a mutating local request the server cannot scope keeps its pooled backend',
@@ -555,7 +555,7 @@ const ROUTES = [
     expected: { backend: 'pool', descriptorProfile: null, scopePath: false }
   },
   {
-    name: 'HERMES_DESKTOP_ISOLATED_BACKEND keeps a local profile on its own pooled backend',
+    name: 'A2ASSISTANT_DESKTOP_ISOLATED_BACKEND keeps a local profile on its own pooled backend',
     profile: 'coder',
     opts: {
       primaryProfile: 'default',
@@ -664,6 +664,7 @@ test('a /api/profiles/<name>/… path already names its profile: no ambient scop
   }
 
   assert.equal(pathWithProfileScope('/api/profiles/p2/soul', 'default'), '/api/profiles/p2/soul')
+
   // Method-aware: PATCH/DELETE of a profile NAMED active/import/sessions names that profile.
   for (const [path, method] of [['/api/profiles/active', 'PATCH'], ['/api/profiles/import', 'DELETE'],
     ['/api/profiles/sessions', 'DELETE']]) {
@@ -956,7 +957,7 @@ test('resolveProfileApiRequest scopes destructive profile-owned routes to the sh
 
 test('resolveProfileApiRequest keeps an unscopable mutating route on a process-scoped backend', () => {
   // The load-bearing half of the collapse: a route the server cannot scope has
-  // nothing left but the backend process's own HERMES_HOME, so it must NOT fall
+  // nothing left but the backend process's own A2ASSISTANT_HOME, so it must NOT fall
   // through to the shared primary. Live proof of the failure mode this pins:
   // `POST /api/memory/reset?profile=beta` on an unfixed server deleted ALPHA's
   // MEMORY.md and returned ok:true.

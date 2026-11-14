@@ -21,13 +21,14 @@ import threading
 import time
 from pathlib import Path
 from typing import Callable, Mapping, Optional
+from hermes_cli.branding import DESKTOP_APP_ID
 
 # Identity the packaged app claims for its window: electron-builder bakes product-identity.cjs's
 # `appId` into extraMetadata.desktopName, and Electron hands that string to the compositor
 # verbatim (Wayland app_id, CHROME_DESKTOP). GNOME links a window to a launcher by StartupWMClass
 # or by a `<app_id>.desktop` file name, so the entry has to carry the same id — under the old
 # "hermes.desktop" name a packaged launch matches neither rung and lands on the placeholder icon.
-APP_ID = "com.nousresearch.hermes"
+APP_ID = DESKTOP_APP_ID
 DESKTOP_ENTRY_NAME = f"{APP_ID}.desktop"
 
 # Entry name written before the app-id rename; a successful install converts it into a hidden
@@ -38,7 +39,7 @@ LEGACY_DESKTOP_ENTRY_NAME = "hermes.desktop"
 # (updater relaunch) launches. See launched_from_shell().
 SHELL_LAUNCH_ENV_VAR = "DESKTOP_STARTUP_ID"
 # Write end of the reveal pipe handed to Electron; one byte means "main window is on screen".
-READY_FD_ENV_VAR = "HERMES_DESKTOP_READY_FD"
+READY_FD_ENV_VAR = "A2ASSISTANT_DESKTOP_READY_FD"
 REVEAL_BYTE = b"r"  # what linux-launcher-ready.ts writes; anything else is finish()'s wake-up
 
 _SHELL_NAMES = ("bash", "sh", "dash", "zsh", "ksh")
@@ -113,9 +114,9 @@ def _running_interpreter_fallback() -> str:
 
 
 def resolve_exec_command(project_root: Optional[Path] = None) -> str:
-    """Build the absolute ``Exec=`` command line for ``hermes desktop``.
+    """Build the absolute ``Exec=`` command line for ``a2assistant desktop``.
 
-    Prefer the real ``hermes`` launcher; fall back to ``<python> -m hermes_cli.main desktop``.
+    Prefer the real ``a2assistant`` launcher; fall back to ``<python> -m hermes_cli.main desktop``.
     """
     from hermes_cli.relaunch import resolve_hermes_bin
 
@@ -235,7 +236,7 @@ def _resolve_hermes_bin_for_desktop_entry(
     checkout is a launch-context artifact, not a durable installed launcher — persisting it makes
     the entry depend on how the previous launch happened (a bootstrap loop). Skip such candidates
     and fall through to PATH, then to the installer's known wrapper locations. A candidate that
-    provably cannot serve ``hermes desktop`` (a code tree carrying ``hermes_cli`` but no desktop
+    provably cannot serve ``a2assistant desktop`` (a code tree carrying ``hermes_cli`` but no desktop
     app beside it — a managed runtime env's console script) is skipped the same way: its entry
     would only ever die with "Desktop GUI source not found". ``resolve_fn`` is injectable for tests.
 
@@ -421,7 +422,7 @@ def _launcher_tree(path: Path) -> Path:
 
 
 def _tree_desktop_state(tree: Path) -> Optional[bool]:
-    """``True`` when *tree* can serve ``hermes desktop``, ``False`` when it provably cannot, else ``None``.
+    """``True`` when *tree* can serve ``a2assistant desktop``, ``False`` when it provably cannot, else ``None``.
 
     ``False`` is reserved for a tree that IS a hermes code tree (carries ``hermes_cli``) yet has no
     desktop app beside it — the managed runtime env layout, whose launcher runs but dies with
@@ -505,7 +506,7 @@ def _known_wrapper_candidates():
     """Durable installed-launcher locations, most likely first.
 
     Mirrors the installer's ``get_command_link_dir()`` layouts: Termux (``$PREFIX/bin``), root FHS
-    (``/usr/local/bin``), and user (``~/.local/bin``). The wrapper is always named ``hermes``.
+    (``/usr/local/bin``), and user (``~/.local/bin``). The wrapper is always named ``a2assistant``.
     """
     candidates = []
     prefix = os.environ.get("PREFIX")
@@ -723,7 +724,7 @@ def _write_hicolor_pngs(files: dict[str, bytes]) -> bool:
 
 
 def _install_icon_to_hicolor(icon: Path) -> bool:
-    """Install the app icon into the user's hicolor tree so ``Icon=hermes`` resolves without an
+    """Install the app icon into the user's hicolor tree so ``Icon=a2assistant`` resolves without an
     absolute checkout path. Raster PNGs go to indexed fixed-size dirs, never ``scalable``."""
     try:
         raw = icon.read_bytes()
@@ -803,7 +804,7 @@ def install_desktop_entry(project_root: Path) -> Optional[Path]:
     into a hidden alias once the new entry exists, and only while launcher management is
     enabled — deleting it instead would silently kill existing taskbar pins (#124492).
     ``None`` on non-Linux platforms, when the write fails, or when the resolved ``Exec``
-    provably cannot serve ``hermes desktop`` — a convenience, never a reason to fail a launch.
+    provably cannot serve ``a2assistant desktop`` — a convenience, never a reason to fail a launch.
     """
     if not is_supported():
         return None
@@ -875,7 +876,7 @@ class DeferredDesktopEntryInstall:
     """Install the entry once the desktop window is on screen — never while the shell's
     ShellApp is STARTING.
 
-    The launcher hands Electron the write end of a pipe (``HERMES_DESKTOP_READY_FD``); Electron
+    The launcher hands Electron the write end of a pipe (``A2ASSISTANT_DESKTOP_READY_FD``); Electron
     writes one byte when the main window is revealed and a worker thread then installs the entry.
     An exit without a reveal (boot crash, early quit) does NOT heal: gnome-shell keeps the ShellApp
     in STARTING until the startup-notification sequence completes or times out (mutter, ~15 s),

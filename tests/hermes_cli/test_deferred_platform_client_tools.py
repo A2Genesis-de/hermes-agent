@@ -1,7 +1,7 @@
 """Deferred platform plugins must still register their *client* tools.
 
 Issue #78050: a bundled ``kind: platform`` plugin is registered as a deferred
-loader so ``hermes chat`` doesn't import gateway SDKs. A platform plugin may ship
+loader so ``a2assistant chat`` doesn't import gateway SDKs. A platform plugin may ship
 two independent things behind that one deferral — an inbound adapter (heavy)
 and outbound client tools. Deferring the plugin deferred both, so in a CLI/TUI
 process the client tools never registered at all.
@@ -240,7 +240,7 @@ class TestDeferredPlatformToolPreregistration:
     def test_tools_stay_attributed_after_materialization(
         self, tmp_path, probe, clean_registry
     ):
-        """`hermes plugins list` must still credit the pre-registered tools.
+        """`a2assistant plugins list` must still credit the pre-registered tools.
 
         ``_load_plugin`` attributes tools by diffing the registry around
         ``register()``. Tools registered at discovery are already in the
@@ -295,7 +295,7 @@ class TestDeferredPlatformToolPreregistration:
 
         `register_tools` is not transactional: whatever it registered before
         raising stays in the registry. Leaving those unattributed makes
-        `hermes plugins list` under-report what the process is carrying, and
+        `a2assistant plugins list` under-report what the process is carrying, and
         `_load_plugin`'s own diff cannot recover them later because they are
         already inside its "before" snapshot.
         """

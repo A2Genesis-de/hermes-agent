@@ -36,7 +36,7 @@ class TestIntegrationWithModelsModule:
 
     def test_picker_nous_row_uses_curated_list(self, tmp_path, monkeypatch):
         """The /model picker surfaces the curated ``_PROVIDER_MODELS["nous"]``
-        list in curated order — matching the ``hermes model`` CLI — not the live
+        list in curated order — matching the ``a2assistant model`` CLI — not the live
         ``/v1/models`` catalog. Portal free/paid recommendations
         are unioned in when reachable; offline (as here, with the Portal calls
         stubbed out) it's exactly the curated list.
@@ -50,7 +50,7 @@ class TestIntegrationWithModelsModule:
         from hermes_cli.models import get_curated_nous_model_ids
         from hermes_cli.model_switch_providers import list_picker_providers
 
-        active_home = Path(os.environ["HERMES_HOME"])
+        active_home = Path(os.environ["A2ASSISTANT_HOME"])
         (active_home / "auth.json").write_text(
             json.dumps(
                 {
@@ -92,7 +92,7 @@ class TestIntegrationWithModelsModule:
         from hermes_cli.model_switch import list_authenticated_providers
         from hermes_cli.model_switch_providers import list_picker_providers
 
-        active_home = Path(os.environ["HERMES_HOME"])
+        active_home = Path(os.environ["A2ASSISTANT_HOME"])
         (active_home / "auth.json").write_text(
             json.dumps(
                 {

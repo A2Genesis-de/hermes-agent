@@ -21,9 +21,8 @@ import time
 import uuid
 from pathlib import Path
 
-# Never ``ai.hermes.*``: that prefix is what the gateway's restart route, its control-socket
-# supervisor declaration and every fleet scan read as "an installed, KeepAlive service".
-LABEL_PREFIX = "com.nousresearch.hermes.runtime."
+from hermes_cli.service_names import LAUNCHD_RUNTIME_LABEL_PREFIX as LABEL_PREFIX
+from hermes_cli.service_names import LAUNCHD_RUNTIME_LABEL_PREFIXES
 _POLL_INTERVAL_S = 0.5
 
 
@@ -93,7 +92,7 @@ def _remove_finished_jobs(deadline: float | None) -> None:
     listed = _launchctl("list", timeout=_budget(deadline, 10))
     for line in (listed.stdout.splitlines() if listed and listed.returncode == 0 else []):
         fields = line.split()
-        if len(fields) == 3 and fields[0] == "-" and fields[2].startswith(LABEL_PREFIX):
+        if len(fields) == 3 and fields[0] == "-" and fields[2].startswith(LAUNCHD_RUNTIME_LABEL_PREFIXES):
             _launchctl("remove", fields[2], timeout=_budget(deadline, 10))
 
 

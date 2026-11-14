@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 # Opt-in debug tracing for the interrupt/activity/poll machinery
 # (HERMES_DEBUG_INTERRUPT=1). Off by default to avoid flooding gateway logs.
-_DEBUG_INTERRUPT = env_var_enabled("HERMES_DEBUG_INTERRUPT")
+_DEBUG_INTERRUPT = env_var_enabled("A2ASSISTANT_DEBUG_INTERRUPT")
 
 # Extra seconds the ``run_bounded_sync`` backstop waits past the inner ``_wait_for_process``
 # deadline: the inner loop returns partial output + 124; the outer bound only fires when that
@@ -186,7 +186,7 @@ def touch_activity_if_due(state: dict, label: str) -> None:
 
 def get_sandbox_dir() -> Path:
     """Host-side root for all sandbox storage (Docker workspaces, plugin backends'
-    host-side state). ``TERMINAL_SANDBOX_DIR`` overrides ``{HERMES_HOME}/sandboxes``."""
+    host-side state). ``TERMINAL_SANDBOX_DIR`` overrides ``{A2ASSISTANT_HOME}/sandboxes``."""
     custom = os.getenv("TERMINAL_SANDBOX_DIR")
     p = Path(custom) if custom else get_hermes_home() / "sandboxes"
     p.mkdir(parents=True, exist_ok=True)
@@ -444,7 +444,7 @@ class BaseEnvironment(ABC):
         Redirections apply left to right, so the substitution inherits the heredoc as its stdin;
         the heredoc stays outside ``<( )`` because bash 3.2 mis-parses bodies inside it. ``|| :``
         keeps an inherited ``set -e`` from killing the reader on read's EOF status."""
-        delimiter = f"HERMES_STDIN_{uuid.uuid4().hex[:12]}"
+        delimiter = f"A2ASSISTANT_STDIN_{uuid.uuid4().hex[:12]}"
         return (f"{{\n{command}\n}} << '{delimiter}' < <(IFS= read -r -d '' s || :; printf '%s' \"${{s%?}}\")\n"
                 f"{stdin_data}\n{delimiter}")
 

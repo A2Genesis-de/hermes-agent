@@ -1,4 +1,4 @@
-"""Tests for hermes_cli.plugins_cmd — the ``hermes plugins`` CLI subcommand."""
+"""Tests for hermes_cli.plugins_cmd — the ``a2assistant plugins`` CLI subcommand."""
 
 from __future__ import annotations
 
@@ -32,7 +32,7 @@ def _write_portable_app_plugin(root: Path, app: Path, os_key: str | None = None)
     (root / "plugin.json").write_text(json.dumps({
         "$schema": PLUGIN_SCHEMA_V1,
         "name": "example-plugin",
-        "extensions": {"com.nousresearch.hermes": {"servers": {"worker": {
+        "extensions": {"de.a2genesis.a2assistant": {"servers": {"worker": {
             "app": {os_key or os_family(): {"presence": "executable", "location": str(app)}},
             "requires": {"app": True},
         }}}},
@@ -275,7 +275,7 @@ class TestCmdRemove:
     def test_remove_deletes_only_the_requested_plugin(self, tmp_path, monkeypatch):
         from hermes_cli.plugins_cmd import cmd_remove
 
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         target = tmp_path / "plugins/test-plugin"
         target.mkdir(parents=True)
         (target / "plugin.yaml").write_text("name: test-plugin\n", encoding="utf-8")
@@ -405,7 +405,7 @@ class TestProviderDiscovery:
 
     def test_save_context_engine(self, tmp_path, monkeypatch):
         """Saving a context engine persists to config.yaml."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         config_file = tmp_path / "config.yaml"
         config_file.write_text("context:\n  engine: compressor\n", encoding="utf-8")
         from hermes_cli.plugins_cmd import _save_context_engine
@@ -480,7 +480,7 @@ class TestSubdirInstallE2E:
         self._make_repo_with_subdir_plugin(repo_root)
 
         plugins_dir = tmp_path / "home/plugins"
-        monkeypatch.setenv("HERMES_HOME", str(plugins_dir.parent))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(plugins_dir.parent))
 
         identifier = f"file://{repo_root}#my-plugin"
         target, manifest, name = pc._install_plugin_core(identifier, force=False)
@@ -540,7 +540,7 @@ class TestSubdirInstallE2E:
         sp.run(["git", "add", "-A"], cwd=repo_root, check=True, env=env)
         sp.run(["git", "commit", "-q", "-m", "init"], cwd=repo_root, check=True, env=env)
         plugins_dir = tmp_path / "home/plugins"
-        monkeypatch.setenv("HERMES_HOME", str(plugins_dir.parent))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(plugins_dir.parent))
 
         target, manifest, name = pc._install_plugin_core(
             f"file://{repo_root}", force=False
@@ -632,13 +632,13 @@ def test_portable_manifest_is_visible_to_plugin_cli(tmp_path):
 
 
 def test_toggle_plugin_toolset_rewrites_a_list_literal_string_platform_entry(tmp_path, monkeypatch):
-    """``hermes plugins enable`` must reach a platform whose ``platform_toolsets`` entry is the
-    list-literal string an older ``hermes config set`` stored, and re-save it as a real list —
+    """``a2assistant plugins enable`` must reach a platform whose ``platform_toolsets`` entry is the
+    list-literal string an older ``a2assistant config set`` stored, and re-save it as a real list —
     the runtime already reads that string as the user's selection (follow-up to #115866)."""
 
     from hermes_cli import plugins_cmd
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "config.yaml").write_text(
         yaml.safe_dump({"platform_toolsets": {"cli": '["web", "terminal"]', "telegram": ["hermes-telegram"]}}),
         encoding="utf-8")
@@ -656,7 +656,7 @@ def test_toggle_plugin_toolset_rewrites_a_list_literal_string_platform_entry(tmp
 
 @pytest.fixture
 def prepared_publication(client, tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
 
 
 def test_default_compressor_does_not_activate_an_offered_plugin(monkeypatch):

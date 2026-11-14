@@ -231,7 +231,7 @@ class GatewayConnection:
                         self._error = None
                         self._ready.clear()
                         self.closed = False
-                    thread = self._thread = spawn_context_thread(self._run, name="hermes-gateway-loop")
+                    thread = self._thread = spawn_context_thread(self._run, name="a2assistant-gateway-loop")
                     thread.start()
             # Every caller waits out a dial in progress, its own or another thread's.
             if not self._ready.wait(max(deadline - time.monotonic(), 0)):
@@ -436,7 +436,7 @@ class GatewayConnection:
         answer, sent = concurrent.futures.Future(), threading.Event()
         answer.add_done_callback(lambda _done: wake.set())
         thread = spawn_context_thread(lambda: asyncio.run(self._command(method, params, wake, answer, sent)),
-                                      name="hermes-gateway-command")
+                                      name="a2assistant-gateway-command")
         with self._side_lock:
             self._commands.add(wake)
         thread.start()

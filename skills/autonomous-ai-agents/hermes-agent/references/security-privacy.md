@@ -7,14 +7,14 @@ Common "why is A2Assistant doing X to my output / tool calls / commands?" toggle
 Secret redaction is **on by default** — tool output (terminal stdout, `read_file`, web content, subagent summaries, etc.) is scanned for strings that look like API keys, tokens, and secrets before it enters the conversation context and logs. Leave it enabled for normal use:
 
 ```bash
-hermes config set security.redact_secrets true       # keep enabled globally
+a2assistant config set security.redact_secrets true       # keep enabled globally
 ```
 
-**Restart required.** `security.redact_secrets` is snapshotted at import time — toggling it mid-session (e.g. via `export HERMES_REDACT_SECRETS=false` from a tool call) will NOT take effect for the running process. Tell the user to change it in config from a terminal, then start a new session. This is deliberate — it prevents an LLM from flipping the toggle on itself mid-task.
+**Restart required.** `security.redact_secrets` is snapshotted at import time — toggling it mid-session (e.g. via `export A2ASSISTANT_REDACT_SECRETS=false` from a tool call) will NOT take effect for the running process. Tell the user to change it in config from a terminal, then start a new session. This is deliberate — it prevents an LLM from flipping the toggle on itself mid-task.
 
 Disable only when you deliberately need raw credential-like strings for debugging or redactor development:
 ```bash
-hermes config set security.redact_secrets false
+a2assistant config set security.redact_secrets false
 ```
 
 ### PII redaction in gateway messages
@@ -22,8 +22,8 @@ hermes config set security.redact_secrets false
 Separate from secret redaction. When enabled, the gateway hashes user IDs and strips phone numbers from the session context before it reaches the model:
 
 ```bash
-hermes config set privacy.redact_pii true    # enable
-hermes config set privacy.redact_pii false   # disable (default)
+a2assistant config set privacy.redact_pii true    # enable
+a2assistant config set privacy.redact_pii false   # disable (default)
 ```
 
 ### Command approval prompts
@@ -35,13 +35,13 @@ By default (`approvals.mode: smart`), A2Assistant asks an auxiliary LLM to asses
 - `off` — skip all approval prompts (equivalent to `--yolo`)
 
 ```bash
-hermes config set approvals.mode smart       # recommended middle ground
-hermes config set approvals.mode off         # bypass everything (not recommended)
+a2assistant config set approvals.mode smart       # recommended middle ground
+a2assistant config set approvals.mode off         # bypass everything (not recommended)
 ```
 
 Per-invocation bypass without changing config:
 - `a2assistant --yolo …`
-- `export HERMES_YOLO_MODE=1`
+- `export A2ASSISTANT_YOLO_MODE=1`
 
 Note: YOLO / `approvals.mode: off` does NOT turn off secret redaction. They are independent.
 
@@ -52,14 +52,14 @@ mode, and NOT a per-edit diff prompt (which doesn't exist; file writes never
 go through the approval prompt, only shell commands do). Two stores hold it:
 
 1. Shell-command allowlist: `a2assistant config set command_allowlist '[]'`
-2. Shell-hook consent (only if present): `rm -f ~/.hermes/shell-hooks-allowlist.json`
+2. Shell-hook consent (only if present): `rm -f ~/.a2assistant/shell-hooks-allowlist.json`
 
 Then sanity-check `a2assistant config get approvals.mode` (should not be `off`)
 and confirm `--yolo` isn't baked into their launch alias or systemd unit.
 
 ### Shell hooks allowlist
 
-Some shell-hook integrations require explicit allowlisting before they fire. Managed via `~/.hermes/shell-hooks-allowlist.json` — prompted interactively the first time a hook wants to run.
+Some shell-hook integrations require explicit allowlisting before they fire. Managed via `~/.a2assistant/shell-hooks-allowlist.json` — prompted interactively the first time a hook wants to run.
 
 ### Disabling the web/browser/image-gen tools
 

@@ -14,7 +14,7 @@
 // only Electron's logging is bypassed. Any other failure rejects as usual and
 // still logs in full.
 
-const HERMES_API_EXPECTED_404 = '__hermesExpected404__'
+const A2ASSISTANT_API_EXPECTED_404 = '__hermesExpected404__'
 
 // True when `value` is a handler-resolved expected-404 sentinel, not real
 // response data. Kept narrow: a plain object whose ONLY key is the sentinel and
@@ -28,8 +28,8 @@ function isExpectedNotFoundSentinel(value: unknown): value is Record<string, str
 
   return (
     keys.length === 1 &&
-    keys[0] === HERMES_API_EXPECTED_404 &&
-    typeof (value as any)[HERMES_API_EXPECTED_404] === 'string'
+    keys[0] === A2ASSISTANT_API_EXPECTED_404 &&
+    typeof (value as any)[A2ASSISTANT_API_EXPECTED_404] === 'string'
   )
 }
 
@@ -37,10 +37,10 @@ function isExpectedNotFoundSentinel(value: unknown): value is Record<string, str
 // renderer expects; anything else passes through untouched.
 function unwrapExpectedNotFound(value: unknown): unknown {
   if (isExpectedNotFoundSentinel(value)) {
-    throw new Error(value[HERMES_API_EXPECTED_404])
+    throw new Error(value[A2ASSISTANT_API_EXPECTED_404])
   }
 
   return value
 }
 
-export { HERMES_API_EXPECTED_404, isExpectedNotFoundSentinel, unwrapExpectedNotFound }
+export { A2ASSISTANT_API_EXPECTED_404, isExpectedNotFoundSentinel, unwrapExpectedNotFound }

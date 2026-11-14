@@ -73,7 +73,7 @@ def _run_legacy_cli(tmp_path, *args):
     return subprocess.run(
         [sys.executable, "-S", "-m", "hermes_cli._scan_venv_blockers", *args],
         cwd=Path(__file__).resolve().parents[2],
-        env={**os.environ, "HERMES_HOME": str(tmp_path), "PYTHONPATH": ""},
+        env={**os.environ, "A2ASSISTANT_HOME": str(tmp_path), "PYTHONPATH": ""},
         capture_output=True,
         text=True,
         timeout=15,

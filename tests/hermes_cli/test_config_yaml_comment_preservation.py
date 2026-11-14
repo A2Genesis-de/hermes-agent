@@ -51,7 +51,7 @@ KEY_ORDER = ["_config_version", "model", "plugins", "approvals", "hooks"]
 def home(tmp_path):
     (tmp_path / ".env").touch()
     (tmp_path / "config.yaml").write_text(COMMENTED, encoding="utf-8")
-    with patch.dict(os.environ, {"HERMES_HOME": str(tmp_path)}):
+    with patch.dict(os.environ, {"A2ASSISTANT_HOME": str(tmp_path)}):
         from hermes_cli import config as config_mod
         config_mod._RAW_CONFIG_CACHE.clear()
         yield tmp_path

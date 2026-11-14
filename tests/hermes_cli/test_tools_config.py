@@ -106,7 +106,7 @@ def test_scalar_platform_toolsets_fall_back_to_platform_default():
 
 
 def test_enable_on_string_platform_toolsets_keeps_listed_entries():
-    """#115866: `hermes tools enable` must operate on the selection a list-literal
+    """#115866: `a2assistant tools enable` must operate on the selection a list-literal
     string encodes — not re-baseline it on the platform default, which silently
     dropped the user's default-off entries (video, video_gen) on write."""
     config = {"platform_toolsets": {"telegram": '["browser", "terminal", "video", "video_gen"]'}}
@@ -174,7 +174,7 @@ def test_get_platform_tools_legacy_hermes_alias_alone():
 
 
 def test_toolset_has_keys_for_vision_accepts_codex_auth(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     (tmp_path / "auth.json").write_text(
         '{"active_provider":"openai-codex","providers":{"openai-codex":{"tokens":{"access_token": "codex-...oken","refresh_token": "codex-...oken"}}}}'
     )
@@ -362,7 +362,7 @@ class TestChromiumPostSetup:
             _run_post_setup("chromium")
 
         assert any(str(error) in c.args[0] for c in warn.call_args_list)
-        assert any("hermes tools post-setup chromium" in c.args[0] for c in info.call_args_list)
+        assert any("a2assistant tools post-setup chromium" in c.args[0] for c in info.call_args_list)
 
 
 class TestBrowserExecEngineCheckedForEveryBrowserRow:
@@ -379,7 +379,7 @@ class TestBrowserExecEngineCheckedForEveryBrowserRow:
         ensure.assert_called_once()
 
     def test_ensure_helper_missing_harness_is_non_fatal(self):
-        """A missing harness must warn and point at `hermes update`, never raise."""
+        """A missing harness must warn and point at `a2assistant update`, never raise."""
         from hermes_cli.tools_config import _ensure_browser_use_cli
 
         with patch("tools.browser_use_cli._find_cli", return_value=None), patch(
@@ -388,7 +388,7 @@ class TestBrowserExecEngineCheckedForEveryBrowserRow:
             _ensure_browser_use_cli()  # must not raise
 
         assert any("browser-harness" in c.args[0] for c in warn.call_args_list)
-        assert any("hermes update" in c.args[0] for c in info.call_args_list)
+        assert any("a2assistant update" in c.args[0] for c in info.call_args_list)
 
 
 class TestImagegenModelPicker:
@@ -421,7 +421,7 @@ class TestImagegenModelPicker:
 
 def test_get_effective_configurable_toolsets_dedupes_bundled_plugins():
     """A plugin toolset whose key is also a CONFIGURABLE_TOOLSETS entry must not
-    be listed twice — otherwise `hermes tools` → "reconfigure existing" shows
+    be listed twice — otherwise `a2assistant tools` → "reconfigure existing" shows
     the same toolset two rows in a row.
     """
     from hermes_cli.tools_config import _get_effective_configurable_toolsets
@@ -454,7 +454,7 @@ def test_kanban_checklist_reports_and_persists_explicit_removal():
 
 def test_vision_picker_custom_endpoint(tmp_path, monkeypatch):
     """Custom endpoint writes base_url+model to config and the key to env."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     import hermes_cli.tools_config as tc
     import hermes_cli.tools_config_providers as tcp
     from hermes_cli.config import load_config
@@ -594,7 +594,7 @@ def test_agent_disabled_toolsets_still_wins():
 @_requires_recently_shipped
 def test_agent_disabled_toolsets_json_array_string_form_still_wins():
     """#86661: the suppression list may arrive as a JSON-array string (e.g.
-    `hermes config set agent.disabled_toolsets '["memory"]'`). It must be
+    `a2assistant config set agent.disabled_toolsets '["memory"]'`). It must be
     parsed, not treated as one dead toolset name that filters nothing."""
     config = _saved_list_from_before()
     import json as _json
@@ -623,7 +623,7 @@ def test_agent_disabled_toolsets_python_literal_string_form_still_wins():
 
 def test_disabled_composite_debugging_prunes_constituent_platform_toolsets():
     """#97015: ``agent.disabled_toolsets: [debugging]`` must hide member
-    toolsets on ``hermes tools --summary``, not only strip them at runtime."""
+    toolsets on ``a2assistant tools --summary``, not only strip them at runtime."""
     config = {
         "platform_toolsets": {"cli": ["hermes-cli"]},
         "agent": {"disabled_toolsets": ["debugging"]},

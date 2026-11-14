@@ -25,7 +25,7 @@ stall on first launch. Baking turns that into a warm read:
   scripts/build/launcher_wrapper.py), so imports read the source-
   adjacent baked pycs, which is Python's default multi-root lookup:
   payload modules read theirs; plugin/user modules keep caching beside
-  their own sources under HERMES_HOME.
+  their own sources under A2ASSISTANT_HOME.
 
 Coverage is the performance contract: every parseable module under
 the baked roots must have a pyc. Unparseable fixtures (deliberately

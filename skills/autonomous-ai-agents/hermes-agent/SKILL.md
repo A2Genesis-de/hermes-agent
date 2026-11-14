@@ -16,7 +16,7 @@ metadata:
 
 A2Assistant is the AI assistant of A2Genesis GmbH, powered by the A2Intelligence models. Internally it runs on Hermes Agent, the open-source agent framework by Nous Research, so the upstream documentation, commands, and paths apply unchanged. It runs in your terminal, a native desktop app (A2Assistant.app), messaging platforms, and IDEs. It's in the same category as Claude Code (Anthropic), Codex (OpenAI), and OpenClaw — autonomous coding and task-execution agents that use tool calling to interact with your system. A2Assistant works with any LLM provider (OpenRouter, Anthropic, OpenAI, Google, DeepSeek, xAI, local models, and 20+ others) and runs on Linux, macOS, Windows, and WSL.
 
-**Names:** the product is A2Assistant and its models are A2Intelligence; always call it A2Assistant when talking to the user. The CLI answers to `a2assistant` and to the upstream name hermes; the examples below use `a2assistant`. Internal paths and identifiers keep the upstream names: `~/.hermes`, `HERMES_HOME`, `HERMES_*` variables, this `hermes-agent` skill, and the upstream docs at hermes-agent.nousresearch.com.
+**Names:** the product is A2Assistant and its models are A2Intelligence; always call it A2Assistant when talking to the user. The CLI answers to `a2assistant` and to the upstream name hermes; the examples below use `a2assistant`. Internal paths and identifiers keep the upstream names: `~/.a2assistant`, `A2ASSISTANT_HOME`, `A2ASSISTANT_*` variables, this `hermes-agent` skill, and the upstream docs at hermes-agent.nousresearch.com.
 
 What makes A2Assistant different:
 
@@ -54,37 +54,37 @@ curl -fsSL https://hermes-agent.nousresearch.com/install.sh | bash
 hermes
 
 # Single query
-hermes chat -q "What is the capital of France?"
+a2assistant chat -q "What is the capital of France?"
 
 # Setup wizard  /  pick model+provider  /  health check
-hermes setup
-hermes model
-hermes doctor
+a2assistant setup
+a2assistant model
+a2assistant doctor
 
 # Other surfaces
-hermes desktop                 # launch the native desktop app (alias: a2assistant gui)
-hermes dashboard               # web admin panel + embedded chat
-hermes proxy                   # OpenAI-compatible local proxy backed by your OAuth provider
+a2assistant desktop                 # launch the native desktop app (alias: a2assistant gui)
+a2assistant dashboard               # web admin panel + embedded chat
+a2assistant proxy                   # OpenAI-compatible local proxy backed by your OAuth provider
 ```
 
 ## Key Paths
 
 ```
-~/.hermes/config.yaml       Main configuration (settings — never secrets)
-~/.hermes/.env              API keys and secrets ONLY (under $HERMES_HOME if set)
-$HERMES_HOME/skills/        Installed skills
-~/.hermes/skins/            Custom themes (see references/themes.md)
-~/.hermes/desktop-plugins/  Desktop app UI plugins (see references/desktop-plugins.md)
-~/.hermes/tui-widgets/      TUI widget apps (see references/tui-widgets.md)
-~/.hermes/pets/             Installed pet mascots (see references/petdex.md)
-~/.hermes/state.db          Canonical session store (SQLite + FTS5)
-~/.hermes/sessions/         Gateway routing index, request dumps, *.jsonl transcripts
-~/.hermes/logs/             Gateway and error logs
-~/.hermes/auth.json         OAuth tokens and credential pools
-~/.hermes/hermes-agent/     Source code (if git-installed)
+~/.a2assistant/config.yaml       Main configuration (settings — never secrets)
+~/.a2assistant/.env              API keys and secrets ONLY (under $A2ASSISTANT_HOME if set)
+$A2ASSISTANT_HOME/skills/        Installed skills
+~/.a2assistant/skins/            Custom themes (see references/themes.md)
+~/.a2assistant/desktop-plugins/  Desktop app UI plugins (see references/desktop-plugins.md)
+~/.a2assistant/tui-widgets/      TUI widget apps (see references/tui-widgets.md)
+~/.a2assistant/pets/             Installed pet mascots (see references/petdex.md)
+~/.a2assistant/state.db          Canonical session store (SQLite + FTS5)
+~/.a2assistant/sessions/         Gateway routing index, request dumps, *.jsonl transcripts
+~/.a2assistant/logs/             Gateway and error logs
+~/.a2assistant/auth.json         OAuth tokens and credential pools
+~/.a2assistant/app/     Source code (if git-installed)
 ```
 
-Profiles use `~/.hermes/profiles/<name>/` with the same layout. When a profile is active, resolve the real home from `$HERMES_HOME` — never hardcode `~/.hermes`.
+Profiles use `~/.a2assistant/profiles/<name>/` with the same layout. When a profile is active, resolve the real home from `$A2ASSISTANT_HOME` — never hardcode `~/.a2assistant`.
 
 ## Routing Table — load the reference for the task
 
@@ -136,10 +136,10 @@ Run additional A2Assistant processes as fully independent subprocesses — separ
 ### One-Shot Mode
 
 ```
-terminal(command="hermes chat -q 'Research GRPO papers and write summary to ~/research/grpo.md'", timeout=300)
+terminal(command="a2assistant chat -q 'Research GRPO papers and write summary to ~/research/grpo.md'", timeout=300)
 
 # Background for long tasks:
-terminal(command="hermes chat -q 'Set up CI/CD for ~/myapp'", background=true)
+terminal(command="a2assistant chat -q 'Set up CI/CD for ~/myapp'", background=true)
 ```
 
 ### Interactive PTY Mode (via tmux)
@@ -226,5 +226,5 @@ terminal(command="tmux new-session -d -s resumed 'a2assistant --resume 20260225_
 - **Never break prompt caching** — don't change past context, toolsets, or the system prompt mid-conversation. The only exception is context compression.
 - **Message role alternation** — never two assistant or two user messages in a row; only `tool` results can repeat.
 - **Secrets in `.env`, settings in `config.yaml`** — never tell a user to put a non-credential setting in `.env`.
-- **Profile-safe paths** — `get_hermes_home()` in code, `$HERMES_HOME` when resolving paths in a session.
+- **Profile-safe paths** — `get_hermes_home()` in code, `$A2ASSISTANT_HOME` when resolving paths in a session.
 - **Never hand-edit `config.yaml` for the user** — use `a2assistant config set KEY VAL`; a stray indent can corrupt the file and break the live gateway.

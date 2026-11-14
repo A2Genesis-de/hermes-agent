@@ -472,7 +472,7 @@ def _drive_authority_fallback(monkeypatch, *, capabilities, profile_id, method):
 
 
 def test_ready_frame_advertises_a_session_authority_only_when_one_is_bound(monkeypatch):
-    """An explicit TUI attach (HERMES_TUI_GATEWAY_URL) negotiates the canonical wire from this flag."""
+    """An explicit TUI attach (A2ASSISTANT_TUI_GATEWAY_URL) negotiates the canonical wire from this flag."""
     from gateway import session_controls
 
     class FakeConnection:

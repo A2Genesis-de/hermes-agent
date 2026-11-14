@@ -1,4 +1,4 @@
-"""Tests for the legacy-desktop-checkout report in hermes doctor."""
+"""Tests for the legacy-desktop-checkout report in a2assistant doctor."""
 
 import json
 import subprocess
@@ -41,7 +41,7 @@ def embedded_context(tmp_path, monkeypatch):
     (checkout / "f.txt").write_text("x\n")
     _git(checkout, "add", ".")
     _git(checkout, "commit", "-m", "initial")
-    monkeypatch.setattr(doctor, "HERMES_HOME", home)
+    monkeypatch.setattr(doctor, "A2ASSISTANT_HOME", home)
     return checkout
 
 

@@ -9,13 +9,12 @@
  * Prerequisite: `pnpm run build` must have been run so dist/ exists.
  */
 
-import { test } from './test'
-
 import {
   type NoProviderFixture,
   setupNoProvider,
   waitForOnboarding,
 } from './fixtures'
+import { test } from './test'
 import { expectVisualSnapshot } from './visual-snapshot'
 
 let fixture: NoProviderFixture | null = null
@@ -29,7 +28,7 @@ test.describe('onboarding with no provider configured', () => {
   test('onboarding overlay appears on first boot', async () => {
     fixture = await setupNoProvider()
 
-    // The app should boot (hermes serve starts fine even without a provider),
+    // The app should boot (a2assistant serve starts fine even without a provider),
     // but the renderer should show the onboarding overlay because no
     // provider is configured.
     await waitForOnboarding(fixture.page, 90_000)

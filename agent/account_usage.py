@@ -403,7 +403,7 @@ def apply_header_gauge(snapshot: Optional[AccountUsageSnapshot], credits_state: 
 def nous_credits_lines(*, markdown: bool = False, timeout: float = 10.0, credits_state: Any = None) -> list[str]:
     """Rendered Nous-credits /usage lines, or [] when there's nothing to show. Independent of any live agent
     (logged-in gate, then a bounded portal fetch); shared by CLI ``_show_usage`` and the TUI ``session.usage`` RPC.
-    Fail-open: any hiccup or timeout → []. HERMES_DEV_CREDITS_FIXTURE renders from the fixture instead of the portal.
+    Fail-open: any hiccup or timeout → []. A2ASSISTANT_DEV_CREDITS_FIXTURE renders from the fixture instead of the portal.
     ``credits_state`` is the last response's header gauge; when it is ahead of the portal, the bars use it."""
     return nous_credits_view(markdown=markdown, timeout=timeout, credits_state=credits_state)[0]
 
@@ -462,7 +462,7 @@ def _snapshot_from_credits_state(state) -> Optional[AccountUsageSnapshot]:
                 details.append(f"Top-up credits: ${state.purchased_usd}")
             if getattr(state, "paid_access", True) is False and not window_lines:
                 details.append(_DEPLETED_LINE)
-            return _nous_snapshot(windows, details, ["(dev fixture — HERMES_DEV_CREDITS_FIXTURE)"], source="dev-fixture",
+            return _nous_snapshot(windows, details, ["(dev fixture — A2ASSISTANT_DEV_CREDITS_FIXTURE)"], source="dev-fixture",
                                   usage_window=True)
         uf = getattr(state, "used_fraction", None)
         sub_usd = getattr(state, "subscription_usd", None)
@@ -478,7 +478,7 @@ def _snapshot_from_credits_state(state) -> Optional[AccountUsageSnapshot]:
                 details.append(f"{label}: ${value}")
         if getattr(state, "paid_access", True) is False:
             details.append(_DEPLETED_LINE)
-        return _nous_snapshot(windows, details, ["(dev fixture — HERMES_DEV_CREDITS_FIXTURE)"], source="dev-fixture")
+        return _nous_snapshot(windows, details, ["(dev fixture — A2ASSISTANT_DEV_CREDITS_FIXTURE)"], source="dev-fixture")
     except (AttributeError, TypeError):
         return None
 
@@ -798,7 +798,7 @@ def redeem_codex_reset_credit(
     try:
         token, resolved_base_url, account_id = _resolve_codex_usage_credentials(base_url, api_key)
     except Exception:
-        return _unavailable("No Codex credentials available. Run `hermes auth` to sign in with your ChatGPT account.")
+        return _unavailable("No Codex credentials available. Run `a2assistant auth` to sign in with your ChatGPT account.")
     redeem_request_id = str(uuid.uuid4())
     try:
         for attempt in range(2):
@@ -834,7 +834,7 @@ def redeem_codex_reset_credit(
         code = exc.response.status_code
         if code in (401, 403):
             return _unavailable(f"Codex backend rejected the request (HTTP {code}). Reset credits require ChatGPT-account "
-                                "(OAuth) auth — run `hermes auth` and sign in with your ChatGPT account.")
+                                "(OAuth) auth — run `a2assistant auth` and sign in with your ChatGPT account.")
         return _unavailable(f"Codex backend error (HTTP {code}) — try again shortly.")
     except Exception as exc:
         return _unavailable(f"Could not reach the Codex backend: {exc}")

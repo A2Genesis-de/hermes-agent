@@ -118,7 +118,7 @@ class TestBuildInlineResults:
 class TestCollectInlineCatalog:
     def test_catalog_is_uncapped_and_includes_all_skills(self, tmp_path, monkeypatch):
         """The whole point: unlike the 60-slot menu, EVERY skill appears."""
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         skills = tmp_path / "skills"
         names = [f"filler-{i:02d}" for i in range(70)] + ["zzz-last-skill"]
         for n in names:
@@ -144,7 +144,7 @@ class TestCollectInlineCatalog:
         assert "help" in got and "plan" in got
 
     def test_no_duplicate_names(self, tmp_path, monkeypatch):
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         (tmp_path / "skills").mkdir()
         catalog = collect_inline_catalog()
         names = [i["name"] for i in catalog]

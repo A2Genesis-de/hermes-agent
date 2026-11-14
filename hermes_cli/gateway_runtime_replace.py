@@ -3,8 +3,8 @@
 After an upgrade the old daemon keeps answering the home's control socket, but its ``identify`` has
 no ``runtime_protocol`` (it predates the session-authority runtime). Every client of this version
 ensures through :func:`hermes_cli.gateway_runtime.ensure_gateway_runtime` (the TUI bootstrap,
-Desktop's ``hermes gateway ensure``, ``hermes chat``), so ensure replaces that owner once, exactly as
-``hermes gateway stop`` would stop it (a planned-stop marker in the owner's home, then SIGTERM; a
+Desktop's ``a2assistant gateway ensure``, ``a2assistant chat``), so ensure replaces that owner once, exactly as
+``a2assistant gateway stop`` would stop it (a planned-stop marker in the owner's home, then SIGTERM; a
 bounded wait; a start-time-guarded force kill), and then starts the current one the normal way.
 
 Refused, never stopped:
@@ -27,11 +27,11 @@ _FORCED_STOP_SECONDS = 5.0
 
 # One line each, short enough for the TUI's activity row after its "gateway incompatible: " prefix.
 REFUSAL_DETAIL = {
-    "owner_newer": "a newer A2Assistant's gateway owns this profile; update A2Assistant or run: hermes gateway stop",
-    "foreign_install": "another A2Assistant install's gateway owns this profile; stop it there: hermes gateway stop",
-    "owner_unverified": "an older A2Assistant gateway owns this profile and was not verified; run: hermes gateway stop",
-    "owner_did_not_exit": "an older A2Assistant gateway owns this profile and did not stop; run: hermes gateway stop",
-    "owner_unreachable": "an older A2Assistant gateway owns this profile; run: hermes gateway stop",
+    "owner_newer": "a newer A2Assistant's gateway owns this profile; update A2Assistant or run: a2assistant gateway stop",
+    "foreign_install": "another A2Assistant install's gateway owns this profile; stop it there: a2assistant gateway stop",
+    "owner_unverified": "an older A2Assistant gateway owns this profile and was not verified; run: a2assistant gateway stop",
+    "owner_did_not_exit": "an older A2Assistant gateway owns this profile and did not stop; run: a2assistant gateway stop",
+    "owner_unreachable": "an older A2Assistant gateway owns this profile; run: a2assistant gateway stop",
 }
 
 
@@ -88,7 +88,7 @@ def _verified_owner(control: Path, payload: dict) -> tuple[int, Any] | str:
 
 
 def _write_planned_stop(control: Path, pid: int, start_time: Any) -> None:
-    """The marker ``hermes gateway stop`` writes, in the OWNER's home (it reads its own), so the old
+    """The marker ``a2assistant gateway stop`` writes, in the OWNER's home (it reads its own), so the old
     gateway exits as a planned stop: clean exit, ``stopped`` persisted, no supervisor revival."""
     from gateway.status import _PLANNED_STOP_MARKER_FILENAME, _utc_now_iso, _write_marker
     _write_marker(control / _PLANNED_STOP_MARKER_FILENAME, {

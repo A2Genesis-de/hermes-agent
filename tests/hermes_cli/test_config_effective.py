@@ -1,5 +1,5 @@
 """Invariants for ``hermes_cli.config_effective.load_user_config_effective`` — the one loader every
-defaults-free config reader (gateway runtime, TUI gateway, cron, ``hermes send`` bridge, doctor,
+defaults-free config reader (gateway runtime, TUI gateway, cron, ``a2assistant send`` bridge, doctor,
 bootstrap modules) goes through."""
 import textwrap
 
@@ -14,8 +14,8 @@ def homes(tmp_path, monkeypatch):
     home.mkdir()
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(managed))
     monkeypatch.setenv("FIXTURE_USER_KEY", "user-secret")
     monkeypatch.setenv("FIXTURE_MANAGED_URL", "https://managed.example")
     _reset_caches()

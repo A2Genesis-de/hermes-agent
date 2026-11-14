@@ -21,7 +21,7 @@ def register(ctx):
 def _turn_of(tmp_path, monkeypatch, **request):
     """The task-local state a local session's turn runs under (``policy_scope`` sets the same var)."""
     from gateway import session_policy
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     policy = session_policy.build_policy({'source': 'tui', 'cwd': str(tmp_path), **request}, {'model': {'default': 'm'}})
     token = session_policy._ACTIVE_POLICY.set(policy)
     try:

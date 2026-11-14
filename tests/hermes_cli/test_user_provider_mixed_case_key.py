@@ -2,9 +2,9 @@
 provider every picker row offers under that key, so selecting it must route to THAT endpoint on
 each switch surface. ``resolve_provider_full`` lowercases the request before the user-config
 lookup, and a case-sensitive dict read missed the key: ``OpenAI`` fell through to the legacy
-``openai`` -> OpenRouter alias and ``hermes model`` / ``/model`` switched to the wrong host.
+``openai`` -> OpenRouter alias and ``a2assistant model`` / ``/model`` switched to the wrong host.
 
-Real config on a temp ``HERMES_HOME``; loopback ``/v1/models``; no mocks on the switch chain.
+Real config on a temp ``A2ASSISTANT_HOME``; loopback ``/v1/models``; no mocks on the switch chain.
 """
 
 import asyncio
@@ -34,7 +34,7 @@ def _write_config(key: str, provider: str = "openrouter") -> tuple[Path, str]:
     srv = HTTPServer(("127.0.0.1", 0), _Listing)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
     base_url = f"http://127.0.0.1:{srv.server_port}/v1"
-    path = Path(os.environ["HERMES_HOME"]) / "config.yaml"
+    path = Path(os.environ["A2ASSISTANT_HOME"]) / "config.yaml"
     path.write_text(f"model:\n  provider: {provider}\n  default: x\n"
                     f"providers:\n  {key}:\n    base_url: {base_url}\n    api_key_env: MIXED_KEY\n    models: [m1]\n")
     return path, base_url
@@ -74,7 +74,7 @@ def test_cli_model_command_switches_to_the_configured_endpoint(requested):
 
 
 def test_hermes_model_marks_the_configured_mixed_case_provider_active():
-    """``hermes model`` opens with the configured ``providers.OpenAI`` row selected, not OpenRouter."""
+    """``a2assistant model`` opens with the configured ``providers.OpenAI`` row selected, not OpenRouter."""
     from hermes_cli.config import load_config
     from hermes_cli.main import _resolve_active_provider
     from hermes_cli.main_provider_setup import _named_custom_provider_map

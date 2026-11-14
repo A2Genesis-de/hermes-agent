@@ -45,7 +45,7 @@ def plugin_home(tmp_path, monkeypatch):
         "    ctx.register_command('delegation', lambda arg: 'MODE=%s' % ctx.ask_choice('Delegation mode', choices))\n")
     (home / "config.yaml").write_text(json.dumps({"plugins": {"enabled": ["pick"]}}))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(plugins_mod, "get_bundled_plugins_dir", lambda: tmp_path / "empty-bundled")
     monkeypatch.setattr(PluginManager, "_scan_entry_points", lambda self: [])
     plugins_mod._reset_plugin_managers_for_tests()

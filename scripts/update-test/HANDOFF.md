@@ -21,7 +21,7 @@ instructions:
    & ([scriptblock]::Create((irm $scriptUrl))) pre
    ```
 
-   this backs up your entire hermes home and any desktop app settings, then points your install's updates at the test fork's `main` (no local mirror: `hermes update` fetches straight from the fork, so it needs network). _from this point on, nothing you do in hermes will be preserved, until you restore your backup at the end._
+   this backs up your entire hermes home and any desktop app settings, then points your install's updates at the test fork's `main` (no local mirror: `a2assistant update` fetches straight from the fork, so it needs network). _from this point on, nothing you do in hermes will be preserved, until you restore your backup at the end._
 
 3. boot hermes up to ensure everything is working, still. if you normally have a background service, gateway, etc, make sure it's running.
 
@@ -65,7 +65,7 @@ if [[ ! "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
   exit 1
 fi
 
-curl -fsSL "https://raw.githubusercontent.com/$REPO_ID/$SHA/scripts/install.sh" | HERMES_REPO_URL="https://github.com/$REPO_ID.git" bash
+curl -fsSL "https://raw.githubusercontent.com/$REPO_ID/$SHA/scripts/install.sh" | A2ASSISTANT_REPO_URL="https://github.com/$REPO_ID.git" bash
 ```
 
 windows, in powershell
@@ -74,6 +74,6 @@ windows, in powershell
 $repo_id = "NousResearch/hermes-agent"
 $sha = (irm "https://api.github.com/repos/$repo_id/commits/main" -Headers @{ "User-Agent" = "ps-installer" }).sha
 $scriptUrl = "https://raw.githubusercontent.com/$repo_id/$sha/scripts/install.ps1"
-$env:HERMES_REPO_URL = "https://github.com/$repo_id.git"
+$env:A2ASSISTANT_REPO_URL = "https://github.com/$repo_id.git"
 & ([scriptblock]::Create((irm $scriptUrl)))
 ```

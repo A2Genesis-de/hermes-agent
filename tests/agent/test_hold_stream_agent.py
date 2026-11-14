@@ -38,7 +38,7 @@ def test_held_turns_show_only_the_rewritten_final(hold, turn):
     from hermes_cli import plugins
     from run_agent import AIAgent
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     with FakeLLMServer(TURNS[turn]()) as srv:
         redactor_home(home, srv.base_url, hold=hold)
         plugins._reset_plugin_managers_for_tests()
@@ -67,7 +67,7 @@ def test_a_held_guardrail_halt_reply_is_not_streamed_ahead_of_the_rewrite():
     from hermes_cli import plugins
     from run_agent import AIAgent
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     failing = ToolCall("read_file", {"path": str(home / "missing" / "SECRET-9.txt")})
     with FakeLLMServer([failing] * 6 + [Text(RAW)]) as srv:
         redactor_home(home, srv.base_url, hold=True)

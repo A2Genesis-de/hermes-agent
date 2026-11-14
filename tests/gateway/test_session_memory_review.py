@@ -23,7 +23,7 @@ _REVIEW_VERBS = {'memory': {'pending': 'read', **_WRITES}, 'skills': {'pending':
 
 @pytest.mark.parametrize('subsystem', ['memory', 'skills'])
 def test_each_review_subcommand_the_cli_serves_keeps_its_reach_on_a_local_session(tmp_path, monkeypatch, subsystem):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     from gateway.session_commands import command_verdict
     from hermes_cli.write_approval_commands import handle_pending_subcommand
     for verb, reach in _REVIEW_VERBS[subsystem].items():
@@ -35,7 +35,7 @@ def test_each_review_subcommand_the_cli_serves_keeps_its_reach_on_a_local_sessio
 
 
 def test_memory_has_no_diff_like_the_cli(tmp_path, monkeypatch):
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     from gateway.session_commands import command_verdict
     from hermes_cli.write_approval_commands import handle_pending_subcommand
     assert handle_pending_subcommand('memory', ['diff', 'x']) is None
@@ -109,7 +109,7 @@ def test_local_session_reviews_staged_memory_writes(tmp_path):
         'model': {'provider': 'custom', 'default': 'review-model', 'base_url': url},
         'auxiliary': {'title_generation': {'enabled': False}}}))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
     out, config = {}, {}
     commands = ('memory approve keepme01', 'memory reject dropme02', 'memory approval on',

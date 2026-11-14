@@ -3,7 +3,7 @@
 Tools run in the shared gateway, so a variable of the client that shows a session (a terminal pane's
 id, say) is not in the gateway's environment. A plugin declares the names and a resolver; every child
 the session context reaches (terminal foreground and background, ``execute_code``'s ``terminal()``)
-calls the resolvers of the active profile with the child's ``HERMES_SESSION_ID`` when it is spawned.
+calls the resolvers of the active profile with the child's ``A2ASSISTANT_SESSION_ID`` when it is spawned.
 """
 from __future__ import annotations
 
@@ -12,6 +12,8 @@ import os
 import re
 import threading
 from typing import Callable, Iterable, Mapping, Optional
+
+from hermes_cli.branding import ENV_PREFIX, LEGACY_ENV_PREFIX
 
 logger = logging.getLogger(__name__)
 
@@ -34,14 +36,14 @@ def _env_key(name: str) -> str:
 
 def register_session_env(scope: str, names: Iterable[str], resolver: Resolver, *,
                          owner: Optional[str] = None) -> Callable[[], None]:
-    """Record ``resolver`` for ``names`` in profile ``scope``; return its release. ``HERMES_*`` stays core's.
+    """Record ``resolver`` for ``names`` in profile ``scope``; return its release. ``A2ASSISTANT_*`` stays core's.
     A name a live registration of another ``owner`` (plugin) in ``scope`` declares is refused (``ValueError``
     naming the holder): one plugin per name, never a silent last-wins between plugins. One owner's own
     overlapping registrations stack: the latest live one's value wins."""
     names = [names] if isinstance(names, str) else list(names)
-    if not names or any(not isinstance(n, str) or not _NAME_RE.fullmatch(n) or n.upper().startswith("HERMES_")
+    if not names or any(not isinstance(n, str) or not _NAME_RE.fullmatch(n) or n.upper().startswith((ENV_PREFIX, LEGACY_ENV_PREFIX))
                         for n in names):
-        raise ValueError("session env names must be valid environment variable names outside HERMES_*")
+        raise ValueError("session env names must be valid environment variable names outside A2ASSISTANT_*")
     if not callable(resolver):
         raise TypeError("session env resolver must be callable")
     token = object()

@@ -13,8 +13,8 @@ import { useSessionLifecycle } from '../app/useSessionLifecycle.js'
 
 it('branch hydration replaces source authority only after a successful destination attachment', async () => {
   const home = mkdtempSync(join(tmpdir(), 'ink-slash-branch-'))
-  vi.stubEnv('HERMES_HOME', home)
-  vi.stubEnv('HERMES_TUI_ACTIVE_SESSION_FILE', join(home, 'active'))
+  vi.stubEnv('A2ASSISTANT_HOME', home)
+  vi.stubEnv('A2ASSISTANT_TUI_ACTIVE_SESSION_FILE', join(home, 'active'))
   resetUiState()
 
   const source = { model: 'test', skills: {}, tools: {}, stored_session_id: 'stored-source',

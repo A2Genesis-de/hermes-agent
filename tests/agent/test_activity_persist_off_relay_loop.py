@@ -51,8 +51,8 @@ class _OwnerReplies:
 
 @pytest.fixture()
 def relay_turn(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "profile"))
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "profile"))
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     relay_runtime._reset_for_tests()
     lease = relay_runtime.SESSION_COORDINATOR.acquire_conversation(
         profile_key=relay_runtime.current_profile_key(), session_id=SESSION, platform="cli",

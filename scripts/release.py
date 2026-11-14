@@ -324,7 +324,7 @@ def generate_changelog(commits, tag_name, semver, repo_url="https://github.com/N
     # ones; the release body links point at the R2 public URL). A release
     # whose matrix never finishes keeps the link — visibly unfinished,
     # and it points at the run that stopped.
-    lines.append("<!-- HERMES_BUILDS_TABLE -->")
+    lines.append("<!-- A2ASSISTANT_BUILDS_TABLE -->")
     lines.append("")
 
     if first_release:

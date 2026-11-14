@@ -22,8 +22,8 @@ def test_declaration_policy_survives_cross_profile_resolution(tmp_path, monkeypa
     home = tmp_path / "custom-home"
     sibling = home / "profiles" / "work"
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(sibling))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "runtime"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(sibling))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "runtime"))
     core = tmp_path / "core"
     core.mkdir()
     wheels = tmp_path / "wheels"

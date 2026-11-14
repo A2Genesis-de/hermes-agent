@@ -36,7 +36,7 @@ async def test_created_session_snapshot_carries_inventory_for_frozen_toolsets(tm
     (home / 'config.yaml').write_text(
         'model: {default: gpt-5.4, provider: custom, base_url: "http://127.0.0.1:9/v1"}\n'
         'platform_toolsets: {cli: [file, terminal]}\n')
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     monkeypatch.setattr(run, '_hermes_home', home)
     monkeypatch.setattr(banner, '_available_skills_cache', None)
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
@@ -92,7 +92,7 @@ async def test_cli_surface_snapshot_carries_main_cli_toolsets_and_startup_warnin
     home.mkdir()
     (home / 'config.yaml').write_text(
         'model: {default: gpt-5.4, provider: custom, base_url: "http://127.0.0.1:9/v1"}\n')
-    monkeypatch.setenv('HERMES_HOME', str(home))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
     monkeypatch.setattr(run, '_hermes_home', home)
     monkeypatch.setattr(banner, '_available_skills_cache', None)
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
@@ -118,7 +118,7 @@ async def test_cli_surface_snapshot_carries_main_cli_toolsets_and_startup_warnin
 
 @pytest.mark.asyncio
 async def test_cli_surface_counts_kanban_skills_like_main_cli_without_leaking(tmp_path, monkeypatch, repo):
-    """Main's ``cmd_chat`` pins ``HERMES_KANBAN_BOARD`` before HermesCLI starts, so its banner lists
+    """Main's ``cmd_chat`` pins ``A2ASSISTANT_KANBAN_BOARD`` before HermesCLI starts, so its banner lists
     ``environments: [kanban]`` skills. A CLI-surface snapshot counts them; other surfaces and the
     process-wide catalog do not."""
     from gateway import run
@@ -136,9 +136,9 @@ async def test_cli_surface_counts_kanban_skills_like_main_cli_without_leaking(tm
         (skill / 'SKILL.md').write_text(f'---\nname: {name}\ndescription: d.\n{extra}---\nBody.\n')
     (home / 'config.yaml').write_text(
         'model: {default: gpt-5.4, provider: custom, base_url: "http://127.0.0.1:9/v1"}\n')
-    monkeypatch.setenv('HERMES_HOME', str(home))
-    monkeypatch.delenv('HERMES_KANBAN_BOARD', raising=False)
-    monkeypatch.delenv('HERMES_KANBAN_TASK', raising=False)
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(home))
+    monkeypatch.delenv('A2ASSISTANT_KANBAN_BOARD', raising=False)
+    monkeypatch.delenv('A2ASSISTANT_KANBAN_TASK', raising=False)
     monkeypatch.setattr(run, '_hermes_home', home)
     monkeypatch.setattr(banner, '_available_skills_cache', None)
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())

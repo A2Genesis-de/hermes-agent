@@ -5,12 +5,12 @@ Hermetic-test invariants enforced here (see AGENTS.md for rationale):
 1. **No credential env vars.** All provider/credential-shaped env vars
    (ending in _API_KEY, _TOKEN, _SECRET, _PASSWORD, _CREDENTIALS, etc.)
    are unset before every test. Local developer keys cannot leak in.
-2. **Isolated Hermes homes.** HERMES_HOME and the platform-default root
+2. **Isolated Hermes homes.** A2ASSISTANT_HOME and the platform-default root
    resolve inside a per-test tempdir. Profile/root resolution can inspect
    both without probing production state. HOME and Path.home() stay intact
    for subprocesses and non-Hermes paths. Explicit test overrides still win.
 3. **Deterministic runtime.** TZ=UTC, LANG=C.UTF-8, PYTHONHASHSEED=0.
-4. **No HERMES_SESSION_* inheritance** — the agent's current gateway
+4. **No A2ASSISTANT_SESSION_* inheritance** — the agent's current gateway
    session must not leak into tests.
 
 These invariants make the local test run match CI closely. Gaps that
@@ -74,27 +74,35 @@ _version_info._cached_version_info = _version_info.VersionInfo(
 # the REAL Hermes root — capture it BEFORE the sandbox rewires HERMES_HOME,
 # otherwise the deny-list would point at the throwaway tempdir and the guard
 # would silently stop protecting the operator's actual ~/.hermes (#69385).
-_PRE_SANDBOX_KANBAN_OVERRIDE = os.environ.get("HERMES_KANBAN_HOME", "").strip()
-_PRE_SANDBOX_HERMES_HOME = os.environ.get("HERMES_HOME", "")
+_PRE_SANDBOX_KANBAN_OVERRIDE = os.environ.get("A2ASSISTANT_KANBAN_HOME", "").strip()
+_PRE_SANDBOX_HERMES_HOME = os.environ.get("A2ASSISTANT_HOME", "")
 
 # Capture before any test fixture can override Path.home()/LOCALAPPDATA.
 from hermes_constants import _get_platform_default_hermes_home
+from hermes_cli.branding import LEGACY_ENV_PREFIX
+
+for _legacy_env_key in [key for key in os.environ if key.startswith(LEGACY_ENV_PREFIX)]:
+    del os.environ[_legacy_env_key]
+
+import hermes_constants as _hermes_constants
+
+_hermes_constants.legacy_layout_active = lambda: False
 
 _NATIVE_HERMES_PARENT = _get_platform_default_hermes_home().parent
 
 
 def _hermes_home_points_at_production(value: str) -> bool:
-    """True when a pre-set HERMES_HOME resolves to the real production root.
+    """True when a pre-set A2ASSISTANT_HOME resolves to the real production root.
 
     Gateway-launched shells (and developer shells that ``export
-    HERMES_HOME=~/.hermes``) hand pytest the PRODUCTION home. Historically
+    A2ASSISTANT_HOME=~/.a2assistant``) hand pytest the PRODUCTION home. Historically
     the session sandbox below honored any pre-set value, so collection-time
     imports (logging handlers, ``hermes_state.DEFAULT_DB_PATH``) froze paths
-    inside the real ``~/.hermes`` — the escape vector that landed pytest
+    inside the real ``~/.a2assistant`` — the escape vector that landed pytest
     fixture rows (chat-1 / wx-chat sessions, /tmp/pytest-of-* routing
     scopes) in the live state.db and flipped its journal mode under the
     WAL-mode gateway writer. Only a genuinely custom (non-production)
-    HERMES_HOME is honored now.
+    A2ASSISTANT_HOME is honored now.
     """
     if not value:
         return True
@@ -146,7 +154,7 @@ from hermes_state_guard import _real_platform_state_root
 
 _real_test_root = _real_platform_state_root() or (Path.home() / ".hermes").resolve()
 _guarded_tmp_roots = [_real_test_root]
-_custom_test_home = os.environ.get("HERMES_HOME")
+_custom_test_home = os.environ.get("A2ASSISTANT_HOME")
 if _custom_test_home:
     _guarded_tmp_roots.append(Path(_custom_test_home).expanduser().resolve())
 for _key in SCRATCH_TMP_ENV_VARS:
@@ -158,13 +166,13 @@ for _key in SCRATCH_TMP_ENV_VARS:
 tempfile.tempdir = None  # re-resolve after stripping guarded temp directories
 os.environ.setdefault("TMPDIR", tempfile.gettempdir())
 
-if _hermes_home_points_at_production(os.environ.get("HERMES_HOME", "")):
+if _hermes_home_points_at_production(os.environ.get("A2ASSISTANT_HOME", "")):
     _SESSION_HERMES_HOME = tempfile.mkdtemp(prefix="hermes-test-home-")
-    os.environ["HERMES_HOME"] = _SESSION_HERMES_HOME
+    os.environ["A2ASSISTANT_HOME"] = _SESSION_HERMES_HOME
     # Marker for re-imported conftest module bodies (xdist workers exec this
     # file more than once): the second import sees the already-redirected
     # sandbox in the env and must not register it as a guarded "real" root.
-    os.environ["HERMES_TEST_SANDBOX_HOME"] = _SESSION_HERMES_HOME
+    os.environ["A2ASSISTANT_TEST_SANDBOX_HOME"] = _SESSION_HERMES_HOME
     atexit.register(shutil.rmtree, _SESSION_HERMES_HOME, True)
 
 # PYTHONPYCACHEPREFIX is a bytecode-mirror escape hatch: when set (the
@@ -192,14 +200,14 @@ except AttributeError:
 # Tests that legitimately need a child to look like a non-test process AND
 # open a real DB must export HERMES_STATE_DB_GUARD_BYPASS=1 in that child's
 # env instead of stripping markers.
-os.environ["HERMES_TEST_ISOLATION"] = os.environ.get("HERMES_HOME", "") or "1"
+os.environ["A2ASSISTANT_TEST_ISOLATION"] = os.environ.get("A2ASSISTANT_HOME", "") or "1"
 
 # Lazy-install kill-switch, set before any test module is imported. The per-test
 # fixture below sets it too, but collection runs first: agent/bedrock_adapter.py
 # calls lazy_deps.ensure() at import time, so collecting a file that imports it
 # ran a real `uv pip install boto3` into the shared venv while other files raced
 # on whether botocore was importable yet.
-os.environ["HERMES_DISABLE_LAZY_INSTALLS"] = "1"
+os.environ["A2ASSISTANT_DISABLE_LAZY_INSTALLS"] = "1"
 
 #: HERMES_HOME as it stood when conftest was imported - i.e. before any test
 #: module could import code that configures logging. Recorded so the guard in
@@ -207,7 +215,7 @@ os.environ["HERMES_DISABLE_LAZY_INSTALLS"] = "1"
 #: Reading os.environ from inside a test is useless here: the per-test
 #: `_isolate_env` fixture has sandboxed it by then, so the check would pass
 #: even with this block removed.
-HERMES_HOME_AT_CONFTEST_IMPORT = os.environ.get("HERMES_HOME", "")
+HERMES_HOME_AT_CONFTEST_IMPORT = os.environ.get("A2ASSISTANT_HOME", "")
 
 # ── Host-rendezvous isolation ───────────────────────────────────────────────
 # ``gateway/host_rendezvous.py`` publishes ONE record per role per OS USER, in
@@ -220,7 +228,7 @@ HERMES_HOME_AT_CONFTEST_IMPORT = os.environ.get("HERMES_HOME", "")
 #
 # A caller-supplied value always wins (both here and in the per-test fixture
 # below) — otherwise the documented override is a silent no-op.
-HOST_LOCK_DIR_AT_CONFTEST_IMPORT = os.environ.get("HERMES_GATEWAY_LOCK_DIR", "")
+HOST_LOCK_DIR_AT_CONFTEST_IMPORT = os.environ.get("A2ASSISTANT_GATEWAY_LOCK_DIR", "")
 if not HOST_LOCK_DIR_AT_CONFTEST_IMPORT:
     # Deterministic per-PID name, not mkdtemp: the parallel runner SIGKILLs a worker on timeout,
     # which never runs atexit, so a random dir per run leaked one directory per killed worker.
@@ -238,7 +246,7 @@ if not HOST_LOCK_DIR_AT_CONFTEST_IMPORT:
             shutil.rmtree(_stale, ignore_errors=True)
     _SESSION_LOCK_DIR = str(_LOCK_DIR_ROOT / f"{_LOCK_DIR_PREFIX}{os.getpid()}")
     shutil.rmtree(_SESSION_LOCK_DIR, ignore_errors=True)
-    os.environ["HERMES_GATEWAY_LOCK_DIR"] = _SESSION_LOCK_DIR
+    os.environ["A2ASSISTANT_GATEWAY_LOCK_DIR"] = _SESSION_LOCK_DIR
     atexit.register(shutil.rmtree, _SESSION_LOCK_DIR, True)
 
 
@@ -273,8 +281,8 @@ from tests._fixtures.platform_gating import _platforms_gate_reason, _reject_cont
 def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     """Blank out all credential/behavioral env vars so local and CI match.
 
-    Also redirects HOME and HERMES_HOME to per-test tempdirs so code that
-    reads ``~/.hermes/*`` can't touch the real one, and pins TZ/LANG so
+    Also redirects HOME and A2ASSISTANT_HOME to per-test tempdirs so code that
+    reads ``~/.a2assistant/*`` can't touch the real one, and pins TZ/LANG so
     datetime/locale-sensitive tests are deterministic.
     """
     # 1. Blank every credential-shaped env var that's currently set.
@@ -291,7 +299,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     # on it), but pin the host so ordinary tests cannot inherit a developer's
     # defaultHost and silently select the wrong nested config block. Tests of
     # custom host resolution override/delete this explicitly.
-    monkeypatch.setenv("HERMES_HONCHO_HOST", "hermes")
+    monkeypatch.setenv("A2ASSISTANT_HONCHO_HOST", "hermes")
 
     # 3. Isolate both inputs to profile/root resolution. HERMES_HOME alone
     #    is insufficient: get_default_hermes_root() resolves the native root
@@ -317,7 +325,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     (fake_hermes_home / "cron").mkdir()
     (fake_hermes_home / "memories").mkdir()
     (fake_hermes_home / "skills").mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(fake_hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(fake_hermes_home))
     # A test that pins the process home (hermes_constants.pin_process_hermes_home) must not
     # leak that module-global into the next test's routed-profile decisions.
     try:
@@ -345,7 +353,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     # works (tests of the resolution rule itself rely on that).
     if not HOST_LOCK_DIR_AT_CONFTEST_IMPORT:
         monkeypatch.delenv("XDG_STATE_HOME", raising=False)
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
     # Relay normally discovers the user's XDG plugins.toml and merges the machine
     # policy above it. Select a per-test user file with a deny-by-default dynamic
     # plugin policy so ordinary tests do not activate ambient worker/native plugins,
@@ -357,15 +365,15 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
             "version = 1\n\n[plugins.policy.defaults]\nallowed = false\n",
             encoding="utf-8",
         )
-    monkeypatch.setenv("HERMES_NEMO_RELAY_PLUGINS_TOML", str(relay_plugins))
+    monkeypatch.setenv("A2ASSISTANT_NEMO_RELAY_PLUGINS_TOML", str(relay_plugins))
     # Keep the subprocess-surviving isolation marker pointed at THIS test's
     # home (#82770): children spawned by the test inherit it by default, so
     # hermes_state's live-DB guard stays armed in them even when the test
     # strips pytest's own PYTEST_* vars from the child env.
-    monkeypatch.setenv("HERMES_TEST_ISOLATION", str(fake_hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_TEST_ISOLATION", str(fake_hermes_home))
     # And never let a developer-shell (or leaked child) bypass disarm the
     # guard for in-process code under test.
-    monkeypatch.delenv("HERMES_STATE_DB_GUARD_BYPASS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_STATE_DB_GUARD_BYPASS", raising=False)
 
     # 3b. hermes_state computes ``DEFAULT_DB_PATH = get_hermes_home() / "state.db"``
     #     at import time. When the module is first imported at collection (any
@@ -424,7 +432,7 @@ def _hermetic_environment(tmp_path, tmp_path_factory, monkeypatch):
     # suite timeout under tests that set fake proxy env vars. The kill-switch
     # makes ensure() raise FeatureUnavailable immediately instead.
     # extras tests override this var in both directions.
-    monkeypatch.setenv("HERMES_DISABLE_LAZY_INSTALLS", "1")
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", "1")
 
     # 5. Reset plugin singleton so tests don't leak plugins from
     #    ~/.hermes/plugins/ (which, per step 3, is now empty — but the
@@ -518,7 +526,7 @@ def _close_leaked_session_dbs():
 
     Rather than editing every test file, ``SessionDB.__init__`` registers each
     instance in ``hermes_state_guard._test_instance_registry`` (a WeakSet,
-    populated only when the ``HERMES_TEST_ISOLATION`` marker is set — i.e.
+    populated only when the ``A2ASSISTANT_TEST_ISOLATION`` marker is set — i.e.
     only under this suite). This teardown closes whatever the test left open.
     ``close()`` is idempotent (``self._conn`` is None afterwards) and also
     unregisters the pinning atexit hook, so instances become collectable.
@@ -637,10 +645,10 @@ def _capture_real_kanban_root() -> Path:
     """Resolve the REAL kanban root from the pre-test environment.
 
     Uses the pre-sandbox environment snapshot taken at the very top of this
-    file (before the session HERMES_HOME sandbox rewired the env), so the
+    file (before the session A2ASSISTANT_HOME sandbox rewired the env), so the
     deny-list keeps pointing at the operator's actual root. Mirrors
     ``kanban_db.kanban_home()`` resolution order:
-    1. ``HERMES_KANBAN_HOME`` env var when set and non-empty
+    1. ``A2ASSISTANT_KANBAN_HOME`` env var when set and non-empty
     2. the real (pre-sandbox) Hermes root otherwise
     """
     if _PRE_SANDBOX_KANBAN_OVERRIDE:
@@ -669,8 +677,8 @@ def _kanban_write_guard(_hermetic_environment, monkeypatch):
 
     Uses a **deny-list**: only blocks writes where the resolved DB path
     (explicit ``db_path`` or ``kanban_db_path()``) lands under the real
-    ``~/.hermes`` captured at import time. Hermetic tests that legitimately
-    move HERMES_HOME to sibling tempdirs are unaffected.
+    ``~/.a2assistant`` captured at import time. Hermetic tests that legitimately
+    move A2ASSISTANT_HOME to sibling tempdirs are unaffected.
 
     Only patches when ``hermes_cli.kanban_db_connect`` is *already imported*
     — a ``sys.modules`` probe, not an import — so the guard never drags the
@@ -712,7 +720,7 @@ def _kanban_write_guard(_hermetic_environment, monkeypatch):
             f"kanban_write_guard: kanban DB path resolved to {resolved}, "
             f"which is under the REAL kanban root ({_REAL_KANBAN_ROOT}). "
             f"Hermetic isolation has been bypassed — refusing to write "
-            f"to the real ~/.hermes. See #69283."
+            f"to the real ~/.a2assistant. See #69283."
         )
 
     monkeypatch.setattr(_kdbc, "connect", _guarded_connect)
@@ -897,7 +905,7 @@ def tmp_dir(tmp_path):
 
 @pytest.fixture()
 def mock_config():
-    """Return a minimal hermes config dict suitable for unit tests."""
+    """Return a minimal a2assistant config dict suitable for unit tests."""
     return {
         "model": "test/mock-model",
         "toolsets": ["terminal", "file"],
@@ -985,8 +993,8 @@ def _wal_is_usable() -> bool:
     IMPORTANT: this must NOT import ``hermes_state``. That module computes
     ``DEFAULT_DB_PATH`` from ``get_hermes_home()`` at import time, so importing
     it during collection — before the per-test ``_isolate_hermes_home`` fixture
-    redirects ``HERMES_HOME`` — permanently caches the DEVELOPER'S REAL
-    ``~/.hermes/state.db`` for the whole session. Tests then read live
+    redirects ``A2ASSISTANT_HOME`` — permanently caches the DEVELOPER'S REAL
+    ``~/.a2assistant/state.db`` for the whole session. Tests then read live
     production sessions instead of a tempdir. The version predicate is
     duplicated from ``hermes_state._is_sqlite_wal_reset_vulnerable`` (upstream
     fixed ranges, stable) rather than imported, and
@@ -1055,8 +1063,8 @@ def _relocate_basetemp_outside_operator_home(config) -> None:
     """Move pytest's basetemp out of the operator's platform-native Hermes home.
 
     Every per-test sandbox is ``<basetemp>/.../hermes_test``. ``get_default_hermes_root()``
-    prefers the platform-native home whenever ``HERMES_HOME`` sits *under* it, so a basetemp
-    inside ``~/.hermes`` (or ``%LOCALAPPDATA%\\hermes``, where ``TEMP`` commonly lives on
+    prefers the platform-native home whenever ``A2ASSISTANT_HOME`` sits *under* it, so a basetemp
+    inside ``~/.a2assistant`` (or ``%LOCALAPPDATA%\\hermes``, where ``TEMP`` commonly lives on
     Windows) turns the sandbox back into the live install and ``get_profile_dir("default")``
     writes fixtures over the operator's config.yaml / .env / MEMORY.md (#111101).
     """
@@ -1110,7 +1118,7 @@ def _remove_relocated_basetemp(config) -> None:
 
 
 def _processes_with_hermes_home_under(roots) -> list[int]:
-    """PIDs (never this process) whose environment names a ``HERMES_HOME`` inside one of *roots*.
+    """PIDs (never this process) whose environment names a ``A2ASSISTANT_HOME`` inside one of *roots*.
 
     POSIX (psutil's exec-time environment; another user's processes are unreadable and skipped).
     Windows is out of scope: no leak observed there, and SIGTERM there is TerminateProcess.
@@ -1126,7 +1134,7 @@ def _processes_with_hermes_home_under(roots) -> list[int]:
         if proc.pid == me:
             continue
         try:
-            home = proc.environ().get("HERMES_HOME")
+            home = proc.environ().get("A2ASSISTANT_HOME")
         except (psutil.Error, OSError):
             continue
         if not home:
@@ -1143,7 +1151,7 @@ def _processes_with_hermes_home_under(roots) -> list[int]:
 def _reap_session_hermes_processes(config) -> list[int]:
     """SIGTERM every process still running against a Hermes home this session created.
 
-    Tests that run a real ``hermes chat -q`` child get a grandchild ``gateway run`` (detached, own
+    Tests that run a real ``a2assistant chat -q`` child get a grandchild ``gateway run`` (detached, own
     session) that no per-test subprocess patch can see, and pytest's tmp cleanup removes only
     directories: each one used to outlive the run at ~250 MB. The session basetemp and the session
     sandbox home bound exactly what this run created, so nothing else is ever signalled.
@@ -1152,7 +1160,7 @@ def _reap_session_hermes_processes(config) -> list[int]:
 
     factory = getattr(config, "_tmp_path_factory", None)
     # The basetemp pytest already created (never create one at teardown just to scan it).
-    roots = [getattr(config, "_hermes_relocated_basetemp", None), os.environ.get("HERMES_TEST_SANDBOX_HOME"),
+    roots = [getattr(config, "_hermes_relocated_basetemp", None), os.environ.get("A2ASSISTANT_TEST_SANDBOX_HOME"),
              getattr(factory, "_basetemp", None)]
     pids = _processes_with_hermes_home_under(roots)
     for pid in pids:
@@ -1587,8 +1595,8 @@ _REAL_HERMES_ROOT_CANDIDATES: list[Path] = []
 
 
 def _capture_real_hermes_root() -> list[Path]:
-    """The real root(s) to refuse: the default ~/.hermes plus a pre-sandbox
-    custom HERMES_HOME when one was set. Both are guarded — the default
+    """The real root(s) to refuse: the default ~/.a2assistant plus a pre-sandbox
+    custom A2ASSISTANT_HOME when one was set. Both are guarded — the default
     because hardcoded restatements hit it; the custom one because
     deployment-shaped tests (Docker /opt/data) must not touch the operator's
     real custom root either."""
@@ -1617,7 +1625,7 @@ def _capture_real_hermes_root() -> list[Path]:
             custom = Path(_PRE_SANDBOX_HERMES_HOME).expanduser().resolve()
             # The live session sandbox is test-owned, never a guarded root
             # (a re-imported conftest body sees it as _PRE_SANDBOX_HERMES_HOME).
-            sandbox = os.environ.get("HERMES_TEST_SANDBOX_HOME", "")
+            sandbox = os.environ.get("A2ASSISTANT_TEST_SANDBOX_HOME", "")
             if sandbox and custom == Path(sandbox).expanduser().resolve():
                 return roots
             if custom not in roots:

@@ -1,11 +1,11 @@
 """Staging for the hand-off suite: a real install at release N-1 (or HEAD), processes running
-from it, and the real ``hermes update`` to the next commit, all in one shared PID namespace.
+from it, and the real ``a2assistant update`` to the next commit, all in one shared PID namespace.
 
 Two columns, both git-mode installs over a local bare ``origin`` (the official URL rewritten to it,
 so the updater takes the normal non-fork path and never touches the network):
 
 * ``n1``: ``main`` parked at release N-1 (``git describe --tags --abbrev=0 HEAD~1``, overridable with
-  ``HERMES_E2E_UPGRADE_BASE``), its venv built from N-1's own ``uv.lock`` (the installer's tier 0),
+  ``A2ASSISTANT_E2E_UPGRADE_BASE``), its venv built from N-1's own ``uv.lock`` (the installer's tier 0),
   then ``main`` moves to HEAD;
 * ``head``: HEAD's ``scripts/install.sh`` into an empty HOME, then ``main`` gets NEXT, a synthetic
   child commit adding a marker file.
@@ -98,7 +98,7 @@ class Install:
 
     @property
     def hermes_home(self) -> Path:
-        return Path(self.env["HERMES_HOME"])
+        return Path(self.env["A2ASSISTANT_HOME"])
 
     @property
     def checkout(self) -> Path:
@@ -176,7 +176,7 @@ def stage_n1(root: Path) -> Install:
     origin = I.make_origin(root, refs().base)
     sb = I.new_sandbox(root / "sb", origin)
     env = sb.env
-    hermes_home = Path(env["HERMES_HOME"])
+    hermes_home = Path(env["A2ASSISTANT_HOME"])
     hermes_home.mkdir(parents=True, exist_ok=True)
     checkout = hermes_home / "hermes-agent"
     # Local-path clone (objects shared, nothing packed), then the official URL as the remote; the
@@ -381,7 +381,7 @@ def cell(column: str, root: Path, provider_url: str, *, extra: dict | None = Non
 
 
 def start_gateway(inst: Install, *args: str) -> dict:
-    """``hermes gateway run`` as a user starts it by hand; returns its ``identify`` answer."""
+    """``a2assistant gateway run`` as a user starts it by hand; returns its ``identify`` answer."""
     inst.spawn("gateway", "gateway", "run", *args)
     try:
         wait_for(lambda: health(inst.port), timeout=240, what="the gateway API server /health")
@@ -407,7 +407,7 @@ def gateway_starts(inst: Install) -> list[int]:
 
 
 def pid_file_pid(inst: Install) -> int | None:
-    """The PID ``$HERMES_HOME/gateway.pid`` names (JSON record or a bare number)."""
+    """The PID ``$A2ASSISTANT_HOME/gateway.pid`` names (JSON record or a bare number)."""
     p = inst.hermes_home / "gateway.pid"
     try:
         raw = p.read_text(encoding="utf-8").strip()

@@ -99,7 +99,7 @@ def _policy_backend(policy: dict) -> str:
 
 def _bound_terminal_backend(profile_home) -> str:
     """Terminal backend of the profile a session/RPC is bound to. A named profile reads ITS policy: at
-    ``session.create`` the multiplex gateway has not rebound HERMES_HOME yet, so ``_effective_terminal_backend()``
+    ``session.create`` the multiplex gateway has not rebound A2ASSISTANT_HOME yet, so ``_effective_terminal_backend()``
     would report the LAUNCH profile's backend, which must never leak into a named one."""
     return _policy_backend(_profile_terminal_policy(profile_home)) if profile_home else _effective_terminal_backend()
 
@@ -407,7 +407,7 @@ def _heal_dead_cwd(cwd: str) -> str:
 def _session_is_local_backend(session: dict | None) -> bool:
     """Whether THIS session's cwd can be stat'ed / git-probed here. A session bound to a named ssh profile never can,
     whatever the launch process runs (one multiplexed gateway serves many profiles), and a per-profile gateway
-    (``hermes -p x``) may set ``terminal.backend: ssh`` in config without ``TERMINAL_ENV``: an env-only check would
+    (``a2assistant -p x``) may set ``terminal.backend: ssh`` in config without ``TERMINAL_ENV``: an env-only check would
     heal a live remote cwd to its nearest host ancestor (``/home``) and persist that."""
     if session and session.get("profile_home") and _bound_terminal_backend(session["profile_home"]) != "local":
         return False

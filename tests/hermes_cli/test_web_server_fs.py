@@ -271,8 +271,8 @@ def test_a_browser_download_reads_the_ssh_workspace_file_it_listed(client, monke
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", raising=False)
     same_path = tmp_path / "srv" / "report.txt"
     same_path.parent.mkdir()
     same_path.write_bytes(b"gateway copy")
@@ -475,7 +475,7 @@ def test_fs_default_cwd_answers_each_profile_with_its_own_start_folder(client, m
         f"terminal:\n  cwd: {work_project.as_posix()}\n", encoding="utf-8")
     (plain_home / "config.yaml").write_text("terminal:\n  cwd: .\n", encoding="utf-8")
     monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     # What the gateway's startup leaves in its own environment for its own profile.
     monkeypatch.setenv("TERMINAL_CWD", str(default_project))
     monkeypatch.delenv("TERMINAL_ENV", raising=False)
@@ -776,8 +776,8 @@ def _ssh_profiles(tmp_path, monkeypatch):
     profile.mkdir(parents=True)
     (profile / "config.yaml").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_DASHBOARD_FILES_ROOT", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", raising=False)
     workspace = _NotOnTheSshMachine()
     monkeypatch.setattr(file_routes, "_fs_backend", lambda profile=None: workspace)
     return profile, workspace
@@ -907,7 +907,7 @@ def test_a_staged_text_preview_reads_back_under_a_locked_files_root(client, monk
         path.write_bytes(b"not staged")
     managed = tmp_path / "managed"
     managed.mkdir()
-    monkeypatch.setenv("HERMES_DASHBOARD_FILES_ROOT", str(managed))
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_FILES_ROOT", str(managed))
 
     def read_text(path, query):
         return client.get("/api/fs/read-text", params={"path": str(path), **query})
@@ -1269,7 +1269,7 @@ def test_fs_download_profile_uses_that_profiles_sandbox(client, monkeypatch, tmp
         (home / "config.yaml").write_text(
             "terminal:\n  backend: docker\n  container_persistent: true\n", encoding="utf-8")
     monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     monkeypatch.delenv("TERMINAL_SANDBOX_DIR", raising=False)
     monkeypatch.delenv("TERMINAL_DOCKER_VOLUMES", raising=False)
     monkeypatch.setenv("TERMINAL_ENV", "docker")
@@ -1313,7 +1313,7 @@ def _two_profile_homes(monkeypatch, tmp_path, *, active_backend, work_backend):
         (home / "config.yaml").write_text(
             f"terminal:\n  backend: {backend}\n  container_persistent: false\n", encoding="utf-8")
     monkeypatch.setattr(profiles, "_get_default_hermes_home", lambda: default_home)
-    monkeypatch.setenv("HERMES_HOME", str(default_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(default_home))
     monkeypatch.setenv("TERMINAL_ENV", active_backend)
     monkeypatch.delenv("TERMINAL_DOCKER_VOLUMES", raising=False)
     return default_home, work_home

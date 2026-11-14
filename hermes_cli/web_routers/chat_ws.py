@@ -543,7 +543,7 @@ async def pty_ws(ws: WebSocket) -> None:
     attach_token = raw_attach_token
     registry_resume = raw_resume
     if raw_resume and env:
-        registry_resume = env.get("HERMES_TUI_RESUME") or raw_resume
+        registry_resume = env.get("A2ASSISTANT_TUI_RESUME") or raw_resume
     if attach_token is not None and (registry_resume or profile):
         # Key explicit resumes on their canonical target, never the active-session fallback.
         attach_token = f"{attach_token}\0{profile or ''}\0{registry_resume or ''}"
@@ -580,7 +580,7 @@ async def pty_ws(ws: WebSocket) -> None:
     # Keep-alive path: the PTY outlives this socket; reattach by token.
     try:
         await PTY_REGISTRY.close_other_sessions(raw_attach_token, keep_key=attach_token)
-        holder_pid = _lease_holder_pid(registry_resume, registry_home=(env or {}).get("HERMES_HOME"))
+        holder_pid = _lease_holder_pid(registry_resume, registry_home=(env or {}).get("A2ASSISTANT_HOME"))
         await PTY_REGISTRY.close_orphaned_sessions(registry_resume, keep_key=attach_token, holder_pid=holder_pid)
         session, _created = await PTY_REGISTRY.attach_or_spawn(
             attach_token,

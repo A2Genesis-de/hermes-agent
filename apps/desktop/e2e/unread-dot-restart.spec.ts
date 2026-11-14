@@ -28,6 +28,8 @@
 import { expect, type Page, test } from '@playwright/test'
 import { type ElectronApplication } from '@playwright/test'
 
+import { restartMockServer } from '../../../tests-js/scripts/mock-server'
+
 import {
   buildAppEnv,
   launchDesktop,
@@ -35,7 +37,6 @@ import {
   setupMockBackend,
   waitForAppReady,
 } from './fixtures'
-import { restartMockServer } from '../../../tests-js/scripts/mock-server'
 
 /** Finished-unread dot aria-label (from i18n en.ts). */
 const UNREAD_DOT_LABEL = 'Finished — unread'
@@ -89,7 +90,7 @@ test.describe('unread dot survives app restart', () => {
   })
 
   /** Relaunch the desktop app against the SAME sandbox (same userData →
-   *  same localStorage, same HERMES_HOME → same session store). */
+   *  same localStorage, same A2ASSISTANT_HOME → same session store). */
   async function restartApp(): Promise<void> {
     await app.close()
 

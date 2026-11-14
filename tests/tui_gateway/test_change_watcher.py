@@ -1,7 +1,7 @@
 """The generalized change watcher (#73618): cheap on-disk signatures →
 ``pet.changed`` / ``cron.changed`` / ``sessions.changed`` global broadcasts.
 
-Behavior contracts, exercised against a real temp HERMES_HOME (no mocks on the
+Behavior contracts, exercised against a real temp A2ASSISTANT_HOME (no mocks on the
 filesystem path): first sighting seeds silently, a moved signature broadcasts
 once, the sessions floor coalesces a write burst but keeps its trailing edge,
 and the pet signature only moves for a *renderable* pet.
@@ -513,7 +513,7 @@ def test_a_skill_installed_in_another_sessions_repo_broadcasts_skills_changed(wa
     import tools.skills_tool as st
     from agent.runtime_cwd import reset_session_cwd, set_session_cwd
     home, events = watcher_home
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     (home / "skills").mkdir()
     monkeypatch.setattr(st, "SKILLS_DIR", home / "skills")
     monkeypatch.setattr(sc, "_skill_commands_by_key", {})

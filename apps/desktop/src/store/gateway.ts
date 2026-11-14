@@ -58,7 +58,7 @@ export { useGatewayActivationEpoch } from '@/store/gateway-activation-epoch'
 const normKey = (profile: string | null | undefined): string => (profile ?? '').trim() || 'default'
 
 // Dial intent callers attach to a user-initiated open. The canonical
-// `hermes gateway ensure` path has no local slot pool, so the hint changes
+// `a2assistant gateway ensure` path has no local slot pool, so the hint changes
 // nothing about the dial itself; it survives as the option shape the SDK,
 // Settings scopes and session creation pass so an explicit user gesture stays
 // distinguishable from ambient hydration at the call site.
@@ -381,7 +381,7 @@ async function ridesPrimaryBackend(connectionId: null | string, profile: string)
 
   // Resolved per call, never cached: main answers the route per request
   // (`resolveProfileBackendRoute` case 6 keeps a pooled backend for
-  // `HERMES_DESKTOP_ISOLATED_BACKEND=1`), and for a pooled profile this is the
+  // `A2ASSISTANT_DESKTOP_ISOLATED_BACKEND=1`), and for a pooled profile this is the
   // same dial `openSecondary` makes next, coalesced by main's claim key.
   try {
     const conn = await withTimeout(
@@ -912,7 +912,7 @@ async function reconnectSecondary(entry: Secondary): Promise<void> {
 
     // An ensure refusal no redial can fix (incompatible runtime, no ensure protocol, an invalid
     // endpoint, an unsafe control path): each automatic redial would spawn another
-    // `hermes gateway ensure` against the same install forever. Park at once, keeping the entry:
+    // `a2assistant gateway ensure` against the same install forever. Park at once, keeping the entry:
     // an explicit open, focus/wake nudge or Reconnect re-arms it after the user's repair.
     if (isPermanentLocalGatewayEnsureError(error)) {
       console.warn(`[gateway] parking scope="${entry.scope}": local gateway ensure refused permanently`, error)

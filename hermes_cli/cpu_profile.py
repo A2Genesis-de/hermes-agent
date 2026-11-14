@@ -1,4 +1,4 @@
-"""``hermes --cpu-profile PATH``: process-wide cProfile, written when the process exits.
+"""``a2assistant --cpu-profile PATH``: process-wide cProfile, written when the process exits.
 
 Enabled once after argument parsing and written from ``atexit``, so short commands and
 long-running ones (``gateway run``) are covered without wrapping every handler. The one-shot

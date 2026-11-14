@@ -121,7 +121,7 @@ def _run_turn_with_compaction(tmp_path, monkeypatch, summary):
     hermes_home, atof_dir = tmp_path / "hermes-home", tmp_path / "atof"
     hermes_home.mkdir()
     atof_dir.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
     monkeypatch.setenv(relay_runtime.RELAY_PLUGINS_CONFIG_ENV, str(_write_plugins_toml(tmp_path, atof_dir)))
     relay_runtime._reset_for_tests()
 

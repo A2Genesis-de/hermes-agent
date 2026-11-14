@@ -13,7 +13,7 @@ def test_secondary_profile_worker_gets_no_launch_credentials(tmp_path, monkeypat
     (launch / ".env").write_text("OPENROUTER_API_KEY=LAUNCH-or\nMY_SERVICE_TOKEN=LAUNCH-mysvc\n")
     (sec / ".env").write_text("OPENROUTER_API_KEY=SEC-or\n")
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     for key, value in {"OPENROUTER_API_KEY": "LAUNCH-or", "MY_SERVICE_TOKEN": "LAUNCH-mysvc",
                        "NOUS_API_KEY": "LAUNCH-nous", "VAULT_ONLY_TOKEN": "LAUNCH-vault"}.items():
         monkeypatch.setenv(key, value)
@@ -44,7 +44,7 @@ def test_launch_profile_worker_keeps_env_only_tool_credentials_under_multiplex(t
     (launch / ".env").write_text("OPENROUTER_API_KEY=LAUNCH-or\n")
     (sec / ".env").write_text("OPENROUTER_API_KEY=SEC-or\n")
     monkeypatch.setenv("HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("FIRECRAWL_API_KEY", "ENVONLY-fc")
     monkeypatch.setenv("AUXILIARY_VISION_API_KEY", "ENVONLY-aux")
     from agent.secret_scope import get_secret, set_multiplex_active

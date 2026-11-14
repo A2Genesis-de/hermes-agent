@@ -8,7 +8,7 @@ verdicts come from what reached the provider wire, what landed in ``state.db``
 
 Each test gets a fresh fake user profile under ``tmp_path``: ``USERPROFILE`` /
 ``HOME`` / ``LOCALAPPDATA`` / ``APPDATA`` all point inside it and
-``HERMES_HOME`` is ``<profile>/.hermes``, so no child can read or write the
+``A2ASSISTANT_HOME`` is ``<profile>/.hermes``, so no child can read or write the
 runner's real Hermes state.
 """
 
@@ -68,13 +68,13 @@ class WinHome:
             "HOME": str(self.profile),
             "LOCALAPPDATA": str(local),
             "APPDATA": str(roaming),
-            "HERMES_HOME": str(self.hermes_home),
+            "A2ASSISTANT_HOME": str(self.hermes_home),
             "PYTHONPATH": str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1",
             "NO_COLOR": "1",
             # The child's state.db lives under tmp_path; under a pytest ancestor the live-DB
             # guard would refuse it. Documented child-process escape hatch (tests/conftest.py).
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
         })
         env.update(self.extra_env)
         env.update(extra or {})
@@ -265,14 +265,14 @@ def _under(path: str, root: str) -> bool:
 
 
 def _owned_by(proc: Any, root: str, home: str) -> bool:
-    """One process belongs to the fake profile if its HERMES_HOME is that home, or its
+    """One process belongs to the fake profile if its A2ASSISTANT_HOME is that home, or its
     cwd or any argv element lives under the profile root. Environment and cwd are
     inherited by detached grandchildren, so they survive a broken parent link."""
     import psutil
 
     try:
         env = {k.upper(): v for k, v in proc.environ().items()}
-        if "HERMES_HOME" in env and os.path.normcase(os.path.normpath(env["HERMES_HOME"])) == home:
+        if "A2ASSISTANT_HOME" in env and os.path.normcase(os.path.normpath(env["A2ASSISTANT_HOME"])) == home:
             return True
         if _under(proc.cwd(), root):
             return True

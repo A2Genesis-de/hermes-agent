@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """MCP (Model Context Protocol) client: connects to the ``mcp_servers`` configured in
-~/.hermes/config.yaml (stdio, Streamable HTTP or SSE), discovers their tools and registers them
+~/.a2assistant/config.yaml (stdio, Streamable HTTP or SSE), discovers their tools and registers them
 into the hermes tool registry. The ``mcp`` package is optional (no-op without it).
 
 One background event loop (``_mcp_loop``) in a daemon thread runs each server as a long-lived
@@ -570,7 +570,7 @@ _lock = threading.Lock()
 def _mcp_registry_scope() -> Optional[str]:
     """Registry scope for MCP registrations: the session's own tool scope when one is bound, else a
     profile overlay when this process serves profiles, else None. Under ``gateway.multiplex_profiles``
-    every turn runs scoped; a process that serves a routed profile through the HERMES_HOME override
+    every turn runs scoped; a process that serves a routed profile through the A2ASSISTANT_HOME override
     (dashboard/desktop backend, per-profile cron ticker) is a multiplexer too, even with the flag
     off — keying its connections by the bare name would hand one profile's credentialed connection
     to every other served profile (#111151). Single-profile processes (no override, or an override

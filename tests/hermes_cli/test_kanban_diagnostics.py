@@ -28,7 +28,7 @@ from hermes_cli import kanban_diagnostics as kd
 def kanban_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     kb.init_db()
     return home
@@ -89,7 +89,7 @@ def test_running_with_open_parents_fires_only_while_running():
     diags = kd.compute_task_diagnostics(_task(status="running", started_at=100), [], [], graph=graph)
     assert [d.kind for d in diags] == ["running_with_open_parents"]
     assert diags[0].data["open_parents"] == [{"id": "t_parent", "status": "todo"}]
-    assert "hermes kanban unlink t_parent t_demo00" in diags[0].actions[0].payload["command"]
+    assert "a2assistant kanban unlink t_parent t_demo00" in diags[0].actions[0].payload["command"]
     assert kd.compute_task_diagnostics(_task(status="todo"), [], [], graph=graph) == []
     done_graph = {"parents": [{"id": "t_parent", "title": "p", "status": "done"}], "children": []}
     assert kd.compute_task_diagnostics(_task(status="running"), [], [], graph=done_graph) == []

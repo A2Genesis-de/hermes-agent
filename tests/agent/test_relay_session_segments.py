@@ -554,14 +554,14 @@ class TestGatewayRunStaysUnimported:
     """Guard against re-importing gateway.run from a non-gateway host.
 
     relay_runtime._segments_config() must NEVER trigger ``gateway.run`` — its
-    import-time env setup (_HERMES_GATEWAY, HERMES_QUIET, TERMINAL_CWD := home)
-    hangs CLI approvals (#87183) and runs ``hermes -z`` in $HOME (#95577). A
+    import-time env setup (_HERMES_GATEWAY, A2ASSISTANT_QUIET, TERMINAL_CWD := home)
+    hangs CLI approvals (#87183) and runs ``a2assistant -z`` in $HOME (#95577). A
     monkeypatch can't catch a refactor re-adding the import, so this runs the
     real path in a fresh process with those vars unset.
     """
 
     def test_relay_runtime_never_imports_gateway_run(self, monkeypatch) -> None:
-        for var in ("TERMINAL_CWD", "HERMES_QUIET", "_HERMES_GATEWAY"):
+        for var in ("TERMINAL_CWD", "A2ASSISTANT_QUIET", "_HERMES_GATEWAY"):
             monkeypatch.delenv(var, raising=False)
         result = _run_isolated(
             """
@@ -573,7 +573,7 @@ import agent.relay_runtime as rr
 rr._segments_config()
 rr._segments_config()  # cached path too
 
-leaked = {v: os.environ[v] for v in ("TERMINAL_CWD", "HERMES_QUIET", "_HERMES_GATEWAY") if v in os.environ}
+leaked = {v: os.environ[v] for v in ("TERMINAL_CWD", "A2ASSISTANT_QUIET", "_HERMES_GATEWAY") if v in os.environ}
 print("gateway.run imported:", "gateway.run" in sys.modules, "leaked env:", leaked)
 sys.exit(1 if "gateway.run" in sys.modules or leaked else 0)
 """

@@ -307,8 +307,8 @@ class LocalSessionPolicy:
 
     @property
     def yolo(self):
-        """`hermes chat --yolo`: this session's dangerous-command approvals are bypassed, exactly the
-        scope `/yolo` gives a messaging chat; never the process-wide HERMES_YOLO_MODE."""
+        """`a2assistant chat --yolo`: this session's dangerous-command approvals are bypassed, exactly the
+        scope `/yolo` gives a messaging chat; never the process-wide A2ASSISTANT_YOLO_MODE."""
         return json.loads(self.request_json).get('yolo', False)
 
     @property
@@ -330,7 +330,7 @@ class LocalSessionPolicy:
 
     @property
     def verbose(self):
-        """`hermes chat -v`: the session's agent runs with quiet_mode off, so its status lines reach the
+        """`a2assistant chat -v`: the session's agent runs with quiet_mode off, so its status lines reach the
         viewer (``agent.print``) as main's in-process verbose agent printed them."""
         return json.loads(self.request_json).get('verbose', False)
 
@@ -773,7 +773,7 @@ def render_launch_skills(params, session_id):
 
 
 def accept_launch_hooks(policy):
-    """`--accept-hooks` / `HERMES_ACCEPT_HOOKS=1` on a launch: consent to the profile's configured
+    """`--accept-hooks` / `A2ASSISTANT_ACCEPT_HOOKS=1` on a launch: consent to the profile's configured
     shell hooks in the per-user allowlist (no prompt; kept in memory if that write fails), which
     the open's ``refresh_profile_hooks`` then registers. A bypass launch has no profile hooks to
     consent to, so the flag is a no-op there rather than a refusal. Allowlist I/O: off the loop."""
@@ -1162,7 +1162,7 @@ def bind_turn_workspace(policy, task_id):
 
     The client's cwd (or ``--in DIR``) is frozen into the policy at admission, but the terminal tool
     mounts ``resolve_task_overrides(task_id)['cwd']`` into a per-session Docker container. Before the
-    one-gateway runtime each ``hermes chat`` was its own process with its own ``TERMINAL_CWD``; now the
+    one-gateway runtime each ``a2assistant chat`` was its own process with its own ``TERMINAL_CWD``; now the
     turn runs here, so register it under the turn's own task id (inside the turn's routed scope, which
     qualifies the key). Docker mounting the host cwd only: the local backend already runs in the
     policy's ``TERMINAL_CWD``, and ssh and the other sandboxes keep their own cwd. Re-registered only

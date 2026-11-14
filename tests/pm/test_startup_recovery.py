@@ -29,8 +29,8 @@ def isolated_machine_home(tmp_path, monkeypatch):
     # machine cache and platform-specific home lookup must be isolated there too.
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
-    monkeypatch.delenv("HERMES_INSTALL_ROOT", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.delenv("A2ASSISTANT_INSTALL_ROOT", raising=False)
 
 
 @pytest.mark.parametrize("marker_name", [".update-incomplete", ".lazy-refresh-incomplete", None, "manual", "baseline"])
@@ -66,8 +66,8 @@ def test_bootstrap_repairs_before_dependency_activation(tmp_path, monkeypatch, m
     )
     uv = shutil.which("uv")
     assert uv, "startup recovery requires real uv"
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "tools"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "tools"))
     monkeypatch.setattr(paths, "repo_root", lambda: core)
     monkeypatch.setattr("pm._uv._toolchain", lambda **kwargs: (Path(uv), Path(sys.executable)))
     monkeypatch.setattr(engine, "lazy_installs_allowed", lambda: True)
@@ -142,7 +142,7 @@ def test_bootstrap_repairs_before_dependency_activation(tmp_path, monkeypatch, m
         'print(json.dumps({"version": startup_dep.__version__, "file": startup_dep.__file__}))\n',
         encoding="utf-8",
     )
-    env = {**os.environ, "PYTHONPATH": str(core), "HERMES_PYTHON_SRC_ROOT": str(core)}
+    env = {**os.environ, "PYTHONPATH": str(core), "A2ASSISTANT_PYTHON_SRC_ROOT": str(core)}
     env.pop("PYTEST_CURRENT_TEST", None)  # this child owns an isolated copied installation
     control = subprocess.run(
         [sys.executable, "-S", "-c", f"import site; site.addsitedir({str(old_site)!r}); import startup_dep"],

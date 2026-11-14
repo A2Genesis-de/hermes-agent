@@ -3,7 +3,7 @@
 
 * **module -> core internals**: a bundled module imports a Hermes module or name that is not on the
   published plugin API (``hermes_cli/data/plugin_api.json``), e.g. ``gateway.run``. The rule is the one
-  ``hermes plugins validate`` warns with (``plugin_validate_private_imports.private_import_findings``),
+  ``a2assistant plugins validate`` warns with (``plugin_validate_private_imports.private_import_findings``),
   so the lint and the plugin-author warning cannot drift.
 * **core -> module**: core code imports a specific module (``plugins.platforms.discord.adapter``)
   instead of reaching it through discovery and the plugin contracts.

@@ -696,7 +696,7 @@ def test_picker_metadata_uses_one_config_read_for_real_models_dev_lookups(tmp_pa
         "model_overrides: {}\n",
         encoding="utf-8",
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     config_module._LOAD_CONFIG_CACHE.clear()
     config_module._RAW_CONFIG_CACHE.clear()
 

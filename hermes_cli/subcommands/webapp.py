@@ -1,4 +1,4 @@
-"""``hermes webapp``: open the Desktop workspace in a browser, served by the gateway."""
+"""``a2assistant webapp``: open the Desktop workspace in a browser, served by the gateway."""
 
 from __future__ import annotations
 
@@ -23,5 +23,5 @@ def build_webapp_parser(subparsers, *, cmd_webapp: Callable) -> None:
     action.add_argument("--build-only", action="store_true", help="Build the Webapp bundle and stop")
     action.add_argument("--status", action="store_true", help="Show whether the gateway is serving the Webapp")
     action.add_argument("--sign-out", action="store_true",
-                        help="Sign out every Webapp tab (each needs a new link from hermes webapp)")
+                        help="Sign out every Webapp tab (each needs a new link from a2assistant webapp)")
     parser.set_defaults(func=cmd_webapp)

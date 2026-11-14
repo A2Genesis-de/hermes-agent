@@ -240,7 +240,7 @@ class TestPasswordLoginRoute:
         self: TestPasswordLoginRoute, gated_app: TestClient,
         tmp_path: Path, monkeypatch: pytest.MonkeyPatch, rate_limited: bool,
     ) -> None:
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
         if rate_limited:
             response = None
             for _ in range(15):

@@ -72,7 +72,7 @@ def test_reset_aux_to_auto_resets_plugin_tasks(tmp_path, monkeypatch, patched_ma
     from hermes_cli.config import load_config, save_config
     from hermes_cli.main_provider_setup import _reset_aux_to_auto
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     (tmp_path / ".hermes").mkdir(exist_ok=True)
 
@@ -103,12 +103,12 @@ def test_reset_aux_to_auto_resets_plugin_tasks(tmp_path, monkeypatch, patched_ma
 
 @pytest.fixture
 def aux_home(tmp_path, monkeypatch):
-    """Empty HERMES_HOME so DEFAULT_CONFIG is the only source of built-in aux values."""
+    """Empty A2ASSISTANT_HOME so DEFAULT_CONFIG is the only source of built-in aux values."""
     from pathlib import Path
 
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     return home
 

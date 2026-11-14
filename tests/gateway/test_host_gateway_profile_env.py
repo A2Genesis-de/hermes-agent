@@ -47,7 +47,7 @@ def _two_homes(tmp_path: Path) -> tuple[Path, Path]:
 
 def _inherit_worker_env(monkeypatch, worker_home: Path) -> None:
     """Model a process spawned from the worker profile: its home and its dotenv."""
-    monkeypatch.setenv("HERMES_HOME", str(worker_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(worker_home))
     monkeypatch.setenv("TELEGRAM_BOT_TOKEN", _WORKER_TOKEN)
 
 
@@ -122,7 +122,7 @@ class TestHostGatewaySpawnEnv:
         _inherit_worker_env(monkeypatch, worker_home)
         set_multiplex_active(True)
         env = GatewayShutdownMixin._restart_watcher_env()
-        assert env.get("HERMES_HOME") == str(default_home)
+        assert env.get("A2ASSISTANT_HOME") == str(default_home)
         assert env.get("TELEGRAM_BOT_TOKEN") != _WORKER_TOKEN
 
     def test_restart_watcher_keeps_standalone_named_profile_isolated(self, tmp_path, monkeypatch):
@@ -133,7 +133,7 @@ class TestHostGatewaySpawnEnv:
         (worker_home / "config.yaml").write_text("gateway: {}\n", encoding="utf-8")
         _inherit_worker_env(monkeypatch, worker_home)
         env = GatewayShutdownMixin._restart_watcher_env()
-        assert env.get("HERMES_HOME") == str(worker_home)
+        assert env.get("A2ASSISTANT_HOME") == str(worker_home)
         assert env.get("TELEGRAM_BOT_TOKEN") == _WORKER_TOKEN
 
     def test_restart_watcher_does_not_inherit_profile_token(self, tmp_path, monkeypatch):
@@ -145,7 +145,7 @@ class TestHostGatewaySpawnEnv:
 
         env = GatewayShutdownMixin._restart_watcher_env()
 
-        assert env.get("HERMES_HOME") == str(default_home)
+        assert env.get("A2ASSISTANT_HOME") == str(default_home)
         assert env.get("TELEGRAM_BOT_TOKEN") != _WORKER_TOKEN
 
 
@@ -153,7 +153,7 @@ class TestSettledHostRecordDecidesRestart:
     """An updater process (no settled flag of its own) replaying a host gateway's
     captured argv / spawning a restart watcher must take the identity from the
     live host record the gateway published — its SETTLED served set — and never
-    from ambient coordinates (current HERMES_HOME / raw config re-read). #120305, #93943."""
+    from ambient coordinates (current A2ASSISTANT_HOME / raw config re-read). #120305, #93943."""
 
     @staticmethod
     def _publish_live_host_record(monkeypatch, tmp_path, *, home: Path, profiles: Sequence[str]) -> None:
@@ -161,7 +161,7 @@ class TestSettledHostRecordDecidesRestart:
         from gateway import host_rendezvous as hr
         lock_dir = tmp_path / "locks"
         lock_dir.mkdir(parents=True, exist_ok=True)
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(lock_dir))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(lock_dir))
         # A live owner holds the host lock for its lifetime (run.py claims before it publishes).
         # The handle lives in a per-test copy of the registry (and a per-test lock dir), so undo drops it.
         monkeypatch.setattr(hr, "_lock_handles", dict(hr._lock_handles))
@@ -203,7 +203,7 @@ class TestSettledHostRecordDecidesRestart:
         _default_home, worker_home = _two_homes(tmp_path)
         (worker_home / "config.yaml").write_text("gateway: {}\n", encoding="utf-8")
         _inherit_worker_env(monkeypatch, worker_home)
-        monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "empty-locks"))
+        monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "empty-locks"))
 
         assert not _restart_argv_is_host_gateway(
             ["python", "-m", "hermes_cli.main", "gateway", "run"]
@@ -224,7 +224,7 @@ class TestSettledHostRecordDecidesRestart:
 
         env = GatewayShutdownMixin._restart_watcher_env()
 
-        assert env.get("HERMES_HOME") == str(default_home), (
+        assert env.get("A2ASSISTANT_HOME") == str(default_home), (
             "the live host record's settled identity must select the default root"
         )
         assert env.get("TELEGRAM_BOT_TOKEN") != _WORKER_TOKEN, (

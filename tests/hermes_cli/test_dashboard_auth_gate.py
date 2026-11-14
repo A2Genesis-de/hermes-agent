@@ -299,7 +299,7 @@ def test_public_url_aware_gate_requires_auth_for_loopback_proxy(monkeypatch):
     from hermes_cli.web_server import should_require_dashboard_auth
 
     monkeypatch.setenv(
-        "HERMES_DASHBOARD_PUBLIC_URL",
+        "A2ASSISTANT_DASHBOARD_PUBLIC_URL",
         "https://dashboard.example.test:9443",
     )
     assert should_require_dashboard_auth("127.0.0.1") is True
@@ -310,7 +310,7 @@ def test_public_url_aware_gate_preserves_local_only_mode(monkeypatch):
     from hermes_cli.web_server import should_require_dashboard_auth
 
     monkeypatch.setenv(
-        "HERMES_DASHBOARD_PUBLIC_URL",
+        "A2ASSISTANT_DASHBOARD_PUBLIC_URL",
         "http://localhost:9119",
     )
     assert should_require_dashboard_auth("127.0.0.1") is False
@@ -322,7 +322,7 @@ def test_start_server_loopback_public_url_enables_gate(monkeypatch):
     from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
 
     monkeypatch.setenv(
-        "HERMES_DASHBOARD_PUBLIC_URL",
+        "A2ASSISTANT_DASHBOARD_PUBLIC_URL",
         "https://dashboard.example.test:9443",
     )
     clear_providers()
@@ -355,7 +355,7 @@ def test_start_server_loopback_public_url_without_provider_fails_closed(monkeypa
     from hermes_cli.dashboard_auth import clear_providers
 
     monkeypatch.setenv(
-        "HERMES_DASHBOARD_PUBLIC_URL",
+        "A2ASSISTANT_DASHBOARD_PUBLIC_URL",
         "https://dashboard.example.test:9443",
     )
     clear_providers()
@@ -389,9 +389,9 @@ def test_desktop_ssh_backend_serves_session_token_requests_despite_public_url(mo
     from hermes_cli.dashboard_auth import clear_providers, register_provider
     from tests.hermes_cli.conftest_dashboard_auth import StubAuthProvider
 
-    monkeypatch.setenv("HERMES_DASHBOARD_PUBLIC_URL", "https://dashboard.example.test:9443")
-    monkeypatch.setenv("HERMES_DESKTOP", "1")
-    monkeypatch.delenv("HERMES_DASHBOARD_SESSION_TOKEN", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_DASHBOARD_PUBLIC_URL", "https://dashboard.example.test:9443")
+    monkeypatch.setenv("A2ASSISTANT_DESKTOP", "1")
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_SESSION_TOKEN", raising=False)
     clear_providers()
     register_provider(StubAuthProvider())
     _stub_uvicorn_run(monkeypatch)
@@ -456,10 +456,10 @@ def test_should_require_dashboard_auth_truth_table(
     from hermes_cli.web_server import should_require_dashboard_auth
 
     if public_url is None:
-        monkeypatch.delenv("HERMES_DASHBOARD_PUBLIC_URL", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_DASHBOARD_PUBLIC_URL", raising=False)
         monkeypatch.setattr(
             web_server, "_dashboard_public_hosts", lambda: frozenset()
         )
     else:
-        monkeypatch.setenv("HERMES_DASHBOARD_PUBLIC_URL", public_url)
+        monkeypatch.setenv("A2ASSISTANT_DASHBOARD_PUBLIC_URL", public_url)
     assert should_require_dashboard_auth(host) is expected

@@ -117,7 +117,7 @@ test('the complete connect path keeps atomic spawn off argv and delivers the exp
 
     if (script.includes("'process-state'")) {return JSON.stringify({ alive: true, owned: true, indeterminate: false })}
 
-    if (script.includes("'read-log'")) {return JSON.stringify({ content: 'HERMES_BACKEND_READY port=5555' })}
+    if (script.includes("'read-log'")) {return JSON.stringify({ content: 'A2ASSISTANT_BACKEND_READY port=5555' })}
 
     return '{"ok":true}'
   } }
@@ -144,7 +144,7 @@ test.runIf(process.platform === 'win32')('the real Windows probe finds a .cmd-on
   fs.mkdirSync(path.join(home, 'bin'))
   fs.writeFileSync(path.join(home, 'bin', 'hermes.cmd'), '@echo off\r\n')
   const system = process.env.SystemRoot || 'C:\\Windows'
-  const env = { ...process.env, HERMES_HOME: home, PATH: [path.join(system, 'System32'), system, path.join(system, 'System32', 'WindowsPowerShell', 'v1.0')].join(';') }
+  const env = { ...process.env, A2ASSISTANT_HOME: home, PATH: [path.join(system, 'System32'), system, path.join(system, 'System32', 'WindowsPowerShell', 'v1.0')].join(';') }
 
   const ssh = {
     exec: async (command: string, options: { stdinData?: string } = {}) => {

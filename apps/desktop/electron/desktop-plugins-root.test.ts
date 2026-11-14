@@ -119,7 +119,7 @@ describe('reconcileUnifiedDesktopHalves', () => {
   it.skipIf(process.platform === 'win32')(
     'materializes a SYMLINKED dev package and re-syncs on any byte change, even with an older mtime',
     async () => {
-      // `ln -s ~/src/my-plugin ~/.hermes/plugins/` is how a plugin is developed in
+      // `ln -s ~/src/my-plugin ~/.a2assistant/plugins/` is how a plugin is developed in
       // place; the Python loader follows it, but the reconcile skipped the link
       // (Dirent.isDirectory() is false for a symlink) — the desktop half never loaded.
       const home = makeHome()

@@ -1,7 +1,7 @@
 """Dashboard docker-backend probe must follow the same runtime resolution as the agent.
 
 Regression: Desktop showed "Docker CLI not found" on podman-only machines even
-when the terminal backend was already running containers via HERMES_DOCKER_BINARY
+when the terminal backend was already running containers via A2ASSISTANT_DOCKER_BINARY
 or a PATH podman. The probe looked only for a `docker` binary and called
 `docker info --format {{.ServerVersion}}` (a Docker-only field).
 """
@@ -26,18 +26,18 @@ def _reset_docker_cache():
 
 def _hide_host_runtimes(monkeypatch):
     """Force find_docker() off the host PATH so the probe cannot luck into a real docker."""
-    monkeypatch.delenv("HERMES_DOCKER_BINARY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DOCKER_BINARY", raising=False)
     monkeypatch.setattr(docker_mod.shutil, "which", lambda name: None)
     monkeypatch.setattr(docker_mod, "_DOCKER_SEARCH_PATHS", [])
 
 
 def test_probe_ready_when_only_podman_is_configured(tmp_path, monkeypatch):
-    """HERMES_DOCKER_BINARY=podman + working `version` is ready; never `docker info`."""
+    """A2ASSISTANT_DOCKER_BINARY=podman + working `version` is ready; never `docker info`."""
     _hide_host_runtimes(monkeypatch)
     fake = tmp_path / "podman"
     fake.write_text("#!/bin/sh\nexit 0\n")
     fake.chmod(0o755)
-    monkeypatch.setenv("HERMES_DOCKER_BINARY", str(fake))
+    monkeypatch.setenv("A2ASSISTANT_DOCKER_BINARY", str(fake))
 
     captured: list[list[str]] = []
 

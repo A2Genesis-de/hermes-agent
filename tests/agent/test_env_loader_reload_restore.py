@@ -60,7 +60,7 @@ def _make_home(tmp_path: Path, monkeypatch, env_text: str, *, preserve: str = ""
         secrets += f"  preserve_existing: [{preserve}]\n"
     (home / "config.yaml").write_text(secrets, encoding="utf-8")
     (home / ".env").write_text(env_text, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.delenv("GLM_API_KEY", raising=False)
     return home
 

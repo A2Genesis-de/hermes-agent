@@ -104,7 +104,7 @@ def _current_session_key() -> str:
     the ``get_session_env`` os.environ fallback for CLI/cron/tests)."""
     from gateway.session_context import get_session_env
 
-    return get_session_env("HERMES_SESSION_KEY", "")
+    return get_session_env("A2ASSISTANT_SESSION_KEY", "")
 
 
 def _current_session_profile() -> str:
@@ -112,13 +112,13 @@ def _current_session_profile() -> str:
     :func:`_current_session_key`)."""
     from gateway.session_context import get_session_env
 
-    return get_session_env("HERMES_SESSION_PROFILE", "")
+    return get_session_env("A2ASSISTANT_SESSION_PROFILE", "")
 
 
 def _container_profile() -> str:
     """Profile whose persistent container a session-bound command uses: the bound home's profile when it is not
     the session's own (a profile-routed subagent runs in its target's home while the session, and the delivery
-    identity HERMES_SESSION_PROFILE carries, stay the parent's; that target may be the launch profile, reached
+    identity A2ASSISTANT_SESSION_PROFILE carries, stay the parent's; that target may be the launch profile, reached
     from a routed profile's chat), else the session's. A session with no profile name (a gateway launched as a
     named profile stamps none on its own chats) is the launch profile's, so it keys that profile by name, like
     the profile's Desktop sessions and its session-less work (:func:`_sessionless_container_key`)."""
@@ -485,7 +485,7 @@ def _sessionless_container_key(profile_scoped: bool) -> str:
     A routed home override keeps its existing key. Persistent Docker whose
     process home is a named profile reuses ``profile:<name>`` — the same key
     session-bound work of that profile uses. Dispatcher workers set
-    ``HERMES_HOME`` and clear session vars, so they are not a routed override;
+    ``A2ASSISTANT_HOME`` and clear session vars, so they are not a routed override;
     without this they collapsed onto ``default`` and missed the profile sandbox.
     The default profile, non-persistent backends, and a home outside the Hermes
     root stay ``default`` (:func:`~tools.terminal_tool_config.home_profile_name` names the profile).
@@ -698,18 +698,18 @@ def _ensure_terminal_env_bridged() -> None:
     """Backfill TERMINAL_* env vars from config.yaml when no launcher did.
 
     CLI, gateway and TUI/dashboard PTY launches bridge ``terminal.*`` into env vars
-    at startup; processes that skip those paths (``hermes serve``, Desktop
+    at startup; processes that skip those paths (``a2assistant serve``, Desktop
     in-process agents, desktop cron ticker, ACP) would otherwise fall back to the
     local backend even when config selects docker — running on the host the user
     meant to sandbox. Explicit keys in the ``terminal`` section override matching
-    env values (possibly stale from ``hermes setup``); env values for omitted keys
+    env values (possibly stale from ``a2assistant setup``); env values for omitted keys
     are preserved. Without a terminal section an existing TERMINAL_ENV is kept and
     defaults are backfilled only when none is set. A per-turn terminal scope
     suppresses the bridge entirely: writing scope values into the process-global
     env would re-create the first-writer-wins cross-profile leak the scope fixes.
 
     Ambient ``os.environ`` is the *launch* profile's authority only. Under a
-    context-local ``HERMES_HOME`` override (multiplexed dashboard / gateway
+    context-local ``A2ASSISTANT_HOME`` override (multiplexed dashboard / gateway
     secondary profile), this bridge is a no-op — otherwise the first unscoped
     call under that override would latch the secondary profile's ``terminal.*``
     into process-global env and poison later unscoped launch-profile turns

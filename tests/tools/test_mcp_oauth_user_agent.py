@@ -104,7 +104,7 @@ def _ready_for_token_requests(provider):
 
 
 def _build_provider_via(builder, monkeypatch, tmp_path, cfg):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     _set_interactive_stdin(monkeypatch)
     return builder("srv", "https://mcp.example.com/mcp", cfg)
 
@@ -255,7 +255,7 @@ def test_device_flow_token_poll_carries_a_user_agent_on_the_wire(
     from tools.mcp_tool import sdk_httpx
 
     base, seen = device_authorization_server
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     # Exactly how `login_device` builds it for an unconfigured (`oauth.user_agent` absent) server.
     cfg, storage = prepare_oauth_config("srv", f"{base}/mcp", {})
     cfg["_resolved_port"] = cfg.get("redirect_port", 8420)

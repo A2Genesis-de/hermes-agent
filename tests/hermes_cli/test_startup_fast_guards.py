@@ -4,7 +4,7 @@ Two invariants, each of which has been broken before:
 
 1. IMPORT WEIGHT: _startup_fast must stay stdlib-only. The whole point of
    the module is to run before main.py's heavy import wall; one careless
-   ``from hermes_cli.config import ...`` silently makes `hermes --version`
+   ``from hermes_cli.config import ...`` silently makes `a2assistant --version`
    slow again for everyone (the regression would be invisible — everything
    still works, just 40x slower).
 
@@ -51,9 +51,9 @@ def test_cli_starts_from_a_deleted_cwd(tmp_path):
     gone = tmp_path / "scratch"
     gone.mkdir()
     # The child needs the checkout on sys.path by absolute name; the cwd is exactly what is gone.
-    env = {**os.environ, "HERMES_HOME": str(home), "TERMUX_VERSION": "",
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home), "TERMUX_VERSION": "",
            "PYTHONPATH": os.pathsep.join(p for p in (str(REPO_ROOT), os.environ.get("PYTHONPATH")) if p)}
-    env.pop("HERMES_DEV", None)
+    env.pop("A2ASSISTANT_DEV", None)
     fd = os.open(gone, os.O_RDONLY)
     try:
         gone.rmdir()
@@ -104,7 +104,7 @@ def _run_version(env_overrides: dict) -> subprocess.CompletedProcess:
     # --version's update check is not under test; offline it answers at once instead of
     # waiting out GitHub's 30 s API and 60 s ls-remote timeouts (the test's own budget).
     env = {**os.environ, **_OFFLINE, **env_overrides}
-    env.pop("HERMES_DEV", None)
+    env.pop("A2ASSISTANT_DEV", None)
     return subprocess.run(
         [sys.executable, "-m", "hermes_cli.main", "--version"],
         capture_output=True,
@@ -123,7 +123,7 @@ def test_fast_version_parity_on_termux(tmp_path):
     home = tmp_path / ".hermes"
     home.mkdir()
     result = _run_version(
-        {"HERMES_HOME": str(home), "TERMUX_VERSION": "0.118"}
+        {"A2ASSISTANT_HOME": str(home), "TERMUX_VERSION": "0.118"}
     )
     assert result.returncode == 0, result.stderr
     assert "A2Assistant v" in result.stdout
@@ -134,13 +134,13 @@ def test_fast_version_reports_install_method_stamp(tmp_path):
     home = tmp_path / ".hermes"
     home.mkdir()
     (home / ".install_method").write_text("git\n", encoding="utf-8")
-    result = _run_version({"HERMES_HOME": str(home)})
+    result = _run_version({"A2ASSISTANT_HOME": str(home)})
     assert result.returncode == 0, result.stderr
     assert "Install method: git" in result.stdout
 
 
 def test_literal_tilde_hermes_home_expands_before_any_reader(tmp_path):
-    """A literal ``~`` in HERMES_HOME (fish, or any quoted value) is expanded at process entry.
+    """A literal ``~`` in A2ASSISTANT_HOME (fish, or any quoted value) is expanded at process entry.
 
     Before the fix ``Path("~/.x")`` was relative, so the real CLI resolved it against cwd and
     scaffolded a full home under ``<cwd>/~/.x``. The negative assertion on cwd is the
@@ -150,8 +150,8 @@ def test_literal_tilde_hermes_home_expands_before_any_reader(tmp_path):
     cwd = tmp_path / "project"
     fake_home.mkdir()
     cwd.mkdir()
-    env = {**os.environ, "HOME": str(fake_home), "USERPROFILE": str(fake_home), "HERMES_HOME": "~/.x"}
-    env.pop("HERMES_DEV", None)
+    env = {**os.environ, "HOME": str(fake_home), "USERPROFILE": str(fake_home), "A2ASSISTANT_HOME": "~/.x"}
+    env.pop("A2ASSISTANT_DEV", None)
     env["PYTHONPATH"] = str(REPO_ROOT)
     result = subprocess.run(
         [sys.executable, "-m", "hermes_cli.main", "config", "path"],
@@ -166,7 +166,7 @@ def test_literal_tilde_hermes_home_expands_before_any_reader(tmp_path):
     # call the resolver, so the entry-point hunk in main.py (not hermes_constants) must have
     # rewritten the env var by the time the module import finishes.
     probe = subprocess.run(
-        [sys.executable, "-c", "import hermes_cli.main, os; print(os.environ['HERMES_HOME'])"],
+        [sys.executable, "-c", "import hermes_cli.main, os; print(os.environ['A2ASSISTANT_HOME'])"],
         capture_output=True, text=True, timeout=120, cwd=cwd, env=env,
         check=False,
     )
@@ -179,17 +179,17 @@ def test_normalize_hermes_home_env_rewrites_tilde_and_leaves_absolute_alone(tmp_
 
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    monkeypatch.setenv("HERMES_HOME", "~/.x")
+    monkeypatch.setenv("A2ASSISTANT_HOME", "~/.x")
     _startup_fast.normalize_hermes_home_env()
-    assert os.environ["HERMES_HOME"] == str(tmp_path / ".x")
+    assert os.environ["A2ASSISTANT_HOME"] == str(tmp_path / ".x")
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "abs"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "abs"))
     _startup_fast.normalize_hermes_home_env()
-    assert os.environ["HERMES_HOME"] == str(tmp_path / "abs")
+    assert os.environ["A2ASSISTANT_HOME"] == str(tmp_path / "abs")
 
-    monkeypatch.delenv("HERMES_HOME")
+    monkeypatch.delenv("A2ASSISTANT_HOME")
     _startup_fast.normalize_hermes_home_env()
-    assert "HERMES_HOME" not in os.environ
+    assert "A2ASSISTANT_HOME" not in os.environ
 
 
 @pytest.mark.platforms("linux")
@@ -205,9 +205,9 @@ def test_bootstrap_preserves_live_cwd_and_recovers_deleted_cwd(tmp_path, remove_
         "import hermes_bootstrap\n"
         "print(os.getcwd())\n"
     )
-    env = {**os.environ, "HERMES_HOME": str(tmp_path / ".hermes"),
+    env = {**os.environ, "A2ASSISTANT_HOME": str(tmp_path / ".hermes"),
            "PYTHONPATH": str(REPO_ROOT)}
-    env.pop("HERMES_DEV", None)
+    env.pop("A2ASSISTANT_DEV", None)
     result = subprocess.run(
         [sys.executable, "-c", probe, str(cwd), "deleted" if remove_cwd else "live"],
         stdin=subprocess.DEVNULL, capture_output=True, text=True,
@@ -222,7 +222,7 @@ def test_bootstrap_preserves_live_cwd_and_recovers_deleted_cwd(tmp_path, remove_
 def test_fast_version_parity(tmp_path):
     home = tmp_path / ".hermes"
     home.mkdir()
-    result = _run_version({"HERMES_HOME": str(home)})
+    result = _run_version({"A2ASSISTANT_HOME": str(home)})
     assert result.returncode == 0, result.stderr
     out = result.stdout
     for field in ("A2Assistant v", "Install directory:", "Python:", "OpenAI SDK:"):
@@ -235,6 +235,6 @@ def test_termux_chat_shortcut_leaves_subcommands_to_dispatch(monkeypatch, argv):
     from hermes_cli import main
 
     monkeypatch.setenv("PREFIX", "/data/data/com.termux/files/usr")
-    monkeypatch.delenv("HERMES_TERMUX_DISABLE_FAST_CLI", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TERMUX_DISABLE_FAST_CLI", raising=False)
     monkeypatch.setattr(sys, "argv", ["hermes", *argv])
     assert main._try_termux_fast_cli_launch() is False

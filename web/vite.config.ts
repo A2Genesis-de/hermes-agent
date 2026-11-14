@@ -22,10 +22,10 @@ import { fileURLToPath } from "node:url";
 
 const configDir: string = fileURLToPath(new URL(".", import.meta.url));
 
-const BACKEND = process.env.HERMES_DASHBOARD_URL ?? "http://127.0.0.1:9119";
+const BACKEND = process.env.A2ASSISTANT_DASHBOARD_URL ?? "http://127.0.0.1:9119";
 
 /**
- * In production the Python `hermes dashboard` server injects a one-shot
+ * In production the Python `a2assistant dashboard` server injects a one-shot
  * session token into `index.html` (see `hermes_cli/web_server.py`). The
  * Vite dev server serves its own `index.html`, so unless we forward that
  * token, every protected `/api/*` call 401s.
@@ -52,7 +52,7 @@ function hermesDevToken(): Plugin {
         if (!match) {
           console.warn(
             `[hermes] Could not find session token in ${BACKEND} — ` +
-              `is \`hermes dashboard\` running? /api calls will 401.`,
+              `is \`a2assistant dashboard\` running? /api calls will 401.`,
           );
           return;
         }
@@ -73,7 +73,7 @@ function hermesDevToken(): Plugin {
       } catch (err) {
         console.warn(
           `[hermes] Dashboard at ${BACKEND} unreachable — ` +
-            `start it with \`hermes dashboard\` or set HERMES_DASHBOARD_URL. ` +
+            `start it with \`a2assistant dashboard\` or set A2ASSISTANT_DASHBOARD_URL. ` +
             `(${(err as Error).message})`,
         );
       }
@@ -182,7 +182,7 @@ export default defineConfig({
         // upgrades arrive that way however BACKEND is reached (port forwards
         // included). The backend trusts no fixed dev port.
       },
-      // Same host as `hermes dashboard` must serve these; Vite has no
+      // Same host as `a2assistant dashboard` must serve these; Vite has no
       // dashboard-plugins/* files, so without this, plugin scripts 404
       // or receive index.html in dev.
       "/dashboard-plugins": BACKEND,

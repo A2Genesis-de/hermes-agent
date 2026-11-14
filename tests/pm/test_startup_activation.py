@@ -18,8 +18,8 @@ from tests.pm._fixtures import make_tar, served as served  # noqa: PLC0414 -- th
 def checked_store(tmp_path, monkeypatch, served):
     engine = importlib.import_module("pm.install")
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.setenv("HERMES_RUNTIME_DIR", str(tmp_path / "store"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_RUNTIME_DIR", str(tmp_path / "store"))
     monkeypatch.setattr(paths, "repo_root", lambda: tmp_path / "repo")
     monkeypatch.setattr(paths, "lockfile_path", lambda: tmp_path / "lock.json")
     monkeypatch.setattr(registry, "_packages", {})

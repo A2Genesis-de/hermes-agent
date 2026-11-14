@@ -10,7 +10,7 @@ import pytest
 def test_session_status_does_not_create_database(tmp_path, monkeypatch, capsys, legacy):
     from hermes_cli import status
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(status, "get_hermes_home", lambda: tmp_path)
     if legacy:
         directory = tmp_path / "sessions"

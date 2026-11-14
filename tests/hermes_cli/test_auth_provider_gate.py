@@ -30,7 +30,7 @@ def _clean_anthropic_env(monkeypatch):
 
 def test_ambient_pool_source_does_not_count_as_explicit(tmp_path, monkeypatch):
     """gh_cli-seeded Copilot pool entries are ambient, not explicit config (#56974)."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("COPILOT_GITHUB_TOKEN", raising=False)
     monkeypatch.delenv("GH_TOKEN", raising=False)
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
@@ -56,7 +56,7 @@ def test_vertex_ambient_google_creds_env_does_not_count_as_explicit(tmp_path, mo
     """An ambient GOOGLE_APPLICATION_CREDENTIALS path (commonly set globally for
     unrelated GCP work) must NOT mark Vertex explicit — only Hermes-scoped
     signals do. Regression guard for the picker gate (PR review feedback)."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("VERTEX_PROJECT_ID", raising=False)
     monkeypatch.delenv("VERTEX_CREDENTIALS_PATH", raising=False)
     _write_config(tmp_path, {"model": {"provider": "anthropic", "default": "claude-opus-4-8"}})
@@ -73,7 +73,7 @@ def test_vertex_ambient_google_creds_env_does_not_count_as_explicit(tmp_path, mo
 
 def test_returns_true_when_moa_reference_slot_uses_provider(tmp_path, monkeypatch):
     """MoA advisor slots are explicit provider selections for auth gating."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     _write_config(tmp_path, {
         "model": {"provider": "openai-codex", "default": "gpt-5.5"},
         "moa": {
@@ -98,7 +98,7 @@ def test_stale_env_pool_entry_does_not_count_when_var_unset(tmp_path, monkeypatc
     """An env-seeded pool entry left in auth.json after the env var was removed
     must not mark the provider configured (#55790): the picker showed removed
     providers forever because the record existed even though no secret resolves."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     _write_auth_store(tmp_path, {
         "version": 1,
@@ -131,7 +131,7 @@ def test_profile_dotenv_key_counts_as_explicit_when_process_env_lacks_it(tmp_pat
     (root / "config.yaml").write_text("model: {}\n")
     (studio / "config.yaml").write_text("model: {}\n")
     (studio / ".env").write_text("OPENAI_API_KEY=sk-studio-openai-key\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
     from agent import secret_scope
@@ -155,7 +155,7 @@ def test_dotenv_key_counts_when_shell_exports_the_var_empty(tmp_path, monkeypatc
     an empty ``OPENAI_API_KEY=`` inherited from the parent shell must not hide
     a real key in .env (#77007) — the resolver would use that key, so the picker
     must list the provider."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes"))
     monkeypatch.setenv("OPENAI_API_KEY", "")
     _write_config(tmp_path, {"model": {}})
     (tmp_path / "hermes" / ".env").write_text("OPENAI_API_KEY=sk-dotenv-only-secret\n")

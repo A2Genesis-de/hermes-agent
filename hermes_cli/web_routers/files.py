@@ -571,7 +571,7 @@ async def upload_chat_image(payload: ChatImageUpload, profile: Optional[str] = N
 
     Browser clipboard bytes aren't visible to the server-side clipboard, so the
     /chat page uploads them here and drives the TUI's ``/image <path>`` with
-    the returned gateway-visible path under ``HERMES_HOME/images/`` (the same
+    the returned gateway-visible path under ``A2ASSISTANT_HOME/images/`` (the same
     dir ``clipboard.paste`` / ``image.attach`` use).
     """
     def _run():
@@ -1183,7 +1183,7 @@ async def _fs_owned_session(session_id: Optional[str], profile: Optional[str]) -
 
 
 def _fs_profile_home(profile: Optional[str]) -> Optional[Path]:
-    """HERMES_HOME of a requested profile (404/400 on an unknown one), None for the request's
+    """A2ASSISTANT_HOME of a requested profile (404/400 on an unknown one), None for the request's
     own profile (omitted, ``""`` or ``current``, as ``_is_current_profile`` reads them)."""
     from hermes_cli.web_server_cron import _cron_profile_home
     from hermes_cli.web_server_profiles import _is_current_profile

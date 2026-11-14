@@ -23,7 +23,7 @@ def test_shared_bot_named_topic_is_persisted_in_the_bot_owners_config(tmp_path, 
     for home in (owner, satellite):
         home.mkdir()
         (home / "config.yaml").write_text("platforms: {}\n")
-    monkeypatch.setenv("HERMES_HOME", str(owner))  # the primary bot is built in its own profile
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(owner))  # the primary bot is built in its own profile
     adapter = TelegramAdapter(PlatformConfig(enabled=True, token="fake", extra={}))
     topic_ids = iter([4242, 5151])
 

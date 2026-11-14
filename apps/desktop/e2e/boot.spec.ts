@@ -1,23 +1,22 @@
+import {
+  type MockBackendFixture,
+  setupMockBackend,
+  waitForAppReady,
+} from './fixtures'
 /**
  * E2E smoke tests for the dev-mode desktop app.
  *
  * These tests launch the Electron app from the built dist/ (not the
- * packaged binary) with a real `hermes serve` backend pointed at a mock
+ * packaged binary) with a real `a2assistant serve` backend pointed at a mock
  * inference server. The full chain is exercised:
  *
- *   electron → hermes serve (python) → mock provider → renderer
+ *   electron → a2assistant serve (python) → mock provider → renderer
  *
  * Prerequisite: `pnpm run build` must have been run so dist/ exists.
  * Run from the nix devshell:
  *   pnpm exec playwright test e2e/boot.spec.ts --reporter=list
  */
 import { expect, test } from './test'
-
-import {
-  type MockBackendFixture,
-  setupMockBackend,
-  waitForAppReady,
-} from './fixtures'
 import { expectVisualSnapshot } from './visual-snapshot'
 
 let fixture: MockBackendFixture | null = null
@@ -53,7 +52,7 @@ test.describe('dev-mode boot with mock backend', () => {
 
   test('backend boots and app becomes ready', async () => {
     // This is the big one — wait for the full boot chain to complete:
-    // electron starts → hermes serve is spawned → WS connects → config
+    // electron starts → a2assistant serve is spawned → WS connects → config
     // loaded → sessions loaded → boot overlay dismissed → composer visible.
     await waitForAppReady(fixture!, 120_000)
   })

@@ -17,7 +17,7 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger("tools.computer_use.cua_backend")
 
 # PM owns the pinned binary; an explicit override remains externally owned.
-_CUA_DRIVER_CMD_ENV = "HERMES_CUA_DRIVER_CMD"
+_CUA_DRIVER_CMD_ENV = "A2ASSISTANT_CUA_DRIVER_CMD"
 _CUA_DRIVER_DEFAULT_CMD = "cua-driver"
 _CUA_DRIVER_ARGS = ["mcp"]  # stdio MCP; fallback when the driver has no `manifest` verb
 _CUA_DRIVER_RUNTIME_CONTRACT_MIN = (0, 20, 0)
@@ -89,8 +89,8 @@ def cua_driver_binary_available() -> bool:
     return resolve_cua_driver_cmd() is not None
 
 def cua_driver_install_hint() -> str:
-    return ("cua-driver is not installed. Install the pinned driver with:\n  hermes computer-use install\n"
-            "Or run `hermes tools` and enable the Computer Use toolset to install it automatically.")
+    return ("cua-driver is not installed. Install the pinned driver with:\n  a2assistant computer-use install\n"
+            "Or run `a2assistant tools` and enable the Computer Use toolset to install it automatically.")
 
 def _mcp_args_with_overlay_flag(args: list[str], driver_cmd: str = _CUA_DRIVER_DEFAULT_CMD) -> list[str]:
     """Return *args* with ``--no-overlay`` appended when configured and supported."""

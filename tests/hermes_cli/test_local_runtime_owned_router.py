@@ -67,7 +67,7 @@ def _kill(identity):
 def test_owner_sigkill_reaps_router_tree_not_an_external_control(tmp_path):
     script = tmp_path / "disposable server.py"
     script.write_text(_SCRIPT, encoding="utf-8")
-    env = dict(os.environ, HERMES_HOME=str(tmp_path / "home"),
+    env = dict(os.environ, A2ASSISTANT_HOME=str(tmp_path / "home"),
                PYTHONPATH=str(Path(__file__).resolve().parents[2]))
     with (tmp_path / "children.log").open("w", encoding="utf-8") as log:
         launchers = [subprocess.Popen([sys.executable, str(script), str(tmp_path), role],

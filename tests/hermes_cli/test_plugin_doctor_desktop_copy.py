@@ -1,4 +1,4 @@
-"""``hermes plugins doctor`` warns when Desktop runs a stale copy of a unified package's desktop half."""
+"""``a2assistant plugins doctor`` warns when Desktop runs a stale copy of a unified package's desktop half."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ def _stale_warnings(report) -> list[str]:
 def home(tmp_path, monkeypatch) -> Path:
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 

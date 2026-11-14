@@ -6,6 +6,7 @@ persistence, timeout policy and the final authorization stay host-owned in
 ``tools.approval``; this module only asks and reports the answer.
 """
 
+from hermes_constants import unset_env
 import logging
 import os
 import sys
@@ -149,7 +150,7 @@ def _ask_human(command: str, description: str, timeout_seconds: int, allow_perma
     except Exception:
         pass  # prompt_toolkit absent or detection failed: legacy input() path is safe
 
-    os.environ["HERMES_SPINNER_PAUSE"] = "1"
+    os.environ["A2ASSISTANT_SPINNER_PAUSE"] = "1"
     try:
         from agent.i18n import t
         # (prompt key, menu key) by menu shape: once/deny, full, or no [a]lways.
@@ -177,7 +178,7 @@ def _ask_human(command: str, description: str, timeout_seconds: int, allow_perma
         print("\n" + t("approval.cancelled"))
         return Unanswered("the prompt was interrupted before an answer was given")
     finally:
-        os.environ.pop("HERMES_SPINNER_PAUSE", None)
+        unset_env(os.environ, "SPINNER_PAUSE")
         print()
         sys.stdout.flush()
 

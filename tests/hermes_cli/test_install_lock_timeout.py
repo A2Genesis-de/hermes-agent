@@ -31,7 +31,7 @@ def install_tree(tmp_path, monkeypatch):
     """A real committed generation, ready for ``activate_dependencies`` to select."""
     repo = tmp_path / "repo"
     repo.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     environment = install_state_dir(repo) / "environments" / "gen1" / "venv"
     site = site_packages(environment)
     site.mkdir(parents=True)

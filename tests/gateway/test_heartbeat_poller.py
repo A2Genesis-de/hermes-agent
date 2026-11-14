@@ -119,8 +119,8 @@ async def test_unavailable_or_busy_session_leaves_persisted_tick_due(poller):
 
 @pytest.mark.asyncio
 async def test_emergency_stop_holds_due_tick_without_messaging_until_resume(poller, monkeypatch):
-    """`hermes pause` must not turn a due heartbeat into a chat message on every poll (prod: ~10k
-    identical paused notices in 5h); the tick fires normally after `hermes resume`."""
+    """`a2assistant pause` must not turn a due heartbeat into a chat message on every poll (prod: ~10k
+    identical paused notices in 5h); the tick fires normally after `a2assistant resume`."""
     from agent import estop
 
     runner, adapter, watch, _key, clock = poller

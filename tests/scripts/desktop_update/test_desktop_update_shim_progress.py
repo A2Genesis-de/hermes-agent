@@ -120,13 +120,13 @@ FAKE_HERMES = """#!/usr/bin/env bash
 # real update call; answer it without consuming a counted call so the
 # exits.N mapping below still refers to actual update attempts.
 case "$*" in *--help*) echo "--keep-stash"; exit 0 ;; esac
-n="$(cat "$HERMES_TEST_CALLS" 2>/dev/null || echo 0)"; n=$((n + 1))
-printf '%s' "$n" > "$HERMES_TEST_CALLS"
+n="$(cat "$A2ASSISTANT_TEST_CALLS" 2>/dev/null || echo 0)"; n=$((n + 1))
+printf '%s' "$n" > "$A2ASSISTANT_TEST_CALLS"
 for f in "$TMPDIR"/hermes-update-status.[0-9]*; do
   case "$f" in *.tmp) continue ;; esac
-  cp "$f" "$HERMES_TEST_CAPTURE.$n" 2>/dev/null
+  cp "$f" "$A2ASSISTANT_TEST_CAPTURE.$n" 2>/dev/null
 done
-exit "$(cat "$HERMES_TEST_EXITS.$n" 2>/dev/null || echo 0)"
+exit "$(cat "$A2ASSISTANT_TEST_EXITS.$n" 2>/dev/null || echo 0)"
 """
 
 
@@ -146,11 +146,11 @@ def _run_handoff(tmp_path, exits: dict[int, int]) -> list[dict]:
     env = {
         **os.environ,
         "TMPDIR": str(tmp_path),
-        "HERMES_TEST_CAPTURE": str(capture),
-        "HERMES_TEST_CALLS": str(calls),
-        "HERMES_TEST_EXITS": str(tmp_path / "exits"),
+        "A2ASSISTANT_TEST_CAPTURE": str(capture),
+        "A2ASSISTANT_TEST_CALLS": str(calls),
+        "A2ASSISTANT_TEST_EXITS": str(tmp_path / "exits"),
     }
-    env.pop("HERMES_HOME", None)  # Exercise the legacy install-parent fallback.
+    env.pop("A2ASSISTANT_HOME", None)  # Exercise the legacy install-parent fallback.
     # The hand-off daemonizes and the launcher exits immediately; the result
     # file is the orchestrator's own completion signal.
     subprocess.run(
@@ -179,7 +179,7 @@ def _run_handoff(tmp_path, exits: dict[int, int]) -> list[dict]:
 
 @requires_posix_handoff
 def test_update_gate_publishes_its_stage_before_running(tmp_path):
-    """`hermes update` is the longest wait in the hand-off and the one the
+    """`a2assistant update` is the longest wait in the hand-off and the one the
     Discord report sat through; the window must name it while it happens."""
     stages = _run_handoff(tmp_path, {1: 0})
 

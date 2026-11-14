@@ -139,8 +139,8 @@ async function readManualUpdateCommand(page) {
   }
   const text = await page.locator('code').filter({ hasText: /hermes update/i }).first().textContent()
   const command = (text || '').trim().replace(/^\$\s*/, '')
-  if (!/^hermes update(?:\s|$)/.test(command)) {
-    throw new Error('manual update card did not present a hermes update command')
+  if (!/^a2assistant update(?:\s|$)/.test(command)) {
+    throw new Error('manual update card did not present a a2assistant update command')
   }
   return command
 }

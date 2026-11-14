@@ -12,7 +12,7 @@ arm_source_redirect() {
   # this function the shim shadows `git` and reports the official origin for
   # `remote get-url origin` (so fork detection sees it); any check that must see
   # the file:// redirect instead has to bypass the shim via this path.
-  export HERMES_E2E_REAL_GIT="$real_git"
+  export A2ASSISTANT_E2E_REAL_GIT="$real_git"
   # A global file survives install.sh replacing GIT_CONFIG_COUNT/KEY_n/VALUE_n.
   printf '' > "$cfg"
   for url in "$actual" "$https" "$ssh"; do
@@ -21,7 +21,7 @@ arm_source_redirect() {
   export GIT_CONFIG_GLOBAL="$cfg"
   # serve.git publishes commits on main, not releases: HEAD's installer would otherwise
   # install the latest stable release its tags name. Older installers ignore the variable.
-  export HERMES_INSTALL_CHANNEL=main
+  export A2ASSISTANT_INSTALL_CHANNEL=main
   [ "$(git -C "$repo" remote get-url origin)" = "file://$serve" ] \
     || fail 'git URL redirect did not reach the staged repository'
 

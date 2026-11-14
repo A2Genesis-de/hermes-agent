@@ -28,7 +28,7 @@ async def _owner(tmp_path, monkeypatch):
     from gateway.run_shutdown_session_end import GatewaySessionEndMixin
     from gateway.session_authority import initialize_session_authority
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     monkeypatch.setattr('hermes_cli.lifecycle.invoke_hook', lambda name, **kwargs: None)
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
@@ -200,7 +200,7 @@ async def _local(tmp_path, monkeypatch):
     from gateway.session_local import create_local_session
     from hermes_state import AsyncSessionDB, SessionDB
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(SessionAuthority, '_schedule', lambda self, ref: None)  # admitted rows stay queued
     runner = GatewayRunner(GatewayConfig(sessions_dir=tmp_path / 'sessions'))
     db = SessionDB(tmp_path / 'state.db')

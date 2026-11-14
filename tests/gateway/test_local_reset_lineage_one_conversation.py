@@ -17,7 +17,7 @@ async def reset_lineage(tmp_path, monkeypatch):
     from gateway.session_mutations import mutate_session
     from hermes_state import SessionDB
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     store._db = SessionDB(db_path=tmp_path / 'state.db')

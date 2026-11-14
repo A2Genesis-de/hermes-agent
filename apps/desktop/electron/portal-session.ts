@@ -4,7 +4,7 @@
 const DEFAULT_NOUS_PORTAL_URL = 'https://portal.nousresearch.com'
 
 export function resolvePortalBaseUrl() {
-  const raw = process.env.HERMES_PORTAL_BASE_URL || process.env.NOUS_PORTAL_BASE_URL || DEFAULT_NOUS_PORTAL_URL
+  const raw = process.env.A2ASSISTANT_PORTAL_BASE_URL || process.env.NOUS_PORTAL_BASE_URL || DEFAULT_NOUS_PORTAL_URL
 
   return String(raw).trim().replace(/\/+$/, '')
 }

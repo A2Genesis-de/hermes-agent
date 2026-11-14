@@ -43,12 +43,12 @@ def acme_acp(tmp_path, monkeypatch):
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
-    for var in ("HERMES_ACME_ACP_COMMAND", "HERMES_ACME_ACP_ARGS", "ACME_ACP_BASE_URL"):
+    for var in ("A2ASSISTANT_ACME_ACP_COMMAND", "A2ASSISTANT_ACME_ACP_ARGS", "ACME_ACP_BASE_URL"):
         monkeypatch.delenv(var, raising=False)
     profile = _AcmeAcpProfile(name="acme-acp", auth_type="external_process", base_url="acp://acme",
                               process_command="acme", process_args=("--acp", "--stdio"),
-                              process_command_env_vars=("HERMES_ACME_ACP_COMMAND",),
-                              process_args_env_var="HERMES_ACME_ACP_ARGS",
+                              process_command_env_vars=("A2ASSISTANT_ACME_ACP_COMMAND",),
+                              process_args_env_var="A2ASSISTANT_ACME_ACP_ARGS",
                               base_url_env_var="ACME_ACP_BASE_URL")
     monkeypatch.setitem(providers._REGISTRY, profile.name, profile)
     monkeypatch.setattr(providers, "_PROVIDER_LIST_CACHE", None)
@@ -68,7 +68,7 @@ def test_get_auth_status_dispatches_external_process_by_auth_type(
     fake = tmp_path / ("acme.exe" if os.name == "nt" else "acme")
     fake.write_text("", encoding="utf-8")
     fake.chmod(0o755)
-    monkeypatch.setenv("HERMES_ACME_ACP_COMMAND", str(fake))
+    monkeypatch.setenv("A2ASSISTANT_ACME_ACP_COMMAND", str(fake))
     # Point HOME somewhere empty so on-disk credential stores don't leak in.
     monkeypatch.setenv("HOME", str(tmp_path))
 
@@ -131,7 +131,7 @@ def test_external_process_status_resolves_relative_configured_path_from_cwd(
     cli.chmod(0o755)
     monkeypatch.chdir(tmp_path)
     monkeypatch.setenv("PATH", str(tmp_path / "backend-bin"))
-    monkeypatch.setenv("HERMES_ACME_ACP_COMMAND", os.path.join(".", "bin", cli.name))
+    monkeypatch.setenv("A2ASSISTANT_ACME_ACP_COMMAND", os.path.join(".", "bin", cli.name))
 
     status = get_external_process_provider_status("acme-acp")
 
@@ -163,7 +163,7 @@ def test_external_process_claude_resolution_preserves_precedence(
     monkeypatch.setenv("HOME", str(tmp_path))
     monkeypatch.setenv("PATH", str(tmp_path / "backend-bin"))
     monkeypatch.setenv(
-        "HERMES_ACME_ACP_COMMAND",
+        "A2ASSISTANT_ACME_ACP_COMMAND",
         str(candidates[preferred]) if preferred == "explicit" else "claude",
     )
 
@@ -241,7 +241,7 @@ def test_cli_command_reflects_configured_executable(tmp_path, monkeypatch, acme_
     fake = tmp_path / ("acme.exe" if os.name == "nt" else "acme")
     fake.write_text("", encoding="utf-8")
     fake.chmod(0o755)
-    monkeypatch.setenv("HERMES_ACME_ACP_COMMAND", str(fake))
+    monkeypatch.setenv("A2ASSISTANT_ACME_ACP_COMMAND", str(fake))
 
     rendered = _external_process_cli_command("acme-acp", "acme login")
 
@@ -251,7 +251,7 @@ def test_cli_command_reflects_configured_executable(tmp_path, monkeypatch, acme_
 def test_cli_command_untouched_for_non_external_providers(acme_acp):
     from hermes_cli.web_server_oauth import _external_process_cli_command
 
-    assert _external_process_cli_command("nous", "hermes auth add nous") == "hermes auth add nous"
+    assert _external_process_cli_command("nous", "a2assistant auth add nous") == "a2assistant auth add nous"
 
 
 def test_cli_command_default_when_no_override(monkeypatch, acme_acp):

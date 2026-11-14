@@ -621,7 +621,7 @@ def extract_profiles_main(path: str, module_name: str) -> int:
 def main() -> int:
     reader, writer = _take_protocol_streams()
     import hermes_bootstrap
-    logging.basicConfig(stream=sys.stderr, level=os.environ.get("HERMES_PLUGIN_HOST_LOG_LEVEL", "WARNING"),
+    logging.basicConfig(stream=sys.stderr, level=os.environ.get("A2ASSISTANT_PLUGIN_HOST_LOG_LEVEL", "WARNING"),
                         format="%(levelname)s %(name)s: %(message)s")
     runtime = HostRuntime(reader, writer)
     from hermes_cli import plugin_events

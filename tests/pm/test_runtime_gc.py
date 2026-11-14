@@ -87,7 +87,7 @@ os._exit(0)
 @pytest.mark.platforms("posix")
 @pytest.mark.skipif(getattr(os, "geteuid", lambda: 1)() == 0, reason="root opens mode-0 files")
 def test_prune_keeps_unopenable_sibling_lease(tmp_path):
-    """A lease this user cannot open (root-owned, `sudo hermes` on the same checkout) is HELD:
+    """A lease this user cannot open (root-owned, `sudo a2assistant` on the same checkout) is HELD:
     boot never raises and GC never collects."""
     from hermes_cli.runtime_state import lease_directory, leases_held
 

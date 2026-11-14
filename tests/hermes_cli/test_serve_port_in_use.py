@@ -1,7 +1,7 @@
 """#93608 — port bind conflict must be machine-readable, not a bare exit 1.
 
 The reporter's repro: something already listens on the serve port (another
-``hermes serve``, the gateway, anything) → ``hermes serve`` printed only
+``a2assistant serve``, the gateway, anything) → ``a2assistant serve`` printed only
 uvicorn's ``ERROR: [Errno 98/10048] error while attempting to bind on
 address`` and exited 1 — indistinguishable from a broken backend for the
 desktop spawn and for scripts.
@@ -10,8 +10,8 @@ Contract under test:
 
 * conflict → single stdout sentinel ``BACKEND_PORT_IN_USE port=<port>`` +
   a human hint line + exit code 75 (EX_TEMPFAIL, the repo's existing
-  transient-condition convention) — and NO ``HERMES_BACKEND_READY``.
-* free explicit port → boots and announces ``HERMES_BACKEND_READY`` exactly
+  transient-condition convention) — and NO ``A2ASSISTANT_BACKEND_READY``.
+* free explicit port → boots and announces ``A2ASSISTANT_BACKEND_READY`` exactly
   as before (contract untouched).
 * ``--port 0`` (ephemeral) → probe skipped, boots, announces the
   OS-assigned port.
@@ -89,13 +89,13 @@ def _spawn_serve(port: int, tmp_path: Path, merge_stderr: bool = True) -> subpro
     home.mkdir(exist_ok=True)
     env = dict(os.environ)
     env.update(
-        HERMES_HOME=str(home),
-        HERMES_SERVE_HEADLESS="1",
+        A2ASSISTANT_HOME=str(home),
+        A2ASSISTANT_SERVE_HEADLESS="1",
         PYTHONUNBUFFERED="1",
     )
     # Ensure a stray desktop-parent env can't arm the watchdog/reaper paths.
-    for k in ("HERMES_DESKTOP", "HERMES_PARENT_PID", "HERMES_PARENT_START_MARKER",
-              "HERMES_PARENT_NONCE"):
+    for k in ("A2ASSISTANT_DESKTOP", "A2ASSISTANT_PARENT_PID", "A2ASSISTANT_PARENT_START_MARKER",
+              "A2ASSISTANT_PARENT_NONCE"):
         env.pop(k, None)
     code = (
         "from hermes_cli.web_server import start_server\n"
@@ -156,7 +156,7 @@ def test_conflict_emits_sentinel_and_exit_75(tmp_path):
     assert proc.returncode == 75, f"exit={proc.returncode}\n{out}"
     assert f"BACKEND_PORT_IN_USE port={port}" in out
     assert f"Port {port}" in out  # human hint line
-    assert "HERMES_BACKEND_READY" not in out  # never claimed ready
+    assert "A2ASSISTANT_BACKEND_READY" not in out  # never claimed ready
     # exactly one machine sentinel line
     assert out.count("BACKEND_PORT_IN_USE") == 1
 
@@ -166,11 +166,11 @@ def test_conflict_emits_sentinel_and_exit_75(tmp_path):
 def test_ephemeral_port_zero_unaffected(tmp_path):
     proc = _spawn_serve(0, tmp_path)
     try:
-        ready, lines = _read_until(proc, "HERMES_BACKEND_READY")
+        ready, lines = _read_until(proc, "A2ASSISTANT_BACKEND_READY")
         out = "".join(lines)
         assert ready, f"no READY sentinel; output:\n{out}"
         # OS-assigned non-zero port announced
-        ready_line = next(l for l in lines if "HERMES_BACKEND_READY" in l)
+        ready_line = next(l for l in lines if "A2ASSISTANT_BACKEND_READY" in l)
         announced = int(ready_line.strip().rsplit("port=", 1)[1])
         assert announced > 0
         assert "BACKEND_PORT_IN_USE" not in out
@@ -203,13 +203,13 @@ def test_ready_sentinel_arrives_on_stdout_not_stderr(tmp_path):
     proc = _spawn_serve(port, tmp_path, merge_stderr=False)
     try:
         # stdout only: the sentinel MUST arrive here (desktop watches this pipe)
-        ready, lines = _read_until(proc, "HERMES_BACKEND_READY")
+        ready, lines = _read_until(proc, "A2ASSISTANT_BACKEND_READY")
         out = "".join(lines)
         assert ready, (
             f"READY sentinel not on stdout (desktop boot would time out); "
             f"stdout:\n{out}"
         )
-        assert f"HERMES_BACKEND_READY port={port}" in out
+        assert f"A2ASSISTANT_BACKEND_READY port={port}" in out
     finally:
         proc.terminate()
         try:
@@ -222,9 +222,9 @@ def test_headless_serve_announces_both_ready_tokens(tmp_path):
     """#60772 — a headless ``serve`` must announce BOTH ready tokens.
 
     The packaged Desktop artifact can be older than the Python backend (the
-    CLI-only ``hermes update`` path does not rebuild the packaged app). Its
-    readiness parser may still match only the legacy ``HERMES_DASHBOARD_READY``
-    line; a backend that announces only ``HERMES_BACKEND_READY`` then boots
+    CLI-only ``a2assistant update`` path does not rebuild the packaged app). Its
+    readiness parser may still match only the legacy ``A2ASSISTANT_DASHBOARD_READY``
+    line; a backend that announces only ``A2ASSISTANT_BACKEND_READY`` then boots
     healthily and gets killed after the port-announcement timeout — the exact
     artifact-skew signature in #60772. The neutral token must come first so
     current parsers match it before the legacy one.
@@ -239,20 +239,20 @@ def test_headless_serve_announces_both_ready_tokens(tmp_path):
         # Read past the NEUTRAL token to the legacy one: _read_until stops at
         # its token, so waiting for the legacy line proves BOTH were written
         # (the neutral one precedes it) without a timing race.
-        ready, lines = _read_until(proc, f"HERMES_DASHBOARD_READY port={port}")
+        ready, lines = _read_until(proc, f"A2ASSISTANT_DASHBOARD_READY port={port}")
         out = "".join(lines)
         assert ready, (
             f"legacy token missing (a stale packaged Desktop would time out); output:\n{out}"
         )
         # The neutral token must come first: current parsers stop at their
         # first hit, and they should bind to the newer contract.
-        assert f"HERMES_BACKEND_READY port={port}" in out
-        backend_at = out.index(f"HERMES_BACKEND_READY port={port}")
-        legacy_at = out.index(f"HERMES_DASHBOARD_READY port={port}")
+        assert f"A2ASSISTANT_BACKEND_READY port={port}" in out
+        backend_at = out.index(f"A2ASSISTANT_BACKEND_READY port={port}")
+        legacy_at = out.index(f"A2ASSISTANT_DASHBOARD_READY port={port}")
         assert backend_at < legacy_at
         # Exactly one of each — never a loop of announcements.
-        assert out.count("HERMES_BACKEND_READY port=") == 1
-        assert out.count("HERMES_DASHBOARD_READY port=") == 1
+        assert out.count("A2ASSISTANT_BACKEND_READY port=") == 1
+        assert out.count("A2ASSISTANT_DASHBOARD_READY port=") == 1
     finally:
         proc.terminate()
         try:

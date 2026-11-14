@@ -50,8 +50,8 @@ def lender(tmp_path, monkeypatch):
     (root / '.env').write_text('ROOMLINK_PROBE_KEY=default-secret\n')
     (helper / 'config.yaml').write_text('approvals:\n  mode: manual\nagent:\n  max_turns: 17\n')
     (helper / '.env').write_text('ROOMLINK_PROBE_KEY=helper-secret\n')
-    monkeypatch.setenv('HERMES_HOME', str(root))
-    monkeypatch.delenv('HERMES_ROOM_LINK_URL', raising=False)
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
+    monkeypatch.delenv('A2ASSISTANT_ROOM_LINK_URL', raising=False)
     monkeypatch.delenv('ROOMLINK_PROBE_KEY', raising=False)
     adapter = APIServerAdapter(PlatformConfig(enabled=True, extra={'key': 'lender-gateway-api-key'}))
     adapter._run_idempotency_store.close()
@@ -94,7 +94,7 @@ def _app(adapter):
 
 def test_a_named_profile_is_lent_through_its_own_mirror_and_mints_its_own_grants(lender, monkeypatch):
     from gateway.hosted_room_peer import decode_room_grant, gateway_room_grant_secret
-    monkeypatch.setenv('HERMES_ROOM_LINK_URL', 'https://lender.example.test/hermes/')
+    monkeypatch.setenv('A2ASSISTANT_ROOM_LINK_URL', 'https://lender.example.test/hermes/')
     link = lender.link(lender.helper)
     assert link['enabled'] is True and link['profile'] == 'helper', link
     catalog = link['catalog']
@@ -112,7 +112,7 @@ def test_a_named_profile_is_lent_through_its_own_mirror_and_mints_its_own_grants
     assert claims['execution_policy_digest'] == catalog['execution_policy']['policy_digest']
 
     # A profile that advertises its own endpoint keeps it as configured.
-    monkeypatch.delenv('HERMES_ROOM_LINK_URL')
+    monkeypatch.delenv('A2ASSISTANT_ROOM_LINK_URL')
     (lender.helper / 'config.yaml').write_text(
         'approvals:\n  mode: manual\ngateway:\n  room_link_url: https://helper.example.test/link\n')
     assert lender.link(lender.helper)['endpoint']['url'] == 'https://helper.example.test/link'
@@ -122,7 +122,7 @@ def test_a_single_profile_gateway_never_advertises_the_root_gateways_listener(le
     # `hermes -p helper gateway run`: its own process. The root gateway's listener neither serves
     # helper nor holds this process's grant secret, so its /p/helper mirror would never answer.
     secret_scope.set_multiplex_active(False)
-    monkeypatch.setenv('HERMES_HOME', str(lender.helper))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(lender.helper))
     (lender.root / 'config.yaml').write_text(
         'approvals:\n  mode: manual\ngateway:\n  room_link_url: https://root.example.test/link\n')
     assert lender.link(lender.helper) == {'enabled': False, 'reason': 'endpoint_required'}
@@ -143,7 +143,7 @@ async def test_a_granted_run_executes_in_the_lent_profile_and_its_grant_answers_
 
     monkeypatch.setattr(lender.adapter, '_create_agent', lambda **kwargs: Agent())
     async with TestClient(TestServer(_app(lender.adapter))) as client:
-        monkeypatch.setenv('HERMES_ROOM_LINK_URL', str(client.make_url('')).rstrip('/'))
+        monkeypatch.setenv('A2ASSISTANT_ROOM_LINK_URL', str(client.make_url('')).rstrip('/'))
         catalog = lender.link(lender.helper)['catalog']
         grant = lender.invite(lender.helper)['grant']
         default_grant = lender.invite(lender.root, member_id='host')['grant']

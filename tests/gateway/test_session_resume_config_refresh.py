@@ -1,6 +1,6 @@
 """CFG-2: a resumed local session runs the profile's CURRENT config-derived settings.
 
-Main's ``hermes -c`` was a new CLI process: toolsets, ``terminal.backend``, ``max_turns``, checkpoints and
+Main's ``a2assistant -c`` was a new CLI process: toolsets, ``terminal.backend``, ``max_turns``, checkpoints and
 the reasoning default came from the config it read at startup, while the stored session supplied the
 model/provider (``cli_model_switch_mixin.py`` restore). The owner freezes a LocalSessionPolicy at creation,
 so ``session.resume`` re-derives those fields from the profile as a new policy generation, keeping the

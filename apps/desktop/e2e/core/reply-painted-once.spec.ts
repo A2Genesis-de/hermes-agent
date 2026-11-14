@@ -16,7 +16,7 @@
  * it again. A silent tool (todo_list) draws no row between the copies, which
  * is the reported "twice, back to back".
  *
- * Every step runs the real Electron app against a real `hermes serve`; only
+ * Every step runs the real Electron app against a real `a2assistant serve`; only
  * the LLM is scripted (provider.ts). The transcript oracle checks each
  * marker is rendered exactly once, live and after a reload. An in-page
  * sampler fails on any transient double paint. A bubble-scoped check also

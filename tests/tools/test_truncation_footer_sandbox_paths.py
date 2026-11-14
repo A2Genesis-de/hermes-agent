@@ -16,7 +16,7 @@ def _footer_path(text: str) -> str:
 
 def test_truncation_footers_render_the_sandbox_visible_cache_path(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("TERMINAL_ENV", "docker")
     body = "\n".join(f"row {i}" for i in range(5000))
 
@@ -32,7 +32,7 @@ def test_truncation_footers_render_the_sandbox_visible_cache_path(tmp_path, monk
 
 def test_local_backend_footer_keeps_the_host_path(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setenv("TERMINAL_ENV", "local")
     body = "\n".join(f"row {i}" for i in range(5000))
     out, _ = web_tools_truncate._truncate_with_footer(body, "https://example.com/doc", 3000)

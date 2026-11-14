@@ -1,8 +1,8 @@
 """The chrome-debug Chromium profile and Hermes media-cache dirs are created owner-only.
 
-``$HERMES_HOME/chrome-debug`` is a real Chromium user-data dir (Cookies, Login Data,
+``$A2ASSISTANT_HOME/chrome-debug`` is a real Chromium user-data dir (Cookies, Login Data,
 Local Storage). A bare ``os.makedirs`` inherited the umask and landed 0755, so on the
-documented ``HERMES_HOME_MODE=0701`` web-server hatch every other local account could
+documented ``A2ASSISTANT_HOME_MODE=0701`` web-server hatch every other local account could
 read those stores (#77579 / #77486). The same held for the lazily-created media caches
 that hold user content — vision/computer-use captures, downloaded media, gateway inbound
 media. These tests pin the creation contract: 0700 dirs at creation time, a 0600 launch
@@ -24,11 +24,11 @@ def _mode(path) -> int:
 
 
 def _no_managed(monkeypatch, home):
-    """Force the not-managed branch: no HERMES_MANAGED env, no marker in ``home``."""
-    monkeypatch.delenv("HERMES_MANAGED", raising=False)
-    monkeypatch.delenv("HERMES_HOME_MODE", raising=False)
-    monkeypatch.delenv("HERMES_UID", raising=False)
-    monkeypatch.delenv("HERMES_GID", raising=False)
+    """Force the not-managed branch: no A2ASSISTANT_MANAGED env, no marker in ``home``."""
+    monkeypatch.delenv("A2ASSISTANT_MANAGED", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME_MODE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_UID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_GID", raising=False)
     monkeypatch.setattr("hermes_constants.get_hermes_home", lambda: home)
 
 
@@ -54,12 +54,12 @@ def test_chrome_debug_data_dir_reconciles_legacy_world_readable(tmp_path, monkey
 
 
 def test_chrome_debug_data_dir_managed_install_leaves_mode_to_umask(tmp_path, monkeypatch):
-    """Managed (NixOS) installs share $HERMES_HOME group-wise by design; the profile
+    """Managed (NixOS) installs share $A2ASSISTANT_HOME group-wise by design; the profile
     is not pre-created by tmpfiles rules, so the creation mode must stay with the
     configured umask/setgid rather than a hardcoded 0700."""
     home = tmp_path / "hh"
-    monkeypatch.setenv("HERMES_MANAGED", "nixos")
-    monkeypatch.delenv("HERMES_HOME_MODE", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_MANAGED", "nixos")
+    monkeypatch.delenv("A2ASSISTANT_HOME_MODE", raising=False)
     monkeypatch.setattr(bc, "get_hermes_home", lambda: home)
     monkeypatch.setattr(bc, "_managed_install", lambda: True)
     profile = home / "chrome-debug"

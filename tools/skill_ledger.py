@@ -1,9 +1,9 @@
 """Per-mutation skill audit ledger + single-edit rollback.
 
 Every skill mutation (any actor) appends one JSONL entry to
-``~/.hermes/skills/.curator_ledger.jsonl`` with before/after file manifests whose
+``~/.a2assistant/skills/.curator_ledger.jsonl`` with before/after file manifests whose
 contents are stored content-addressed (sha256-deduped) under
-``~/.hermes/.curator_backups/blobs/``. JSONL, not the state DB: durable, greppable,
+``~/.a2assistant/.curator_backups/blobs/``. JSONL, not the state DB: durable, greppable,
 survives DB resets. TELEMETRY, NOT A GATE: every public write path swallows and
 logs — except ``rollback_entry``, which FAILS CLOSED when its safety capture fails.
 """
@@ -246,7 +246,7 @@ def fill_snapshot_from_curator_backup(
     where rollback must restore them: under *root* when known (for purge that is
     ``.archive/<name>/``, NOT the live tree), else the live skills dir; the tar's leading
     package-dir segment is stripped when *root* already names the package. Every target must stay
-    under ``skills/`` and HERMES_HOME."""
+    under ``skills/`` and A2ASSISTANT_HOME."""
     out = list(existing or [])
     prefixes = package_prefixes(root, skill, out)
     if not prefixes:
@@ -555,7 +555,7 @@ def get_entry(entry_id: str) -> Optional[dict[str, Any]]:
 
 
 def _validate_entry_paths(entry: dict[str, Any]) -> Optional[str]:
-    """Every entry path must be under HERMES_HOME — a hand-edited ledger must not
+    """Every entry path must be under A2ASSISTANT_HOME — a hand-edited ledger must not
     become a write-anywhere primitive."""
     home = get_hermes_home()
     for section in ("before", "after"):

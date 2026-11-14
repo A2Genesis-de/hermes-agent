@@ -139,14 +139,14 @@ class TestReadSkillName:
 
 class TestRmtreeWritableScopeGuard:
     """``_rmtree_writable`` must refuse to remove anything outside
-    ``HERMES_HOME/skills/``.
+    ``A2ASSISTANT_HOME/skills/``.
 
     The previous implementation called ``shutil.rmtree(path)`` on whatever
     argument the caller passed. If any of the five call sites in
     ``tools/skills_sync.py`` ever computes a path outside the skills
     root — through a bad join, a missing default, a malicious
     bundled-manifest entry, or a stale path in scope after an
-    exception — the result is a silent ``shutil.rmtree(~/.hermes/)``
+    exception — the result is a silent ``shutil.rmtree(~/.a2assistant/)``
     that destroys the user's ``.env``, ``MEMORY.md``, ``kanban.db``,
     custom skills, scripts, and the rest of the install in one go
     (#48200).
@@ -157,7 +157,7 @@ class TestRmtreeWritableScopeGuard:
     """
 
     def test_refuses_anything_that_is_not_a_strict_child_of_skills(self, tmp_path):
-        """``/``, ``~/.hermes`` itself, a sibling dir, and the skills root
+        """``/``, ``~/.a2assistant`` itself, a sibling dir, and the skills root
         are all rejected — the root because a ``dest`` that collapses to it
         would wipe every installed skill (the degenerate #48200 path)."""
         from tools.skills_sync import _rmtree_writable
@@ -563,13 +563,13 @@ class TestGetBundledDir:
     def test_env_var_override_with_default_fallback(self, tmp_path, monkeypatch):
         custom_dir = tmp_path / "custom_skills"
         custom_dir.mkdir()
-        monkeypatch.setenv("HERMES_BUNDLED_SKILLS", str(custom_dir))
+        monkeypatch.setenv("A2ASSISTANT_BUNDLED_SKILLS", str(custom_dir))
         assert _get_bundled_dir() == custom_dir
 
         # Empty or unset falls back to the relative path from __file__.
-        monkeypatch.setenv("HERMES_BUNDLED_SKILLS", "")
+        monkeypatch.setenv("A2ASSISTANT_BUNDLED_SKILLS", "")
         assert _get_bundled_dir().name == "skills"
-        monkeypatch.delenv("HERMES_BUNDLED_SKILLS", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_BUNDLED_SKILLS", raising=False)
         assert _get_bundled_dir().name == "skills"
 
 
@@ -741,9 +741,9 @@ class TestResetBundledSkill:
 class TestNoBundledSkillsOptOut:
     """The .no-bundled-skills marker makes sync_skills() a no-op.
 
-    This is what `hermes profile create --no-skills` (named profiles) and the
-    installer's `--no-skills` flag (default ~/.hermes) rely on so bundled
-    skills are never seeded at install time NOR re-injected by `hermes update`.
+    This is what `a2assistant profile create --no-skills` (named profiles) and the
+    installer's `--no-skills` flag (default ~/.a2assistant) rely on so bundled
+    skills are never seeded at install time NOR re-injected by `a2assistant update`.
     """
 
     def test_marker_skips_sync_and_removal_seeds_normally(self, tmp_path):
@@ -767,7 +767,7 @@ class TestNoBundledSkillsOptOut:
             stack.enter_context(patch("tools.skills_sync._get_optional_dir", return_value=bundled.parent / "optional-skills"))
             stack.enter_context(patch("tools.skills_sync.SKILLS_DIR", skills_dir))
             stack.enter_context(patch("tools.skills_sync.MANIFEST_FILE", manifest_file))
-            stack.enter_context(patch("tools.skills_sync.HERMES_HOME", hermes_home))
+            stack.enter_context(patch("tools.skills_sync.A2ASSISTANT_HOME", hermes_home))
             return stack
 
         with _patches():
@@ -789,7 +789,7 @@ class TestNoBundledSkillsOptOut:
 
 
 class TestOptOutToggleAndRemove:
-    """`hermes skills opt-out/opt-in` core: marker toggle + safe removal."""
+    """`a2assistant skills opt-out/opt-in` core: marker toggle + safe removal."""
 
     def _setup_bundled(self, tmp_path):
         bundled = tmp_path / "bundled"
@@ -804,7 +804,7 @@ class TestOptOutToggleAndRemove:
         home = tmp_path / "home"
         home.mkdir()
         marker = home / ".no-bundled-skills"
-        with patch("tools.skills_sync.HERMES_HOME", home):
+        with patch("tools.skills_sync.A2ASSISTANT_HOME", home):
             assert not marker.exists()
             r = set_bundled_skills_opt_out(True)
             assert r["ok"] and r["changed"]
@@ -829,7 +829,7 @@ class TestOptOutToggleAndRemove:
              patch("tools.skills_sync._get_optional_dir", return_value=bundled.parent / "optional-skills"), \
              patch("tools.skills_sync.SKILLS_DIR", skills_dir), \
              patch("tools.skills_sync.MANIFEST_FILE", manifest_file), \
-             patch("tools.skills_sync.HERMES_HOME", home):
+             patch("tools.skills_sync.A2ASSISTANT_HOME", home):
             sync_skills(quiet=True)
             # User edits 'beta'
             (skills_dir / "beta" / "SKILL.md").write_text("---\nname: beta\n---\nEDITED\n")
@@ -973,7 +973,7 @@ class TestUpdateBackupRecovery:
 
 class TestCallTimeDirResolution:
     """Regression for #65828: skills_sync bound SKILLS_DIR/MANIFEST_FILE/
-    HERMES_HOME at import, so a long-lived dashboard/TUI process serving a
+    A2ASSISTANT_HOME at import, so a long-lived dashboard/TUI process serving a
     console skills command for another profile resolved (and for
     reset_bundled_skill DELETED) against whichever home was live at import.
     The accessors must follow set_hermes_home_override() at call time, while

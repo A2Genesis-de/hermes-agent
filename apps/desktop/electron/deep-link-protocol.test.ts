@@ -24,7 +24,7 @@ function run(env: NodeJS.ProcessEnv, defaultApp = true) {
 }
 
 test('the E2E/dev guard leaves the OS hermes:// handler untouched; normal launches still register', () => {
-  const skipped = run({ HERMES_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1' })
+  const skipped = run({ A2ASSISTANT_DESKTOP_SKIP_PROTOCOL_REGISTRATION: '1' })
   assert.deepEqual(skipped.calls, [])
   assert.match(skipped.log.join('\n'), /registration skipped/)
 

@@ -6,6 +6,7 @@ from pathlib import Path
 import stat
 
 from pm.filesystem import is_junction
+from hermes_cli.service_names import home_checkout_dir
 
 
 @dataclass(frozen=True)
@@ -42,7 +43,7 @@ def plan_data_removal(home: Path, project: Path, userdata: Path | None = None) -
         except NotBundledApp as exc:
             raise ValueError(str(exc)) from exc
     # The canonical source installation may coexist with the invoking package.
-    canonical = home / "hermes-agent"
+    canonical = home_checkout_dir(home)
     if (canonical / "hermes_cli" / "__init__.py").is_file():
         protected.add(canonical)
     remove: list[Path] = []

@@ -15,7 +15,7 @@ from hermes_cli import web_server
 def hermes_root(monkeypatch, tmp_path):
     root = tmp_path / "hermes"
     (root / "profiles" / "work").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "work"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root / "profiles" / "work"))
     return root
 
 

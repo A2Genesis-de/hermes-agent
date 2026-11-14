@@ -24,7 +24,7 @@ def test_quick_snapshot_restore_keeps_live_oauth_and_restores_static_auth(
 
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     live = {
         "version": 1,
@@ -95,7 +95,7 @@ def test_auth_refusal_is_not_hidden_by_another_restored_file(tmp_path, monkeypat
     home = tmp_path / "home"
     snap_dir = home / "state-snapshots" / snap_id
     snap_dir.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     live_path = home / "auth.json"
     live_path.write_text(json.dumps({"providers": {}, "sentinel": "live"}), encoding="utf-8")
     before = live_path.read_bytes()

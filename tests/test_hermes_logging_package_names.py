@@ -1,6 +1,6 @@
 """A module's log records keep their component when the module runs inside the ``hermes_agent`` package.
 
-``gateway.log``, ``hermes logs --component`` and the gateway diagnostics export decide by logger
+``gateway.log``, ``a2assistant logs --component`` and the gateway diagnostics export decide by logger
 name. ``getLogger(__name__)`` in ``gateway/run.py`` names ``gateway.run`` today and
 ``hermes_agent.gateway.run`` once the module lives in the package; both must route the same way.
 """

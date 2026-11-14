@@ -225,7 +225,7 @@ def _proxied_gate(monkeypatch, surface: str | None) -> TestClient:
     """Gated all-interfaces bind reached through a proxy that is not in ``trusted_proxies``, with
     no ``public_url``: the server sees ``http://127.0.0.1:9119`` whatever URL the browser addressed.
     *surface* is the app's ``ui_surface`` (``None``: the standalone dashboard, as on main)."""
-    monkeypatch.delenv("HERMES_DASHBOARD_PUBLIC_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_PUBLIC_URL", raising=False)
     clear_providers()
     register_provider(StubAuthProvider())
     for key, value in (("bound_host", "0.0.0.0"), ("bound_port", 9119), ("auth_required", True),
@@ -249,7 +249,7 @@ def proxied_gated_webapp(monkeypatch):
 
 @pytest.fixture
 def proxied_gated_dashboard(monkeypatch):
-    """The standalone ``hermes dashboard`` behind the sign-in gate, reached through such a proxy."""
+    """The standalone ``a2assistant dashboard`` behind the sign-in gate, reached through such a proxy."""
     yield _proxied_gate(monkeypatch, None)
     clear_providers()
 
@@ -287,7 +287,7 @@ def test_webapp_sign_out_from_another_origin_is_refused(proxied_gated_webapp):
 
 def test_dashboard_page_writes_behind_a_host_rewriting_http_proxy_are_admitted_as_on_main(
         proxied_gated_dashboard):
-    """With the Webapp off, the gated ``hermes dashboard`` keeps main's rule for cookie writes: the
+    """With the Webapp off, the gated ``a2assistant dashboard`` keeps main's rule for cookie writes: the
     origin check belongs to the Webapp's listener. Behind a plain-HTTP proxy that forwards with the
     upstream's Host and no ``dashboard.public_url``, the browser sends no Fetch Metadata and only
     ``Origin: http://dash.lan``; the dashboard's own page still writes and signs out."""

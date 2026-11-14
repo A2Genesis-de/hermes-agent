@@ -59,10 +59,10 @@ def ensure_windows_bin_launchers(
     windows: bool | None = None,
     user_path_entries: list[str] | None = None,
 ) -> list[str]:
-    """Re-stage the Windows ``hermes`` launchers when they vanish or when
+    """Re-stage the Windows ``a2assistant`` launchers when they vanish or when
     they still boot through the venv.
 
-    On Windows, ``hermes`` resolves through staged launchers — never
+    On Windows, ``a2assistant`` resolves through staged launchers — never
     ``venv\\Scripts`` itself on PATH, which would shadow the user's
     ``python`` (#83797) — and under pm the launchers boot the pm STORE
     python with ``PYTHONPATH=<repo>;<venv>/site-packages``, never the venv
@@ -72,14 +72,14 @@ def ensure_windows_bin_launchers(
     (``%LOCALAPPDATA%\\hermes\\bin``, next to the managed uv) — which lives
     OUTSIDE the git checkout so no git operation can ever touch it. It is
     a per-machine dir shared by every profile: ``get_hermes_home()`` would
-    point inside ``profiles\\<name>`` under ``hermes -p``, so the anchor
+    point inside ``profiles\\<name>`` under ``a2assistant -p``, so the anchor
     here is :func:`hermes_constants.get_default_hermes_root`.
 
     Earlier installer versions staged them at ``<checkout>\\bin`` instead —
-    inside the git working tree — where ``hermes update``'s pre-update
+    inside the git working tree — where ``a2assistant update``'s pre-update
     autostash (``git stash push --include-untracked``) swept them off disk;
     once the desktop updater stopped re-applying stashes (``--keep-stash``)
-    nothing restored them and ``hermes`` stopped resolving in every new
+    nothing restored them and ``a2assistant`` stopped resolving in every new
     terminal. That legacy location is re-staged too, during the transition,
     for installs whose user PATH still resolves through it.
 
@@ -246,9 +246,9 @@ def migrate_windows_bin_path(
     read_user_path=None,
     write_user_path=None,
 ) -> bool:
-    """One-time PATH migration to the ``HERMES_HOME\\bin`` launcher layout.
+    """One-time PATH migration to the ``A2ASSISTANT_HOME\\bin`` launcher layout.
 
-    Runs from the ``hermes update`` tail (and mirrors what install.ps1's
+    Runs from the ``a2assistant update`` tail (and mirrors what install.ps1's
     Set-PathVariable does on fresh installs/repairs, which never reach
     existing installs — updates don't run install.ps1):
 

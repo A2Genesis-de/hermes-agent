@@ -1,7 +1,7 @@
-"""`hermes profile alias <name> --remove` must clean up an ORPHAN alias (#90983).
+"""`a2assistant profile alias <name> --remove` must clean up an ORPHAN alias (#90983).
 
 An orphan alias is a wrapper in ``~/.local/bin`` whose profile no longer exists;
-``hermes doctor`` lists it together with the remove command. Removal used to die on
+``a2assistant doctor`` lists it together with the remove command. Removal used to die on
 the profile-exists check before it looked at ``--remove``.
 """
 
@@ -19,10 +19,10 @@ from hermes_cli.profiles import create_wrapper_script
 
 @pytest.fixture
 def isolated_home(tmp_path, monkeypatch):
-    """Isolate the profile root (HERMES_HOME) and the wrapper dir (Path.home())."""
+    """Isolate the profile root (A2ASSISTANT_HOME) and the wrapper dir (Path.home())."""
     (tmp_path / ".hermes").mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     monkeypatch.setattr(gateway_migrate, "duplicate_credential_findings", list)
     return tmp_path
@@ -42,7 +42,7 @@ def test_doctor_names_the_command_that_removes_an_orphan_alias(isolated_home, ca
     report = io.StringIO()
     with redirect_stdout(report):
         doctor_state._check_profiles(False)
-    assert "(remove with: hermes profile alias petcare --remove)" in report.getvalue()
+    assert "(remove with: a2assistant profile alias petcare --remove)" in report.getvalue()
 
     _alias("petcare", remove=True)
 

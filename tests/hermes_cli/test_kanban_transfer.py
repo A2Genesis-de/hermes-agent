@@ -47,10 +47,10 @@ def kanban_root(tmp_path, monkeypatch):
     def _use(name: str) -> Path:
         root = tmp_path / name
         root.mkdir(exist_ok=True)
-        monkeypatch.setenv("HERMES_HOME", str(root))
-        monkeypatch.setenv("HERMES_KANBAN_HOME", str(root))
-        for var in ("HERMES_KANBAN_DB", "HERMES_KANBAN_WORKSPACES_ROOT",
-                    "HERMES_KANBAN_ATTACHMENTS_ROOT", "HERMES_KANBAN_BOARD"):
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_HOME", str(root))
+        for var in ("A2ASSISTANT_KANBAN_DB", "A2ASSISTANT_KANBAN_WORKSPACES_ROOT",
+                    "A2ASSISTANT_KANBAN_ATTACHMENTS_ROOT", "A2ASSISTANT_KANBAN_BOARD"):
             monkeypatch.delenv(var, raising=False)
         kb._INITIALIZED_PATHS.clear()
         return root

@@ -52,8 +52,8 @@ with tempfile.TemporaryDirectory(prefix="hermes-desktop-backend-") as temporary:
     env = {
         "PATH": os.environ["PATH"],
         "HOME": str(home),
-        "HERMES_HOME": str(hermes_home),
-        "HERMES_DESKTOP_USER_DATA_DIR": str(home / "electron"),
+        "A2ASSISTANT_HOME": str(hermes_home),
+        "A2ASSISTANT_DESKTOP_USER_DATA_DIR": str(home / "electron"),
         "XDG_RUNTIME_DIR": str(runtime),
         "XDG_CONFIG_HOME": str(home / ".config"),
         "XDG_CACHE_HOME": str(home / ".cache"),

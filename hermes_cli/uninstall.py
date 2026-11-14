@@ -8,9 +8,10 @@ from pathlib import Path
 
 from hermes_constants import get_hermes_home
 
+from hermes_cli.service_names import INSTALL_DIR_NAMES, home_checkout_dir
 from hermes_cli._startup_fast import project_root_str
 from hermes_cli.colors import Colors, color
-from hermes_cli.branding import CLI_COMMAND
+from hermes_cli.branding import CLI_COMMAND, LAUNCHD_GATEWAY_LABEL, LEGACY_LAUNCHD_GATEWAY_LABEL
 
 def _logger(mark: str, col: str):
     return lambda msg: print(f"{color(mark, col)} {msg}")
@@ -72,11 +73,11 @@ def get_project_root() -> Path:
 def code_removal_refusal() -> str | None:
     """Why the uninstaller must not remove this tree's code, or ``None``.
 
-    A git checkout (the install.sh / install.ps1 / `hermes desktop` layout)
+    A git checkout (the install.sh / install.ps1 / `a2assistant desktop` layout)
     is ours to remove. A sealed tree (no ``.git``) belongs to a steward —
     the Nix store, the bundled desktop app, a Docker image — and only the
     steward removes it. Returns the user-facing refusal text for sealed
-    trees; the text always points at ``hermes uninstall --data`` for the
+    trees; the text always points at ``a2assistant uninstall --data`` for the
     user-data cleanup that IS allowed everywhere.
     """
     from hermes_cli.steward import sealed_steward, steward_uninstall_message
@@ -205,7 +206,7 @@ def remove_node_symlinks(hermes_home: Path) -> list:
 
     Historical POSIX installs (``scripts/install.sh`` before pm owned the
     Node runtime) symlinked node/npm/npx into the same directory as the
-    ``hermes`` command:
+    ``a2assistant`` command:
 
     - ``/usr/local/bin/`` on root FHS installs (Linux, uid 0)
     - ``~/.local/bin/`` otherwise (the common non-root case)
@@ -242,7 +243,7 @@ def uninstall_gateway_service():
     - Linux: user + system systemd services (with proper DBUS env setup)
     - macOS: launchd plists
     - Windows: Scheduled Task + Startup-folder fallback, via ``gateway_windows``
-    - All platforms: standalone ``hermes gateway run`` processes
+    - All platforms: standalone ``a2assistant gateway run`` processes
     """
     import platform
     stopped_something = False
@@ -298,12 +299,9 @@ def _remove_systemd_gateway() -> bool:
     return removed_any
 
 
-# Both gateway LaunchAgent naming schemes: the current ``ai.hermes.gateway*``
-# label and the ``io.nousresearch.hermes-agent.gateway*`` label older builds
-# installed. An uninstall must sweep BOTH — a stale agent keeps respawning the
-# gateway after the code tree is gone (#62209).
 _LAUNCHD_GATEWAY_PLIST_PATTERNS = (
-    "ai.hermes.gateway*.plist",
+    f"{LAUNCHD_GATEWAY_LABEL}*.plist",
+    f"{LEGACY_LAUNCHD_GATEWAY_LABEL}*.plist",
     "io.nousresearch.hermes-agent.gateway*.plist",
 )
 
@@ -375,7 +373,7 @@ def _hermes_path_markers(hermes_home: Path, *, include_managed_bin: bool = False
     node...). ``include_managed_bin`` adds ``<root>\bin`` (launchers + managed uv) — only when that
     dir is about to be deleted, so a keep-data uninstall keeps the working uv resolvable."""
     root = str(hermes_home).rstrip("\\/")
-    subs = ("hermes-agent", "git", "node", "venv") + (("bin",) if include_managed_bin else ())
+    subs = (*INSTALL_DIR_NAMES, "git", "node", "venv") + (("bin",) if include_managed_bin else ())
     return [f"{root}\\{sub}" for sub in subs]
 
 
@@ -400,9 +398,9 @@ def remove_path_from_windows_registry(hermes_home: Path, *, include_managed_bin:
 
 
 def remove_hermes_env_vars_windows() -> list[str]:
-    """Delete HERMES_HOME and HERMES_GIT_BASH_PATH from User-scope env vars."""
+    """Delete A2ASSISTANT_HOME and A2ASSISTANT_GIT_BASH_PATH from User-scope env vars."""
     def edit(winreg, key, removed):
-        for name in ("HERMES_HOME", "HERMES_GIT_BASH_PATH"):
+        for name in ("A2ASSISTANT_HOME", "A2ASSISTANT_GIT_BASH_PATH"):
             try:
                 winreg.QueryValueEx(key, name)
             except FileNotFoundError:
@@ -442,7 +440,7 @@ def remove_portable_tooling_windows(hermes_home: Path) -> list[Path]:
 
 
 def _xdg_leftover_paths(full_uninstall: bool) -> tuple[list[Path], list[Path]]:
-    """The XDG cache/data dirs an install scatters outside HERMES_HOME.
+    """The XDG cache/data dirs an install scatters outside A2ASSISTANT_HOME.
 
     Returns (removable, data_preserved): the cache dir is always removable;
     the XDG data dir is user data, so it is only removed on a full uninstall
@@ -459,7 +457,7 @@ def _xdg_leftover_paths(full_uninstall: bool) -> tuple[list[Path], list[Path]]:
 
 
 def remove_desktop_app_leftovers(*, full_uninstall: bool) -> list[Path]:
-    """Remove per-user app leftovers that live outside HERMES_HOME and the
+    """Remove per-user app leftovers that live outside A2ASSISTANT_HOME and the
     checkout, which earlier uninstallers left behind (#62209): the macOS
     Library caches/logs/browser-store/state entries the packaged app and
     Electron scatter, and the XDG cache dir on every platform. On a full
@@ -500,12 +498,12 @@ def _remove_path_or_tree(path: Path) -> bool:
 
 
 def remove_legacy_runtime_trees(hermes_home: Path) -> list[Path]:
-    """Delete managed-runtime trees a PRE-SPLIT install left in HERMES_HOME.
+    """Delete managed-runtime trees a PRE-SPLIT install left in A2ASSISTANT_HOME.
 
     Runtime artifacts are install-scoped now, so the current locations go
     away with ``rmtree(project_root)``. But a checkout OUTSIDE the home
     (the common case: ``~/src/hermes-agent``) used to put its node/uv
-    under ``$HERMES_HOME`` — that tree survives removing the checkout and
+    under ``$A2ASSISTANT_HOME`` — that tree survives removing the checkout and
     survives "keep my data" uninstalls, because it is not data.
 
     Only the exact managed layout is removed: ``node/`` (a tree the
@@ -542,7 +540,7 @@ def remove_windows_bin_launchers(*, windows: bool | None = None) -> list[Path]:
     console scripts, staged onto PATH by first-run repair) — pm keeps uv in
     its own store entry, so nothing shared lives here and the whole dir goes.
     Every uninstall mode deletes the code checkout, so a surviving launcher
-    would dangle: ``hermes`` in a new terminal resolves and then errors on
+    would dangle: ``a2assistant`` in a new terminal resolves and then errors on
     its missing venv target, which reads worse than command-not-found.
 
     A launcher that IS this process's own trampoline is mandatory-locked
@@ -614,8 +612,8 @@ def _discover_named_profiles():
 
 def _uninstall_profile(profile) -> None:
     """Fully uninstall a named profile: stop its gateway, remove its alias, wipe its home. Shells
-    out to ``hermes -p <name> gateway stop|uninstall`` because service names / unit paths derive
-    from the current HERMES_HOME and can't be switched in-process."""
+    out to ``a2assistant -p <name> gateway stop|uninstall`` because service names / unit paths derive
+    from the current A2ASSISTANT_HOME and can't be switched in-process."""
     name = profile.name
     log_info(f"Uninstalling profile '{name}'...")
 
@@ -692,9 +690,9 @@ def run_data_uninstall(args):
 def run_gui_uninstall(args):
     """GUI-only uninstall: remove the Chat GUI, leave the agent + data intact.
 
-    Mirrors ``hermes uninstall --gui``. Removes the desktop app's built
+    Mirrors ``a2assistant uninstall --gui``. Removes the desktop app's built
     artifacts, the packaged app bundle (best-effort), and the Electron
-    userData dir — nothing under ``$HERMES_HOME`` config/sessions/.env, and
+    userData dir — nothing under ``$A2ASSISTANT_HOME`` config/sessions/.env, and
     never the Python agent or its venv.
     """
     from hermes_cli.gui_uninstall import (
@@ -733,7 +731,7 @@ def run_gui_uninstall(args):
         print(color("Kept intact:", Colors.GREEN, Colors.BOLD))
         print(f"  • The A2Assistant agent at {hermes_home / 'hermes-agent'}")
         print(f"  • Your config, sessions, and secrets under {hermes_home}")
-        if (shared_modules := hermes_home / "hermes-agent" / "node_modules").exists():
+        if (shared_modules := home_checkout_dir(hermes_home) / "node_modules").exists():
             print(f"  • Shared workspace dependencies at {shared_modules}")
         print()
 
@@ -753,7 +751,7 @@ def run_gui_uninstall(args):
     _print_box("│            ✓ Chat GUI Uninstalled!                      │", Colors.GREEN)
     print()
     print("The A2Assistant agent is still installed. Run 'hermes' to use the CLI,")
-    print("or 'hermes uninstall' to remove the agent too.")
+    print("or 'a2assistant uninstall' to remove the agent too.")
     print()
 
 
@@ -762,8 +760,8 @@ def run_uninstall(args):
     Run the uninstall process.
     
     Options:
-    - Full uninstall: removes code + ~/.hermes/ (configs, data, logs)
-    - Keep data: removes code but keeps ~/.hermes/ for future reinstall
+    - Full uninstall: removes code + ~/.a2assistant/ (configs, data, logs)
+    - Keep data: removes code but keeps ~/.a2assistant/ for future reinstall
     """
     _refuse_if_steward_owned()
 
@@ -920,7 +918,7 @@ def _rmtree_step(path: Path, *, indent: str = "", fully: bool = True) -> None:
 
 
 def _macos_cache_leftover_dirs() -> list[Path]:
-    """Cache dirs Electron/Chromium and the setup binary write OUTSIDE HERMES_HOME on
+    """Cache dirs Electron/Chromium and the setup binary write OUTSIDE A2ASSISTANT_HOME on
     macOS. Chromium splits the desktop app's HTTP/script caches under ``~/Library/Caches``
     keyed by both the product name and the app id, and the Tauri setup binary does the
     same under its own pair of identifiers. ``gui_uninstall`` removes the userData dir
@@ -928,7 +926,7 @@ def _macos_cache_leftover_dirs() -> list[Path]:
     caches = Path.home() / "Library" / "Caches"
     return [
         caches / "Hermes",
-        caches / "com.nousresearch.hermes",
+        caches / "de.a2genesis.a2assistant",
         caches / "hermes-setup",
         caches / "com.nousresearch.hermes.setup",
     ]
@@ -944,7 +942,7 @@ def _rmtree_if_exists(path: Path) -> bool:
 
 def remove_dashboard_launchd_jobs() -> list[Path]:
     """macOS: boot out and delete every launchd job whose ``ProgramArguments`` runs a
-    ``hermes dashboard`` / ``hermes serve`` backend, returning the removed plist paths.
+    ``a2assistant dashboard`` / ``a2assistant serve`` backend, returning the removed plist paths.
 
     The gateway uninstall only reaches the gateway label, so a dashboard/serve
     LaunchAgent survives a full uninstall and launchd keeps respawning its backend.
@@ -1012,7 +1010,7 @@ def _perform_uninstall(
     named_profiles: list) -> None:
     """The uninstall steps shared by the interactive and ``--yes`` paths: stop gateway -> strip PATH
     (rc files + Windows registry) -> wrapper/launchers/node symlinks -> Chat GUI artifacts -> delete
-    the checkout -> (Windows) PortableGit/Node -> optionally ``$HERMES_HOME`` and named profiles."""
+    the checkout -> (Windows) PortableGit/Node -> optionally ``$A2ASSISTANT_HOME`` and named profiles."""
     print()
     print(color("Uninstalling...", Colors.CYAN, Colors.BOLD))
     print()
@@ -1035,7 +1033,7 @@ def _perform_uninstall(
          lambda: remove_path_from_windows_registry(
              Path(os.path.expandvars(str(hermes_home))), include_managed_bin=sweep_managed_bin),
          "Removed from User PATH: {}", "No A2Assistant-owned PATH entries in User environment"),
-        (windows, "Removing HERMES_HOME / HERMES_GIT_BASH_PATH User env vars...",
+        (windows, "Removing A2ASSISTANT_HOME / A2ASSISTANT_GIT_BASH_PATH User env vars...",
          remove_hermes_env_vars_windows, "Removed User env var: {}", "No A2Assistant-set User env vars to remove"),
         (True, "Removing hermes command...", remove_wrapper_script, "Removed {}", "No wrapper script found"),
         (windows, "Removing Windows hermes launchers...",

@@ -1559,7 +1559,7 @@ def dump_api_request_debug(
         _redacted_payload = json.loads(redact_sensitive_text(_serialized, force=True))
         atomic_json_write(dump_file, _redacted_payload, default=str)
         agent._vprint(f"{agent.log_prefix}🧾 Request debug dump written to: {dump_file}")
-        if env_var_enabled("HERMES_DUMP_REQUEST_STDOUT"):
+        if env_var_enabled("A2ASSISTANT_DUMP_REQUEST_STDOUT"):
             print(json.dumps(_redacted_payload, ensure_ascii=False, indent=2, default=str))
         return dump_file
     except Exception as dump_error:

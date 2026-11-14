@@ -32,7 +32,7 @@ describe('buildOpaqueProfileRoutes', () => {
         config({
           mode: 'ssh',
           sshHost: 'lab-a',
-          sshRemoteHermesPath: '~/.hermes',
+          sshRemoteHermesPath: '~/.a2assistant',
           sshRemoteProfile: 'remote-research'
         })
       ],
@@ -41,7 +41,7 @@ describe('buildOpaqueProfileRoutes', () => {
         config({
           mode: 'ssh',
           sshHost: 'lab-b',
-          sshRemoteHermesPath: '~/.hermes',
+          sshRemoteHermesPath: '~/.a2assistant',
           sshRemoteProfile: 'remote-writing'
         })
       ]
@@ -74,7 +74,7 @@ describe('buildOpaqueProfileRoutes', () => {
 
   it('changes opaque IDs when the effective SSH destination changes', async () => {
     const options = {
-      getProfileConfig: () => config({ mode: 'ssh', sshHost: 'lab', sshRemoteHermesPath: '~/.hermes' }),
+      getProfileConfig: () => config({ mode: 'ssh', sshHost: 'lab', sshRemoteHermesPath: '~/.a2assistant' }),
       globalConfig: config(),
       installationId: 'install-a-secret',
       primaryProfile: 'default',

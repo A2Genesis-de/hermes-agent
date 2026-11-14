@@ -1,6 +1,6 @@
 """Anthropic Messages wire conformance: thinking signatures + tool pairing.
 
-Real ``hermes`` processes (``-z``, ``chat -q``, ``chat --resume``, the stdio
+Real ``a2assistant`` processes (``-z``, ``chat -q``, ``chat --resume``, the stdio
 ``tui_gateway``) talk to the SDK-oracle fake on the production native route.
 Each test asserts the NEXT wire request Hermes sends: signed thinking blocks
 come back byte-exact (text AND signature), parallel ``tool_use`` ids are each

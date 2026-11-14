@@ -317,8 +317,8 @@ test('Windows probe validates Hermes and Python topology before selection', asyn
 
   const explicitCheck = script.indexOf('if($explicit){Assert-NoReparse $explicit $false;')
   const explicitPythonCheck = script.indexOf('Assert-NoReparse $explicitPython $true')
-  const envHome = script.indexOf('$hermesHome=$env:HERMES_HOME')
-  // #118988: HERMES_HOME is trusted only when it is a directory on the remote; anything else
+  const envHome = script.indexOf('$hermesHome=$env:A2ASSISTANT_HOME')
+  // #118988: A2ASSISTANT_HOME is trusted only when it is a directory on the remote; anything else
   // (stale User-scope value, client path leaked over SSH) falls back to the remote default.
   const envHomeGuard = script.indexOf('Test-Path -LiteralPath $hermesHome -PathType Container')
   const fallbackJoin = script.indexOf('Join-Path $hermesHome')

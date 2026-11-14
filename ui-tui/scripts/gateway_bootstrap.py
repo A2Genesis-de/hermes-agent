@@ -1,9 +1,9 @@
 """Ink's gateway bootstrap: a thin wrapper over ``hermes_cli.gateway_runtime_attach.attach_gateway``,
-the attach ``hermes gateway attach`` runs. The child is a client, never an agent owner.
+the attach ``a2assistant gateway attach`` runs. The child is a client, never an agent owner.
 
 ``--start`` ensures the owner (first launch). A reconnect discovers only, except ``--recover``
 (a bounded slot, ``@hermes/shared/gateway-client`` ``OWNER_RECOVERY_LIMIT`` per window) re-ensures whenever the
-owner is not ready: it crashed, ended by its idle exit, was stopped with ``hermes gateway stop``
+owner is not ready: it crashed, ended by its idle exit, was stopped with ``a2assistant gateway stop``
 while this TUI was open, or an older Hermes's gateway answers (ensure replaces that one). Main's TUI
 ran its own sidecar and never depended on an external daemon, so an open TUI comes back on its own.
 """
@@ -17,14 +17,14 @@ import sys
 # dist/scripts/ (a separate Nix store path), so parents[2] is only right in a source tree.
 # localGatewayBootstrap.ts passes the root it put on PYTHONPATH.
 def python_root() -> Path:
-    return Path(os.environ.get("HERMES_PYTHON_SRC_ROOT") or Path(__file__).resolve().parents[2])
+    return Path(os.environ.get("A2ASSISTANT_PYTHON_SRC_ROOT") or Path(__file__).resolve().parents[2])
 
 
 sys.path.insert(0, str(python_root()))
 
 # The terminal verdict's next step: the client stops retrying on it, so the user needs one. A
 # verdict line like the rest, so the TUI echoes it inline (userMessages.ts STDERR_PROBLEM_RE).
-BOOTSTRAP_REMEDY = "gateway unavailable: run `hermes pm repair`, then restart the TUI"
+BOOTSTRAP_REMEDY = "gateway unavailable: run `a2assistant pm repair`, then restart the TUI"
 
 
 def bootstrap(start: bool, recover: bool = False) -> dict:

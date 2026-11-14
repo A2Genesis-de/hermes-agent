@@ -259,7 +259,7 @@ describe('GatewaySettings', () => {
       activeId.value = 'saved-b'
     }
   })
-  // #114856: an env-pinned remote (HERMES_DESKTOP_REMOTE_URL) whose session
+  // #114856: an env-pinned remote (A2ASSISTANT_DESKTOP_REMOTE_URL) whose session
   // lapsed could not be re-authenticated from Settings → Gateway at all — the
   // whole remote block (URL + probe + Authentication) was hidden behind
   // `!state.envOverride`, so the recovery card's "Gateway settings" escape led

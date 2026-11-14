@@ -1,4 +1,4 @@
-"""A fresh Windows machine for the PR-time install.ps1 -> ``hermes update`` suite.
+"""A fresh Windows machine for the PR-time install.ps1 -> ``a2assistant update`` suite.
 
 Every file here drives the REAL user entry points on a real Windows runner:
 
@@ -6,7 +6,7 @@ Every file here drives the REAL user entry points on a real Windows runner:
   directory that is not a project, like a user who downloaded it);
 * the ``hermes.exe`` it publishes in ``%LOCALAPPDATA%\\hermes\\bin`` for every later
   command (``--version``, one-shot turns, ``gateway run/status/stop``, ``update``);
-* ``hermes update --yes`` from HEAD to NEXT, a synthetic child of HEAD.
+* ``a2assistant update --yes`` from HEAD to NEXT, a synthetic child of HEAD.
 
 Only external edges are replaced (tests/install/README.md, "The isolation trick"):
 
@@ -21,9 +21,9 @@ Tool and dependency downloads (uv, the managed Python, wheels, Node) use the net
 exactly like the real installer.
 
 Each machine is a fake user profile: ``USERPROFILE``/``HOME``/``LOCALAPPDATA``/``APPDATA``
-point inside it and ``HERMES_HOME`` is NOT set, so the installer and every ``hermes``
+point inside it and ``A2ASSISTANT_HOME`` is NOT set, so the installer and every ``a2assistant``
 command resolve the default ``%LOCALAPPDATA%\\hermes`` the way a real user's do. CI
-puts the profiles in ``C:\\Users`` itself (``HERMES_E2E_PROFILES_ROOT``): the checkout
+puts the profiles in ``C:\\Users`` itself (``A2ASSISTANT_E2E_PROFILES_ROOT``): the checkout
 carries 159-character paths, so a profile any deeper than a real one would hit MAX_PATH
 where no user does. The installer also prepends its bin dir to the user PATH in HKCU;
 the machine restores that value on teardown.
@@ -34,7 +34,7 @@ everything else stay parallel. One install's update sparing another's gateway (#
 its own journey (test_update_spares_other_installs.py).
 
 The suite mutates HKCU and downloads a toolchain per machine, so it only runs where
-``HERMES_E2E_WINDOWS_INSTALL=1`` (the CI job sets it).
+``A2ASSISTANT_E2E_WINDOWS_INSTALL=1`` (the CI job sets it).
 """
 
 from __future__ import annotations
@@ -66,7 +66,7 @@ from tests.e2e.core.windows._helpers import (
 from tests.fakes.fake_llm_provider import write_hermes_home
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-OPT_IN_ENV = "HERMES_E2E_WINDOWS_INSTALL"
+OPT_IN_ENV = "A2ASSISTANT_E2E_WINDOWS_INSTALL"
 INSTALL_TIMEOUT = 1500.0
 UPDATE_TIMEOUT = 1200.0
 CMD_TIMEOUT = 300.0
@@ -212,7 +212,7 @@ class Machine:
             "GIT_CONFIG_GLOBAL": str(self.root / "e2e-gitconfig"),
             "NO_COLOR": "1",
             # state.db lives under tmp; under a pytest ancestor the live-DB guard would refuse it.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
         })
         if as_user:
             # The runner's own %TEMP% belongs to the elevated session; a user's is in their profile.
@@ -406,7 +406,7 @@ class Machine:
             ["powershell.exe", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(script), "-NonInteractive"],
             "install", timeout=INSTALL_TIMEOUT, cwd=cwd,
             # serve.git carries this checkout's release tags; install main, not the latest release.
-            env_extra={"HERMES_INSTALL_CHANNEL": "main"}, as_user=as_user)
+            env_extra={"A2ASSISTANT_INSTALL_CHANNEL": "main"}, as_user=as_user)
         if run.returncode == 0 and self.hermes_exe.is_file():
             # advance() lands NEXT on main and publishes no release: follow main, not the stable
             # default an official-origin checkout gets (channel resolution has its own suites).
@@ -438,7 +438,7 @@ class Machine:
             return
         import msvcrt
 
-        lock_dir = Path(os.environ.get("HERMES_E2E_MACHINE_ROOT") or tempfile.gettempdir())
+        lock_dir = Path(os.environ.get("A2ASSISTANT_E2E_MACHINE_ROOT") or tempfile.gettempdir())
         lock_dir.mkdir(parents=True, exist_ok=True)
         waited = time.monotonic()
         with (lock_dir / "gateway-phase.lock").open("a+b") as fh:
@@ -481,7 +481,7 @@ class Machine:
             return {}
 
     def spawn_gateway(self, env_extra: dict[str, str] | None = None, *, as_user: bool = False) -> subprocess.Popen:
-        """``hermes gateway run`` through the published launcher, windowless and detached from
+        """``a2assistant gateway run`` through the published launcher, windowless and detached from
         this console: the shape the Desktop / login item uses to host a gateway.
 
         ``as_user``: under a standard-user token, as a non-elevated login item / Desktop starts it."""
@@ -522,7 +522,7 @@ class Machine:
     # -- diagnostics ----------------------------------------------------------
 
     def owned_processes(self) -> list[Any]:
-        """Live processes of this machine: exe/cwd/argv under its root, or its HERMES_HOME."""
+        """Live processes of this machine: exe/cwd/argv under its root, or its A2ASSISTANT_HOME."""
         import psutil
 
         roots = {os.path.normcase(os.path.normpath(str(p))) for p in (self.root, self.profile)}
@@ -534,7 +534,7 @@ class Machine:
                 if proc.pid == me or proc.create_time() < self.started - 1.0:
                     continue
                 env = {k.upper(): v for k, v in proc.environ().items()}
-                hh = os.path.normcase(os.path.normpath(env.get("HERMES_HOME", "") or "-"))
+                hh = os.path.normcase(os.path.normpath(env.get("A2ASSISTANT_HOME", "") or "-"))
                 blob = os.path.normcase(" ".join([proc.exe() or "", proc.cwd() or "", *proc.cmdline()]))
             except (psutil.Error, OSError):
                 continue
@@ -575,7 +575,7 @@ class Machine:
             _restore_hkcu_path(self._hkcu)
         except OSError:
             pass
-        artifacts = os.environ.get("HERMES_E2E_ARTIFACTS")
+        artifacts = os.environ.get("A2ASSISTANT_E2E_ARTIFACTS")
         try:
             if artifacts:
                 dest = Path(artifacts) / self.root.name
@@ -621,11 +621,11 @@ def _remove_tree(path: Path) -> str | None:
 def new_machine(tmp_root: Path, base_url: str, *, label: str, person: str = "",
                 system_git: bool = False, base_ref: str = "") -> Machine:
     """A staged machine. Its work dir (serve.git, transcripts) lives under
-    ``HERMES_E2E_MACHINE_ROOT`` (else ``tmp_root``); its user profile under
-    ``HERMES_E2E_PROFILES_ROOT`` (CI: ``C:\\Users``), named ``[<person> ]hermes-e2e-<id>``."""
+    ``A2ASSISTANT_E2E_MACHINE_ROOT`` (else ``tmp_root``); its user profile under
+    ``A2ASSISTANT_E2E_PROFILES_ROOT`` (CI: ``C:\\Users``), named ``[<person> ]hermes-e2e-<id>``."""
     sfx = uuid.uuid4().hex[:4]
-    base = Path(os.environ.get("HERMES_E2E_MACHINE_ROOT") or tmp_root)
-    profiles = os.environ.get("HERMES_E2E_PROFILES_ROOT")
+    base = Path(os.environ.get("A2ASSISTANT_E2E_MACHINE_ROOT") or tmp_root)
+    profiles = os.environ.get("A2ASSISTANT_E2E_PROFILES_ROOT")
     name = f"{person} hermes-e2e-{sfx}" if person else f"hermes-e2e-{sfx}"
     machine = Machine(root=base / f"{label}-{sfx}", profile_name=name, base_url=base_url,
                       profiles_root=Path(profiles) if profiles else None, system_git=system_git, base_ref=base_ref)
@@ -669,7 +669,7 @@ class Journey:
 
 
 def failure_line(run: Run) -> str:
-    """The first line a ``hermes`` command printed as its failure (``✗ ...``), else ``""``."""
+    """The first line a ``a2assistant`` command printed as its failure (``✗ ...``), else ``""``."""
     for line in run.stdout.splitlines():
         if line.strip().startswith("✗"):
             return line.strip()
@@ -696,7 +696,7 @@ class Turn:
 
 
 def one_shot_turn(machine: Machine, srv: Any, label: str, *, as_user: bool = False) -> Turn:
-    """``hermes chat -q ... -Q`` through the published launcher against the loopback provider."""
+    """``a2assistant chat -q ... -Q`` through the published launcher against the loopback provider."""
     from tests.e2e.core.windows._helpers import last_user
     from tests.fakes.fake_llm_provider import Text
 

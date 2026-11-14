@@ -143,7 +143,7 @@ async def probe(peer):
                     assert len(peer.requests) == count, 'retry reexecuted canonical admission'
                     assert 'BLOCK_FIFO' in json.dumps(peer.requests[-1]['messages']), 'queued API used stale admission-time history'
                     assert authority.agent(ref) is agent
-                Path(os.environ['HERMES_HOME'], 'receipt.json').write_text(json.dumps({'same_agent': True, 'rows': rows, 'http': data, 'frames': frames}))
+                Path(os.environ['A2ASSISTANT_HOME'], 'receipt.json').write_text(json.dumps({'same_agent': True, 'rows': rows, 'http': data, 'frames': frames}))
     finally:
         await stop_gateway_api(handle)
         await adapter.disconnect()
@@ -156,9 +156,9 @@ if __name__ == '__main__':
     threading.Thread(target=peer.serve_forever, daemon=True).start()
     base = f'http://127.0.0.1:{peer.server_port}/v1'
     os.environ.update(OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=base)
-    Path(os.environ['HERMES_HOME'], 'config.yaml').write_text(
+    Path(os.environ['A2ASSISTANT_HOME'], 'config.yaml').write_text(
         f'model:\n  default: local-wire-stub\n  provider: custom\n  base_url: {base}\n'
-        f'auxiliary:\n  title_generation:\n    enabled: false\nterminal:\n  cwd: {os.environ["HERMES_HOME"]}\n')
+        f'auxiliary:\n  title_generation:\n    enabled: false\nterminal:\n  cwd: {os.environ["A2ASSISTANT_HOME"]}\n')
     code = 0
     try:
         asyncio.run(probe(peer))

@@ -36,7 +36,7 @@ def _deny_reads(monkeypatch, path: Path) -> None:
 def managed_dir(tmp_path, monkeypatch):
     md = tmp_path / "managed"
     md.mkdir()
-    monkeypatch.setenv("HERMES_MANAGED_DIR", str(md))
+    monkeypatch.setenv("A2ASSISTANT_MANAGED_DIR", str(md))
     managed_scope.invalidate_managed_cache()
     yield md
     managed_scope.invalidate_managed_cache()
@@ -64,7 +64,7 @@ def _profile(tmp_path: Path) -> tuple[Path, Path]:
 def test_unreadable_user_env_loads_as_absent_under_a_pinned_backend(tmp_path, monkeypatch, caplog, pinned):
     home, env_file = _profile(tmp_path)
     monkeypatch.setenv("OPENAI_API_KEY", "from-launcher")
-    monkeypatch.setenv("HERMES_ACP_AUTH_METHOD", "from-launcher")  # a readable .env clears it when unset there
+    monkeypatch.setenv("A2ASSISTANT_ACP_AUTH_METHOD", "from-launcher")  # a readable .env clears it when unset there
     _deny_reads(monkeypatch, env_file)
 
     with caplog.at_level(logging.WARNING, logger="hermes_cli.env_loader"):
@@ -72,7 +72,7 @@ def test_unreadable_user_env_loads_as_absent_under_a_pinned_backend(tmp_path, mo
             assert load_hermes_dotenv(hermes_home=home) == []
 
     assert os.environ["OPENAI_API_KEY"] == "from-launcher"
-    assert os.environ["HERMES_ACP_AUTH_METHOD"] == "from-launcher"
+    assert os.environ["A2ASSISTANT_ACP_AUTH_METHOD"] == "from-launcher"
     warnings = [r for r in caplog.records if str(env_file) in r.getMessage()]
     assert len(warnings) == 1
 

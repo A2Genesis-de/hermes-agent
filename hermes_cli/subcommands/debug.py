@@ -1,4 +1,4 @@
-"""``hermes debug`` subcommand parser."""
+"""``a2assistant debug`` subcommand parser."""
 
 from __future__ import annotations
 
@@ -10,15 +10,15 @@ def build_debug_parser(subparsers, *, cmd_debug: Callable) -> None:
     """Attach the ``debug`` subcommand to ``subparsers``."""
     debug_parser = subparsers.add_parser(
         "debug", help="Debug tools — print logs and system info for support",
-        description="Debug utilities for A2Assistant. Use 'hermes debug share' to "
+        description="Debug utilities for A2Assistant. Use 'a2assistant debug share' to "
         "print a redacted debug report (system info + recent logs) to copy into a "
         "support request. Nothing is uploaded.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""\
 Examples:
-    hermes debug share              Print the redacted debug report
-    hermes debug share --lines 500  Include more log lines
-    hermes debug share --no-redact  Disable secret redaction
+    a2assistant debug share              Print the redacted debug report
+    a2assistant debug share --lines 500  Include more log lines
+    a2assistant debug share --no-redact  Disable secret redaction
 """)
     debug_sub = debug_parser.add_subparsers(dest="debug_command")
     share_parser = debug_sub.add_parser(

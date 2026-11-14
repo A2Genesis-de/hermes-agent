@@ -1,7 +1,7 @@
 """Tests for parent→subparser flag propagation.
 
 When flags like --yolo, -w, -s exist on both the parent parser and the 'chat'
-subparser, placing the flag BEFORE the subcommand (e.g. 'hermes --yolo chat')
+subparser, placing the flag BEFORE the subcommand (e.g. 'a2assistant --yolo chat')
 must not silently drop the flag value.
 
 Regression test for: argparse subparser default=False overwriting parent's
@@ -68,7 +68,7 @@ class TestChatVerboseArg:
         (["chat"], {}),
     ])
     def test_cmd_chat_forwards_the_launch_key_and_endpoint_to_the_classic_cli(self, monkeypatch, argv, expected):
-        """`hermes chat --cli --api-key K --base-url U` must launch the classic CLI on K and U, not on the
+        """`a2assistant chat --cli --api-key K --base-url U` must launch the classic CLI on K and U, not on the
         profile's credential; the TUI refuses both flags and points here."""
         import types
 
@@ -102,7 +102,7 @@ class TestAcceptHooksOnAgentSubparsers:
     position (before the subcommand, between group/subcommand, and
     after the leaf subcommand) for gateway/cron/acp.  Regression
     against prior behaviour where the flag only worked on the root
-    parser and `chat`, so `hermes gateway run --accept-hooks` failed
+    parser and `chat`, so `a2assistant gateway run --accept-hooks` failed
     with `unrecognized arguments`."""
 
     ARGVS = [
@@ -175,7 +175,7 @@ class TestChatSubparserInheritedValueFlags:
     """Verify -t/--toolsets, -m/--model and --provider survive parent→chat
     subparser dispatch.
 
-    Regression test for #28780: `hermes -t web chat` silently dropped the
+    Regression test for #28780: `a2assistant -t web chat` silently dropped the
     toolset because the chat subparser re-declared `-t/--toolsets` with
     `default=None`, which clobbered the top-level parser's value during
     subparser dispatch.
@@ -243,7 +243,7 @@ class TestChatSubparserInheritedValueFlags:
 @pytest.mark.parametrize("argv", [
     ["--tui", "--checkpoints"], ["--checkpoints", "chat"], ["chat", "--tui", "--checkpoints"]])
 def test_checkpoints_parses_at_the_top_level_and_survives_chat(argv):
-    """`hermes --tui --checkpoints` is the TUI launch the docs and gateway refusals name; it was
+    """`a2assistant --tui --checkpoints` is the TUI launch the docs and gateway refusals name; it was
     declared only on `chat`, so the top-level form failed with "unrecognized arguments"."""
     from hermes_cli._parser import build_top_level_parser
     assert build_top_level_parser()[0].parse_args(argv).checkpoints is True

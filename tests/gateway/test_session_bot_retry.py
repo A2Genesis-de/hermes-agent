@@ -29,7 +29,7 @@ async def bot(tmp_path, monkeypatch):
     from gateway.session_local_title import title_new_session
     from hermes_state import SessionDB
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda: {'platform_toolsets': {'cli': []}})
     store = SessionStore(tmp_path / 'sessions', GatewayConfig())
     store._db = SessionDB(db_path=tmp_path / 'state.db')
@@ -165,7 +165,7 @@ async def test_context_overflow_retries_once_unless_the_failed_dm_is_still_an_op
 
 @pytest.mark.asyncio
 async def test_peer_dm_waiter_follows_the_retry_admission_to_its_answer(bot):
-    """``hermes peer dm`` waits on the delivery, not on the original admission id: once that
+    """``a2assistant peer dm`` waits on the delivery, not on the original admission id: once that
     fails transiently its future never fires again, and the answer is the retry's."""
     from gateway.platforms.api_server_bot_chat import await_peer_receipt
     from gateway import session_bot

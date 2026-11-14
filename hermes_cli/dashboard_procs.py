@@ -70,13 +70,13 @@ def _scan_dashboard_processes(*, exclude_pids: set[int] | None = None) -> list[t
     """``(pid, cmdline)`` of running ``dashboard``/``serve`` processes; empty on any scan error.
 
     A forgotten dashboard keeps the old Python backend against the new JS bundle after
-    ``hermes update`` (every API call 401s). *exclude_pids* (Desktop's HERMES_DESKTOP_CHILD_PID
+    ``a2assistant update`` (every API call 401s). *exclude_pids* (Desktop's A2ASSISTANT_DESKTOP_CHILD_PID
     backends) are never returned.
 
     *exclude_pids* is an optional set of PIDs that must never be returned. This is used by the Hermes
-    Desktop Electron app to protect its own backend child process: when the desktop spawns ``hermes serve``
+    Desktop Electron app to protect its own backend child process: when the desktop spawns ``a2assistant serve``
     as a backend and triggers an auto-update, the update must not kill the backend that the desktop itself
-    manages. The desktop sets the environment variable ``HERMES_DESKTOP_CHILD_PID`` on the spawned backend
+    manages. The desktop sets the environment variable ``A2ASSISTANT_DESKTOP_CHILD_PID`` on the spawned backend
     process; ``_kill_stale_dashboard_processes`` reads it and passes it here. (#37532)
     """
     skip = {os.getpid(), *(exclude_pids or ())}
@@ -171,9 +171,9 @@ def _hermes_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> 
     any profile selection that would depend on today's sticky ``active_profile``.
 
     A readable environment always resolves, replaying ``_apply_profile_override`` on the target's
-    exec-time env + argv (``hermes -p X serve`` rewrites ``HERMES_HOME`` in ``os.environ`` AFTER
-    startup, which ``/proc/<pid>/environ`` never reflects): a profile-shaped ``HERMES_HOME``
-    without a flag is the home; otherwise the root is ``HERMES_HOME`` (its grandparent when
+    exec-time env + argv (``a2assistant -p X serve`` rewrites ``A2ASSISTANT_HOME`` in ``os.environ`` AFTER
+    startup, which ``/proc/<pid>/environ`` never reflects): a profile-shaped ``A2ASSISTANT_HOME``
+    without a flag is the home; otherwise the root is ``A2ASSISTANT_HOME`` (its grandparent when
     profile-shaped) or the platform default of the process's own ``HOME`` / ``LOCALAPPDATA``
     (its owner's password-database home when a scrubbed unit environment exports neither), and
     the profile is the ``--profile``/``-p`` flag, else the root's sticky ``active_profile`` unless
@@ -193,7 +193,9 @@ def _hermes_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> 
     if require_launch_identity and not argv:
         return None
     argv = argv or []
-    env_home = env.get("HERMES_HOME", "").strip()
+    from hermes_constants import default_home_in, env_value
+
+    env_home = env_value(env, "HOME").strip()
     profile = _profile_flag_value(argv)
     if require_launch_identity:
         anchor = (env.get('LOCALAPPDATA') or env.get('USERPROFILE')) if sys.platform == 'win32' else env.get('HOME')
@@ -202,19 +204,19 @@ def _hermes_home_for_pid(pid: int, *, require_launch_identity: bool = False) -> 
         if not env_home and (not anchor or not Path(anchor).is_absolute()):
             return None
     if profile is None and env_home and (
-        Path(env_home).parent.name == "profiles" or env.get("HERMES_UPDATE_POST_SWAP") == "1"
+        Path(env_home).parent.name == "profiles" or env_value(env, "UPDATE_POST_SWAP") == "1"
     ):
         return env_home
     if sys.platform == "win32":
         local_appdata = env.get("LOCALAPPDATA", "").strip()
         base = Path(local_appdata) if local_appdata else Path(env.get("USERPROFILE") or Path.home()) / "AppData" / "Local"
-        default_home = base / "hermes"
+        default_home = default_home_in(base, windows=True)
     else:
-        default_home = Path(env.get("HOME") or _pid_passwd_home(pid) or Path.home()) / ".hermes"
+        default_home = default_home_in(Path(env.get("HOME") or _pid_passwd_home(pid) or Path.home()))
     root = profile_root_for_env_home(env_home, default_home)
-    fixed_identity = any(env.get(k) for k in ("HERMES_SUPERVISED_CHILD", "HERMES_S6_SUPERVISED_CHILD",
-                                               "HERMES_GATEWAY_EXTERNAL_SUPERVISOR",
-                                               "HERMES_GATEWAY_PROFILE_PIN")) or is_desktop_ssh_backend_argv(argv)
+    fixed_identity = any(env.get(k) for k in ("A2ASSISTANT_SUPERVISED_CHILD", "A2ASSISTANT_S6_SUPERVISED_CHILD",
+                                               "A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR",
+                                               "A2ASSISTANT_GATEWAY_PROFILE_PIN")) or is_desktop_ssh_backend_argv(argv)
     if profile is None and not fixed_identity:
         if require_launch_identity:
             return None  # The sticky profile at launch is unknowable; never read today's value.
@@ -239,7 +241,7 @@ def _profile_flag_value(argv: list[str]) -> str | None:
 
 def _is_ephemeral_port_zero_backend(argv: list[str]) -> bool:
     """True for Desktop-style ``serve|dashboard --port 0`` backends — replaying them after
-    ``hermes update`` multiplies listening backends because ``--port 0`` binds a fresh port.
+    ``a2assistant update`` multiplies listening backends because ``--port 0`` binds a fresh port.
 
     See #78821.
     """
@@ -302,7 +304,7 @@ def _pids_owned_by_hermes_home(pids: list[int], home: str) -> list[int]:
 
 
 def _profile_key_for_respawn(argv: list[str], hermes_home: str | None = None) -> str:
-    """Stable owner key: ``HERMES_HOME`` when known, else ``--profile`` / ``-p``.
+    """Stable owner key: ``A2ASSISTANT_HOME`` when known, else ``--profile`` / ``-p``.
 
     A home ending in ``profiles/<name>`` → ``profile:<name>`` (shares a cap with an explicit
     ``--profile``); other homes keep a ``home:`` key so unrelated installs never collapse.
@@ -323,16 +325,16 @@ def _filter_dashboard_respawn_candidates(
     """Select which killed manual backends ``(pid, argv, hermes_home)`` to respawn after update.
 
     Rules: never resurrect Desktop ``--port 0`` backends; never replay a backend from a
-    **foreign** ``HERMES_HOME`` (the argv-only respawn would come back on this install's home
+    **foreign** ``A2ASSISTANT_HOME`` (the argv-only respawn would come back on this install's home
     and steal the foreign install's fixed port → EADDRINUSE crash-loop; unreadable ``None``
     stays eligible); dedupe by normalized cmdline; one backend per profile / home. PPID-1 is
     NOT skipped: a prior respawn detaches, so fixed-port manual backends sit under init.
 
     1. Never resurrect Desktop ephemeral ``serve|dashboard --port 0`` backends — Desktop
-    (``HERMES_DESKTOP_CHILD_PID``) owns their lifecycle. These are also the PPID-1 orphans that previously
+    (``A2ASSISTANT_DESKTOP_CHILD_PID``) owns their lifecycle. These are also the PPID-1 orphans that previously
     multiplied across updates because ``--port 0`` always binds a fresh free port. 2. A foreign install's
     backend is owned by that install's supervisor/user. 3. 4. See #78821, #94030.
-    Intentionally does **not** blanket-skip every PPID-1 process: a prior ``hermes update`` respawn detaches
+    Intentionally does **not** blanket-skip every PPID-1 process: a prior ``a2assistant update`` respawn detaches
     with ``start_new_session=True``, so fixed-port manual backends are reparented to init and must still be
     eligible for the next update's #40449 restart.
     """
@@ -362,9 +364,9 @@ def _filter_dashboard_respawn_candidates(
 
 
 def _exclude_pids_from_env() -> set[int]:
-    """PIDs Desktop marks as live backends (``HERMES_DESKTOP_CHILD_PID``, comma-separated)."""
+    """PIDs Desktop marks as live backends (``A2ASSISTANT_DESKTOP_CHILD_PID``, comma-separated)."""
     out: set[int] = set()
-    for part in os.environ.get("HERMES_DESKTOP_CHILD_PID", "").split(","):
+    for part in os.environ.get("A2ASSISTANT_DESKTOP_CHILD_PID", "").split(","):
         with contextlib.suppress(ValueError):
             out.add(int(part))
     return out
@@ -434,7 +436,7 @@ def _is_caller_wrapper_shell(pid: int, ancestors: set[int]) -> bool:
     """True when *pid* is a caller ancestor headed by a wrapper executable.
 
     Root selection is a substring match, so the shell a ``--stop`` was typed into (or a
-    ``bash -c 'hermes dashboard --stop'`` wrapper) matches on its own argv. Ancestor alone
+    ``bash -c 'a2assistant dashboard --stop'`` wrapper) matches on its own argv. Ancestor alone
     is not a spare: the backend hosting a shell-escaped TUI is also the caller's ancestor
     and must stay stoppable — only a wrapper-headed ancestor is spared.
     """
@@ -490,7 +492,7 @@ def _is_detached_session_leader(pid: int, tty: str) -> bool:
 
     Messaging-gateway bots and profile actions started from ``/api/gateway/*`` are such processes:
     they are the user's, not the dashboard's, and must survive a dashboard stop. A hosted
-    ``hermes --tui`` child is a session leader too (``pty.fork``) but owns the pts whose master the
+    ``a2assistant --tui`` child is a session leader too (``pty.fork``) but owns the pts whose master the
     dashboard held, so its tty column is set and it stays in the sweep.
 
     Known gap: the turn-isolation ``tui_gateway.compute_host`` and ``slash_worker`` children are
@@ -512,8 +514,8 @@ def _posix_descendants(roots: list[int]) -> dict[int, tuple[int, int | None]]:
     """``{pid: (root, start_time)}`` of every dashboard-owned descendant of *roots*, snapshotted
     BEFORE the kill: once the root dies its children are reparented and the PPID link is gone.
     Detached session leaders (see ``_is_detached_session_leader``) are pruned together with their own
-    subtrees. So is the calling process with its subtree and its ancestor chain: ``hermes dashboard
-    --stop`` / ``hermes update`` run from a shell escape inside the hosted Chat TUI are same-session
+    subtrees. So is the calling process with its subtree and its ancestor chain: ``a2assistant dashboard
+    --stop`` / ``a2assistant update`` run from a shell escape inside the hosted Chat TUI are same-session
     descendants of the backend, and sweeping them would SIGTERM the caller mid-run (POSIX twin of the
     Windows #98814 hazard). The start-time fingerprint is the PID-reuse guard (same one
     ``_kill_pids_windows`` uses). Empty on scan failure → root-only kill, the historical behaviour.
@@ -611,7 +613,7 @@ def _kill_stale_dashboard_processes(
     restart_managed: bool = False, already_restarted_units: set[str] | None = None,
     scope_home: str | None = None,
 ) -> dict[str, list]:
-    """Kill running ``hermes dashboard`` / ``hermes serve`` processes (update end, ``--stop``).
+    """Kill running ``a2assistant dashboard`` / ``a2assistant serve`` processes (update end, ``--stop``).
 
     With ``restart_managed`` (update only) systemd-owned PIDs get their unit restarted after the
     kill (systemd treats our SIGTERM as a clean stop, so ``Restart=on-failure`` never fires) and
@@ -619,13 +621,13 @@ def _kill_stale_dashboard_processes(
     ``.service`` suffix) are left untouched, not killed twice.
 
     When *scope_home* is supplied, only processes with that exact live
-    ``HERMES_HOME`` are candidates; unknown ownership fails closed. This is
+    ``A2ASSISTANT_HOME`` are candidates; unknown ownership fails closed. This is
     used by ``dashboard --stop`` and the per-profile update cleanup.
 
     Manually-started dashboards are not auto-restarted because we don't know the original launch args
     (--host, --port, --insecure, --tui, --no-open). See #68934.
     *already_restarted_units* names units (no ``.service`` suffix) the caller already handled directly —
-    e.g. ``hermes update``'s systemd fleet-restart loop, which restarts, declines (without root) or fails
+    e.g. ``a2assistant update``'s systemd fleet-restart loop, which restarts, declines (without root) or fails
     ``hermes-serve*``/``hermes-dashboard*`` units, reporting each, before this function runs. Without excluding them,
     a Serve-only install's freshly restarted process is found again here and restarted a second time for
     no benefit (review on #83595), and a declined system unit is retried into a polkit prompt (#141021).
@@ -709,7 +711,7 @@ def _kill_stale_dashboard_processes(
             print(f"  ⚠ PID(s) supervised by launchd job {target}: a KeepAlive job restarts itself.\n"
                   f"    To keep it down: launchctl bootout {target}")
         if any(p not in pid_launchd for p in killed):
-            print("  Restart the dashboard when you're ready:\n    hermes dashboard --port <port>")
+            print("  Restart the dashboard when you're ready:\n    a2assistant dashboard --port <port>")
     return {"matched": list(pids), "killed": list(killed), "failed": list(failed),
             "unrecovered": list(unrecovered)}
 
@@ -771,7 +773,7 @@ def _restart_killed_backends(
     if failed_cmds:
         unrecovered.extend(p for p in killed if pid_cmdline.get(p) in failed_cmds)
     if failed_restarts or unrecovered:
-        print("  Restart anything not auto-restarted when you're ready:\n    hermes dashboard --port <port>")
+        print("  Restart anything not auto-restarted when you're ready:\n    a2assistant dashboard --port <port>")
     return unrecovered
 
 
@@ -795,7 +797,7 @@ def _detect_concurrent_hermes_instances(
 
 
 def _is_desktop_local_serve_cmdline(command: str) -> bool:
-    """True for the Desktop-local shape ``hermes serve [--isolated] --host 127.0.0.1 --port 0``.
+    """True for the Desktop-local shape ``a2assistant serve [--isolated] --host 127.0.0.1 --port 0``.
 
     Long-lived headless serves (``--host <tailscale-ip> --port 9119``) must never match —
     those are operator-managed remote backends that legitimately run with ppid 1.
@@ -893,8 +895,8 @@ def _valid_lockfile_payload(parsed: object, ownership_id: str) -> bool:
 def _remote_lock_roots(base_dir: Path | None) -> list[Path]:
     """Every dir the Desktop may have written ``desktop-ssh/<ownershipId>/backend.lock.json`` under.
 
-    The Desktop writes SSH locks beneath the ROOT home (``~/.hermes/desktop-ssh``), but a profile
-    backend (``hermes --profile X serve``) runs with ``HERMES_HOME=<root>/profiles/X`` — scanning only
+    The Desktop writes SSH locks beneath the ROOT home (``~/.a2assistant/desktop-ssh``), but a profile
+    backend (``a2assistant --profile X serve``) runs with ``A2ASSISTANT_HOME=<root>/profiles/X`` — scanning only
     the process home found no lock there and its reaper killed the sibling profile's live SSH
     backend on every profile switch (#89811)."""
     if base_dir is not None:
@@ -956,17 +958,17 @@ def _process_age_seconds(pid: int) -> float:
 
 
 def _reap_orphaned_desktop_local_serves(
-    *, reason: str = "orphaned desktop-local hermes serve", signal_term=None, signal_kill=None,
+    *, reason: str = "orphaned desktop-local a2assistant serve", signal_term=None, signal_kill=None,
     sleep_fn=None, lock_owned_pids_fn=None, process_age_seconds_fn=None) -> dict[str, list]:
-    """Kill leftover Desktop-local ``hermes serve`` backends with no parent. Never raises.
+    """Kill leftover Desktop-local ``a2assistant serve`` backends with no parent. Never raises.
 
     When Electron dies uncleanly its ``serve --host 127.0.0.1 --port 0`` children are
     reparented to pid 1 with their MCP trees alive; each Desktop boot then stacks a fresh
     backend on the corpses until EMFILE. Reaped only if ALL hold: Desktop-local shape; ppid
-    0/1; not self / parent / HERMES_DESKTOP_CHILD_PID; not claimed by a valid
+    0/1; not self / parent / A2ASSISTANT_DESKTOP_CHILD_PID; not claimed by a valid
     ``backend.lock.json`` (SSH backends other clients started legitimately sit at ppid 1);
     older than ``_REAP_MIN_AGE_SECONDS`` with a determinable age (Desktop writes the lock only
-    after HERMES_BACKEND_READY, so a live sibling mid-startup is briefly unowned).
+    after A2ASSISTANT_BACKEND_READY, so a live sibling mid-startup is briefly unowned).
     """
     import signal as _signal
     import time as _time

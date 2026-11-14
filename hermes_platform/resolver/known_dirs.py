@@ -30,7 +30,7 @@ def node_tool_dirs() -> tuple[str, ...]:
 
 
 def hermes_vendored_dirs() -> tuple[str, ...]:
-    return ("~/.hermes/bin",) if _POSIX else ("%USERPROFILE%/.hermes/bin",)
+    return ("~/.a2assistant/bin",) if _POSIX else ("%USERPROFILE%/.hermes/bin",)
 
 
 def machine_marker_files() -> tuple[str, ...]:
@@ -51,21 +51,29 @@ def hermes_home_globs() -> tuple[str, ...]:
     if _WIN:
         return ("%LOCALAPPDATA%/hermes*", "%USERPROFILE%/.hermes",
                 "%LOCALAPPDATA%/Packages/NousResearch*_*/LocalCache/Local/hermes*")
-    return ("~/.hermes*",)
+    return ("~/.a2assistant*",)
 
 
 def gateway_service_definition_globs() -> tuple[str, ...]:
-    """This OS user's gateway service definitions, each naming the HERMES_HOME it serves."""
+    """This OS user's gateway service definitions, each naming the A2ASSISTANT_HOME it serves."""
     if _WIN:
         return ("%APPDATA%/Microsoft/Windows/Start Menu/Programs/Startup/Hermes_Gateway*",)
+    from hermes_cli.branding import (
+        LAUNCHD_GATEWAY_LABEL, LEGACY_LAUNCHD_GATEWAY_LABEL, LEGACY_SYSTEMD_GATEWAY_UNIT, SYSTEMD_GATEWAY_UNIT)
+
     if sys.platform == "darwin":
-        return ("~/Library/LaunchAgents/ai.hermes.gateway*.plist",)
-    return ("$XDG_CONFIG_HOME/systemd/user/hermes-gateway*.service", "~/.config/systemd/user/hermes-gateway*.service")
+        return tuple(f"~/Library/LaunchAgents/{label}*.plist" for label in (LAUNCHD_GATEWAY_LABEL, LEGACY_LAUNCHD_GATEWAY_LABEL))
+    return tuple(f"{base}/{unit}*.service" for unit in (SYSTEMD_GATEWAY_UNIT, LEGACY_SYSTEMD_GATEWAY_UNIT)
+                 for base in ("$XDG_CONFIG_HOME/systemd/user", "~/.config/systemd/user"))
 
 
 def system_gateway_service_definition_globs() -> tuple[str, ...]:
     """Machine-wide gateway services. Each runs as the account its ``User=`` names (root when none)."""
-    return ("/etc/systemd/system/hermes-gateway*.service",) if _POSIX and sys.platform != "darwin" else ()
+    from hermes_cli.branding import LEGACY_SYSTEMD_GATEWAY_UNIT, SYSTEMD_GATEWAY_UNIT
+
+    if not _POSIX or sys.platform == "darwin":
+        return ()
+    return tuple(f"/etc/systemd/system/{unit}*.service" for unit in (SYSTEMD_GATEWAY_UNIT, LEGACY_SYSTEMD_GATEWAY_UNIT))
 
 
 def mac_privacy_protected_dirs() -> tuple[str, ...]:

@@ -36,7 +36,7 @@ def test_continue_latest_footer_and_tool_listing(tmp_path):
         "model": {"provider": "custom", "default": "flags-model", "base_url": url},
         "auxiliary": {"title_generation": {"enabled": False}}}))
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                PYTHONUNBUFFERED="1", OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url)
 
     def hermes(*args, cwd, module="hermes_cli.main"):
@@ -67,7 +67,7 @@ def test_continue_latest_footer_and_tool_listing(tmp_path):
             first, sid_a = hermes("chat", "-q", "in repo a", cwd=repo_a)
             assert first.returncode == 0 and "RECOVERY_ACK_in repo a" in first.stdout and sid_a, first
             # Main's single-query exit block: how to continue the session it just printed.
-            assert f"Resume this session with:\n  hermes --resume {sid_a}" in first.stdout, first.stdout
+            assert f"Resume this session with:\n  a2assistant --resume {sid_a}" in first.stdout, first.stdout
             quiet, sid_b = hermes("chat", "-q", "in repo b", "-Q", cwd=repo_b)
             assert quiet.returncode == 0 and "Resume this session" not in quiet.stdout, quiet
 

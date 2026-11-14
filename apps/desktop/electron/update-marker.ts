@@ -1,5 +1,5 @@
 /**
- * The update marker `HERMES_HOME/.hermes-update-in-progress` (#50238), format v2.
+ * The update marker `A2ASSISTANT_HOME/.hermes-update-in-progress` (#50238), format v2.
  *
  * One file, shared by every updater (Python `hermes_cli/update_lock.py`, the Rust
  * `UpdateMarkerGuard`, `scripts/desktop-update/{windows.ps1,posix.sh}`) and this
@@ -525,7 +525,7 @@ export interface ClaimResult {
  * Pre-write for the staged Tauri updater (`hermes-setup.exe --update`): the
  * child IS the updater there, so the marker names its pid AND its creation
  * time. A v2 body takes this path off the v1 20-minute ceiling, lets the
- * updater adopt it as its own claim, and lets the `hermes update` it runs add
+ * updater adopt it as its own claim, and lets the `a2assistant update` it runs add
  * its delegate line. Exclusive create ONLY (A7 rule 3): over any existing
  * marker — live or dead — the pre-write is skipped and the staged updater
  * claims (and reclaims) for itself.
@@ -748,7 +748,7 @@ export async function claimBridgeMarker(
 export interface HandoffClaimOptions extends MarkerProbeDeps {
   /** Protocol 2: the run id passed to the script; the claim must carry it. */
   runId?: string
-  /** Legacy scripts: the HERMES_UPDATE_STARTED_AT they echo on line 2. */
+  /** Legacy scripts: the A2ASSISTANT_UPDATE_STARTED_AT they echo on line 2. */
   startedAt?: number
   timeoutMs?: number
   pollMs?: number

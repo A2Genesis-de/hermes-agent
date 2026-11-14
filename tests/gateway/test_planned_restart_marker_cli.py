@@ -1,7 +1,7 @@
 """A CLI ``restart`` must stamp the planned-restart marker itself.
 
 The gateway writes ``.restart_pending.json`` only on an in-band restart (SIGUSR1 / pause-for-update).
-``hermes gateway restart`` on Windows is ``stop()`` + ``start()`` — Windows has no SIGUSR1 — so
+``a2assistant gateway restart`` on Windows is ``stop()`` + ``start()`` — Windows has no SIGUSR1 — so
 without a CLI writer the next boot reads a plain stop and never sends the "Gateway online" notice to
 the configured home channels.
 """
@@ -17,7 +17,7 @@ MARKER = ".restart_pending.json"
 
 @pytest.fixture
 def hermes_home(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
     return tmp_path
 

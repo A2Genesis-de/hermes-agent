@@ -33,7 +33,7 @@ it('names an established primary by its own route and an unrecorded one by the w
   expect(primaryWireSource({ connectionId: null, mode: null }, vps)).toBe(vps)
 })
 
-// `HERMES_DESKTOP_REMOTE_URL` gives the primary a remote with no registry id, while a real local
+// `A2ASSISTANT_DESKTOP_REMOTE_URL` gives the primary a remote with no registry id, while a real local
 // source can stay connected as a secondary. Neither may overwrite the other's wire.
 it('keeps an unnamed remote primary apart from the local source', () => {
   recordConnectionWire('local', 'canonical')

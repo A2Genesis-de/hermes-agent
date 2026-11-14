@@ -46,7 +46,7 @@ function formatBytes(size: number): string {
   return `${size} B`
 }
 
-/** Maintenance panel — desktop parity for `hermes doctor` / `security audit` /
+/** Maintenance panel — desktop parity for `a2assistant doctor` / `security audit` /
  *  `backup` / `curator` / `memory` (the dashboard System page's
  *  ops section). Spawn-based actions tail their logs inline via the shared
  *  /api/actions status endpoint. */

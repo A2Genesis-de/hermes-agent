@@ -40,7 +40,7 @@ def password_hash():
 def password_gate(request, password_hash, monkeypatch):
     """An all-interfaces listener gated by the bundled username/password provider: the standalone
     dashboard, or the gateway's Webapp (``ui_surface``), as the test's parameter says."""
-    monkeypatch.delenv("HERMES_DASHBOARD_PUBLIC_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_PUBLIC_URL", raising=False)
     for key, value in (("bound_host", "0.0.0.0"), ("bound_port", 9119), ("auth_required", True),
                        ("trusted_public_hosts", frozenset())):
         monkeypatch.setattr(web_server.app.state, key, value, raising=False)

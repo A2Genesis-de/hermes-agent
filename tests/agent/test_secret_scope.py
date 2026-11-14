@@ -141,7 +141,7 @@ class TestRoutedForeignHomeScope:
             reset_hermes_home_override(home_token)
 
     def test_stamped_foreign_scope_miss_fails_closed_without_override(self, monkeypatch, tmp_path):
-        """The kanban/MCP shape: a foreign-home scope bound WITHOUT the HERMES_HOME
+        """The kanban/MCP shape: a foreign-home scope bound WITHOUT the A2ASSISTANT_HOME
         override (deliberate — those paths need the dispatcher's policy reads).
         The profile_home stamp makes serves_routed_profile see it anyway."""
         monkeypatch.setenv("OPENAI_API_KEY", "sk-launch-profile")
@@ -206,7 +206,7 @@ class TestRoutedForeignHomeScope:
 
 class TestScopeSetupRecovery:
     """A raise mid-scope-setup must release whatever was already bound — a leaked
-    HERMES_HOME override or secret scope silently re-homes every later read in
+    A2ASSISTANT_HOME override or secret scope silently re-homes every later read in
     the caller's context."""
 
     def test_profile_runtime_scope_setup_failure_restores_override(self, monkeypatch, tmp_path):

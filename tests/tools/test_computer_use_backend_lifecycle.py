@@ -51,7 +51,7 @@ def runtime(tmp_path, monkeypatch):
         (home / "bot-desktop").mkdir(parents=True)
         (home / "bot-desktop" / "env").write_text(f"DISPLAY={display}\n", encoding="utf-8")
         (home / "config.yaml").write_text("computer_use:\n  permission_mode: standard\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(homes[0]))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(homes[0]))
     # Fake the device boundary only. Profile env publication, spawn identity,
     # config, backend caches, dispatch and persisted human leases stay real.
     monkeypatch.setattr(desktop, "_launcher_pid", lambda: 1)

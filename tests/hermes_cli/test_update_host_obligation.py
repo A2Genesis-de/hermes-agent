@@ -1,7 +1,7 @@
 """The update→restart obligation is HOST-scoped, and one update restarts the host gateway once.
 
-Multiplex-only (Teknium ruling): exactly one ``hermes gateway run`` per host serves every
-profile. The obligation used to live in ONE profile's ``HERMES_HOME``, so ``hermes -p coder
+Multiplex-only (Teknium ruling): exactly one ``a2assistant gateway run`` per host serves every
+profile. The obligation used to live in ONE profile's ``A2ASSISTANT_HOME``, so ``a2assistant -p coder
 update`` armed and cleared coder's copy while restarting the SHARED process; no other profile
 could see that obligation, and every profile that ran the catch-up killed the same gateway
 again. These tests pin the host-scoped contract:
@@ -38,8 +38,8 @@ def _units_belong_to_this_update(monkeypatch):
 
 @pytest.fixture
 def two_profiles(tmp_path, monkeypatch):
-    """Two profile HERMES_HOMEs behind ONE host state dir — the real multiplex topology."""
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
+    """Two profile A2ASSISTANT_HOMEs behind ONE host state dir — the real multiplex topology."""
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
     homes = {}
     for name in ("coder", "writer"):
         home = tmp_path / "profiles" / name
@@ -49,7 +49,7 @@ def two_profiles(tmp_path, monkeypatch):
 
 
 def _enter(monkeypatch, home) -> None:
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
 
 def _arm(profile_runtime: str) -> None:
@@ -111,15 +111,15 @@ def test_leftover_per_profile_units_restart_their_one_host_process_once(monkeypa
 
     failed: list = []
     fleet._restart_systemd_gateway_units_best_effort(
-        failed, _listing(["hermes-gateway.service", "hermes-gateway-coder.service", "hermes-gateway-writer.service"]))
+        failed, _listing(["a2assistant-gateway.service", "a2assistant-gateway-coder.service", "a2assistant-gateway-writer.service"]))
 
-    assert restarted == ["hermes-gateway"]
+    assert restarted == ["a2assistant-gateway"]
     assert failed == []
 
 
 def test_units_with_distinct_live_pids_are_each_restarted(monkeypatch):
     """Control: genuinely separate processes are still separate restart targets."""
-    pids = {"hermes-gateway": 1, "hermes-gateway-coder": 2}
+    pids = {"a2assistant-gateway": 1, "a2assistant-gateway-coder": 2}
     monkeypatch.setattr(fleet, "_unit_main_pid", lambda scope_cmd, svc: pids[svc], raising=False)
     restarted: list[str] = []
     monkeypatch.setattr(
@@ -129,15 +129,15 @@ def test_units_with_distinct_live_pids_are_each_restarted(monkeypatch):
     monkeypatch.setattr(fleet, "_SYSTEMD_SCOPES", (("user", ["systemctl", "--user"]),))
 
     fleet._restart_systemd_gateway_units_best_effort(
-        [], _listing(["hermes-gateway.service", "hermes-gateway-coder.service"]))
+        [], _listing(["a2assistant-gateway.service", "a2assistant-gateway-coder.service"]))
 
-    assert sorted(restarted) == ["hermes-gateway", "hermes-gateway-coder"]
+    assert sorted(restarted) == ["a2assistant-gateway", "a2assistant-gateway-coder"]
 
 
 def _host_record(tmp_path, monkeypatch, profiles: list[str]) -> None:
     lock_dir = tmp_path / "gateway-locks"
     lock_dir.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(lock_dir))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(lock_dir))
     (lock_dir / "host-gateway.json").write_text(
         json.dumps({"role": "gateway", "pid": os.getpid(), "profiles": profiles}), encoding="utf-8")
 
@@ -167,7 +167,7 @@ def test_recovery_restarts_one_host_process_for_all_the_profiles_it_serves(tmp_p
 
 def test_recovery_keeps_separate_processes_separate(tmp_path, monkeypatch):
     """Control: with no host record, each profile is its own restart target."""
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "empty-locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "empty-locks"))
     argvs: list[list[str]] = []
 
     def fake_run(argv, **kwargs):
@@ -185,7 +185,7 @@ def test_recovery_keeps_separate_processes_separate(tmp_path, monkeypatch):
 def test_unwritable_host_state_dir_still_arms_the_obligation(two_profiles, no_live_fleet, monkeypatch, tmp_path):
     """An unwritable host state dir must never silently disarm the update→restart obligation.
 
-    The host record moved out of ``$HERMES_HOME`` (writable by construction) into the host state
+    The host record moved out of ``$A2ASSISTANT_HOME`` (writable by construction) into the host state
     dir, which a read-only mount or a container UID mismatch can make unwritable. Losing the
     obligation there is the #117275 outage shape: an interrupted update leaves stale code running
     with no warning and no catch-up restart.
@@ -227,7 +227,7 @@ def test_unwritable_host_state_dir_never_hides_the_debt_from_another_profile(two
 def test_one_installs_completed_restart_never_erases_another_installs_debt(tmp_path):
     """Two installations of one OS user share the host state dir. Install B arming its own pull and
     then completing its restart must leave install A's debt standing; each install arms, reads and
-    clears from its own process, the way two checkouts' ``hermes update`` runs do (review S3)."""
+    clears from its own process, the way two checkouts' ``a2assistant update`` runs do (review S3)."""
     import shutil
     import subprocess
     import sys
@@ -242,7 +242,7 @@ def test_one_installs_completed_restart_never_erases_another_installs_debt(tmp_p
         for rel in files:
             (roots[name] / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source / rel, roots[name] / rel)
-    env = {**os.environ, "HERMES_GATEWAY_LOCK_DIR": str(tmp_path / "gateway-locks")}
+    env = {**os.environ, "A2ASSISTANT_GATEWAY_LOCK_DIR": str(tmp_path / "gateway-locks")}
 
     def run(install: str, body: str) -> str:
         code = (f"import sys\nsys.path.insert(0, {str(roots[install])!r})\n"
@@ -267,7 +267,7 @@ def test_a_completion_never_erases_the_unkeyed_debt_an_older_install_armed(tmp_p
     whether the SHAs differ or match. With no record of its own, B honours the unkeyed one and its
     discharge clears it: an upgrade's own interrupted debt never sticks (review S3 residual)."""
     lock_dir = tmp_path / "gateway-locks"
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(lock_dir))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(lock_dir))
     legacy = lock_dir / host_obligation.HOST_OBLIGATION_NAME
 
     def a_arms() -> None:  # the older release's writer: unkeyed name, no owners, no mutex
@@ -292,7 +292,7 @@ def test_every_host_record_write_makes_its_rename_durable(tmp_path, monkeypatch)
     after the arm returned must not roll the directory back to "nothing owed"."""
     import stat
 
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "gateway-locks"))
     events, real_fsync, real_replace = [], os.fsync, os.replace
     monkeypatch.setattr(os, "fsync", lambda fd: events.append(
         "dir" if stat.S_ISDIR(os.fstat(fd).st_mode) else "file") or real_fsync(fd))
@@ -361,7 +361,7 @@ def test_a_failing_main_pid_probe_keeps_its_own_restart():
 
 
 @pytest.mark.parametrize("env", [
-    {"HERMES_GATEWAY_LOCK_DIR": "/srv/override/locks"},
+    {"A2ASSISTANT_GATEWAY_LOCK_DIR": "/srv/override/locks"},
     {"XDG_STATE_HOME": "/srv/xdg-state"},
     {"XDG_STATE_HOME": "relative/state"},
     {},
@@ -371,7 +371,7 @@ def test_recovery_host_state_dir_matches_the_gateway_resolver(monkeypatch, env):
     at runtime); the duplicate must not drift from ``gateway.status._get_lock_dir``."""
     from gateway.status import _get_lock_dir
 
-    for name in ("HERMES_GATEWAY_LOCK_DIR", "XDG_STATE_HOME"):
+    for name in ("A2ASSISTANT_GATEWAY_LOCK_DIR", "XDG_STATE_HOME"):
         monkeypatch.delenv(name, raising=False)
     for name, value in env.items():
         monkeypatch.setenv(name, value)

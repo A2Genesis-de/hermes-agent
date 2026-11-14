@@ -28,7 +28,7 @@ def relay_home(tmp_path, monkeypatch):
     relay = pytest.importorskip("nemo_relay")
     if getattr(relay, "_native", None) is None:
         pytest.skip("NeMo Relay native binding is unavailable on this platform")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "hermes-home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "hermes-home"))
     monkeypatch.setattr(
         "hermes_cli.config.read_raw_config_readonly",
         lambda: {"telemetry": {"shared_metrics": {"enabled": True}}},

@@ -1,18 +1,18 @@
-"""Session-attach handshake: ``hermes --tui --resume SID`` must hand the TUI only the REAL owner's socket.
+"""Session-attach handshake: ``a2assistant --tui --resume SID`` must hand the TUI only the REAL owner's socket.
 
 When a resumed session is already open elsewhere, the launcher reads the owner's lease from the
 active-session registry, calls ``GET <metadata.shared_runtime_url>/api/session-attach`` and exports the
-reply's ``websocket_url`` as ``HERMES_TUI_GATEWAY_URL`` for the TUI child. Whoever answers on the
+reply's ``websocket_url`` as ``A2ASSISTANT_TUI_GATEWAY_URL`` for the TUI child. Whoever answers on the
 advertised loopback port is therefore trusted with the user's session traffic.
 
 Real processes throughout:
 
 * the lease holder is a separate Python process that creates the session through ``SessionDB`` and
   acquires its lease through ``try_acquire_active_session`` (the registry path production uses);
-* the client is the real ``hermes --tui --resume SID`` CLI (argparse, profile-home resolution, the
+* the client is the real ``a2assistant --tui --resume SID`` CLI (argparse, profile-home resolution, the
   launcher's discovery, its error exit);
 * the TUI child is a recording stand-in bundle selected through the supported prebuilt-bundle override
-  (``HERMES_TUI_DIR/dist/entry.js``). It writes the environment the launcher handed it and exits, so the
+  (``A2ASSISTANT_TUI_DIR/dist/entry.js``). It writes the environment the launcher handed it and exits, so the
   assertion reads the exact launcher -> TUI hand-off. The Ink app itself is not what is under test.
 
 Scenarios (the listener answering the advertised port):
@@ -26,7 +26,7 @@ Scenarios (the listener answering the advertised port):
   its own identity; the TUI must receive that owner's socket and the lease must stay with the owner.
 
 Why the owner side is a test process: no shipped Hermes runtime advertises ``shared_runtime_url`` or
-serves ``/api/session-attach`` yet (``hermes serve`` and the dashboard do not register one), so the
+serves ``/api/session-attach`` yet (``a2assistant serve`` and the dashboard do not register one), so the
 closest real owner is a process holding the real lease that answers from its own lease knowledge. It
 speaks both the current dialect (``lease_id`` in the reply) and the proof dialect of the candidate fix
 (``attach_proof`` = HMAC-SHA256 keyed by the lease over the client's nonce), so the control holds on main
@@ -137,8 +137,8 @@ lease.release()
 PROBE_ENTRY = """
 const fs = require("fs");
 fs.writeFileSync(process.env.ATTACH_PROBE_OUT, JSON.stringify({
-  gateway_url: process.env.HERMES_TUI_GATEWAY_URL || null,
-  resume: process.env.HERMES_TUI_RESUME || null,
+  gateway_url: process.env.A2ASSISTANT_TUI_GATEWAY_URL || null,
+  resume: process.env.A2ASSISTANT_TUI_RESUME || null,
 }));
 """
 
@@ -245,11 +245,11 @@ def home(tmp_path: Path) -> Path:
 
 
 def _resume(home: Path, sid: str) -> tuple[subprocess.CompletedProcess, dict | None]:
-    """Run ``hermes --tui --resume SID``; return the process result and what the TUI child received."""
+    """Run ``a2assistant --tui --resume SID``; return the process result and what the TUI child received."""
     out = home.parent / f"handoff-{uuid.uuid4().hex}.json"
     result = run_hermes(
         ["--tui", "--resume", sid], home, timeout=90,
-        extra_env={"HERMES_TUI_DIR": str(home.parent / "tui-probe"), "HERMES_SKIP_NODE_BOOTSTRAP": "1",
+        extra_env={"A2ASSISTANT_TUI_DIR": str(home.parent / "tui-probe"), "A2ASSISTANT_SKIP_NODE_BOOTSTRAP": "1",
                    "ATTACH_PROBE_OUT": str(out)})
     handoff = json.loads(out.read_text(encoding="utf-8")) if out.exists() else None
     return result, handoff

@@ -1,13 +1,13 @@
 """Configured features survive every dependency rebuild (PM lifecycle, failure class 1).
 
 A PM install's dependency environment is rebuilt as a NEW generation whenever its inputs change:
-a release that moves ``uv.lock`` (``hermes update``), ``hermes pm repair``, and the first
-``hermes update`` of a main-era install (the legacy ``venv/`` is replaced by a PM generation). The
+a release that moves ``uv.lock`` (``a2assistant update``), ``a2assistant pm repair``, and the first
+``a2assistant update`` of a main-era install (the legacy ``venv/`` is replaced by a PM generation). The
 user-visible contract is that whatever feature the user had working before the rebuild still
 imports in the generation selected after it:
 
-* an extra the user installed with the documented command (``hermes pm install --extra telegram``);
-* the MCP client (an HTTP MCP server in config.yaml must still connect: ``hermes mcp test``
+* an extra the user installed with the documented command (``a2assistant pm install --extra telegram``);
+* the MCP client (an HTTP MCP server in config.yaml must still connect: ``a2assistant mcp test``
   against a real local streamable-HTTP server);
 * a gateway platform enabled in config.yaml (Discord): the update installs the platform's extra
   instead of only warning that the SDK is missing (#124228);
@@ -51,12 +51,12 @@ MANAGED = ("telegram", "discord", "mcp.client.streamable_http")
 
 
 def _mcp_test(sb: I.Sandbox, server: HttpMcpServer) -> str:
-    """``hermes mcp test`` against the live server; returns a failure description or ''."""
+    """``a2assistant mcp test`` against the live server; returns a failure description or ''."""
     before = server.log.read_text(encoding="utf-8").count('"initialize"') if server.log.exists() else 0
     cp = sb.cli("mcp", "test", MCP_NAME, timeout=180)
     after = server.log.read_text(encoding="utf-8").count('"initialize"') if server.log.exists() else 0
     if cp.returncode != 0 or "Connected" not in cp.stdout or after <= before:
-        return f"`hermes mcp test {MCP_NAME}` did not connect (server saw {after - before} initialize)\n{I.describe(cp)}"
+        return f"`a2assistant mcp test {MCP_NAME}` did not connect (server saw {after - before} initialize)\n{I.describe(cp)}"
     return ""
 
 
@@ -68,7 +68,7 @@ def provider():
 
 @pytest.fixture(scope="module")
 def rebuilt(tmp_path_factory, provider):
-    """One install taken through a dependency-changing ``hermes update`` and a ``pm repair``."""
+    """One install taken through a dependency-changing ``a2assistant update`` and a ``pm repair``."""
     root = tmp_path_factory.mktemp("pm-features")
     server = HttpMcpServer(root, "pm-features", MCPE2E_CANARY="CANARY-pm-features").start()
     try:
@@ -82,7 +82,7 @@ def rebuilt(tmp_path_factory, provider):
         before = {"generation": P.selected_generation(sb), "imports": P.managed_imports(sb, *MANAGED),
                   "mcp": _mcp_test(sb, server)}
         assert before["imports"]["telegram"] == "ok" and before["mcp"] == "", (
-            f"harness: `hermes pm install --extra telegram` exited 0 but left no SDK / MCP broken: {before}")
+            f"harness: `a2assistant pm install --extra telegram` exited 0 but left no SDK / MCP broken: {before}")
         P.publish_dependency_release(origin, root, 1)
         up = P.update(sb)
         after_update = {"generation": P.selected_generation(sb), "imports": P.managed_imports(sb, *MANAGED),
@@ -98,32 +98,32 @@ def rebuilt(tmp_path_factory, provider):
 
 def test_update_rebuild_keeps_installed_extra_and_mcp(rebuilt):
     sb, up, after = rebuilt["sb"], rebuilt["update"], rebuilt["after_update"]
-    assert up.returncode == 0, "hermes update failed:\n" + P.diagnostics(sb, up)
+    assert up.returncode == 0, "a2assistant update failed:\n" + P.diagnostics(sb, up)
     assert after["generation"] != rebuilt["before"]["generation"], (
         "harness: the dependency release did not make the update build a new generation\n" + P.diagnostics(sb, up))
     assert after["imports"]["telegram"] == "ok", (
-        f"the extra installed with `hermes pm install --extra telegram` is gone after `hermes update`: "
+        f"the extra installed with `a2assistant pm install --extra telegram` is gone after `a2assistant update`: "
         f"{after['imports']}\n" + P.diagnostics(sb, up))
     assert after["imports"]["mcp.client.streamable_http"] == "ok", after["imports"]
-    assert after["mcp"] == "", "HTTP MCP server no longer connects after `hermes update`:\n" + after["mcp"]
+    assert after["mcp"] == "", "HTTP MCP server no longer connects after `a2assistant update`:\n" + after["mcp"]
 
 
 def test_repair_keeps_installed_extra_and_mcp(rebuilt):
     sb, rp, after = rebuilt["sb"], rebuilt["repair"], rebuilt["after_repair"]
-    assert rp.returncode == 0, "hermes pm repair failed on a healthy install:\n" + P.diagnostics(sb, rp)
+    assert rp.returncode == 0, "a2assistant pm repair failed on a healthy install:\n" + P.diagnostics(sb, rp)
     assert after["generation"] != rebuilt["after_update"]["generation"], (
-        "`hermes pm repair` reported success but did not rebuild the environment\n" + P.diagnostics(sb, rp))
+        "`a2assistant pm repair` reported success but did not rebuild the environment\n" + P.diagnostics(sb, rp))
     assert after["imports"]["telegram"] == "ok", (
-        f"the extra installed with `hermes pm install --extra telegram` is gone after `hermes pm repair`: "
+        f"the extra installed with `a2assistant pm install --extra telegram` is gone after `a2assistant pm repair`: "
         f"{after['imports']}\n" + P.diagnostics(sb, rp))
-    assert after["mcp"] == "", "HTTP MCP server no longer connects after `hermes pm repair`:\n" + after["mcp"]
+    assert after["mcp"] == "", "HTTP MCP server no longer connects after `a2assistant pm repair`:\n" + after["mcp"]
 
 
 def test_configured_gateway_platform_has_its_sdk_after_update(rebuilt):
     sb, up, after = rebuilt["sb"], rebuilt["update"], rebuilt["after_update"]
     assert up.returncode == 0, P.diagnostics(sb, up)
     assert after["imports"]["discord"] == "ok", (
-        f"configured discord platform has no SDK after `hermes update`: {after['imports']['discord']}\n"
+        f"configured discord platform has no SDK after `a2assistant update`: {after['imports']['discord']}\n"
         + P.diagnostics(sb, up))
 
 
@@ -174,11 +174,11 @@ def migrated(tmp_path_factory, provider):
 
 @pytest.fixture(scope="module")
 def hand_pulled(tmp_path_factory, provider):
-    """A main-era install whose checkout reached HEAD before any PM sync ran, then ``hermes update``.
+    """A main-era install whose checkout reached HEAD before any PM sync ran, then ``a2assistant update``.
 
     A ``git pull`` by hand: the tree runs HEAD's code from its old venv. Its launch migration never
     runs, since this install carries no self-update stamp (a custom ``--dir``, not a blessed root)
-    and the harness sets ``HERMES_DISABLE_LAZY_INSTALLS``, so the update's own completion bootstrap
+    and the harness sets ``A2ASSISTANT_DISABLE_LAZY_INSTALLS``, so the update's own completion bootstrap
     builds the first PM generation.
     """
     leg, pre = _main_era_leg(tmp_path_factory, provider, "pm-legacy-pulled")
@@ -190,7 +190,7 @@ def hand_pulled(tmp_path_factory, provider):
 def _assert_first_generation_keeps_the_old_venv(migrated):
     leg, up = migrated["leg"], migrated["update"]
     assert migrated["pre"].returncode == 0, "harness: N-1 venv cannot import its features:\n" + H.describe(migrated["pre"])
-    assert up.returncode == 0, "hermes update from a main-era venv failed:\n" + H.describe(up)
+    assert up.returncode == 0, "a2assistant update from a main-era venv failed:\n" + H.describe(up)
     assert I.git("rev-parse", "HEAD", cwd=leg.install) == _refs().head, H.describe(up)
     selected = Path(leg.python)
     assert "installs" in selected.parts, f"update left the install on the legacy venv: {selected}\n{H.describe(up)}"

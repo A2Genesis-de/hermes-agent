@@ -205,21 +205,21 @@ describe('Linux runtime --no-sandbox relaunch', () => {
 
       fs.writeFileSync(
         image,
-        `#!/bin/sh\nprintf '%s\\n' "$*" "$(cut -d' ' -f6 /proc/$$/stat) $$" "$TMPDIR" "\${HERMES_DESKTOP_READY_FD:-unset}" > "${report}.part"\nmv "${report}.part" "${report}"\n`,
+        `#!/bin/sh\nprintf '%s\\n' "$*" "$(cut -d' ' -f6 /proc/$$/stat) $$" "$TMPDIR" "\${A2ASSISTANT_DESKTOP_READY_FD:-unset}" > "${report}.part"\nmv "${report}.part" "${report}"\n`,
         { mode: 0o755 }
       )
 
       try {
         process.env.TMPDIR = shortDir
-        process.env.HERMES_DESKTOP_TMPDIR = dir
-        process.env.HERMES_DESKTOP_READY_FD = '3'
+        process.env.A2ASSISTANT_DESKTOP_TMPDIR = dir
+        process.env.A2ASSISTANT_DESKTOP_READY_FD = '3'
         delete process.env.ELECTRON_DISABLE_SANDBOX
         vi.resetModules()
         const { relaunchIfNoSandboxCameTooLate } = await import('./linux-sandbox-relaunch')
         const { createAppRelauncher } = await import('./app-relaunch')
 
         process.env.TMPDIR = dir
-        delete process.env.HERMES_DESKTOP_TMPDIR
+        delete process.env.A2ASSISTANT_DESKTOP_TMPDIR
         process.env.APPIMAGE = image
         process.env.APPDIR = path.dirname(process.execPath)
 

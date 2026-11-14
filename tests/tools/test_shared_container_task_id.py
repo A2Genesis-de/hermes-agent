@@ -74,9 +74,9 @@ def test_env_type_override_keeps_own_id():
 
 
 def test_distinct_session_keys_get_distinct_slots(monkeypatch):
-    monkeypatch.setenv("HERMES_SESSION_KEY", "sess-A")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_KEY", "sess-A")
     a = terminal_tool._resolve_container_task_id(None)
-    monkeypatch.setenv("HERMES_SESSION_KEY", "sess-B")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_KEY", "sess-B")
     b = terminal_tool._resolve_container_task_id(None)
     assert a == "session:sess-A"
     assert b == "session:sess-B"
@@ -86,7 +86,7 @@ def test_distinct_session_keys_get_distinct_slots(monkeypatch):
 def test_subagent_collapses_onto_parent_session(monkeypatch):
     # Subagents inherit the parent's session key, so they share the parent's
     # container (the #16177 intent) rather than a global "default".
-    monkeypatch.setenv("HERMES_SESSION_KEY", "sess-A")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_KEY", "sess-A")
     assert (
         terminal_tool._resolve_container_task_id("subagent-3-cafef00d")
         == "session:sess-A"
@@ -94,7 +94,7 @@ def test_subagent_collapses_onto_parent_session(monkeypatch):
 
 
 def test_rl_override_wins_over_session_key(monkeypatch):
-    monkeypatch.setenv("HERMES_SESSION_KEY", "sess-A")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_KEY", "sess-A")
     terminal_tool.register_task_env_overrides("tb2-z", {"docker_image": "z:1"})
     try:
         assert terminal_tool._resolve_container_task_id("tb2-z") == "tb2-z"
@@ -104,7 +104,7 @@ def test_rl_override_wins_over_session_key(monkeypatch):
 
 def test_no_session_key_still_defaults(monkeypatch):
     # CLI mode: no session key -> unchanged "default" behaviour.
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
     assert terminal_tool._resolve_container_task_id(None) == "default"
 
 
@@ -124,7 +124,7 @@ def test_session_key_from_contextvar_without_environ(monkeypatch):
     # os.environ; the key lives only in the ContextVar bound by the gateway.
     from gateway.session_context import clear_session_vars, set_session_vars
 
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
     tokens = set_session_vars(session_key="sess-ctx")
     try:
         assert (
@@ -146,7 +146,7 @@ def test_contextvar_session_key_wins_over_environ(monkeypatch):
     # slot must follow the ContextVar-bound session, not the process global.
     from gateway.session_context import clear_session_vars, set_session_vars
 
-    monkeypatch.setenv("HERMES_SESSION_KEY", "sess-ENV")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_KEY", "sess-ENV")
     tokens = set_session_vars(session_key="sess-CTX")
     try:
         assert (
@@ -272,7 +272,7 @@ def test_shared_key_applies_to_cli_no_session(monkeypatch):
     # sessions, or the opt-in splits the container it exists to unify.
     _persistent_docker(monkeypatch)
     monkeypatch.setenv("TERMINAL_DOCKER_SHARED_CONTAINER_KEY", "team/workspace")
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
     assert terminal_tool._resolve_container_task_id(None) == "shared:team/workspace"
 
 
@@ -310,7 +310,7 @@ def _use_home(monkeypatch, tmp_path, name):
     root = hermes_constants._get_platform_default_hermes_home()  # conftest's per-test native root, any OS
     home = root if name == "default" else tmp_path / "elsewhere" if name is None else root / "profiles" / name
     home.mkdir(parents=True, exist_ok=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
 
 def test_sessionless_default_profile_stays_default(monkeypatch, tmp_path):
@@ -318,8 +318,8 @@ def test_sessionless_default_profile_stays_default(monkeypatch, tmp_path):
     from gateway.session_context import reset_session_vars
 
     _persistent_docker(monkeypatch)
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_PROFILE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PROFILE", raising=False)
     reset_session_vars()
     _use_home(monkeypatch, tmp_path, "default")
     assert terminal_tool._resolve_container_task_id(None) == "default"
@@ -331,8 +331,8 @@ def test_sessionless_named_profile_reuses_profile_container(monkeypatch, tmp_pat
     from gateway.session_context import reset_session_vars
 
     _persistent_docker(monkeypatch)
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_PROFILE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PROFILE", raising=False)
     monkeypatch.delenv("TERMINAL_DOCKER_SHARED_CONTAINER_KEY", raising=False)
     reset_session_vars()
     _use_home(monkeypatch, tmp_path, "tenant-a")
@@ -345,7 +345,7 @@ def test_explicit_session_profile_wins_over_process_home(monkeypatch, tmp_path):
     from gateway.session_context import clear_session_vars, set_session_vars
 
     _persistent_docker(monkeypatch)
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
     _use_home(monkeypatch, tmp_path, "tenant-a")
     tokens = set_session_vars(session_key="agent:main:desktop:1", profile="work")
     try:
@@ -364,7 +364,7 @@ def test_sessionless_named_profile_ignored_when_not_persistent_docker(monkeypatc
     from gateway.session_context import reset_session_vars
 
     monkeypatch.setenv("TERMINAL_ENV", "local")
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
     reset_session_vars()
     _use_home(monkeypatch, tmp_path, "tenant-a")
     assert terminal_tool._resolve_container_task_id(None) == "default"
@@ -375,7 +375,7 @@ def test_sessionless_home_outside_the_root_stays_default(monkeypatch, tmp_path):
     from gateway.session_context import reset_session_vars
 
     _persistent_docker(monkeypatch)
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
     reset_session_vars()
     _use_home(monkeypatch, tmp_path, None)
     assert terminal_tool._resolve_container_task_id(None) == "default"
@@ -387,8 +387,8 @@ def test_named_launch_profile_chats_desktop_and_workers_share_one_container(monk
     from gateway.session_context import clear_session_vars, reset_session_vars, set_session_vars
 
     _persistent_docker(monkeypatch)
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_PROFILE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PROFILE", raising=False)
     monkeypatch.delenv("TERMINAL_DOCKER_SHARED_CONTAINER_KEY", raising=False)
     reset_session_vars()
     _use_home(monkeypatch, tmp_path, "tenant-a")
@@ -449,8 +449,8 @@ def test_a_profile_literally_named_custom_keys_its_own_container(monkeypatch, tm
     from gateway.session_context import clear_session_vars, reset_session_vars, set_session_vars
 
     _persistent_docker(monkeypatch)
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_PROFILE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PROFILE", raising=False)
     monkeypatch.delenv("TERMINAL_DOCKER_SHARED_CONTAINER_KEY", raising=False)
     reset_session_vars()
     _use_home(monkeypatch, tmp_path, "custom")
@@ -476,10 +476,10 @@ def test_a_home_the_tui_stamps_custom_keys_one_container_for_every_path(monkeypa
 
     home = hermes_constants._get_platform_default_hermes_home().joinpath(*home_parts)
     home.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     _persistent_docker(monkeypatch)
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_PROFILE", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PROFILE", raising=False)
     monkeypatch.delenv("TERMINAL_DOCKER_SHARED_CONTAINER_KEY", raising=False)
     monkeypatch.setenv("TERMINAL_DOCKER_MOUNT_CWD_TO_WORKSPACE", "true")
     from tui_gateway.server import _current_profile_name

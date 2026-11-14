@@ -90,7 +90,7 @@ def _dead_pid() -> int:
 def _run(home: Path, *args: str, install: Path | None = None, timeout: int = 120):
     command = ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(SCRIPT),
                '-InstallRoot', str(install or home / 'hermes-agent'), '-NoUi', *args]
-    env = {**os.environ, 'HERMES_HOME': str(home), 'HERMES_RUNTIME_DIR': str(home / 'empty-store')}
+    env = {**os.environ, 'A2ASSISTANT_HOME': str(home), 'A2ASSISTANT_RUNTIME_DIR': str(home / 'empty-store')}
     proc = subprocess.Popen(command, cwd=home, env=env,
                             stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
     try:
@@ -238,7 +238,7 @@ def test_desktop_that_never_exits_is_not_relaunched_over(
 ) -> None:
     # The verdict (refuse with 4, never relaunch) is the same at any ceiling; the production
     # 150 s one alone pushed this file to the runner's 300 s per-file cap on a loaded runner.
-    monkeypatch.setenv('HERMES_UPDATE_DESKTOP_EXIT_SECONDS', '5')
+    monkeypatch.setenv('A2ASSISTANT_UPDATE_DESKTOP_EXIT_SECONDS', '5')
     install = tmp_path / 'checkout'
     publish_fixture_launcher(install, CLI)
     home = tmp_path / 'home'; home.mkdir()
@@ -261,8 +261,8 @@ def test_ui_profile_sweep_keeps_dirs_of_live_handoffs(tmp_path: Path, sleeper: s
     home = tmp_path / 'home'; home.mkdir()
     result = subprocess.run(
         ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(SCRIPT), '-SelfTestUi', '-NoUi'],
-        cwd=tmp_path, env={**os.environ, 'HERMES_HOME': str(home), 'TEMP': str(tmp_path),
-                           'HERMES_SELFTEST_HOLD_SECONDS': '0'},
+        cwd=tmp_path, env={**os.environ, 'A2ASSISTANT_HOME': str(home), 'TEMP': str(tmp_path),
+                           'A2ASSISTANT_SELFTEST_HOLD_SECONDS': '0'},
         capture_output=True, text=True, timeout=120,
         check=False,
     )
@@ -309,7 +309,7 @@ def _parent_pid(pid: int) -> int:
 @pytest.mark.platforms('windows')
 def test_script_killed_right_after_spawning_the_update_leaves_a_live_marker(tmp_path: Path) -> None:
     """C1 rule 6, written by the script itself: windows.ps1 is killed (taskkill /F, no /T) while
-    its `hermes update` child is only starting up and has not taken the update lock. The marker
+    its `a2assistant update` child is only starting up and has not taken the update lock. The marker
     must still read LIVE through the child named on line 4 -- also to an old packaged Desktop,
     which judges line 1 alone, so line 1 names the hand-off's custodian before the update starts
     and the first old-reader read right after the kill (the marker lock held, so nothing can
@@ -324,7 +324,7 @@ def test_script_killed_right_after_spawning_the_update_leaves_a_live_marker(tmp_
         ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(SCRIPT),
          '-InstallRoot', str(install), '-NoUi'],
         cwd=tmp_path, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-        env={**os.environ, 'HERMES_HOME': str(home), 'HERMES_RUNTIME_DIR': str(tmp_path / 'empty-store'),
+        env={**os.environ, 'A2ASSISTANT_HOME': str(home), 'A2ASSISTANT_RUNTIME_DIR': str(tmp_path / 'empty-store'),
              'HANDOFF_HOLD': str(hold)},
     )
     child_pid_file = Path(str(hold) + '.pid')

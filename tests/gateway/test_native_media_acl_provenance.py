@@ -15,7 +15,7 @@ from gateway import session_ingress_media as media
 
 
 def _elevated(monkeypatch, home):
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(hermes_dir_acl, "process_is_elevated", lambda: True)
     monkeypatch.setattr(hermes_dir_acl, "_granted", set())
     grants = []

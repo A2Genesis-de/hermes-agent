@@ -31,7 +31,7 @@ def _write_plugin(home: Path, body: str) -> None:
 def test_reload_during_a_held_turn_cannot_skip_the_final_rewrite(monkeypatch):
     from hermes_cli import plugins
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     gate = types.ModuleType("hold_reload_gate")
     gate.reload, gate.entered, gate.release = threading.Event(), threading.Event(), threading.Event()
     monkeypatch.setitem(sys.modules, gate.__name__, gate)
@@ -76,7 +76,7 @@ def test_reload_during_a_held_turn_cannot_skip_the_final_rewrite(monkeypatch):
 def test_held_transform_that_raises_withholds_the_reply():
     from hermes_cli import plugins
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     with FakeLLMServer([Text(RAW)]) as server:
         redactor_home(home, server.base_url, hold=True)
         _write_plugin(home, (
@@ -106,7 +106,7 @@ def test_held_commentary_stays_out_of_history_but_in_the_model_context():
     from hermes_cli import plugins
     from hermes_state import SessionDB
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     with FakeLLMServer(redactor_turn() + [Text("ok")]) as server:
         redactor_home(home, server.base_url, hold=True)
         plugins._reset_plugin_managers_for_tests()
@@ -142,7 +142,7 @@ def test_codex_reply_that_failed_after_its_text_is_still_rewritten(monkeypatch):
     from hermes_cli import plugins
     from tests.agent.test_codex_app_server_integration import _make_codex_agent
 
-    home = Path(os.environ["HERMES_HOME"])
+    home = Path(os.environ["A2ASSISTANT_HOME"])
     redactor_home(home, "http://127.0.0.1:9/v1", hold=True)
     plugins._reset_plugin_managers_for_tests()
 

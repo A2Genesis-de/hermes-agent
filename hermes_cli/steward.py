@@ -13,7 +13,7 @@ facts this branch already ships:
 
 A sealed tree (no ``.git``) belongs to a steward: only the steward removes
 or replaces its code. The refusal messages below always leave the user a
-working next step for their data (``hermes uninstall --data`` / the
+working next step for their data (``a2assistant uninstall --data`` / the
 desktop app's Settings -> About page).
 """
 
@@ -63,7 +63,7 @@ STEWARD_UPDATE_MESSAGES = {
 SOURCE_ON_TERMUX_UPDATE_MESSAGE = (
     "✗ This A2Assistant is a source checkout running under Termux.\n"
     "\n"
-    "Source installs are not supported on Termux — `hermes update` would\n"
+    "Source installs are not supported on Termux — `a2assistant update` would\n"
     "build Python packages on the device. Switch to the APT package:\n"
     "  pkg install hermes-agent"
 )
@@ -73,7 +73,7 @@ SOURCE_ON_TERMUX_UPDATE_COMMAND = "pkg install hermes-agent"
 _STEWARD_UPDATE_FALLBACK = (
     "✗ This A2Assistant install is managed by {steward}.\n"
     "\n"
-    "The tree has no git checkout, so `hermes update` cannot update it.\n"
+    "The tree has no git checkout, so `a2assistant update` cannot update it.\n"
     "Update it with the tool that installed it."
 )
 
@@ -82,7 +82,7 @@ _STEWARD_UPDATE_FALLBACK = (
 # desktop-app message is per-OS because each OS owns app removal
 # differently.
 _STEWARD_DELETE_DATA_PREAMBLE = "To delete your A2Assistant data (chats, configuration, etc),\n"
-_STEWARD_DELETE_DATA_CLI = "run:\n$ hermes uninstall --data\n"
+_STEWARD_DELETE_DATA_CLI = "run:\n$ a2assistant uninstall --data\n"
 _STEWARD_DELETE_DATA_DESKTOP = "Open A2Assistant Desktop, go to Settings -> About, and delete your data from there.\n"
 
 _STEWARD_UNINSTALL_MESSAGES = {
@@ -158,7 +158,7 @@ _STEWARD_UNINSTALL_FALLBACK = (
 
 
 def steward_update_message(steward: str) -> str:
-    """The `hermes update` refusal text for a sealed tree."""
+    """The `a2assistant update` refusal text for a sealed tree."""
     message = STEWARD_UPDATE_MESSAGES.get(steward)
     if message is not None:
         return message

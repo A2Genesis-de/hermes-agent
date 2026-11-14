@@ -2327,7 +2327,7 @@ export const esOverrides = {
     unlockedHint: 'Bloquéalo para que el agente no pueda cambiar este skill. Tú puedes seguir editándolo.',
     archive: 'Archivar',
     skillArchivedTitle: 'Skill archivado',
-    skillArchivedMessage: 'Puedes restaurarlo con hermes curator restore.',
+    skillArchivedMessage: 'Puedes restaurarlo con a2assistant curator restore.',
     tabPlugins: 'Plugins',
     plugins: {
       agentTitle: 'Plugins del agente',
@@ -2933,7 +2933,7 @@ export const esOverrides = {
     failedImport: 'No se pudo importar el perfil',
     failedExport: 'No se pudo exportar el perfil',
     exportNeedsHost: name =>
-      `El navegador no puede guardar un archivo de perfil. En el host de A2Assistant, ejecuta: hermes profile export ${name}`,
+      `El navegador no puede guardar un archivo de perfil. En el host de A2Assistant, ejecuta: a2assistant profile export ${name}`,
     allProfiles: 'Todos los perfiles',
     showAllProfiles: 'Mostrar todos los perfiles',
     notServedHere: 'No se ofrece aquí',
@@ -3845,9 +3845,9 @@ export const esOverrides = {
     versionDetailsDistributionDesktopMsix: 'Aplicación de escritorio (MSIX)',
     versionDetailsDistributionDesktopInstaller: 'Aplicación de escritorio (instalador)',
     versionDetailsDistributionSourceInstaller: 'Código fuente (script de instalación)',
-    versionDetailsDistributionSourceInstallerDesktop: 'Código fuente (script de instalación) + hermes desktop',
+    versionDetailsDistributionSourceInstallerDesktop: 'Código fuente (script de instalación) + a2assistant desktop',
     versionDetailsDistributionSource: 'Código fuente',
-    versionDetailsDistributionSourceDesktop: 'Código fuente + hermes desktop',
+    versionDetailsDistributionSourceDesktop: 'Código fuente + a2assistant desktop',
     versionDetailsDistributionStore: 'Microsoft Store',
     versionDetailsRuntime: 'Entorno de ejecución',
     versionDetailsRuntimeEmbedded: 'Entorno de ejecución integrado',
@@ -4818,7 +4818,7 @@ export const esOverrides = {
       reject: 'Rechazar',
       alwaysTitle: '¿Permitir siempre este comando?',
       alwaysDescription: pattern =>
-        `Esto añade el patrón “${pattern}” a tu allowlist permanente (~/.hermes/config.yaml). A2Assistant no volverá a preguntar por comandos como este, ni en esta sesión ni en futuras.`,
+        `Esto añade el patrón “${pattern}” a tu allowlist permanente (~/.a2assistant/config.yaml). A2Assistant no volverá a preguntar por comandos como este, ni en esta sesión ni en futuras.`,
       alwaysAllow: 'Permitir siempre'
     },
     clarify: esClarify,

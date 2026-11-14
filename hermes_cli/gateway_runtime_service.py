@@ -40,7 +40,7 @@ def service_suffix(home: Path) -> str:
     Same rule as ``hermes_cli.gateway._profile_suffix``: only the platform-native
     default home owns the bare unit name; ``<root>/profiles/<name>`` yields the
     profile name; any other root (Docker, a temp harness) yields a path hash so a
-    custom root can never resolve to the production ``hermes-gateway`` unit.
+    custom root can never resolve to the production ``a2assistant-gateway`` unit.
     """
     from hermes_constants import account_default_hermes_home
     from hermes_cli.gateway import _profile_name_from_home
@@ -96,7 +96,9 @@ def _systemd(home: Path, deadline: float) -> ExistingService | None:
     if _s6_running():
         raise RuntimeStartError("external_supervisor")
     suffix = service_suffix(home)
-    unit = f"hermes-gateway{'-' + suffix if suffix else ''}.service"
+    from hermes_cli.service_names import gateway_systemd_unit
+
+    unit = f"{gateway_systemd_unit(suffix)}.service"
     paths = (Path.home() / ".config/systemd/user" / unit, Path("/etc/systemd/system") / unit)
     # On non-systemd hosts there is no manager to own transient units. Installed
     # definitions still count: a broken manager is not permission to bypass one.
@@ -162,7 +164,7 @@ def _s6(home: Path, deadline: float) -> ExistingService | None:
     # with-contenv is also the service run script's authority. The initiating
     # client may have selected a named profile or a different install root.
     try:
-        container_home = Path("/run/s6/container_environment/HERMES_HOME").read_text(encoding="utf-8-sig").strip()
+        container_home = Path("/run/s6/container_environment/A2ASSISTANT_HOME").read_text(encoding="utf-8-sig").strip()
     except (OSError, UnicodeError):
         raise RuntimeStartError("service_identity_unverified") from None
     if not container_home:
@@ -186,7 +188,9 @@ def _s6(home: Path, deadline: float) -> ExistingService | None:
 def _launchd(home: Path, deadline: float) -> ExistingService | None:
     import pwd
     suffix = service_suffix(home)
-    label = f"ai.hermes.gateway{'-' + suffix if suffix else ''}"
+    from hermes_cli.service_names import gateway_launchd_label
+
+    label = gateway_launchd_label(suffix)
     account = pwd.getpwuid(os.getuid())  # windows-footgun: ok — native launchd only
     account_home = Path(account.pw_dir)
     plist = account_home / "Library/LaunchAgents" / f"{label}.plist"
@@ -253,7 +257,7 @@ def _windows(home: Path, deadline: float) -> ExistingService | None:
 
 def _no_supervisor(home: Path, deadline: float) -> None:
     """Android/Termux has no service manager (main refuses `gateway install/start` there and says
-    "Run manually: hermes gateway"): an unmanaged detached start is its only owner. Python 3.13+
+    "Run manually: a2assistant gateway"): an unmanaged detached start is its only owner. Python 3.13+
     reports ``sys.platform == "android"``; older Termux interpreters report linux and reach the
     systemd probe, which finds no unit and lands on the same unmanaged start."""
 

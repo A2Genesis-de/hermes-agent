@@ -43,21 +43,21 @@ Las habilidades incluidas (en `skills/`) se envían con cada instalación de Her
 - Manejo de documentos, investigación web, flujos de trabajo de desarrollo comunes, administración de sistemas
 - Usadas regularmente por una amplia gama de personas
 
-Si tu habilidad es oficial y útil pero no universalmente necesaria (ej., una integración de servicio de pago, una dependencia pesada), ponla en **`optional-skills/`** — se envía con el repositorio pero no está activada por defecto. Los usuarios pueden descubrirla a través de `hermes skills browse` (etiquetada como "oficial") e instalarla con `hermes skills install` (sin advertencia de terceros, confianza integrada).
+Si tu habilidad es oficial y útil pero no universalmente necesaria (ej., una integración de servicio de pago, una dependencia pesada), ponla en **`optional-skills/`** — se envía con el repositorio pero no está activada por defecto. Los usuarios pueden descubrirla a través de `a2assistant skills browse` (etiquetada como "oficial") e instalarla con `a2assistant skills install` (sin advertencia de terceros, confianza integrada).
 
-Si tu habilidad es especializada, contribuida por la comunidad o de nicho, es mejor para un **Skills Hub** — súbela a un registro de habilidades y compártela en el [Discord de Nous Research](https://discord.gg/NousResearch). Los usuarios pueden instalarla con `hermes skills install`.
+Si tu habilidad es especializada, contribuida por la comunidad o de nicho, es mejor para un **Skills Hub** — súbela a un registro de habilidades y compártela en el [Discord de Nous Research](https://discord.gg/NousResearch). Los usuarios pueden instalarla con `a2assistant skills install`.
 
 ---
 
 ## Proveedores de Memoria: Publicar como Plugin Independiente
 
-**Ya no aceptamos nuevos proveedores de memoria en este repositorio.** El conjunto de proveedores integrados en `plugins/memory/` (byterover, retaindb) está cerrado, y los antiguos proveedores integrados hindsight, honcho, supermemory, mem0, openviking y holographic ahora se distribuyen desde el catálogo de plugins. Si quieres añadir un nuevo backend de memoria, publícalo como un **repositorio de plugin independiente** que los usuarios instalen en `~/.hermes/plugins/` (o a través de un entry point de pip).
+**Ya no aceptamos nuevos proveedores de memoria en este repositorio.** El conjunto de proveedores integrados en `plugins/memory/` (byterover, retaindb) está cerrado, y los antiguos proveedores integrados hindsight, honcho, supermemory, mem0, openviking y holographic ahora se distribuyen desde el catálogo de plugins. Si quieres añadir un nuevo backend de memoria, publícalo como un **repositorio de plugin independiente** que los usuarios instalen en `~/.a2assistant/plugins/` (o a través de un entry point de pip).
 
 Los plugins de memoria independientes:
 
 - Implementan el mismo ABC `MemoryProvider` (`agent/memory_provider.py`) — `sync_turn`, `prefetch`, `shutdown` y opcionalmente `post_setup(hermes_home, config)` para integración con el asistente de configuración
 - Usan el mismo sistema de descubrimiento — `discover_memory_providers()` los recoge desde directorios de plugins de usuario/proyecto y entry points de pip
-- Se integran con `hermes memory setup` a través de `post_setup()` — sin necesidad de tocar el código base
+- Se integran con `a2assistant memory setup` a través de `post_setup()` — sin necesidad de tocar el código base
 - Pueden registrar sus propios subcomandos CLI a través de `register_cli(subparser)` en un archivo `cli.py`
 - Obtienen todos los mismos hooks de ciclo de vida y plomería de configuración que los proveedores incluidos en el árbol
 
@@ -73,20 +73,20 @@ Esto no es una barra de calidad — es una decisión de acoplamiento y mantenimi
 
 Se requieren Git y git-lfs. PM proporciona Python 3.14 (`>=3.14,<3.15`) y las herramientas fijadas.
 Sigue el [flujo de desarrollo de PM](website/docs/reference/package-management.md#developer-workflow).
-Selecciona un `HERMES_HOME` de desarrollo antes de preparar el checkout.
+Selecciona un `A2ASSISTANT_HOME` de desarrollo antes de preparar el checkout.
 
 En Bash, desde la raíz del repositorio:
 
 ```bash
 source ./activate
-hermes --version
+a2assistant --version
 ```
 
 En PowerShell:
 
 ```powershell
 . .\activate.ps1
-hermes --version
+a2assistant --version
 ```
 
 ### Entorno independiente de pruebas
@@ -107,7 +107,7 @@ Si cambias `pyproject.toml`, regenera el lock, vuelve a cargar la activación y
 confirma `pyproject.toml` junto con `uv.lock`:
 
 ```bash
-hermes pm lock
+a2assistant pm lock
 source ./activate
 ```
 
@@ -176,28 +176,28 @@ hermes-agent/
 │   ├── install.ps1               # Instalador Windows PowerShell
 │   └── whatsapp-bridge/          # Puente WhatsApp Node.js (Baileys)
 │
-├── skills/                   # Habilidades incluidas (copiadas a ~/.hermes/skills/ en la instalación)
+├── skills/                   # Habilidades incluidas (copiadas a ~/.a2assistant/skills/ en la instalación)
 ├── optional-skills/          # Habilidades opcionales oficiales (descubribles vía hub, no activadas por defecto)
 ├── tests/                    # Suite de tests
 ├── website/                  # Sitio de documentación (hermes-agent.nousresearch.com)
 │
-├── cli-config.yaml.example   # Configuración de ejemplo (copiada a ~/.hermes/config.yaml)
+├── cli-config.yaml.example   # Configuración de ejemplo (copiada a ~/.a2assistant/config.yaml)
 └── AGENTS.md                 # Guía de desarrollo para asistentes de codificación IA
 ```
 
-### Configuración del usuario (almacenada en `~/.hermes/`)
+### Configuración del usuario (almacenada en `~/.a2assistant/`)
 
 | Ruta | Propósito |
 |------|-----------|
-| `~/.hermes/config.yaml` | Configuración (modelo, terminal, toolsets, compresión, etc.) |
-| `~/.hermes/.env` | Claves API y secretos |
-| `~/.hermes/auth.json` | Credenciales OAuth (Nous Portal) |
-| `~/.hermes/skills/` | Todas las habilidades activas (incluidas + instaladas desde hub + creadas por el agente) |
-| `~/.hermes/memories/` | Memoria persistente (MEMORY.md, USER.md) |
-| `~/.hermes/state.db` | Base de datos de sesiones SQLite |
-| `~/.hermes/sessions/` | Índice de enrutamiento del gateway (`sessions.json`), migas de pan de solicitudes, transcripciones `*.jsonl` del gateway y exportaciones explícitas con `/save`. Ya no se escriben snapshots JSON automáticos; los archivos existentes se conservan y state.db es canónica. |
-| `~/.hermes/cron/` | Datos de trabajos programados |
-| `~/.hermes/whatsapp/session/` | Credenciales del puente WhatsApp |
+| `~/.a2assistant/config.yaml` | Configuración (modelo, terminal, toolsets, compresión, etc.) |
+| `~/.a2assistant/.env` | Claves API y secretos |
+| `~/.a2assistant/auth.json` | Credenciales OAuth (Nous Portal) |
+| `~/.a2assistant/skills/` | Todas las habilidades activas (incluidas + instaladas desde hub + creadas por el agente) |
+| `~/.a2assistant/memories/` | Memoria persistente (MEMORY.md, USER.md) |
+| `~/.a2assistant/state.db` | Base de datos de sesiones SQLite |
+| `~/.a2assistant/sessions/` | Índice de enrutamiento del gateway (`sessions.json`), migas de pan de solicitudes, transcripciones `*.jsonl` del gateway y exportaciones explícitas con `/save`. Ya no se escriben snapshots JSON automáticos; los archivos existentes se conservan y state.db es canónica. |
+| `~/.a2assistant/cron/` | Datos de trabajos programados |
+| `~/.a2assistant/whatsapp/session/` | Credenciales del puente WhatsApp |
 
 ---
 
@@ -397,7 +397,7 @@ Hermes usa un sistema de skins basado en datos — no se necesitan cambios de c�
 
 **Opción A: Skin de usuario (archivo YAML)**
 
-Crea `~/.hermes/skins/<nombre>.yaml`:
+Crea `~/.a2assistant/skins/<nombre>.yaml`:
 
 ```yaml
 name: mitema
@@ -523,7 +523,7 @@ refactor/descripcion   # Reestructuración de código
 ### Antes de enviar
 
 1. **Ejecutar tests**: `scripts/run_tests.sh` (recomendado; igual que CI) o `pytest tests/ -v` con el venv del proyecto activado
-2. **Probar manualmente**: Ejecuta `hermes` y ejercita la ruta de código que cambiaste
+2. **Probar manualmente**: Ejecuta `a2assistant` y ejercita la ruta de código que cambiaste
 3. **Verificar impacto multiplataforma**: Si tocas E/S de archivos, gestión de procesos o manejo del terminal, considera macOS, Linux y WSL2
 4. **Mantén los PRs enfocados**: Un cambio lógico por PR. No mezcles una corrección de error con una refactorización con una nueva funcionalidad.
 
@@ -567,7 +567,7 @@ test(tools): añadir tests unitarios para file_operations
 ## Reportar Issues
 
 - Usa [GitHub Issues](https://github.com/NousResearch/hermes-agent/issues)
-- Incluye: SO, versión de Python, versión de Hermes (`hermes --version`), traza de error completa
+- Incluye: SO, versión de Python, versión de Hermes (`a2assistant --version`), traza de error completa
 - Incluye pasos para reproducir
 - Verifica los issues existentes antes de crear duplicados
 - Para vulnerabilidades de seguridad, por favor reporta de forma privada

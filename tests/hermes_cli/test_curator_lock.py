@@ -1,4 +1,4 @@
-"""`hermes curator lock|unlock` (#25083, #140332): a per-profile user declaration that the
+"""`a2assistant curator lock|unlock` (#25083, #140332): a per-profile user declaration that the
 autonomous passes may not change a skill's content. The flag lives beside ``pinned`` in the
 active profile's ``skills/.usage.json``; ``curator status`` lists it."""
 
@@ -22,12 +22,12 @@ def _make_skill(skills_dir: Path, name: str) -> Path:
 
 @pytest.fixture
 def lock_env(tmp_path, monkeypatch):
-    """Isolated HERMES_HOME with freshly reloaded modules (same shape as test_curator_pin_visibility)."""
+    """Isolated A2ASSISTANT_HOME with freshly reloaded modules (same shape as test_curator_pin_visibility)."""
     home = tmp_path / ".hermes"
     skills = home / "skills"
     skills.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     import hermes_constants
     importlib.reload(hermes_constants)
@@ -64,7 +64,7 @@ def test_lock_then_unlock_round_trip_on_a_hand_written_skill(lock_env):
     code, out = _run(env["cli"], "lock", "coding-standards")
     assert code == 0, out
     assert "locked 'coding-standards'" in out
-    assert "hermes curator unlock coding-standards" in out
+    assert "a2assistant curator unlock coding-standards" in out
     assert env["usage"].is_locked("coding-standards") is True
     rec = _sidecar(env["skills"])["coding-standards"]
     assert rec["locked"] is True

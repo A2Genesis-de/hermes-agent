@@ -1,6 +1,6 @@
 """Native PTY clients against an ordinary daemon and loopback model only.
 
-`hermes --cli chat` (interactive and -q/-Q) is main's HermesCLI again, its agent and session store the
+`a2assistant --cli chat` (interactive and -q/-Q) is main's HermesCLI again, its agent and session store the
 gateway's; `-z` stays on the gateway transport client. The CLI process may read state.db (maintainer
 ruling) but builds no AIAgent, no GatewayRunner and no SessionDB writer. The thin client's
 `/approve <id>` detach/reconnect leg is retired: main's classic approval is the modal the A/B harness
@@ -43,7 +43,7 @@ def test_native_classic_fresh_resume_and_oneshot(tmp_path, model_peer, request):
         "telemetry": {"shared_metrics": {"enabled": False}},
     }))
     env = {k: os.environ[k] for k in ("PATH", "LANG", "TZ") if k in os.environ}
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home),
                PYTHONPATH=str(root), PYTHONUNBUFFERED="1",
                OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=model_url)
     # Instrument constructor calls without replacing runtime predicates or behavior.

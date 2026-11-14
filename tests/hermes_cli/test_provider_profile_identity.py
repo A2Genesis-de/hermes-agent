@@ -1,6 +1,6 @@
 """Plugin ProviderProfiles resolve wherever a provider NAME is resolved at switch time (#69576).
 
-Discovery is real (a plugin dir under the test HERMES_HOME); only the remote model probe is stubbed.
+Discovery is real (a plugin dir under the test A2ASSISTANT_HOME); only the remote model probe is stubbed.
 """
 
 from __future__ import annotations

@@ -21,7 +21,7 @@ REF = SessionRef('owned', 's')
 @pytest.mark.parametrize('reused', [True, False])
 async def test_completion_carries_the_reused_final_flag(tmp_path, monkeypatch, reused):
     from gateway import session_finite
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(db_path=tmp_path / 'state.db')
     db.create_session('s', source='test')
     epoch = begin_runtime_epoch(db, instance_id='current')

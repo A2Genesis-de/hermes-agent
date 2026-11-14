@@ -124,7 +124,7 @@ def _bootstrap_failure(monkeypatch, root, error):
 
 @pytest.mark.platforms("posix")  # the mint dials connect_private; Windows uses the named pipe
 def test_a_refused_mint_prints_its_repair_command(monkeypatch, tmp_path):
-    """The control home's refusal reaches the TUI as the verdict `hermes gateway attach` prints: each
+    """The control home's refusal reaches the TUI as the verdict `a2assistant gateway attach` prints: each
     line a `gateway inaccessible:` verdict Ink echoes inline, the last ending in the repair command."""
     from hermes_cli.gateway_runtime_discovery import _open_mode
 

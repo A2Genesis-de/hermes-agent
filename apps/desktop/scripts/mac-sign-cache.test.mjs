@@ -197,7 +197,7 @@ test('the signer hands cache-signed binaries to osx-sign as ignored and still se
     const signer = createMacSigner(
       { entitlements: 'app.plist', entitlementsInherit: f.opts.entitlements, hardenedRuntime: true,
         ignore: file => file === policyIgnored },
-      { env: { HERMES_MAC_SIGNATURE_CACHE: f.opts.root }, sign,
+      { env: { A2ASSISTANT_MAC_SIGNATURE_CACHE: f.opts.root }, sign,
         team: async () => 'TEAMID1234',
         makeCache: options => createMacSignCache({ ...options, codesign: f.codesign, verify: f.verify }) })
     const packager = { helper: { getOptionsForFile: async () => () => ({}) } }
@@ -222,10 +222,10 @@ test('the signer does not seal an app when cache signing fails verification', as
   const f = fixture()
   try {
     f.put('Resources/agent-payload/venv/lib/_core.so', machO('a'))
-    const sign = vi.fn(async (/** @type {import('@electron/osx-sign').SignOptions} */ _opts) => {})
+    const sign = vi.fn(async () => {})
     const signer = createMacSigner(
       { entitlementsInherit: f.opts.entitlements, hardenedRuntime: true, ignore: () => false },
-      { env: { HERMES_MAC_SIGNATURE_CACHE: f.opts.root }, sign,
+      { env: { A2ASSISTANT_MAC_SIGNATURE_CACHE: f.opts.root }, sign,
         team: async () => 'TEAMID1234',
         makeCache: options => createMacSignCache({ ...options, codesign: f.codesign, verify: async () => new Set() }) })
     const packager = { helper: { getOptionsForFile: async () => () => ({}) } }

@@ -100,8 +100,8 @@ class _RecordingConn:
 
 @pytest.fixture
 def acp(tmp_path, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.setenv("HERMES_DISABLE_PLUGINS", "1")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_DISABLE_PLUGINS", "1")
     monkeypatch.setenv("NO_PROXY", "127.0.0.1,localhost")
     provider = _LoopbackProvider()
 
@@ -332,7 +332,7 @@ def test_failed_turn_boundary_is_idempotent_on_the_durable_tail_and_skips_contex
     from agent.turn_failure_copy import PARTIAL_FAILED_TURN_NOTICE
     from hermes_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")
     sid = "s1"
     db.create_session(session_id=sid, source="acp", model="m")
@@ -403,7 +403,7 @@ def test_failed_turn_boundary_keeps_the_error_card_for_rehydration(tmp_path, mon
     from agent.conversation_loop import _close_durable_failed_turn
     from hermes_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")
     sid = "s1"
     db.create_session(session_id=sid, source="acp", model="m")
@@ -438,7 +438,7 @@ def test_failed_turn_after_a_tool_row_is_closed_with_its_error_card(tmp_path, mo
     from agent.turn_failure_copy import FAILED_TURN_DISPLAY_KIND, PARTIAL_FAILED_TURN_NOTICE
     from hermes_state import SessionDB
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     db = SessionDB(tmp_path / "state.db")
     sid = "s1"
     db.create_session(session_id=sid, source="tui", model="m")

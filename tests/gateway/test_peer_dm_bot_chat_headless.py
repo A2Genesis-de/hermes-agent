@@ -1,6 +1,6 @@
 """A headless gateway's first peer DM lands in a Bot Chat its own authority FIFO owns.
 
-``hermes peer dm`` creates the remote canonical chat through ``POST /api/sessions`` when it is
+``a2assistant peer dm`` creates the remote canonical chat through ``POST /api/sessions`` when it is
 missing. With no Desktop/CLI in the loop that create used to mint an API row nothing can ever bind
 (the peer is a remote sender, never a native ticket), so every DM answered 502 "admission refused:
 not_found" (#139370). The titled create now goes through the owner's own Bot Chat creation step;
@@ -26,7 +26,7 @@ async def headless(tmp_path, monkeypatch):
     from gateway.session import SessionStore
     from gateway.session_authority import initialize_session_authority
 
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     # A following Bot Chat reads the profile config by path.
     monkeypatch.setattr(run, '_load_gateway_config',
                         lambda *_path: {'platform_toolsets': {'cli': []}, 'model': {'default': 'fixture'}})
@@ -248,7 +248,7 @@ async def _peer_minted(headless):
 
 def _local_owner(authority, user_id='uid:1000'):
     """The Desktop/CLI's own connection: an interactive ticket redeemed on the loopback socket
-    (``gateway/run_api.py``), the identity ``hermes chat``, the Desktop and ``bot_relay.deliver`` use.
+    (``gateway/run_api.py``), the identity ``a2assistant chat``, the Desktop and ``bot_relay.deliver`` use.
     *user_id*: the login a same-user peer forwards on that ticket (control socket, #138915)."""
     from gateway.runtime_bootstrap import _PURPOSE_CAPABILITIES
     from gateway.session_controls import AuthorityConnection

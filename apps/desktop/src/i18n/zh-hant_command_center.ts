@@ -232,7 +232,7 @@ export const zhHantCommandCenter = {
     exported: '設定檔已匯出',
     failedImport: '匯入設定檔失敗',
     failedExport: '匯出設定檔失敗',
-    exportNeedsHost: name => `瀏覽器無法儲存設定檔封存。請在 A2Assistant 主機上執行：hermes profile export ${name}`,
+    exportNeedsHost: name => `瀏覽器無法儲存設定檔封存。請在 A2Assistant 主機上執行：a2assistant profile export ${name}`,
     allProfiles: '全部設定檔',
     showAllProfiles: '顯示全部設定檔',
     notServedHere: '此處未提供',

@@ -9,7 +9,7 @@ On a gateway that lands on the event loop: the per-message hook path
 (``invoke_hook`` -> ``_resolve_hook_callback_timeout``) reads config, so one
 background config write stalls every inbound message for its whole duration.
 
-These tests drive the real functions against a temp HERMES_HOME -- no mocks of
+These tests drive the real functions against a temp A2ASSISTANT_HOME -- no mocks of
 the thing under test, no source reading.
 """
 
@@ -33,7 +33,7 @@ def config_home(tmp_path, monkeypatch):
     for i in range(100):
         lines += [f"section_{i}:", f"  key_a: value_{i}"]
     (home / "config.yaml").write_text("\n".join(lines) + "\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     from hermes_cli import config as cfgmod
 

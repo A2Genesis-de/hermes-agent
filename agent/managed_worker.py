@@ -354,7 +354,7 @@ def execute(frame, channel):
     from tools.approval import register_gateway_notify, unregister_gateway_notify
     from tools.approval_context import set_current_session_key
     set_current_session_key(frame['route'])
-    os.environ['HERMES_GATEWAY_SESSION'] = '1'
+    os.environ['A2ASSISTANT_GATEWAY_SESSION'] = '1'
     from gateway.session_worker_construct import checkpoint_agent_kwargs, construct_kwargs, routing_agent_kwargs
     construct = {'ephemeral_system_prompt': policy.skills_prompt, **construct_kwargs(frame)}
     controls = WorkerControls(channel, frame['route'])

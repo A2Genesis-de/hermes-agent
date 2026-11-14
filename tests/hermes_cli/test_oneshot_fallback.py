@@ -1,4 +1,4 @@
-"""#81209: ``hermes -z`` must consult the fallback chain at *resolution* time.
+"""#81209: ``a2assistant -z`` must consult the fallback chain at *resolution* time.
 
 A quota-exhausted / expired primary raises ``AuthError`` from ``resolve_runtime_provider`` before
 ``AIAgent`` exists, so the mid-session ``fallback_model`` wiring never gets a chance. The shared

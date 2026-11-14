@@ -22,7 +22,7 @@ def standalone_home(tmp_path, monkeypatch):
     home.mkdir(parents=True)
     (root / "config.yaml").write_text("model:\n  default: x\n", encoding="utf-8")
     (home / "config.yaml").write_text("gateway:\n  standalone: true\n", encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     from hermes_cli import gateway as gw
     # The probe seams live on the hermes_cli.gateway facade, like the other refusal tests.

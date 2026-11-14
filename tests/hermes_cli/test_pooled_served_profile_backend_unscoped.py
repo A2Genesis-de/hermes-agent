@@ -1,11 +1,11 @@
-"""A pooled Desktop backend (``hermes --profile X serve``, HERMES_HOME=<root>/profiles/X) answers its
+"""A pooled Desktop backend (``a2assistant --profile X serve``, A2ASSISTANT_HOME=<root>/profiles/X) answers its
 REST without ``?profile=``. Those UNSCOPED reads/verbs are about X — a profile the live default
-multiplexer serves — and must agree with the scoped ``?profile=X`` answer and with ``hermes -p X status``:
+multiplexer serves — and must agree with the scoped ``?profile=X`` answer and with ``a2assistant -p X status``:
 running-via-multiplexer, start/stop refused, restart addressed to the multiplexer's home.
 
 Live repro (Desktop over a multiplexed HOME): Command Center said "Messaging gateway stopped" for X,
 the Messaging page pinned every platform "gateway stopped", and Restart spawned a bare ``gateway
-restart`` under X's HERMES_HOME that exited 78 while the UI reported success.
+restart`` under X's A2ASSISTANT_HOME that exited 78 while the UI reported success.
 """
 
 from __future__ import annotations
@@ -18,7 +18,7 @@ import pytest
 
 @pytest.fixture
 def pooled_served_process(tmp_path, monkeypatch):
-    """Process whose HERMES_HOME is a served named profile; the default home records a live multiplexer."""
+    """Process whose A2ASSISTANT_HOME is a served named profile; the default home records a live multiplexer."""
     root = tmp_path / "hermes"
     for name in ("alpha", "solo"):
         (root / "profiles" / name).mkdir(parents=True)
@@ -29,13 +29,13 @@ def pooled_served_process(tmp_path, monkeypatch):
         "pid": os.getpid(), "hermes_home": str(root), "gateway_state": "running",
         "served_profiles": ["default", "alpha"],
         "platforms": {"api_server": {"state": "connected"}, "alpha:telegram": {"state": "connected"}}}))
-    monkeypatch.setenv("HERMES_HOME", str(root / "profiles" / "alpha"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root / "profiles" / "alpha"))
     monkeypatch.delenv("GATEWAY_MULTIPLEX_PROFILES", raising=False)
     import hermes_constants
     from gateway import status
     # Liveness is a verified identity; this pytest process passes as the default gateway only by
     # wearing a gateway command line.
-    monkeypatch.setattr(status, "_read_process_cmdline", lambda pid: "hermes gateway run")
+    monkeypatch.setattr(status, "_read_process_cmdline", lambda pid: "a2assistant gateway run")
     monkeypatch.setattr(hermes_constants, "_default_hermes_root_memo", None)
     from hermes_cli import profiles as profiles_mod
     monkeypatch.setattr(profiles_mod, "_check_gateway_running", lambda home: False)
@@ -59,7 +59,7 @@ def test_unscoped_lifecycle_verbs_in_a_served_profile_process_address_the_multip
     restart = _gateway_subcommand(None, "restart")
     assert restart[-2:] == ["gateway", "restart"]
     # The child must run under the DEFAULT home (the multiplexer's), not inherit alpha's HERMES_HOME.
-    assert _profile_action_environment(restart)["HERMES_HOME"] == str(pooled_served_process)
+    assert _profile_action_environment(restart)["A2ASSISTANT_HOME"] == str(pooled_served_process)
     # A profile with no multiplexer relationship is still managed as its own gateway.
     assert _gateway_subcommand("solo", "restart") == ["-p", "solo", "gateway", "restart"]
     assert multiplexed_profile_refusal("solo", "stop") is None

@@ -11,7 +11,7 @@ A plugin MUST NOT modify `run_agent.py`, `cli.py`, `gateway/run.py`, `hermes_cli
 If it needs a capability the framework lacks, widen the **generic** plugin surface (new hook, new
 ctx method) and have the plugin use it — never hardcode plugin-specific logic into core (PR #5295
 removed 95 lines of hardcoded honcho argparse from `main.py`). Plugin setup goes through
-`hermes memory setup` → `provider.post_setup(hermes_home, config)`, never a parallel top-level
+`a2assistant memory setup` → `provider.post_setup(hermes_home, config)`, never a parallel top-level
 command. A hook with no concrete consumer is speculative infrastructure and is rejected (root).
 
 ## What may live in this tree (policy)
@@ -26,22 +26,22 @@ command. A hook with no concrete consumer is speculative infrastructure and is r
   still needs a provider module resolves it through `plugins.memory.import_provider_module`,
   never a `plugins.memory.<name>` import. New
   backends ship as standalone repos implementing the same `MemoryProvider` ABC, discovered through
-  the same path, integrated via `hermes memory setup` / `post_setup()`.
+  the same path, integrated via `a2assistant memory setup` / `post_setup()`.
 - **Other features that leave core** (Home Assistant platform + toolset, Oct 2026 →
   `plugin-catalog/homeassistant.yaml`; Spotify toolset → `plugin-catalog/spotify.yaml`; Singularity
   terminal backend → `plugin-catalog/singularity.yaml`) keep their
   names/config/env and get a row in
   `hermes_cli/left_core_migration.py::LEFT_CORE` (catalog plugin + read-only "this home uses it"
-  predicate); `hermes update` and agent/gateway start install the plugin for homes that used it.
+  predicate); `a2assistant update` and agent/gateway start install the plugin for homes that used it.
   Installing and converting core-era state are separate steps: the toolset-scope conversion runs
   once per home and row (`_left_core_scoped` in config.yaml) even when the plugin is already there.
   The automatic install also happens once per home and row (`_left_core_installed`, written only
-  once the plugin dir exists): a later `hermes plugins remove` sticks, a failed install retries.
+  once the plugin dir exists): a later `a2assistant plugins remove` sticks, a failed install retries.
   Core special cases become `PlatformEntry` seams the plugin sets (`trusted_inbound`,
-  `display_tier`, `shared_env_prefixes`), never a name check. A core `hermes auth <name>` login
+  `display_tier`, `shared_env_prefixes`), never a name check. A core `a2assistant auth <name>` login
   becomes the plugin's own `hermes <name>` command (row field `cli`; the old spelling prints the new one),
   and a nested core command becomes a top-level plugin command (`command` + `old_command`:
-  `hermes mcp serve` → `hermes mcp-serve`). A feature with no in-home signal (MCP clients live
+  `a2assistant mcp serve` → `hermes mcp-serve`). A feature with no in-home signal (MCP clients live
   outside Hermes) gets an `in_use` that is always False: hint only, never an automatic install.
   A built-in terminal backend leaves its name off `BUILTIN_BACKEND_NAMES` so the plugin can register it
   (row field `terminal_backend`: unknown-backend errors name the install command).
@@ -53,7 +53,7 @@ command. A hook with no concrete consumer is speculative infrastructure and is r
   `notice` adds a per-home sentence to every outcome (a credential source the plugin no longer reads).
 - **No new third-party-product plugins (June 2026).** Observability/metrics backends, vendor SaaS
   connectors, analytics dashboards, paid-service tie-ins ship as standalone plugin repos
-  (`~/.hermes/plugins/` or pip entry point) promoted in Discord `#plugins-skills-and-skins`. Reason:
+  (`~/.a2assistant/plugins/` or pip entry point) promoted in Discord `#plugins-skills-and-skins`. Reason:
   every absorbed product is our maintenance burden against a fast-moving core for a backend we don't
   own. `kanban/` is precedent, not an invitation (Langfuse already moved out to the
   official catalog plugin). Closing such a
@@ -65,8 +65,8 @@ command. A hook with no concrete consumer is speculative infrastructure and is r
 ## Out-of-tree plugins
 
 There is no plugin catalog: out-of-tree plugins are installed from a Git URL, `owner/repo` or a
-local path (`hermes plugins install`), stay at the revision they were installed at and are replaced
-with `hermes plugins install --force`. Nothing checks them for updates. Install provenance lives on
+local path (`a2assistant plugins install`), stay at the revision they were installed at and are replaced
+with `a2assistant plugins install --force`. Nothing checks them for updates. Install provenance lives on
 the installer-owned `.install-metadata.json` record; a `.hermes-catalog.json` left in an older
 install is ignored. The `LEFT_CORE` / memory-provider migrations below find no catalog any more and
 only print install hints.
@@ -75,9 +75,9 @@ only print install hints.
 
 | Kind | Where | Discovery | Notes |
 |---|---|---|---|
-| General | `plugins/<name>/`, `~/.hermes/plugins/`, `./.hermes/plugins/`, pip entry points | `PluginManager` (`hermes_cli/plugins.py`), later-wins | `register(ctx)` registers hooks (`pre_tool_call`, `post_tool_call`, `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`), tools (`ctx.register_tool`), CLI subcommands (`ctx.register_cli_command` — argparse tree wired into `hermes` at startup, no `main.py` change), language packs (`provides_locales` in the manifest auto-registers `locales/<lang>[.tui|.desktop].yaml` via `ctx.register_locale_dir`; manifest-only packs need no `__init__.py`; `hermes_cli/plugin_validate_locales.py` validates them) |
-| Memory provider | `plugins/memory/<name>/` | `plugins/memory/__init__.py`: bundled → `$HERMES_HOME/plugins/` → `./.hermes/plugins/` (opt-in `HERMES_ENABLE_PROJECT_PLUGINS`) → `hermes_agent.memory_providers` entry points; **bundled-first** | Activated by name via `memory.provider`, so a dropped-in dir must not shadow a shipped one (reverse of general later-wins). Enumerates without importing. Implements `MemoryProvider` ABC (`agent/memory_provider.py`), orchestrated by `agent/memory_manager.py`: `sync_turn`, `prefetch`, `shutdown`, optional `post_setup`. `cli.py` with `register_cli(subparser)` is wired by `discover_plugin_cli_commands()` — only for the ACTIVE provider, so `hermes --help` stays clean |
-| Model provider | `plugins/model-providers/<name>/` | `providers/__init__.py._discover_providers()`, **lazy**, on first `get_provider_profile()`/`list_providers()`; bundled → `$HERMES_HOME/plugins/model-providers/` → legacy `providers/<name>.py` | `__init__.py` calls `providers.register_provider(ProviderProfile(...))` at load; **last-writer-wins** so a user plugin overrides a bundled profile. `PluginManager` records `kind: model-provider` manifests but does NOT import them (would double-instantiate); manifests without `kind:` are auto-coerced by source heuristic (`register_provider` + `ProviderProfile`) |
+| General | `plugins/<name>/`, `~/.a2assistant/plugins/`, `./.hermes/plugins/`, pip entry points | `PluginManager` (`hermes_cli/plugins.py`), later-wins | `register(ctx)` registers hooks (`pre_tool_call`, `post_tool_call`, `pre_llm_call`, `post_llm_call`, `on_session_start`, `on_session_end`), tools (`ctx.register_tool`), CLI subcommands (`ctx.register_cli_command` — argparse tree wired into `a2assistant` at startup, no `main.py` change), language packs (`provides_locales` in the manifest auto-registers `locales/<lang>[.tui|.desktop].yaml` via `ctx.register_locale_dir`; manifest-only packs need no `__init__.py`; `hermes_cli/plugin_validate_locales.py` validates them) |
+| Memory provider | `plugins/memory/<name>/` | `plugins/memory/__init__.py`: bundled → `$A2ASSISTANT_HOME/plugins/` → `./.hermes/plugins/` (opt-in `A2ASSISTANT_ENABLE_PROJECT_PLUGINS`) → `hermes_agent.memory_providers` entry points; **bundled-first** | Activated by name via `memory.provider`, so a dropped-in dir must not shadow a shipped one (reverse of general later-wins). Enumerates without importing. Implements `MemoryProvider` ABC (`agent/memory_provider.py`), orchestrated by `agent/memory_manager.py`: `sync_turn`, `prefetch`, `shutdown`, optional `post_setup`. `cli.py` with `register_cli(subparser)` is wired by `discover_plugin_cli_commands()` — only for the ACTIVE provider, so `a2assistant --help` stays clean |
+| Model provider | `plugins/model-providers/<name>/` | `providers/__init__.py._discover_providers()`, **lazy**, on first `get_provider_profile()`/`list_providers()`; bundled → `$A2ASSISTANT_HOME/plugins/model-providers/` → legacy `providers/<name>.py` | `__init__.py` calls `providers.register_provider(ProviderProfile(...))` at load; **last-writer-wins** so a user plugin overrides a bundled profile. `PluginManager` records `kind: model-provider` manifests but does NOT import them (would double-instantiate); manifests without `kind:` are auto-coerced by source heuristic (`register_provider` + `ProviderProfile`) |
 | Context engine / image-gen / delegation / others | `plugins/context_engine/`, `plugins/image_gen/`, `plugins/delegation/`, ... | ABC + orchestrator + per-plugin directory | Plug into `agent/context_engine.py`, `agent/image_gen_provider.py`, `agent/delegation_provider.py` (`plugins/delegation/default` IS today's delegation routing) |
 | Platform adapters | `plugins/platforms/<name>/adapter.py` | gateway | Token-lock and scoped-secret rules in `gateway/AGENTS.md` (`telegram` is canonical) |
 
@@ -121,12 +121,12 @@ Invariants:
   import. A new user-code loader MUST do the same.
 - **What cannot cross is one table:** `plugin_isolation.HOST_UNSUPPORTED_CTX_METHODS` (live gateway /
   adapter objects). The runtime refusal and the static audit (`plugin_isolation_audit.py`, shown by
-  `hermes plugins validate/show`) both read it.
+  `a2assistant plugins validate/show`) both read it.
 - **Values keep the provider ABC's declared types across the wire:** JSON carries dicts, lists and
   scalars, so `plugin_host_wire.restore` rebuilds arguments (child) and results (parent) from the ABC's
   annotations (`FetchResult`, `Path`, enums, a returned engine as a proxy). A value a core consumer
   type-checks must be a dataclass annotated on the ABC method, or it arrives as `Record`/`Opaque`.
-- **A host never spawns a host** (`HERMES_PLUGIN_HOST_PROCESS=1` makes `isolation_mode()` in-process
+- **A host never spawns a host** (`A2ASSISTANT_PLUGIN_HOST_PROCESS=1` makes `isolation_mode()` in-process
   there) and must not start while a module import holds its lock (model-provider discovery is the
   known case).
 - **The isolated party cannot opt out when an operator pins it:** `isolation_mode()` / `host_launcher()`
@@ -172,12 +172,12 @@ count sticks. Never run it just to turn CI green.
 
 PR #102117 moved internals into `<stem>_<topic>` siblings. The temporary compat layer that kept the
 old import paths alive for external plugins was removed after its 2026-09-14 window; an old path now
-raises `ImportError`, surfaced as the plugin's load error in `hermes plugins list`. Plugins build on
+raises `ImportError`, surfaced as the plugin's load error in `a2assistant plugins list`. Plugins build on
 `ctx` and the documented ABCs. Never add re-export shims for an internal move. `hermes_cli/plugin_compat.py`
 survives only as three inert stubs that already-running pre-removal updaters import.
 
 ## Tests
 
-`tests/plugins/`. Load through real discovery with a temp `HERMES_HOME`; assert behaviour (tool
+`tests/plugins/`. Load through real discovery with a temp `A2ASSISTANT_HOME`; assert behaviour (tool
 registered, hook fired with expected kwargs), not counts. Opt-in telemetry rule applies to plugins
 too: no attribution tag ships by default.

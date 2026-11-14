@@ -9,7 +9,7 @@ import { createDesktopProfilePreferences, type MissingLocalProfileCheck } from '
 import { localProfileIsLive } from './local-profile-liveness'
 
 // The preference file lives in Electron userData, which a Hermes reinstall
-// does not touch; the profiles live under HERMES_HOME, which it can wipe.
+// does not touch; the profiles live under A2ASSISTANT_HOME, which it can wipe.
 let root = ''
 let target = ''
 let profilesRoot = ''
@@ -74,7 +74,7 @@ test('existing, default and explicitly launched profiles are kept', () => {
 // hermes_constants.named_profile_is_live refuses both shapes, so `--profile`
 // would fail every launch while the preference survived.
 test.each([
-  ['tombstoned by `hermes profile delete`', (home: string) => {
+  ['tombstoned by `a2assistant profile delete`', (home: string) => {
     fs.writeFileSync(path.join(home, 'config.yaml'), '')
     fs.mkdirSync(path.join(profilesRoot, '.deleted'))
     fs.writeFileSync(path.join(profilesRoot, '.deleted', 'ghost'), 'deleted\n')

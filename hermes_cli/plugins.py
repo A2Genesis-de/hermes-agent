@@ -1,8 +1,8 @@
 """Hermes Plugin System — discovers, loads, and manages plugins.
 
 Sources, later overriding earlier on key collision: bundled ``<repo>/plugins/<name>/`` (``memory/``
-and ``context_engine/`` have their own discovery), user ``~/.hermes/plugins/<name>/``, project
-``./.hermes/plugins/<name>/`` (opt-in via ``HERMES_ENABLE_PROJECT_PLUGINS``), and pip packages in
+and ``context_engine/`` have their own discovery), user ``~/.a2assistant/plugins/<name>/``, project
+``./.hermes/plugins/<name>/`` (opt-in via ``A2ASSISTANT_ENABLE_PROJECT_PLUGINS``), and pip packages in
 the ``hermes_agent.plugins`` entry-point group. A directory plugin needs a ``plugin.yaml`` manifest
 and an ``__init__.py`` exposing ``register(ctx)``. Plugins register callbacks for ``VALID_HOOKS``
 (core fires ``invoke_hook(name, **kwargs)``) and tools via ``PluginContext.register_tool()``.
@@ -69,9 +69,9 @@ from hermes_cli.plugins_context import PluginContext, _UNSET, _ignore_after_aban
 
 
 def get_bundled_plugins_dir() -> Path:
-    """Bundled ``plugins/`` dir: ``HERMES_BUNDLED_PLUGINS`` (Nix wrapper / packaged installs, read-only
+    """Bundled ``plugins/`` dir: ``A2ASSISTANT_BUNDLED_PLUGINS`` (Nix wrapper / packaged installs, read-only
     store paths) first, else the in-repo path."""
-    env_override = os.getenv("HERMES_BUNDLED_PLUGINS")
+    env_override = os.getenv("A2ASSISTANT_BUNDLED_PLUGINS")
     if env_override:
         return Path(env_override)
     return Path(__file__).resolve().parent.parent / "plugins"
@@ -85,15 +85,15 @@ logger = logging.getLogger(__name__)
 
 # ``HERMES_PLUGINS_DEBUG=1`` tees verbose discovery logs to stderr in addition to agent.log. Read
 # once at import; tests flip it mid-process via ``_install_plugin_debug_handler(force=True)``.
-_PLUGINS_DEBUG = env_var_enabled("HERMES_PLUGINS_DEBUG")
+_PLUGINS_DEBUG = env_var_enabled("A2ASSISTANT_PLUGINS_DEBUG")
 _DEBUG_HANDLER_INSTALLED = False
 
 
 def _install_plugin_debug_handler(force: bool = False) -> None:
-    """When HERMES_PLUGINS_DEBUG is on, tee plugin logs to stderr at DEBUG (once per process)."""
+    """When A2ASSISTANT_PLUGINS_DEBUG is on, tee plugin logs to stderr at DEBUG (once per process)."""
     global _DEBUG_HANDLER_INSTALLED, _PLUGINS_DEBUG
     if force:
-        _PLUGINS_DEBUG = env_var_enabled("HERMES_PLUGINS_DEBUG")
+        _PLUGINS_DEBUG = env_var_enabled("A2ASSISTANT_PLUGINS_DEBUG")
     if not _PLUGINS_DEBUG or _DEBUG_HANDLER_INSTALLED:
         return
     handler = logging.StreamHandler(sys.stderr)
@@ -103,7 +103,7 @@ def _install_plugin_debug_handler(force: bool = False) -> None:
     logger.setLevel(logging.DEBUG)
     logger.propagate = True
     _DEBUG_HANDLER_INSTALLED = True
-    logger.debug("HERMES_PLUGINS_DEBUG=1 — verbose plugin discovery logging enabled")
+    logger.debug("A2ASSISTANT_PLUGINS_DEBUG=1 — verbose plugin discovery logging enabled")
 
 
 _install_plugin_debug_handler()
@@ -409,8 +409,8 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
             loaded_before = frozenset(k for k, p in self._plugins.items() if not p.error and not p.deferred)
             if force:
                 self.unload()  # the ledger owns teardown of process-global registries
-            if env_var_enabled("HERMES_SAFE_MODE"):
-                logger.info("HERMES_SAFE_MODE=1 — plugin discovery skipped")
+            if env_var_enabled("A2ASSISTANT_SAFE_MODE"):
+                logger.info("A2ASSISTANT_SAFE_MODE=1 — plugin discovery skipped")
                 self._discovered = True
                 return
             # Flag set up front as a re-entrancy guard (register() can trigger discovery again) but
@@ -594,7 +594,7 @@ class PluginManager(PluginLoaderMixin, PluginDispatchMixin, PluginLedgerMixin):
     def has_enabled_portable_mcp(self, raw_config: Mapping[str, Any]) -> bool:
         """Probe enabled portable MCP packages without loading plugins (shares the full-discovery
         manifest collection so precedence/gating cannot diverge)."""
-        if _env_enabled("HERMES_SAFE_MODE"):
+        if _env_enabled("A2ASSISTANT_SAFE_MODE"):
             return False
         plugins_config = raw_config.get("plugins")
         if not isinstance(plugins_config, dict):
@@ -1338,7 +1338,7 @@ def get_plugin_auxiliary_tasks() -> list[dict[str, Any]]:
 
 
 def get_plugin_toolsets() -> list[tuple]:
-    """Plugin toolsets as ``(key, label, description)`` tuples for the ``hermes tools`` TUI."""
+    """Plugin toolsets as ``(key, label, description)`` tuples for the ``a2assistant tools`` TUI."""
     manager = get_plugin_manager()
     if not manager._plugin_tool_names:
         return []

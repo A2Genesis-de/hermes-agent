@@ -37,7 +37,7 @@ def test_relaunched_desktop_does_not_hold_its_app_folder(tmp_path: Path) -> None
     result = subprocess.run(
         ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', str(SCRIPT),
          '-InstallRoot', str(home / 'hermes-agent'), '-NoUi', '-SelfTestMarker', '-RelaunchExe', str(relaunch)],
-        cwd=home, env={**os.environ, 'HERMES_HOME': str(home), 'HERMES_RUNTIME_DIR': str(home / 'empty-store'),
+        cwd=home, env={**os.environ, 'A2ASSISTANT_HOME': str(home), 'A2ASSISTANT_RUNTIME_DIR': str(home / 'empty-store'),
                        'USERPROFILE': str(profile)},
         capture_output=True, text=True, timeout=180, check=False,
     )

@@ -999,7 +999,7 @@ test('resolveDirectoryForIpc accepts directory symlinks or junctions', async () 
 // homeRelativeAttachmentCandidates (#115609)
 // ---------------------------------------------------------------------------
 
-test('homeRelativeAttachmentCandidates tries the home dir and the HERMES_HOME attachments dir', () => {
+test('homeRelativeAttachmentCandidates tries the home dir and the A2ASSISTANT_HOME attachments dir', () => {
   const candidates = homeRelativeAttachmentCandidates(
     'AppData/Local/hermes/attachments/foo.xlsx',
     '/Users/alice',

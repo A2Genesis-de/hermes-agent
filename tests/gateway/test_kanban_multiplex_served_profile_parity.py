@@ -1,6 +1,6 @@
 """Standalone-vs-served parity for the kanban dispatcher and notifier under
 ``gateway.multiplex_profiles``: a worker spawned for served profile X gets the env a standalone
-``hermes -p X`` dispatcher would build, and X's notifications are rendered/filtered under X's
+``a2assistant -p X`` dispatcher would build, and X's notifications are rendered/filtered under X's
 config.
 """
 
@@ -26,14 +26,14 @@ def served(tmp_path, monkeypatch):
     root = tmp_path / ".hermes"
     alpha = root / "profiles" / "alpha"
     alpha.mkdir(parents=True)
-    (root / ".env").write_text("HERMES_MODEL=default-model\nTERMINAL_ENV=docker\n")
+    (root / ".env").write_text("A2ASSISTANT_MODEL=default-model\nTERMINAL_ENV=docker\n")
     (root / "config.yaml").write_text("gateway:\n  multiplex_profiles: true\nterminal:\n  backend: docker\n")
     (alpha / ".env").write_text("")
     (alpha / "config.yaml").write_text("display:\n  language: zh\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
-    monkeypatch.setenv("HERMES_MODEL", "default-model")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_MODEL", "default-model")
     monkeypatch.setenv("TERMINAL_ENV", "docker")
-    monkeypatch.setenv("HERMES_KANBAN_DB", str(tmp_path / "board.db"))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_DB", str(tmp_path / "board.db"))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
     set_multiplex_active(True)
@@ -66,8 +66,8 @@ def test_worker_for_served_profile_gets_its_own_env_and_toolset_pin(served, monk
     kbd._default_spawn(task, str(served.alpha), board=None)
 
     env = spawned["env"]
-    assert env["HERMES_HOME"] == str(served.alpha)
-    assert "HERMES_MODEL" not in env and "TERMINAL_ENV" not in env
+    assert env["A2ASSISTANT_HOME"] == str(served.alpha)
+    assert "A2ASSISTANT_MODEL" not in env and "TERMINAL_ENV" not in env
     assert spawned["argv"][-2:] == ["-m", "hermes_cli.kanban_worker_client"]
 
 

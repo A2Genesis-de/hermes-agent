@@ -63,11 +63,11 @@ function handoffFixture(remote: boolean, scriptText: string = ''): { root: strin
 
 /**
  * A legacy (pre-protocol-2) script's first act: it claims the marker in its
- * own name, echoing HERMES_UPDATE_STARTED_AT on line 2 (origin/main shape).
+ * own name, echoing A2ASSISTANT_UPDATE_STARTED_AT on line 2 (origin/main shape).
  * The vitest parent stands in for the live script process.
  */
 function scriptTakesMarker(home: string, options: Parameters<typeof updaterProcess.spawnUpdaterProcess>[2]): void {
-  fs.writeFileSync(markerPath(home), `${process.ppid}\n${options.env?.HERMES_UPDATE_STARTED_AT}\n`)
+  fs.writeFileSync(markerPath(home), `${process.ppid}\n${options.env?.A2ASSISTANT_UPDATE_STARTED_AT}\n`)
 }
 
 // One gateway per host (#117529): a Desktop served by a remote gateway must
@@ -311,7 +311,7 @@ function mockProtocol2Spawn(home: string, script: 'adopts' | 'adopts-then-dies' 
 
       runs.push({ args, bridgeAtSpawn })
       const run = argAfter(args, '--handoff-run')
-      const startedAt = Number(options.env?.HERMES_UPDATE_STARTED_AT)
+      const startedAt = Number(options.env?.A2ASSISTANT_UPDATE_STARTED_AT)
 
       if (script !== 'never') {
         void claimantChild(markerPath(home), { startedAt, run }).then(async ({ child }) => {
@@ -372,7 +372,7 @@ describe.skipIf(IS_WINDOWS)('protocol 2 hand-off', () => {
 
   // Review 5411223284 regression 1: a bridge the helper could not withdraw
   // stays adoptable by a late (setsid, unkillable) daemon. Reporting "did not
-  // start" and restarting the backend would run `hermes update` beside it.
+  // start" and restarting the backend would run `a2assistant update` beside it.
   it.each(['busy', 'error'])(
     'a withdraw that stays `%s` keeps the bridge and quits instead of restarting the backend',
     async (answer: string): Promise<void> => {
@@ -531,7 +531,7 @@ it('the Windows protocol-2 hand-off passes -HandoffRun with the bridged run id',
     }
   )
   // This Desktop was relaunched by the previous hand-off and inherited its run id.
-  vi.stubEnv('HERMES_UPDATE_CORRELATION_ID', 'desk-1-previous-run')
+  vi.stubEnv('A2ASSISTANT_UPDATE_CORRELATION_ID', 'desk-1-previous-run')
 
   try {
     await createCheckoutStrategy({ ...deps, isWindows: true, markerHelper: helper, handoffClaimTimeoutMs: 200 }).apply()
@@ -539,7 +539,7 @@ it('the Windows protocol-2 hand-off passes -HandoffRun with the bridged run id',
     expect(runId).toMatch(/^desk-\d+-[0-9a-z]+-[0-9a-f]{4}$/)
     expect(parseUpdateMarker(bridge ?? '')?.run).toBe(runId)
     // The update runs under THIS run's id, the one its close-holder consent is bound to.
-    expect(envs[0]!.HERMES_UPDATE_CORRELATION_ID).toBe(runId)
+    expect(envs[0]!.A2ASSISTANT_UPDATE_CORRELATION_ID).toBe(runId)
     expect(argAfter(runs[0]!, '-DesktopPid')).toBe(String(process.pid))
     // Nothing adopted it: the bridge is withdrawn through the helper, with the run.
     expect(helper).toHaveBeenCalledWith(

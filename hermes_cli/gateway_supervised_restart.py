@@ -1,4 +1,4 @@
-"""``hermes gateway restart`` for a gateway whose supervisor Hermes did not install.
+"""``a2assistant gateway restart`` for a gateway whose supervisor Hermes did not install.
 
 A custom launchd agent / systemd unit / any KeepAlive-style manager running ``gateway run
 --external-supervisor`` owns the respawn. The manual fallback in ``_cmd_restart`` (SIGTERM, then a
@@ -97,7 +97,7 @@ def restart_externally_supervised_gateway(supervised_pid: int) -> None:
         "",
         "✗ Not stopping or foreground-running a supervisor-owned gateway.",
         "  Check the supervisor (it may be unloaded, wedged, or stopped retrying),",
-        "  then rerun once it is healthy: hermes gateway restart",
+        "  then rerun once it is healthy: a2assistant gateway restart",
     )
     sys.exit(1)
 
@@ -124,12 +124,12 @@ def refuse_restart_of_service_managed_gateway(pid: int | None) -> None:
     _print_lines(
         "",
         f"✗ Gateway (PID {pid}) is managed by systemd unit {unit}.",
-        "  `hermes gateway restart` cannot restart it from here: the fallback would",
+        "  `a2assistant gateway restart` cannot restart it from here: the fallback would",
         "  kill a live gateway and spawn an unsupervised replacement in this shell's",
         "  cgroup while the unit keeps failing against the stolen lock.",
         "  Restart it through its unit instead:",
         *(f"    {c}" for c in cmds),
-        "  (Pre-convention `hermes.service` installs: `hermes gateway migrate-legacy`",
+        "  (Pre-convention `hermes.service` installs: `a2assistant gateway migrate-legacy`",
         "  removes the legacy unit so the canonical one can own the gateway.)",
     )
     sys.exit(1)

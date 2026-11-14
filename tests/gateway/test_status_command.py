@@ -578,7 +578,7 @@ async def test_profile_command_reports_source_stamped_profile(monkeypatch, tmp_p
     )
     runner = _make_runner(session_entry)
     runner.config.multiplex_profiles = True
-    monkeypatch.setenv("HERMES_HOME", str(hermes_home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(hermes_home))
 
     event = _make_event("/profile")
     event.source.profile = "milo"

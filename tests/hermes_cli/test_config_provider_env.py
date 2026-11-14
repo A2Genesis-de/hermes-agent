@@ -109,7 +109,7 @@ _ROOT = Path(__file__).resolve().parents[2]
 def _cold(script: str, home: Path, *args: str) -> dict:
     """Run *script* in a fresh interpreter (nothing imported, nothing discovered) and return the
     JSON object it prints last."""
-    env = {**os.environ, "HERMES_HOME": str(home), "PYTHONPATH": str(_ROOT)}
+    env = {**os.environ, "A2ASSISTANT_HOME": str(home), "PYTHONPATH": str(_ROOT)}
     result = subprocess.run([sys.executable, "-c", textwrap.dedent(script), *args], cwd=_ROOT, env=env,
                             stdin=subprocess.DEVNULL, capture_output=True, text=True, timeout=120, check=False)
     assert result.returncode == 0, result.stderr[-4000:]

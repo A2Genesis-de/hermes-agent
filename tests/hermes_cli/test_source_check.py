@@ -25,9 +25,9 @@ def installation(tmp_path, monkeypatch):
     root.mkdir()
     home = tmp_path / "profile"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.delenv("HERMES_REVISION", raising=False)
-    monkeypatch.delenv("HERMES_MANAGED", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.delenv("A2ASSISTANT_REVISION", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_MANAGED", raising=False)
     # Git probes may use real local remotes, never the external network.
     monkeypatch.setenv("GIT_ALLOW_PROTOCOL", "file")
 
@@ -132,7 +132,7 @@ def test_target_worktree_owns_admission_and_fork_comparison(installation, monkey
 
 def test_bare_git_off_path_reads_through_the_updaters_git(installation, monkeypatch, tmp_path):
     """Desktop passes a bare ``git`` when it found none; a Windows install's only git is PM's
-    store copy, off PATH outside ``hermes update``. The check must read HEAD through that git."""
+    store copy, off PATH outside ``a2assistant update``. The check must read HEAD through that git."""
     import shutil
 
     from hermes_cli import update_pause_record
@@ -264,8 +264,8 @@ def test_main_follows_the_branch_without_reading_a_channel_record(installation):
 def test_running_revision_is_not_applied_to_an_explicit_target(installation, monkeypatch):
     from hermes_cli.source_check import check_for_updates
     root, linked, home, _base, head, responses, _requests, _git = installation
-    monkeypatch.setenv("HERMES_REVISION", "e" * 40)
-    monkeypatch.setenv("HERMES_INSTALL_ROOT", str(root))
+    monkeypatch.setenv("A2ASSISTANT_REVISION", "e" * 40)
+    monkeypatch.setenv("A2ASSISTANT_INSTALL_ROOT", str(root))
     responses["/repos/fixture/fork/commits/feature%2Fgui"] = (200, head)
     assert check_for_updates(install_root=linked, home=home)["currentSha"] == head
     # Default invocation retains the Nix revision probe even without a Git checkout.
@@ -400,7 +400,7 @@ def test_source_admission_is_stamp_owned_not_path_owned(installation, mechanism)
 def test_embedded_revision_keeps_https_ref_advertisement_recovery(installation, monkeypatch):
     from hermes_cli.source_check import check_for_updates
     _root, _linked, home, _base, head, _responses, _requests, _git = installation
-    monkeypatch.setenv("HERMES_REVISION", head)
+    monkeypatch.setenv("A2ASSISTANT_REVISION", head)
     monkeypatch.setattr("hermes_cli.config.get_project_root", lambda: home)
     monkeypatch.setattr("hermes_cli.config.detect_install_method", lambda root: "nix")
     original = subprocess.run

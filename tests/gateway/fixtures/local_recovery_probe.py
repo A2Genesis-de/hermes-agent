@@ -71,7 +71,7 @@ def websocket(home, desc, **kw):
 
 
 def seed_offline_models_dev(home):
-    """A fresh HERMES_HOME has no models.dev cache, so the daemon's first session.create (tool
+    """A fresh A2ASSISTANT_HOME has no models.dev cache, so the daemon's first session.create (tool
     availability -> vision check -> provider lookup) downloads the public registry in the foreground,
     and a slow network outlasts rpc()'s deadline. A fresh on-disk cache is served without a request.
     One unknown provider keeps lookups as empty as an unreachable registry; a test's own seed wins.
@@ -84,7 +84,7 @@ def seed_offline_models_dev(home):
 
 @contextmanager
 def daemon(root, home, env, *, barrier, fixture='local_recovery_daemon.py'):
-    seed_offline_models_dev(env.get('HERMES_HOME', home))
+    seed_offline_models_dev(env.get('A2ASSISTANT_HOME', home))
     command = [sys.executable, str(root / 'tests/gateway/fixtures' / fixture)] if barrier else [sys.executable, '-m', 'gateway.run']
     with (home / ('first.log' if barrier else 'restart.log')).open('w+') as log:
         proc = subprocess.Popen(command, cwd=root, env=env, stdin=subprocess.DEVNULL, stdout=log, stderr=subprocess.STDOUT)
@@ -124,7 +124,7 @@ def probe(tmp_path):
            'auxiliary': {'title_generation': {'enabled': False}}, 'platform_toolsets': {'cli': []}}
     (home / 'config.yaml').write_text(json.dumps(cfg))
     env = child_env()
-    env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home), PYTHONPATH=str(root),
+    env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home), PYTHONPATH=str(root),
                OPENAI_API_KEY='loopback-only', OPENAI_BASE_URL=url, PYTHONUNBUFFERED='1')
     sessions, params, pids, epochs = {}, {}, [], []
     def rows():

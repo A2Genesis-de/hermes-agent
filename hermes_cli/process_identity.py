@@ -4,7 +4,7 @@ and the POSIX owner-death supervisor.
 Four layers make every long-lived Hermes process positively identifiable, so reapers (``hermes
 update``, Desktop startup sweeps) never guess lineage from PPID archaeology or cmdline matching,
 and make every long-lived CHILD die with the Hermes process that owns it:
-1. spawn tags (``HERMES_SPAWN`` env stamped by the spawner); 2. a ``(pid, create_time)`` ledger;
+1. spawn tags (``A2ASSISTANT_SPAWN`` env stamped by the spawner); 2. a ``(pid, create_time)`` ledger;
 3. Windows job-object self-attach with ``KILL_ON_JOB_CLOSE`` so the whole child tree dies with the
 root — no launcher→worker chains left holding ``.pyd`` locks; 4. on POSIX, one supervisor per
 Hermes process that reaps the owned children's process groups the moment Hermes dies.
@@ -33,7 +33,7 @@ from utils import atomic_json_write
 
 logger = logging.getLogger(__name__)
 
-SPAWN_ENV_VAR = "HERMES_SPAWN"
+SPAWN_ENV_VAR = "A2ASSISTANT_SPAWN"
 _TAG_VERSION = "v1"
 LEDGER_FILENAME = "spawn-ledger.json"
 
@@ -182,7 +182,7 @@ class SpawnTag:
 
 
 def build_spawn_tag(purpose: str, *, project_root: Optional[Path] = None) -> str:
-    """Value for the child's ``HERMES_SPAWN`` env var, stamped by the spawner."""
+    """Value for the child's ``A2ASSISTANT_SPAWN`` env var, stamped by the spawner."""
     create = _process_create_time()
     create_part = f"{create:.3f}" if create is not None else "-"
     return ":".join((_TAG_VERSION, install_id(project_root), purpose, str(os.getpid()), create_part))
@@ -194,7 +194,7 @@ def spawn_env(purpose: str, *, project_root: Optional[Path] = None) -> dict[str,
 
 
 def parse_spawn_tag(raw: object) -> Optional[SpawnTag]:
-    """Parse a ``HERMES_SPAWN`` value; ``None`` for anything malformed."""
+    """Parse a ``A2ASSISTANT_SPAWN`` value; ``None`` for anything malformed."""
     parts = raw.split(":") if isinstance(raw, str) else []
     if len(parts) != 5 or parts[0] != _TAG_VERSION:
         return None
@@ -383,16 +383,16 @@ def register_self(purpose: str, *, project_root: Optional[Path] = None, detail: 
 def is_desktop_owned_backend(argv: Optional[Sequence[str]] = None) -> bool:
     """Whether this process is the backend Desktop spawned and owns.
 
-    ``HERMES_DESKTOP=1`` is inherited by every shell and agent child the app launches, so the
+    ``A2ASSISTANT_DESKTOP=1`` is inherited by every shell and agent child the app launches, so the
     flag alone is not ownership proof (same class as #116107). Desktop hands its backend a
     per-spawn credential the terminal pane never receives (and the terminal tool's env policy
-    strips from agent children): the local pool spawn mints ``HERMES_DASHBOARD_SESSION_TOKEN``,
+    strips from agent children): the local pool spawn mints ``A2ASSISTANT_DASHBOARD_SESSION_TOKEN``,
     the SSH spawn passes a 0600 token FILE on argv and deliberately sets no token env var.
     ``argv`` defaults to this process's own.
     """
-    if os.environ.get("HERMES_DESKTOP") != "1":
+    if os.environ.get("A2ASSISTANT_DESKTOP") != "1":
         return False
-    if os.environ.get("HERMES_DASHBOARD_SESSION_TOKEN"):
+    if os.environ.get("A2ASSISTANT_DASHBOARD_SESSION_TOKEN"):
         return True
     from hermes_cli._startup_fast import is_desktop_ssh_backend_argv
 
@@ -429,16 +429,16 @@ def local_desktop_client(identity: Optional[dict], declared: object) -> bool:
 
 
 def _desktop_spawner_identity() -> tuple[Optional[int], Optional[float]]:
-    """Spawner ``(pid, create_time)`` from the Electron app's HERMES_PARENT_PID (+ optional
+    """Spawner ``(pid, create_time)`` from the Electron app's A2ASSISTANT_PARENT_PID (+ optional
     ``winms:<ms>`` start marker) parent-death watchdog vars, so ledger lineage works with every
     Desktop version without a TS change. ``(None, None)`` when absent/malformed."""
     try:
-        spawner_pid = int(os.environ.get("HERMES_PARENT_PID", ""))
+        spawner_pid = int(os.environ.get("A2ASSISTANT_PARENT_PID", ""))
     except (TypeError, ValueError):
         spawner_pid = 0
     if spawner_pid <= 0:
         return None, None
-    marker = os.environ.get("HERMES_PARENT_START_MARKER", "")
+    marker = os.environ.get("A2ASSISTANT_PARENT_START_MARKER", "")
     if not marker.startswith("winms:"):
         return spawner_pid, None
     try:
@@ -880,7 +880,7 @@ def _watch_supervisor(proc) -> None:
     """One waiter thread per supervisor, blocked in the untimed ``wait()`` (waitpid, no polling). It
     reaps the supervisor the moment it exits, so no zombie child is left for psutil walkers of this
     process's children to trip on. A supervisor that died on its own while groups are still registered
-    (``pkill -f hermes``, the OOM killer) is restarted and replayed at once, so coverage does not wait
+    (``pkill -f a2assistant``, the OOM killer) is restarted and replayed at once, so coverage does not wait
     for the next registration change; a released one (EOF with an empty set) is only reaped."""
     started = time.monotonic()
     young_restart = _starting_young_restart

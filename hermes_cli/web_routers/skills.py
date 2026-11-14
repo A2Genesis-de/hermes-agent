@@ -365,7 +365,7 @@ def _locked_index() -> tuple[set, dict]:
 
 @router.put("/api/skills/lock")
 async def lock_skill(body: SkillLock, profile: Optional[str] = None):
-    """Lock/unlock a skill against AGENT edits (same record as ``hermes curator lock``).
+    """Lock/unlock a skill against AGENT edits (same record as ``a2assistant curator lock``).
     The user's own edits (this dashboard's editor, their editor) stay allowed."""
     from tools import skill_usage
     from tools.skill_manager_tool import _find_skill

@@ -1,3 +1,5 @@
+import { CLI_COMMAND_ALTERNATION } from '../../shared/src/product-names.mjs'
+
 export interface BackendIdentity {
   nonce: string
   pid: number
@@ -311,8 +313,14 @@ export function createBackendOwnership(deps: BackendOwnershipDeps) {
   }
 }
 
+const BACKEND_COMMAND = new RegExp(
+  `(?:^|[\\s/\\\\"])(?:(?:${CLI_COMMAND_ALTERNATION})(?:\\.exe)?|hermes_cli\\.main|hermes_cli[/\\\\]main\\.py)"?` +
+    '(?:\\s+(?:--profile|-p)\\s+\\S+)?\\s+(?:serve|dashboard)(?:\\s|$)',
+  'i'
+)
+
 export function backendCommandMatches(command: unknown): boolean {
-  return /(?:^|[\s/\\"])(?:hermes(?:\.exe)?|hermes_cli\.main|hermes_cli[/\\]main\.py)"?(?:\s+(?:--profile|-p)\s+\S+)?\s+(?:serve|dashboard)(?:\s|$)/i.test(
+  return BACKEND_COMMAND.test(
     String(command ?? '')
   )
 }

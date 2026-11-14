@@ -63,7 +63,7 @@ class TestIsWriteDenied:
         root = tmp_path / "hermes"
         profile = root / "profiles" / "coder"
         profile.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(profile))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
 
         assert _is_write_denied(str(profile / "mcp-tokens" / "tok.json")) is True
         assert _is_write_denied(str(root / "mcp-tokens" / "tok.json")) is True
@@ -73,7 +73,7 @@ class TestIsWriteDenied:
     def test_pairing_dir_denied(self, tmp_path, monkeypatch):
         """Regression: pairing/ must be write-denied under both profile and root.
 
-        PR #30383 introduced ~/.hermes/pairing/{platform}-approved.json as the
+        PR #30383 introduced ~/.a2assistant/pairing/{platform}-approved.json as the
         gateway access-control list. Without this block, a prompt-injected agent
         can write arbitrary user IDs into an approved file, granting persistent
         gateway access without going through the pairing code flow — the same
@@ -82,7 +82,7 @@ class TestIsWriteDenied:
         root = tmp_path / "hermes"
         profile = root / "profiles" / "coder"
         profile.mkdir(parents=True)
-        monkeypatch.setenv("HERMES_HOME", str(profile))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(profile))
 
         # Active profile pairing entries
         assert _is_write_denied(str(profile / "pairing" / "telegram-approved.json")) is True
@@ -294,7 +294,7 @@ class TestShellFileOpsHelpers:
         result = ops.read_file("/tmp/test/a.py")
 
         assert result.error is None
-        assert "HERMES_FENCE" not in result.content
+        assert "A2ASSISTANT_FENCE" not in result.content
         assert "\x1b]" not in result.content
         assert "\x07" not in result.content
         assert "1|print('ok')" in result.content

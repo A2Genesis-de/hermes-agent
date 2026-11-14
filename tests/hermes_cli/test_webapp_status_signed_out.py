@@ -30,7 +30,7 @@ def password_hash():
 def wildcard_gate(request, password_hash, monkeypatch):
     """An all-interfaces listener behind the bundled username/password sign-in: the standalone
     dashboard or the gateway's Webapp, with two profiles installed."""
-    monkeypatch.delenv("HERMES_DASHBOARD_PUBLIC_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_DASHBOARD_PUBLIC_URL", raising=False)
     for key, value in (("bound_host", "0.0.0.0"), ("bound_port", 9130), ("auth_required", True),
                        ("trusted_public_hosts", frozenset())):
         monkeypatch.setattr(web_server.app.state, key, value, raising=False)

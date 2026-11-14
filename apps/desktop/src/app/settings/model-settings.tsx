@@ -99,7 +99,7 @@ export function ModelSettingsSkeleton({ subpage }: Pick<ModelSettingsProps, 'sub
 type SpeedTier = 'fast' | 'normal' | 'ultrafast'
 
 // A provider row is "ready" to pick a model from when it reports models. The
-// backend now surfaces the full `hermes model` universe (every canonical
+// backend now surfaces the full `a2assistant model` universe (every canonical
 // provider), so unconfigured providers come back with `authenticated:false`
 // and an empty `models` list — those need a setup step before a model exists.
 function isProviderReady(p?: ModelOptionProvider): boolean {
@@ -823,7 +823,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
       setApiKeyDraft('')
 
       // Pick a sensible default for the freshly-activated provider (mirrors
-      // `hermes model` curation). Best-effort — fall through to the refreshed
+      // `a2assistant model` curation). Best-effort — fall through to the refreshed
       // model list if it fails.
       let nextModel = ''
 
@@ -907,6 +907,7 @@ export function ModelSettings({ onMainModelChanged, scopeProfile, subpage }: Mod
       if (result.notice) {
         showLargeModelNotice(result.notice)
       }
+
       setSwitchStaleAux(result.stale_aux ?? [])
       notify({ kind: 'success', title: m.mainAppliedTitle, message: m.mainAppliedMessage(model) })
 

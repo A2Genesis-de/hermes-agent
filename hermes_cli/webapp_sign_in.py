@@ -4,7 +4,7 @@ On the gateway's Webapp (``app.state.ui_surface == "webapp"``) with the sign-in 
 successful cookie login (a password login or an OAuth callback) also sets the cookie
 ``hermes_webapp_signin_<gateway>``: the hex HMAC-SHA256 of ``"webapp-sign-in"`` keyed with the browser
 session token the gateway serves (``web_server._SESSION_TOKEN``, kept in the gateway home by ``gateway.webapp_listener``). The gate treats
-a cookie session without a matching value as signed out. Replacing that token (``hermes webapp
+a cookie session without a matching value as signed out. Replacing that token (``a2assistant webapp
 --sign-out``, or the CLI replacing the stored token while no gateway runs) therefore signs every browser
 out, whichever provider it signed in with. ``<gateway>`` comes from a digest of the gateway's home
 (:func:`cookie_gateway`), and the Webapp's listener names every sign-in cookie it sets that way, so two
@@ -25,7 +25,7 @@ gave it to a native app's sign-in (RFC 8252: ``/auth/native/token``, then ``/aut
 listener keeps a digest of each such token until it expires, in ``RECORD_PATH`` under the gateway home
 (``app.state.webapp_home``), so native apps stay signed in across a restart and a sign-out. A browser
 login's tokens therefore work only as that login's cookies and end with it. The deployment session
-token (``HERMES_DASHBOARD_SESSION_TOKEN``) also works as a bearer or ``?token=`` while the
+token (``A2ASSISTANT_DASHBOARD_SESSION_TOKEN``) also works as a bearer or ``?token=`` while the
 session-token provider is registered (:func:`access_token_works_alone`): no browser login holds it,
 and it has no refresh.
 """

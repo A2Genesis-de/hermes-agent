@@ -188,7 +188,7 @@ def _live_owner_stale_after_seconds() -> Optional[float]:
     """Age past which a claimed/running row with a LIVE owner is treated as wedged.
 
     Derived from the existing knobs, never a bare wall-clock constant:
-    ``max(3 × HERMES_CRON_TIMEOUT, cron script timeout, 7200)``. Returns ``None`` (never reclaim
+    ``max(3 × A2ASSISTANT_CRON_TIMEOUT, cron script timeout, 7200)``. Returns ``None`` (never reclaim
     live owners — today's behaviour) when the inactivity timeout is 0/unlimited or not a finite
     positive number: with no bound to derive from, fail closed.
     """

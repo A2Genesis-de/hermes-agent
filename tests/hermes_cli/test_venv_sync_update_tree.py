@@ -1,6 +1,6 @@
 """A launch never runs the completion tail beside a live update tree whose marker is gone.
 
-A killed ``hermes update`` leaves its completion child holding the checkout lock; its marker is
+A killed ``a2assistant update`` leaves its completion child holding the checkout lock; its marker is
 dead (and any reader deletes it). ``prepare_launch`` must read the checkout lock, not just the
 marker, or it claims the free marker and runs a second tail beside the live one.
 """
@@ -35,8 +35,8 @@ def test_launch_refuses_while_another_process_holds_the_checkout(tmp_path, monke
     (root / ".git").mkdir(parents=True)
     (root / "pyproject.toml").write_text("[project]\nname='example'\n", encoding="utf-8")
     (root / "install-stamp.json").write_text('{"updateMechanism": "self"}', encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
-    monkeypatch.delenv("HERMES_DISABLE_LAZY_INSTALLS", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
+    monkeypatch.delenv("A2ASSISTANT_DISABLE_LAZY_INSTALLS", raising=False)
     monkeypatch.setattr(pm, "venv_is_current", lambda **kw: False)  # an interrupted update's tree
     finished = []
     monkeypatch.setattr(venv_sync, "_finish_source_update", lambda *a, **k: finished.append(a))
@@ -65,7 +65,7 @@ def _tail_root(tmp_path: Path, monkeypatch) -> tuple[Path, Path]:
     started = tmp_path / "tail-ran"
     child = f"from pathlib import Path\nPath({str(started)!r}).touch()\n"
     (root / "hermes_cli" / "source_completion.py").write_text(child, encoding="utf-8")
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.setattr(venv_sync, "_tree_matches_completed_stamp", lambda root: False)
     monkeypatch.setattr(pm.environments, "activation_environment", lambda root: None)
     return root, started

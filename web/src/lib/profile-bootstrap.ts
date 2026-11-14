@@ -12,7 +12,7 @@ export function dashboardInitialProfile(): string {
 
 /**
  * The profile this backend process itself serves, injected by the server and
- * empty when it cannot be named unambiguously (custom HERMES_HOME).
+ * empty when it cannot be named unambiguously (custom A2ASSISTANT_HOME).
  *
  * It is the LAST fallback for the management scope: without it the dashboard
  * sends no `?profile=` at all, which a multi-profile host now refuses (400) on
@@ -42,7 +42,7 @@ export function shouldAdoptActiveProfile(
   activeProfile: string,
 ): boolean {
   // Only the machine (default-hosted) dashboard aligns to the sticky active
-  // profile. A dashboard hosted by a named profile (`hermes -p demo serve`)
+  // profile. A dashboard hosted by a named profile (`a2assistant -p demo serve`)
   // serves THAT agent: adopting the machine-global active_profile would
   // silently retarget its banner, chat TUI env and model to another profile.
   return (

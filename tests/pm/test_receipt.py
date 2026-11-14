@@ -81,7 +81,7 @@ def test_bare_python_can_report_a_failed_bootstrap(tmp_path, monkeypatch):
     import subprocess
     import sys
 
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     repo = Path(__file__).resolve().parents[2]
     code = """
 import json

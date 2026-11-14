@@ -1,6 +1,6 @@
-"""Tests for the stale-dashboard handling run at the end of ``hermes update``.
+"""Tests for the stale-dashboard handling run at the end of ``a2assistant update``.
 
-``hermes update`` detects ``hermes dashboard`` processes left over from the
+``a2assistant update`` detects ``a2assistant dashboard`` processes left over from the
 previous version and kills them (SIGTERM + SIGKILL grace, or ``taskkill /F``
 on Windows).  Without this, the running backend silently serves stale Python
 against a freshly-updated JS bundle, producing 401s / empty data.
@@ -97,8 +97,8 @@ def _write_valid_ssh_backend_lock(tmp_path, monkeypatch) -> int:
         "logPath": f"{tmp_path}/desktop-ssh/{ownership_id}/{spawn_nonce}.log",
         "startedAt": "2026-08-21T15:27:39Z",
     }))
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
-    monkeypatch.delenv("HERMES_DESKTOP_CHILD_PID", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
+    monkeypatch.delenv("A2ASSISTANT_DESKTOP_CHILD_PID", raising=False)
     return pid
 
 
@@ -161,7 +161,7 @@ class TestFindStaleDashboardPids:
                 returncode=0,
                 stdout="\n".join([
                     _ps_line(os.getpid(), "python3 -m hermes_cli.main dashboard"),
-                    _ps_line(12345, "hermes dashboard --port 9119"),
+                    _ps_line(12345, "a2assistant dashboard --port 9119"),
                 ]) + "\n",
                 stderr="",
             )
@@ -298,7 +298,7 @@ class TestDashboardUpdateCleanup:
 
     def test_all_failed_stops_do_not_claim_the_dashboard_was_stopped(self, capsys, monkeypatch, tmp_path):
         own_home = tmp_path / "profiles" / "work"
-        monkeypatch.setenv("HERMES_HOME", str(own_home))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(own_home))
         with patch(
             "hermes_cli.main._kill_stale_dashboard_processes",
             return_value={"matched": [12345], "killed": [], "failed": [(12345, "denied")],
@@ -348,7 +348,7 @@ class TestSupervisedBackendRestart:
         assert "when you're ready" not in capsys.readouterr().out
 
     def test_already_restarted_unit_is_left_untouched(self):
-        """Review on #83595: hermes update's systemd fleet-restart loop may
+        """Review on #83595: a2assistant update's systemd fleet-restart loop may
         already have restarted this PID's owning unit directly (e.g. a
         Serve-only install). Passing it via already_restarted_units must
         skip killing/restarting it again here."""
@@ -501,7 +501,7 @@ class TestManualBackendRespawn:
     def test_respawn_adds_no_open_to_dashboard_commands(self, tmp_path, monkeypatch):
         """Respawned `dashboard` argv gains --no-open; `serve` argv untouched."""
         live = self._live()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         spawned: list[list[str]] = []
 
         class _FakePopen:
@@ -524,7 +524,7 @@ class TestManualBackendRespawn:
 
     def test_respawn_failure_returned(self, tmp_path, monkeypatch, capsys):
         live = self._live()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
 
         with patch.object(live.subprocess, "Popen", side_effect=OSError("no such file")), \
              patch.object(live.time, "sleep"):
@@ -537,7 +537,7 @@ class TestManualBackendRespawn:
         this install's launcher command instead of being replayed verbatim after the PM
         takeover rewrote the launcher into a shell shim (#124778)."""
         live = self._live()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
         spawned: list[list[str]] = []
 
         class _FakePopen:
@@ -569,7 +569,7 @@ class TestManualBackendRespawn:
         must surface as a failure, never as ``✓ restarted`` (#124778), reported with the
         caller's argv so it matches the stopped PID's cmdline (#109290)."""
         live = self._live()
-        monkeypatch.setenv("HERMES_HOME", str(tmp_path / ".hermes"))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / ".hermes"))
 
         class _DyingPopen:
             returncode = 1
@@ -687,7 +687,7 @@ class TestFilterDashboardRespawnCandidates:
         assert out == [a]
 
     def test_foreign_home_backend_is_not_replayed(self):
-        """A backend from another HERMES_HOME is never respawned (#94030).
+        """A backend from another A2ASSISTANT_HOME is never respawned (#94030).
 
         Its supervisor/user owns its lifecycle; an argv-only replay would
         run on the updating install's home and steal the foreign install's
@@ -751,7 +751,7 @@ class TestFilterDashboardRespawnCandidates:
         assert out == [argv]
 
     def test_unknown_home_stays_eligible(self):
-        """Unreadable HERMES_HOME (env probe failed) keeps pre-#94030 behaviour."""
+        """Unreadable A2ASSISTANT_HOME (env probe failed) keeps pre-#94030 behaviour."""
         from hermes_cli.dashboard_procs import _filter_dashboard_respawn_candidates
 
         argv = ["hermes", "dashboard", "--port", "8300"]
@@ -821,7 +821,7 @@ class TestCmdlineCapture:
 
         def fake_run(args, *a, **kw):
             assert args == ["ps", "-p", "888", "-o", "command="]
-            return MagicMock(returncode=0, stdout="hermes serve --port 8300\n", stderr="")
+            return MagicMock(returncode=0, stdout="a2assistant serve --port 8300\n", stderr="")
 
         with patch.object(live.os.path, "exists", return_value=False), \
              patch("subprocess.run", side_effect=fake_run):

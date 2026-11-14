@@ -191,7 +191,7 @@ def test_launch_profile_env_only_credential_survives_the_owner_rebuild(spawn_env
     from pathlib import Path
     from tools import mcp_tool_config as _config
     from tui_gateway import launch_profile_policy
-    launch_home = Path(os.environ["HERMES_HOME"])  # conftest's per-test process home
+    launch_home = Path(os.environ["A2ASSISTANT_HOME"])  # conftest's per-test process home
     (launch_home / ".env").write_text("", encoding="utf-8")
     monkeypatch.setenv(TOKEN_NAME, "tok-from-systemd")
     monkeypatch.setattr(launch_profile_policy, "_snapshot", None)
@@ -254,21 +254,21 @@ def test_reconnect_rerenders_remote_headers_under_the_owners_fresh_scope(tmp_pat
 
 
 def test_stdio_child_env_pins_active_profile_home(tmp_path, monkeypatch):
-    """The stdio child env must carry the ACTIVE profile's ``HERMES_HOME``, never fall back.
+    """The stdio child env must carry the ACTIVE profile's ``A2ASSISTANT_HOME``, never fall back.
 
-    Regression (#18594): ``_SAFE_ENV_KEYS`` omitted ``HERMES_HOME``, so a child spawned by a
+    Regression (#18594): ``_SAFE_ENV_KEYS`` omitted ``A2ASSISTANT_HOME``, so a child spawned by a
     multiplexed host / dashboard backend serving ``--open-profile`` inherited no home and
     resolved to the platform default — tripping ``_warn_profile_fallback_once`` and writing
     state to the wrong profile. The child env must name the served home.
     """
-    monkeypatch.delenv("HERMES_HOME", raising=False)  # the failing condition: launch env has none
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)  # the failing condition: launch env has none
     home = tmp_path / "served"
     home.mkdir()
     token = set_hermes_home_override(str(home))
     try:
-        assert _build_safe_env(None)["HERMES_HOME"] == str(get_hermes_home())
+        assert _build_safe_env(None)["A2ASSISTANT_HOME"] == str(get_hermes_home())
     finally:
         reset_hermes_home_override(token)
 
     # An explicit server ``env.HERMES_HOME`` still wins (merged after the pin).
-    assert _build_safe_env({"HERMES_HOME": "/tmp/explicit"})["HERMES_HOME"] == "/tmp/explicit"
+    assert _build_safe_env({"A2ASSISTANT_HOME": "/tmp/explicit"})["A2ASSISTANT_HOME"] == "/tmp/explicit"

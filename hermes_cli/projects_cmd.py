@@ -1,4 +1,4 @@
-"""``hermes project`` CLI — manage first-class, multi-folder Projects."""
+"""``a2assistant project`` CLI — manage first-class, multi-folder Projects."""
 
 from __future__ import annotations
 
@@ -59,14 +59,14 @@ def build_parser(parent_subparsers: argparse._SubParsersAction) -> argparse.Argu
 
 
 def projects_command(args: argparse.Namespace) -> int:
-    """Entry point from ``hermes project …`` argparse dispatch."""
+    """Entry point from ``a2assistant project …`` argparse dispatch."""
     action = getattr(args, "project_action", None)
     if not action:
         parser = getattr(args, "_project_parser", None)
         if parser is not None:
             parser.print_help()
         else:
-            print("usage: hermes project <action> [options]\nRun 'hermes project --help' for the full list.", file=sys.stderr)
+            print("usage: a2assistant project <action> [options]\nRun 'a2assistant project --help' for the full list.", file=sys.stderr)
         return 0
     handler = _HANDLERS.get(action)
     if handler is None:
@@ -152,7 +152,7 @@ def _cmd_list(args, conn):
     active = pdb.get_active_id(conn)
     projs = pdb.list_projects(conn, include_archived=getattr(args, "include_archived", False))
     if not projs:
-        return "No projects yet. Create one with `hermes project create <name>`."
+        return "No projects yet. Create one with `a2assistant project create <name>`."
     for p in projs:
         flags = " (archived)" if p.archived else ""
         print(f"{'*' if p.id == active else ' '} {p.slug:<24} {p.name}{flags}  [{len(p.folders)} folder(s)]")
@@ -187,7 +187,7 @@ def _cmd_rename(args, conn, proj) -> str:
 @_with_project
 def _cmd_set_primary(args, conn, proj):
     if not pdb.set_primary(conn, proj.id, args.path):
-        return _err(f"'{args.path}' is not a folder of {proj.slug}; add it first with `hermes project add-folder`.")
+        return _err(f"'{args.path}' is not a folder of {proj.slug}; add it first with `a2assistant project add-folder`.")
     return f"Set primary of {proj.slug} -> {args.path}"
 
 

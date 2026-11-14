@@ -45,7 +45,7 @@ _PROFILE_USER = textwrap.dedent("""\
 def _user(home: Path, script: Path, udd: Path) -> tuple[subprocess.Popen, int, bool]:
     home.mkdir(parents=True, exist_ok=True)
     proc = subprocess.Popen([sys.executable, "-c", _PROFILE_USER, str(script), str(udd)], cwd=_REPO,
-                            env={**os.environ, "HERMES_HOME": str(home)}, stdin=subprocess.PIPE,
+                            env={**os.environ, "A2ASSISTANT_HOME": str(home)}, stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     line = proc.stdout.readline().split()
     assert line and line[0].isdigit(), proc.stderr.read()[-2000:] if proc.poll() is not None else line

@@ -16,7 +16,7 @@ def isolated_home(tmp_path, monkeypatch):
     home = tmp_path / ".hermes"
     home.mkdir()
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     return home
 
 
@@ -110,7 +110,7 @@ plugins_transaction.recover_plugin_publication(
     return subprocess.run(
         [sys.executable, "-I", "-S", "-c", script, str(Path(__file__).resolve().parents[2]), str(project), str(journal)],
         input=json.dumps(row), text=True, capture_output=True, check=False,
-        env={**os.environ, "HERMES_HOME": str(Path(row["metadata"]).parent.parent)},
+        env={**os.environ, "A2ASSISTANT_HOME": str(Path(row["metadata"]).parent.parent)},
     )
 
 

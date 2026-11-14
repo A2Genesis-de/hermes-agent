@@ -382,7 +382,7 @@ def _make_runner(adapter):
 
 
 def test_tool_progress_mode_reads_profile_scope_not_process_environ(monkeypatch, tmp_path):
-    """HERMES_TOOL_PROGRESS_MODE must resolve through the active profile's secret scope, not
+    """A2ASSISTANT_TOOL_PROGRESS_MODE must resolve through the active profile's secret scope, not
     process-wide ``os.environ``. Under gateway multiplexing ``os.environ`` carries whichever
     profile's ``.env`` loaded last, so a raw ``os.getenv`` here would leak that profile's setting
     into every other profile's turns (#116898)."""
@@ -392,9 +392,9 @@ def test_tool_progress_mode_reads_profile_scope_not_process_environ(monkeypatch,
     monkeypatch.setattr(gateway_run, "_hermes_home", tmp_path)
 
     # Simulates a leaked env var from whichever profile's process env loaded last.
-    monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "off")
+    monkeypatch.setenv("A2ASSISTANT_TOOL_PROGRESS_MODE", "off")
     # This profile's OWN scoped value, which must win over the leaked process env.
-    token = secret_scope.set_secret_scope({"HERMES_TOOL_PROGRESS_MODE": "all"})
+    token = secret_scope.set_secret_scope({"A2ASSISTANT_TOOL_PROGRESS_MODE": "all"})
     try:
         adapter = ProgressCaptureAdapter(platform=Platform.TELEGRAM)
         runner = _make_runner(adapter)
@@ -418,10 +418,10 @@ def test_tool_progress_mode_follows_profile_through_the_real_scoping_seam(monkey
     beta = root / "profiles" / "beta"
     beta.mkdir(parents=True)
     # Leaked value from whichever profile's process env loaded last under multiplexing.
-    monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "off")
-    (root / ".env").write_text("HERMES_TOOL_PROGRESS_MODE=log\n")
-    (beta / ".env").write_text("HERMES_TOOL_PROGRESS_MODE=verbose\n")
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_TOOL_PROGRESS_MODE", "off")
+    (root / ".env").write_text("A2ASSISTANT_TOOL_PROGRESS_MODE=log\n")
+    (beta / ".env").write_text("A2ASSISTANT_TOOL_PROGRESS_MODE=verbose\n")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     monkeypatch.setattr("hermes_constants.get_default_hermes_root", lambda: root)
 
     prev_multiplex = secret_scope.is_multiplex_active()
@@ -448,7 +448,7 @@ def test_tool_progress_mode_follows_profile_through_the_real_scoping_seam(monkey
 @pytest.mark.asyncio
 async def test_scheduled_heartbeat_suppresses_routine_progress_and_typing(monkeypatch, tmp_path):
     """A silent scheduled heartbeat must not create a visible progress surface."""
-    monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
+    monkeypatch.setenv("A2ASSISTANT_TOOL_PROGRESS_MODE", "all")
     fake_run_agent = types.ModuleType("run_agent")
     fake_run_agent.AIAgent = SilentHeartbeatAgent
     monkeypatch.setitem(sys.modules, "run_agent", fake_run_agent)
@@ -517,7 +517,7 @@ def _run_long_preview_helper(monkeypatch, tmp_path, preview_length=0):
     import asyncio
     import hermes_yaml as yaml
 
-    monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
+    monkeypatch.setenv("A2ASSISTANT_TOOL_PROGRESS_MODE", "all")
 
     fake_dotenv = types.ModuleType("dotenv")
     fake_dotenv.load_dotenv = lambda *args, **kwargs: None
@@ -1436,7 +1436,7 @@ async def test_terminal_progress_renders_fenced_code_block(monkeypatch, tmp_path
     'bash' as a literal first code line).  In non-verbose ("all"/"new") mode the
     command is collapsed to a single line capped at tool_preview_length so a long
     or multi-line command doesn't render as a huge block (#42634)."""
-    monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "all")
+    monkeypatch.setenv("A2ASSISTANT_TOOL_PROGRESS_MODE", "all")
 
     fake_dotenv = types.ModuleType("dotenv")
     fake_dotenv.load_dotenv = lambda *args, **kwargs: None
@@ -1488,7 +1488,7 @@ async def test_terminal_progress_verbose_shows_full_command(monkeypatch, tmp_pat
     """Verbose mode on a markdown-capable gateway renders the FULL multi-line
     command in a bare fenced block (no truncation, no 'bash' tag).  This is the
     parity guarantee for #42634: verbose keeps full detail, non-verbose caps."""
-    monkeypatch.setenv("HERMES_TOOL_PROGRESS_MODE", "verbose")
+    monkeypatch.setenv("A2ASSISTANT_TOOL_PROGRESS_MODE", "verbose")
 
     fake_dotenv = types.ModuleType("dotenv")
     fake_dotenv.load_dotenv = lambda *args, **kwargs: None

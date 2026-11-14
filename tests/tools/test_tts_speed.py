@@ -9,7 +9,7 @@ import pytest
 def clean_env(monkeypatch):
     for key in (
         "OPENAI_API_KEY",
-        "HERMES_SESSION_PLATFORM",
+        "A2ASSISTANT_SESSION_PLATFORM",
     ):
         monkeypatch.delenv(key, raising=False)
 

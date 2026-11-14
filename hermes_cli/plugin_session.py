@@ -17,7 +17,7 @@ def _active_policy():
 def session_key() -> str:
     """Route key of the session whose turn is running in this context, ``""`` outside one."""
     from gateway.session_context import get_session_env
-    return get_session_env("HERMES_SESSION_KEY", "")
+    return get_session_env("A2ASSISTANT_SESSION_KEY", "")
 
 
 def session_surface() -> str:
@@ -27,7 +27,7 @@ def session_surface() -> str:
     if policy is not None:
         return policy.platform
     from gateway.session_context import get_session_env
-    return get_session_env("HERMES_SESSION_PLATFORM", "")
+    return get_session_env("A2ASSISTANT_SESSION_PLATFORM", "")
 
 
 def session_client() -> dict | None:

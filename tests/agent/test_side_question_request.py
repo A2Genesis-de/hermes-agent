@@ -319,7 +319,7 @@ def test_side_call_leaves_the_parent_sessions_terminal_environment_alive(provide
 
 def test_side_call_runs_under_the_turns_profile_and_secret_scope(provider, issued, tmp_path):
     """The plugin (of the turn's profile) redeems from its own thread, where no profile is bound;
-    the request still resolves the parent turn's HERMES_HOME and secret scope."""
+    the request still resolves the parent turn's A2ASSISTANT_HOME and secret scope."""
     from agent.secret_scope import current_secret_scope_home, reset_secret_scope, set_secret_scope
     from hermes_constants import get_hermes_home, reset_hermes_home_override, set_hermes_home_override
 

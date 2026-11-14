@@ -40,7 +40,7 @@ def home(tmp_path, monkeypatch):
 
     root = tmp_path / "hermes"
     root.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(root))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(root))
     # The suite-wide fixture re-points DEFAULT_DB_PATH, which trips the
     # deliberate escape hatch in _default_db_path() and would pin every lookup
     # to one fixed path. Restore the import-time snapshot so resolution runs

@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 from dataclasses import dataclass, field
 
 MODULE_SCOPE = "<module>"
+_RENAMED_ENV = re.compile(r"(?<![A-Za-z0-9_])HERMES_(?![a-z])")
 
 
 @dataclass
@@ -56,7 +58,7 @@ class FileMeasure:
         comment = self.comments.get(line_no)
         if comment and comment in line:
             line = line[: line.rindex(comment)]
-        return " ".join(line.split())
+        return _RENAMED_ENV.sub("A2ASSISTANT_", " ".join(line.split())).replace("~/.hermes", "~/.a2assistant")
 
     def add_hit(self, rule: str, scope: str, line_no: int) -> None:
         hit = Hit(rule, scope, self.code_line(line_no))

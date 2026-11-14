@@ -118,7 +118,7 @@ function ContentsRow({
     ? copy.agentTargetRemote(profile.label)
     : copy.agentTargetLocal(
         profile.label,
-        profile.value === 'default' ? '~/.hermes/plugins/' : `~/.hermes/profiles/${profile.value}/plugins/`
+        profile.value === 'default' ? '~/.a2assistant/plugins/' : `~/.a2assistant/profiles/${profile.value}/plugins/`
       )
 
   const lines = [

@@ -17,7 +17,7 @@ from tests.gateway.test_authority_cold_route_recovery import _Runner, _source
 @pytest.fixture(autouse=True)
 def _home(tmp_path, monkeypatch):
     from gateway import run
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setattr(run, '_load_gateway_config', lambda *_path: {'platform_toolsets': {'cli': []}, 'model': {'default': 'fixture'}})
 
 
@@ -582,7 +582,7 @@ def _serve(tmp_path, monkeypatch):
         'platforms:\n  telegram:\n    enabled: true\n    token: fixture\n'
         '    home_channel: {platform: telegram, chat_id: "-1001", name: Bot Home}\n')
     monkeypatch.setattr(Path, 'home', lambda: tmp_path)  # the profiles root is HOME-anchored
-    monkeypatch.setenv('HERMES_HOME', str(root))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
     monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
     return root, bot
 

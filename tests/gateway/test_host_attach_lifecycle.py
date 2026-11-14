@@ -46,7 +46,7 @@ def _no_memo():
 @pytest.fixture
 def owner_pid(tmp_path, monkeypatch):
     """A REAL live process standing in for the host gateway (liveness is proved, not stubbed)."""
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(60)"])
     try:
         yield child.pid
@@ -234,7 +234,7 @@ def test_force_starts_without_consulting_the_owner(tmp_path, monkeypatch, owner_
 
 def test_the_claim_time_record_publishes_no_served_set(tmp_path, monkeypatch):
     """Claim time is too early to know the served set; publishing a guess strands other profiles."""
-    monkeypatch.setenv("HERMES_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
+    monkeypatch.setenv("A2ASSISTANT_GATEWAY_LOCK_DIR", str(tmp_path / "locks"))
     monkeypatch.setattr(gateway_run, "get_hermes_home", lambda: tmp_path / "root")
     monkeypatch.setattr(hr, "served_profiles",
                         lambda **kw: pytest.fail("the claim must not guess a served set"))

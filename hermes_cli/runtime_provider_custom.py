@@ -250,7 +250,7 @@ def _select_named_custom_provider(
     if isinstance(config.get("custom_providers"), dict):
         logger.warning("custom_providers in config.yaml is a dict, not a list. "
                        "Each entry must be prefixed with '-' in YAML. "
-                       "Run 'hermes doctor' for details.")
+                       "Run 'a2assistant doctor' for details.")
         return None
     custom_providers = rp.get_compatible_custom_providers(config)
     found = _match_legacy_custom_provider(requested_norm, custom_providers) if custom_providers else None
@@ -433,7 +433,7 @@ def canonical_custom_identity(*, base_url: Optional[str] = None, config_provider
         except Exception:
             candidate = ""
     if not candidate:
-        candidate = os.environ.get("HERMES_INFERENCE_PROVIDER", "").strip()
+        candidate = os.environ.get("A2ASSISTANT_INFERENCE_PROVIDER", "").strip()
     candidate_norm = _normalize_custom_provider_name(candidate)
     # A bare/non-routable candidate cannot heal a bare custom override.
     if not candidate_norm or candidate_norm in {"custom", "auto", "openrouter"}:
@@ -633,7 +633,7 @@ def _resolve_llamacpp_runtime(requested_provider: str, explicit_api_key: Optiona
     # Every chat surface (messaging, TUI, Webapp) shows this sentence, so it names both places a
     # user can start the server and no Desktop-only pane; the Desktop client links its pane itself.
     raise LocalRuntimeUnavailableError("The local model server is turned off. Start it from the A2Assistant "
-                                       "desktop app or `hermes model` → Local models, or switch to "
+                                       "desktop app or `a2assistant model` → Local models, or switch to "
                                        "another model with /model.")
 
 

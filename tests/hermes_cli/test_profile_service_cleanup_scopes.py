@@ -1,5 +1,5 @@
 """Deleting or renaming a profile removes its system-scope systemd unit and Windows Scheduled
-Task, not only the user unit / launchd plist. Both carry ``--profile <old>`` with HERMES_HOME
+Task, not only the user unit / launchd plist. Both carry ``--profile <old>`` with A2ASSISTANT_HOME
 pinned to a dir that no longer exists, so a survivor restarts the removed profile at boot.
 """
 from __future__ import annotations
@@ -19,7 +19,7 @@ def victim(tmp_path, monkeypatch):
     launch = tmp_path / ".hermes"
     victim_dir = launch / "profiles" / "victim"
     victim_dir.mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(launch))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(launch))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
     return victim_dir
 
@@ -29,7 +29,7 @@ def victim(tmp_path, monkeypatch):
 def test_cleanup_handles_the_system_scope_unit(victim, tmp_path, monkeypatch, capsys, euid):
     system_dir = tmp_path / "etc-systemd-system"
     system_dir.mkdir()
-    unit = system_dir / "hermes-gateway-victim.service"
+    unit = system_dir / "a2assistant-gateway-victim.service"
     unit.write_text("[Service]\n")
     monkeypatch.setattr(gateway, "_SYSTEM_UNIT_DIR", system_dir)
     monkeypatch.setattr(profiles.os, "geteuid", lambda: euid)
@@ -42,12 +42,12 @@ def test_cleanup_handles_the_system_scope_unit(victim, tmp_path, monkeypatch, ca
 
     if euid == 0:
         assert removed and not unit.exists()
-        assert ["systemctl", "disable", "hermes-gateway-victim"] in calls
+        assert ["systemctl", "disable", "a2assistant-gateway-victim"] in calls
     else:
         # Not root: the unit cannot be unlinked, so the exact leftover and command are named.
         assert not removed and unit.exists()
         out = capsys.readouterr().out
-        assert str(unit) in out and "sudo systemctl disable --now hermes-gateway-victim" in out
+        assert str(unit) in out and "sudo systemctl disable --now a2assistant-gateway-victim" in out
 
 
 def test_cleanup_deletes_the_windows_scheduled_task(victim, tmp_path, monkeypatch):

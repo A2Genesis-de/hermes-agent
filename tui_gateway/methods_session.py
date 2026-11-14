@@ -68,7 +68,7 @@ def _new_runtime_ids(params: dict) -> tuple[str, str]:
 
 
 def _profile_build_scope(profile_home):
-    """Bind HERMES_HOME + secret + terminal scope for an agent build: the same composition a turn
+    """Bind A2ASSISTANT_HOME + secret + terminal scope for an agent build: the same composition a turn
     binds (``_session_profile_runtime_scope``). Home alone leaves ``get_secret()`` on the LAUNCH
     ``.env``; home + secrets alone leaves ``_make_agent``'s terminal probing on the launch process's
     ambient ``TERMINAL_*`` (a ``terminal.backend: docker`` secondary built a ``local`` agent)."""

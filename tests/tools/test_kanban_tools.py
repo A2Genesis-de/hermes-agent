@@ -1,7 +1,7 @@
 """Tests for the Kanban tool surface (tools/kanban_tools.py).
 
 Verifies:
-  - Tools are gated on HERMES_KANBAN_TASK: a normal chat session sees
+  - Tools are gated on A2ASSISTANT_KANBAN_TASK: a normal chat session sees
     zero kanban tools in its schema; a worker session sees the kanban set.
   - Each handler's happy path.
   - Error paths (missing required args, bad metadata type, etc).
@@ -18,12 +18,12 @@ import pytest
 # ---------------------------------------------------------------------------
 
 def test_kanban_tools_hidden_without_env_var(monkeypatch, tmp_path):
-    """Normal `hermes chat` sessions (no HERMES_KANBAN_TASK) must have
+    """Normal `a2assistant chat` sessions (no A2ASSISTANT_KANBAN_TASK) must have
     zero kanban_* tools in their schema."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
 
     from tools.registry import invalidate_check_fn_cache, registry
     from toolsets import resolve_toolset
@@ -43,13 +43,13 @@ def test_kanban_tools_hidden_without_env_var(monkeypatch, tmp_path):
 
 @pytest.fixture
 def worker_env(monkeypatch, tmp_path):
-    """Simulate being a worker: HERMES_HOME isolated, HERMES_KANBAN_TASK set
+    """Simulate being a worker: A2ASSISTANT_HOME isolated, A2ASSISTANT_KANBAN_TASK set
     after we've created the task."""
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "test-worker")
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_PROFILE", "test-worker")
+    monkeypatch.delenv("A2ASSISTANT_SESSION_ID", raising=False)
     from pathlib import Path as _Path
     monkeypatch.setattr(_Path, "home", lambda: tmp_path)
 
@@ -64,10 +64,10 @@ def worker_env(monkeypatch, tmp_path):
         run_id = kb._current_run_id(conn, tid)
     finally:
         conn.close()
-    monkeypatch.setenv("HERMES_KANBAN_TASK", tid)
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", tid)
     # A real dispatcher always pins the worker's run id; simulate that so the
     # run-lifecycle tools can prove ownership (see test_unbound_worker_cannot_mutate_card).
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(run_id))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", str(run_id))
     return tid
 
 
@@ -87,7 +87,7 @@ def test_show_bare_call_outside_worker_returns_orientation_not_error(monkeypatch
     themselves; with no dispatcher task in scope there is nothing to show, so the
     answer must be a pointer to kanban_list — not an error naming an env var no
     chat caller can set."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     from tools import kanban_tools as kt
     out = json.loads(kt._handle_show({}))
     assert "error" not in out, out
@@ -98,30 +98,30 @@ def test_show_bare_call_outside_worker_returns_orientation_not_error(monkeypatch
 def test_comment_bare_call_outside_worker_names_kanban_list(monkeypatch, worker_env):
     """#91431 sibling: a comment cannot post without a target task, so a bare call
     stays an error — but the error must point at kanban_list instead of the env."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     from tools import kanban_tools as kt
     out = json.loads(kt._handle_comment({"body": "hello"}))
     assert out.get("error"), out
     assert "kanban_list" in out["error"]
-    assert "set HERMES_KANBAN_TASK" not in out["error"]
+    assert "set A2ASSISTANT_KANBAN_TASK" not in out["error"]
 
 
 def test_worker_tool_bare_call_outside_worker_error_is_actionable(monkeypatch, worker_env):
     """#91431 sibling: the mutation/lifecycle tools still require a target, but the
     rejection a non-worker receives must name what it can do (kanban_list), not the
     env var it cannot set."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     from tools import kanban_tools as kt
     for handler, name in ((kt._handle_heartbeat, "kanban_heartbeat"),
                            (kt._handle_attachments, "kanban_attachments")):
         out = json.loads(handler({}))
         assert out.get("error"), (name, out)
         assert "kanban_list" in out["error"], (name, out)
-        assert "set HERMES_KANBAN_TASK" not in out["error"], (name, out)
+        assert "set A2ASSISTANT_KANBAN_TASK" not in out["error"], (name, out)
 
 
 def test_kanban_task_id_descriptions_state_the_non_worker_case():
-    """#91431 contract: any task_id description that promises the HERMES_KANBAN_TASK
+    """#91431 contract: any task_id description that promises the A2ASSISTANT_KANBAN_TASK
     default must also say the default only exists for dispatcher-spawned workers —
     an unqualified invite to omit the argument is what made chat profiles call bare."""
     from tools import kanban_tools_schemas as kts
@@ -131,7 +131,7 @@ def test_kanban_task_id_descriptions_state_the_non_worker_case():
         if not (attr.startswith("KANBAN_") and attr.endswith("_SCHEMA")):
             continue
         desc = (schema["parameters"]["properties"].get("task_id") or {}).get("description") or ""
-        if "HERMES_KANBAN_TASK" not in desc:
+        if "A2ASSISTANT_KANBAN_TASK" not in desc:
             continue
         assert "worker" in desc, (
             schema["name"], "env default promised without the non-worker case (#91431)")
@@ -143,7 +143,7 @@ def test_kanban_task_id_descriptions_state_the_non_worker_case():
 
 def test_list_filters_tasks(monkeypatch, worker_env):
     """kanban_list gives orchestrators filtered board discovery."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     from hermes_cli import kanban_db as kb
     from hermes_cli import kanban_db_connect as kbc
     conn = kbc.connect()
@@ -268,7 +268,7 @@ def test_request_review_rejects_unknown_reviewer_without_mutation(monkeypatch, w
     with kbc.connect() as conn:
         before = kb.get_task(conn, worker_env)
         before_events = kb.list_events(conn, worker_env)
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(before.current_run_id))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", str(before.current_run_id))
 
     out = json.loads(kt._handle_request_review({"summary": "Ready for review.", "reviewer": "reviewer"}))
 
@@ -287,7 +287,7 @@ def test_request_review_accepts_installed_profile(monkeypatch, worker_env, tmp_p
     (tmp_path / ".hermes" / "profiles" / "verifier").mkdir(parents=True)
     (tmp_path / ".hermes" / "profiles" / "verifier" / "config.yaml").write_text("{}\n", encoding="utf-8")  # identity marker
     with kbc.connect() as conn:
-        monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(kb.get_task(conn, worker_env).current_run_id))
+        monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", str(kb.get_task(conn, worker_env).current_run_id))
 
     out = json.loads(kt._handle_request_review({"summary": "Ready for review.", "reviewer": "verifier"}))
 
@@ -308,7 +308,7 @@ def test_unbound_worker_cannot_mutate_card(monkeypatch, worker_env):
 
     # Worker is scoped to the task (HERMES_KANBAN_TASK set by the fixture) but
     # has NO run id — the unbound state the dispatcher never produces.
-    monkeypatch.delenv("HERMES_KANBAN_RUN_ID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_RUN_ID", raising=False)
 
     for handler, args in [
         (kt._handle_complete, {"summary": "stale worker says done"}),
@@ -330,7 +330,7 @@ def test_unbound_worker_cannot_mutate_card(monkeypatch, worker_env):
     # fires on the unbound state, never on the legitimate dispatcher path.
     with kbc.connect() as conn:
         run_id = kb.get_task(conn, worker_env).current_run_id
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(run_id))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", str(run_id))
     out = json.loads(kt._handle_complete({"summary": "bound worker done"}))
     assert out.get("ok") is True
     with kbc.connect() as conn:
@@ -338,14 +338,14 @@ def test_unbound_worker_cannot_mutate_card(monkeypatch, worker_env):
 
 
 def test_malformed_run_id_refused_but_nonlifecycle_allowed(monkeypatch, worker_env):
-    """A malformed (non-integer) HERMES_KANBAN_RUN_ID is treated as unbound and
+    """A malformed (non-integer) A2ASSISTANT_KANBAN_RUN_ID is treated as unbound and
     refuses run-lifecycle mutations, while non-lifecycle tools (heartbeat /
     attach) that do not terminate a run stay available to the worker."""
     from hermes_cli import kanban_db as kb
     from hermes_cli import kanban_db_connect as kbc
     from tools import kanban_tools as kt
 
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", "not-an-int")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", "not-an-int")
 
     # Run-lifecycle mutations are refused on a malformed run id.
     out = json.loads(kt._handle_complete({"summary": "stale worker says done"}))
@@ -371,9 +371,9 @@ def test_complete_goal_mode_rejected_by_judge(monkeypatch, tmp_path):
     # Set up isolated HERMES_HOME
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "test-worker")
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_PROFILE", "test-worker")
+    monkeypatch.delenv("A2ASSISTANT_SESSION_ID", raising=False)
     monkeypatch.setattr(_Path, "home", lambda: tmp_path)
 
     kb._INITIALIZED_PATHS.clear()
@@ -388,8 +388,8 @@ def test_complete_goal_mode_rejected_by_judge(monkeypatch, tmp_path):
         run_id = kb._current_run_id(conn, goal_task_id)
     finally:
         conn.close()
-    monkeypatch.setenv("HERMES_KANBAN_TASK", goal_task_id)
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(run_id))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", goal_task_id)
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", str(run_id))
 
     # Mock the judge to reject the completion. The gate only runs when a
     # judge is reachable, so force the availability probe True as well.
@@ -482,7 +482,7 @@ def test_schedule_rejects_invalid_reason_and_unowned_contexts(monkeypatch, worke
 
 
 def _make_goal_mode_worker_env(monkeypatch, tmp_path):
-    """Set up an isolated HERMES_HOME with one claimed goal_mode task,
+    """Set up an isolated A2ASSISTANT_HOME with one claimed goal_mode task,
     matching the pattern used by the kanban_complete judge gate tests."""
     from pathlib import Path as _Path
     from hermes_cli import kanban_db as kb
@@ -490,9 +490,9 @@ def _make_goal_mode_worker_env(monkeypatch, tmp_path):
 
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "test-worker")
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_PROFILE", "test-worker")
+    monkeypatch.delenv("A2ASSISTANT_SESSION_ID", raising=False)
     monkeypatch.setattr(_Path, "home", lambda: tmp_path)
 
     kb._INITIALIZED_PATHS.clear()
@@ -507,8 +507,8 @@ def _make_goal_mode_worker_env(monkeypatch, tmp_path):
         run_id = kb._current_run_id(conn, goal_task_id)
     finally:
         conn.close()
-    monkeypatch.setenv("HERMES_KANBAN_TASK", goal_task_id)
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(run_id))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", goal_task_id)
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", str(run_id))
     return goal_task_id
 
 
@@ -672,8 +672,8 @@ def test_worker_the_dispatcher_never_recorded_keeps_its_claim_or_never_starts(mo
         _expire_claim(conn, late)
         assert kb.release_stale_claims(conn) == 1
         kb.claim_task(conn, late)
-    monkeypatch.setenv("HERMES_KANBAN_TASK", late)
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(stale_run))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", late)
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", str(stale_run))
     assert kt.register_current_worker_from_env() is False
     with kbc.connect_closing() as conn:
         assert kb.get_task(conn, late).worker_pid is None
@@ -783,7 +783,7 @@ def test_link_running_child_allows_owner_but_rejects_foreign(monkeypatch, worker
         foreign_child = kb.create_task(conn, title="foreign worker")
         assert kb.claim_task(conn, foreign_child, claimer="other") is not None
 
-    monkeypatch.setenv("HERMES_KANBAN_RUN_ID", str(own_run_id))
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_RUN_ID", str(own_run_id))
     own = json.loads(kt._handle_link({"parent_id": own_parent, "child_id": worker_env}))
     foreign = json.loads(kt._handle_link(
         {"parent_id": foreign_parent, "child_id": foreign_child},
@@ -797,7 +797,7 @@ def test_link_running_child_allows_owner_but_rejects_foreign(monkeypatch, worker
 
 
 def test_unblock_happy_path(monkeypatch, worker_env):
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     from hermes_cli import kanban_db as kb
     from hermes_cli import kanban_db_connect as kbc
     conn = kbc.connect()
@@ -821,11 +821,11 @@ def test_unblock_happy_path(monkeypatch, worker_env):
 
 
 def test_unblock_with_pending_parents_returns_todo(monkeypatch, tmp_path):
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_PROFILE", "orchestrator")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_PROFILE", "orchestrator")
     from pathlib import Path as _Path
     monkeypatch.setattr(_Path, "home", lambda: tmp_path)
 
@@ -1033,12 +1033,12 @@ def test_worker_unblock_rejects_foreign_task_id(worker_env):
 
 
 def test_orchestrator_complete_any_task_allowed(monkeypatch, tmp_path):
-    """Orchestrator profiles (no HERMES_KANBAN_TASK) can still complete
+    """Orchestrator profiles (no A2ASSISTANT_KANBAN_TASK) can still complete
     any task via explicit task_id. The check only applies to workers."""
-    monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
     home = tmp_path / ".hermes"
     home.mkdir()
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     from pathlib import Path as _P
     monkeypatch.setattr(_P, "home", lambda: tmp_path)
 
@@ -1109,12 +1109,12 @@ def test_create_subscribes_gateway_session(monkeypatch, worker_env):
     to its own kanban_create result, and the response surfaces the
     ``subscribed`` flag so the orchestrator can react."""
     from tools import kanban_tools as kt
-    monkeypatch.setenv("HERMES_SESSION_PLATFORM", "telegram")
-    monkeypatch.setenv("HERMES_SESSION_CHAT_ID", "chat-42")
-    monkeypatch.setenv("HERMES_SESSION_THREAD_ID", "thread-7")
-    monkeypatch.setenv("HERMES_SESSION_USER_ID", "user-9")
-    monkeypatch.setenv("HERMES_SESSION_USER_ID_ALT", "alt-user-9")
-    monkeypatch.setenv("HERMES_SESSION_CHAT_TYPE", "forum")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_PLATFORM", "telegram")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_CHAT_ID", "chat-42")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_THREAD_ID", "thread-7")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_USER_ID", "user-9")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_USER_ID_ALT", "alt-user-9")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_CHAT_TYPE", "forum")
 
     out = kt._handle_create({
         "title": "auto-sub gateway",
@@ -1139,16 +1139,16 @@ def test_create_subscribes_gateway_session(monkeypatch, worker_env):
 
 def test_create_subscribes_tui_session_via_session_key(monkeypatch, worker_env):
     """TUI / desktop sessions don't have a platform/chat_id (single
-    local channel), but the parent process exports HERMES_SESSION_KEY.
+    local channel), but the parent process exports A2ASSISTANT_SESSION_KEY.
     We should still auto-subscribe, with platform='tui' and
     chat_id=<key>."""
     from tools import kanban_tools as kt
-    monkeypatch.delenv("HERMES_SESSION_PLATFORM", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_CHAT_ID", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_THREAD_ID", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_USER_ID", raising=False)
-    monkeypatch.setenv("HERMES_SESSION_KEY", "tui-session-abc")
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PLATFORM", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_CHAT_ID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_THREAD_ID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_USER_ID", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_SESSION_KEY", "tui-session-abc")
+    monkeypatch.delenv("A2ASSISTANT_SESSION_ID", raising=False)
 
     out = kt._handle_create({
         "title": "auto-sub tui",
@@ -1171,10 +1171,10 @@ def test_create_does_not_subscribe_in_cli_session(monkeypatch, worker_env):
     """CLI / cron / test sessions have no persistent delivery channel.
     _maybe_auto_subscribe returns False and no row is written."""
     from tools import kanban_tools as kt
-    monkeypatch.delenv("HERMES_SESSION_PLATFORM", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_CHAT_ID", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_KEY", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PLATFORM", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_CHAT_ID", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_KEY", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_ID", raising=False)
 
     out = kt._handle_create({
         "title": "no sub cli",
@@ -1188,7 +1188,7 @@ def test_create_does_not_subscribe_in_cli_session(monkeypatch, worker_env):
 
 
 def test_create_tui_subscription_binds_to_live_session_after_compaction_fork(monkeypatch, worker_env, tmp_path):
-    """#110068: the inherited HERMES_SESSION_KEY can name a session already superseded
+    """#110068: the inherited A2ASSISTANT_SESSION_KEY can name a session already superseded
     by a compaction fork. Auto-subscribe must bind to the live continuation tip resolved
     from the session store, not the stale key the process was launched with."""
     import hermes_state
@@ -1204,11 +1204,11 @@ def test_create_tui_subscription_binds_to_live_session_after_compaction_fork(mon
     db.append_message(live, role="assistant", content="post-fork turn")
 
     monkeypatch.setattr(hermes_state, "DEFAULT_DB_PATH", tmp_path / "state.db")
-    monkeypatch.delenv("HERMES_SESSION_PLATFORM", raising=False)
-    monkeypatch.delenv("HERMES_SESSION_CHAT_ID", raising=False)
-    monkeypatch.setenv("HERMES_SESSION_KEY", stale)
-    monkeypatch.delenv("HERMES_SESSION_ID", raising=False)
-    monkeypatch.setenv("HERMES_PROFILE", "default")
+    monkeypatch.delenv("A2ASSISTANT_SESSION_PLATFORM", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_CHAT_ID", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_SESSION_KEY", stale)
+    monkeypatch.delenv("A2ASSISTANT_SESSION_ID", raising=False)
+    monkeypatch.setenv("A2ASSISTANT_PROFILE", "default")
 
     out = kt._handle_create({
         "title": "auto-sub tui post-fork",
@@ -1277,9 +1277,9 @@ def test_create_respects_auto_subscribe_on_create_false(monkeypatch, worker_env,
     (home / "config.yaml").write_text(
         "kanban:\n  auto_subscribe_on_create: false\n"
     )
-    monkeypatch.setenv("HERMES_HOME", str(home))
-    monkeypatch.setenv("HERMES_SESSION_PLATFORM", "discord")
-    monkeypatch.setenv("HERMES_SESSION_CHAT_ID", "channel-1")
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_SESSION_PLATFORM", "discord")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_CHAT_ID", "channel-1")
 
     from tools import kanban_tools as kt
     out = kt._handle_create({
@@ -1299,8 +1299,8 @@ def test_maybe_auto_subscribe_swallows_add_notify_sub_failure(monkeypatch, worke
     kanban_create. The function returns False and the parent create
     still succeeds with subscribed=False."""
     from tools import kanban_tools as kt
-    monkeypatch.setenv("HERMES_SESSION_PLATFORM", "telegram")
-    monkeypatch.setenv("HERMES_SESSION_CHAT_ID", "chat-42")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_PLATFORM", "telegram")
+    monkeypatch.setenv("A2ASSISTANT_SESSION_CHAT_ID", "chat-42")
 
     from hermes_cli import kanban_db_notify as kbn
 
@@ -1341,12 +1341,12 @@ def test_attach_url_rejects_non_http_scheme(worker_env):
 def default_url_guard(monkeypatch):
     """Force the SSRF guard to its secure default for this test.
 
-    Clears HERMES_ALLOW_PRIVATE_URLS and resets url_safety's process-lifetime
+    Clears A2ASSISTANT_ALLOW_PRIVATE_URLS and resets url_safety's process-lifetime
     cache on both sides so a prior test's opt-in can't leak in.
     """
     from tools import url_safety
 
-    monkeypatch.delenv("HERMES_ALLOW_PRIVATE_URLS", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_ALLOW_PRIVATE_URLS", raising=False)
     url_safety._reset_allow_private_cache()
     yield
     url_safety._reset_allow_private_cache()
@@ -1468,13 +1468,13 @@ def test_attach_url_happy_path_public_host(worker_env, default_url_guard, monkey
 class TestDefaultTaskId:
     def test_numeric_task_id_is_coerced(self, monkeypatch):
         from tools import kanban_tools as kt
-        monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
         assert kt._default_task_id(12345) == "12345"
         assert kt._default_task_id(0) == "0"
 
     def test_whitespace_task_id_is_stripped(self, monkeypatch):
         from tools import kanban_tools as kt
-        monkeypatch.delenv("HERMES_KANBAN_TASK", raising=False)
+        monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK", raising=False)
         assert kt._default_task_id("  task-99  ") == "task-99"
 
     def test_blank_task_id_falls_back(self, monkeypatch, worker_env):

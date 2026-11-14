@@ -19,7 +19,7 @@ from hermes_state_runtime import admit_session_input, begin_runtime_epoch
 ], ids=['native', 'local'])
 async def test_inflight_heartbeat_on_the_logical_owner_blocks_another(tmp_path, monkeypatch, envelope):
     from gateway.run_heartbeat_acceptance import admit_heartbeat
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     db = SessionDB(tmp_path / 'state.db')
     try:
         db.create_session('root', 'telegram')

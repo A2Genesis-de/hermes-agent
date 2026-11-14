@@ -54,7 +54,7 @@ def _write_model_config(tmp_path, provider, base_url="", model_name="test-model"
 
 def test_setup_delegates_to_select_provider_and_model(tmp_path, monkeypatch):
     """setup_model_provider calls select_provider_and_model and syncs config."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     _clear_provider_env(monkeypatch)
     _stub_tts(monkeypatch)
 
@@ -79,7 +79,7 @@ def test_select_provider_and_model_warns_if_named_custom_provider_disappears(
     tmp_path, monkeypatch, capsys
 ):
     """If a saved custom provider is deleted mid-selection, show a warning instead of silently doing nothing."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     _clear_provider_env(monkeypatch)
 
     cfg = load_config()
@@ -134,7 +134,7 @@ def test_python_setup_uses_declared_extras_and_reports_restart(extra, succeeds, 
         assert sys.modules[extra] is None  # installing never activates in this process
     else:
         assert "resolution refused" in output
-        assert "Retry with: hermes setup" in output
+        assert "Retry with: a2assistant setup" in output
         assert "installed." not in output
 
 

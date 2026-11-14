@@ -83,8 +83,8 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
       fs.symlinkSync(path.join(repo, dir, 'node_modules'), path.join(work, dir, 'node_modules'), 'junction')
     }
   }
-  const env = { ...process.env, HERMES_HOME: path.join(root, 'home'), HERMES_RUNTIME_DIR: path.join(root, 'runtime') }
-  for (const key of ['_HERMES_CHANNEL_REQUEST_JSON', 'HERMES_BUILD_COMMIT', 'HERMES_PAYLOAD_TAG', 'HERMES_PAYLOAD_VERSION', 'HERMES_DESKTOP_VARIANT', 'BUILD_NUMBER']) delete env[key]
+  const env = { ...process.env, A2ASSISTANT_HOME: path.join(root, 'home'), A2ASSISTANT_RUNTIME_DIR: path.join(root, 'runtime') }
+  for (const key of ['_HERMES_CHANNEL_REQUEST_JSON', 'A2ASSISTANT_BUILD_COMMIT', 'A2ASSISTANT_PAYLOAD_TAG', 'A2ASSISTANT_PAYLOAD_VERSION', 'A2ASSISTANT_DESKTOP_VARIANT', 'BUILD_NUMBER']) delete env[key]
   const gitEnv = { ...env, GIT_AUTHOR_NAME: 'Native fixture', GIT_AUTHOR_EMAIL: 'fixture@example.invalid', GIT_COMMITTER_NAME: 'Native fixture', GIT_COMMITTER_EMAIL: 'fixture@example.invalid', GIT_AUTHOR_DATE: '2026-09-01T00:00:00Z', GIT_COMMITTER_DATE: '2026-09-01T00:00:00Z' }
   const git = (...args) => checked('git', args, { cwd: work, env: gitEnv })
   git('init', '-q')
@@ -105,18 +105,18 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
     bundleEnv: {}, publicBase: 'https://example.invalid'
   })
   const cases = [
-    ['stable', { HERMES_PAYLOAD_TAG: 'v1.2.3' }],
-    ['canary', { HERMES_PAYLOAD_TAG: 'v1.2.3+canary.20260902T000000Z' }],
-    ['canary-update', { HERMES_PAYLOAD_TAG: 'v1.2.3+canary.20260903T000000Z' }],
-    ['commit-a', { HERMES_BUILD_COMMIT: commitA, HERMES_PAYLOAD_VERSION: '1.2.4' }],
-    ['commit-b', { HERMES_BUILD_COMMIT: commitB, HERMES_PAYLOAD_VERSION: '1.2.4' }],
+    ['stable', { A2ASSISTANT_PAYLOAD_TAG: 'v1.2.3' }],
+    ['canary', { A2ASSISTANT_PAYLOAD_TAG: 'v1.2.3+canary.20260902T000000Z' }],
+    ['canary-update', { A2ASSISTANT_PAYLOAD_TAG: 'v1.2.3+canary.20260903T000000Z' }],
+    ['commit-a', { A2ASSISTANT_BUILD_COMMIT: commitA, A2ASSISTANT_PAYLOAD_VERSION: '1.2.4' }],
+    ['commit-b', { A2ASSISTANT_BUILD_COMMIT: commitB, A2ASSISTANT_PAYLOAD_VERSION: '1.2.4' }],
     ...[65535, 65536, 0xffffffff].map(sequence => [`channel-${sequence}`, { _HERMES_CHANNEL_REQUEST_JSON: JSON.stringify(channelRequest(sequence)) }]),
   ]
   const rows = []
   const failures = []
   const check = (value, message) => { if (!value) failures.push(message) }
   for (const [label, flavorEnv] of cases) {
-    const childEnv = { ...env, HERMES_DESKTOP_VARIANT: 'bundled', ...flavorEnv }
+    const childEnv = { ...env, A2ASSISTANT_DESKTOP_VARIANT: 'bundled', ...flavorEnv }
     const node = args => checked(process.execPath, args, { cwd: work, env: childEnv })
     const packageDir = path.join(root, label)
     fs.mkdirSync(packageDir)
@@ -186,7 +186,7 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
       const publisher = attribute(roundtrip, 'Identity', 'Publisher')
       const selfUri = `https://example.invalid/fixture/${facts.identity.channel}.appinstaller`
       const artifactUri = `https://example.invalid/fixture/${facts.app.name}-${version}-win.msixbundle`
-      checked(process.env.HERMES_PYTHON || 'python', [
+      checked(process.env.A2ASSISTANT_PYTHON || 'python', [
         '-m', 'scripts.bundles.release_artifacts', 'appinstaller', '--root', root, '--out', descriptor,
         '--identity', name, '--publisher', publisher, '--version', version,
         '--self-uri', selfUri, '--artifact-uri', artifactUri,
@@ -201,7 +201,7 @@ foreach ($asset in @(@('Square44x44Logo.png',44,44), @('Square150x150Logo.png',1
       check(!fs.existsSync(descriptor), `${label}: commit build emitted App Installer feed`)
       check(facts.config.publish === null, `${label}: commit build config still publishes`)
     }
-    const row = { label, name, version, aliases, packageDir, cliName: facts.identity.cliName, commit: flavorEnv.HERMES_BUILD_COMMIT || null }
+    const row = { label, name, version, aliases, packageDir, cliName: facts.identity.cliName, commit: flavorEnv.A2ASSISTANT_BUILD_COMMIT || null }
     rows.push(row)
     console.log(`SDK pack/unpack PASS ${label}: ${name} ${version}; aliases=${aliases.join(',')}`)
   }

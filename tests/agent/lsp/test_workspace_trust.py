@@ -29,8 +29,8 @@ def _write(path, text: str = ""):
 
 
 def _hermes_side_tree(tmp_path, monkeypatch) -> str:
-    """``<HERMES_HOME>/lsp/node_modules`` with a JS TypeScript SDK and Vue 2.x; returns a launcher inside it."""
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path / "home"))
+    """``<A2ASSISTANT_HOME>/lsp/node_modules`` with a JS TypeScript SDK and Vue 2.x; returns a launcher inside it."""
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path / "home"))
     monkeypatch.delenv("VIRTUAL_ENV", raising=False)
     staging = tmp_path / "home" / "lsp" / "node_modules"
     _write(staging / "typescript" / "lib" / "typescript.js")
@@ -168,9 +168,9 @@ def test_only_operator_workspaces_and_listed_directories_are_trusted(tmp_path, m
         assert shell_linted(sibling) == 0
     finally:
         clear_session_vars(tokens)
-    monkeypatch.setenv("HERMES_KANBAN_TASK", "t_1")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_TASK", "t_1")
     assert shell_linted(sibling) == 0
-    monkeypatch.delenv("HERMES_KANBAN_TASK")
+    monkeypatch.delenv("A2ASSISTANT_KANBAN_TASK")
     # ...and never $HOME: a dotfiles repo there would trust every directory below it.
     monkeypatch.setenv("HOME", str(sibling))
     monkeypatch.setenv("USERPROFILE", str(sibling))

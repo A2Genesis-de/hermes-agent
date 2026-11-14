@@ -1,10 +1,10 @@
 """Shared harness for the OpenAI-dialect provider wire-conformance suite.
 
-Every test drives REAL Hermes processes (``hermes -z`` oneshot, ``--resume``, the
+Every test drives REAL Hermes processes (``a2assistant -z`` oneshot, ``--resume``, the
 ``tui_gateway`` stdio server) against a loopback fake of the vendor HTTP API
 (``tests/fakes/providers``) and asserts on the next wire request Hermes sends, the
 user-visible answer, and persisted ``state.db`` rows. Homes are hermetic: a fake HOME
-whose ``.hermes`` is the HERMES_HOME, an allowlisted env with no credentials.
+whose ``.hermes`` is the A2ASSISTANT_HOME, an allowlisted env with no credentials.
 """
 
 from __future__ import annotations
@@ -118,7 +118,7 @@ class Home:
         return self.hermes_home / "state.db"
 
     def env(self, extra: dict[str, str] | None = None) -> dict[str, str]:
-        """Allowlisted env: the runner may itself be a Hermes process whose HERMES_* or
+        """Allowlisted env: the runner may itself be a Hermes process whose A2ASSISTANT_* or
         credential env would silently reroute the child."""
         import pwd  # the suite is Linux-gated
 
@@ -128,10 +128,10 @@ class Home:
         env = {k: v for k, v in os.environ.items()
                if (k in _PASSTHROUGH_ENV or k.startswith("LC_")) and not k.endswith(_SECRET_ENV_SUFFIXES)}
         env.update({
-            "HOME": str(self.home), "HERMES_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
+            "HOME": str(self.home), "A2ASSISTANT_HOME": str(self.hermes_home), "PYTHONPATH": str(REPO_ROOT),
             "PYTHONUNBUFFERED": "1", "NO_COLOR": "1", "TERM": "dumb",
             # The child's state.db lives under tmp_path; the live-DB guard's documented child escape hatch.
-            "HERMES_STATE_DB_GUARD_BYPASS": "1",
+            "A2ASSISTANT_STATE_DB_GUARD_BYPASS": "1",
         })
         env.update(extra or {})
         return env
@@ -209,7 +209,7 @@ def hermes_argv(*args: str) -> list[str]:
 
 def oneshot(h: Home, prompt: str, *args: str, resume: str | None = None, timeout: float = TURN_TIMEOUT,
             env: dict[str, str] | None = None) -> Run:
-    """One real ``hermes -z`` turn; the usage file names the session for ``--resume``."""
+    """One real ``a2assistant -z`` turn; the usage file names the session for ``--resume``."""
     usage_file = h.root / f"usage-{time.monotonic_ns()}.json"
     argv = ["-z", prompt, "--usage-file", str(usage_file), *args]
     if resume:

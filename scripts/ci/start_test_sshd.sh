@@ -5,7 +5,7 @@
 #
 # Generates (once per state dir) a client keypair and a host key, starts a
 # Debian sshd on 127.0.0.1:<port> (default 2222) that accepts only that key for
-# user `hermes`, waits until it answers, and prints the HERMES_TEST_SSH_*
+# user `a2assistant`, waits until it answers, and prints the A2ASSISTANT_TEST_SSH_*
 # variables tests/tools/test_ssh_environment.py reads (appended to $GITHUB_ENV
 # too when it is set). `docker rm -f hermes-test-sshd` stops it.
 #
@@ -16,7 +16,7 @@ set -euo pipefail
 
 state_dir="${1:?usage: start_test_sshd.sh <state-dir> [port]}"
 port="${2:-2222}"
-image="${HERMES_TEST_SSHD_IMAGE:-debian:13-slim}"
+image="${A2ASSISTANT_TEST_SSHD_IMAGE:-debian:13-slim}"
 name="hermes-test-sshd"
 
 mkdir -p "$state_dir"
@@ -50,10 +50,10 @@ if [ -z "${ready:-}" ]; then
   exit 1
 fi
 
-env_lines="HERMES_TEST_SSH_HOST=127.0.0.1
-HERMES_TEST_SSH_USER=hermes
-HERMES_TEST_SSH_PORT=$port
-HERMES_TEST_SSH_KEY=$state_dir/id_ed25519"
+env_lines="A2ASSISTANT_TEST_SSH_HOST=127.0.0.1
+A2ASSISTANT_TEST_SSH_USER=hermes
+A2ASSISTANT_TEST_SSH_PORT=$port
+A2ASSISTANT_TEST_SSH_KEY=$state_dir/id_ed25519"
 if [ -n "${GITHUB_ENV:-}" ]; then
   printf '%s\n' "$env_lines" >> "$GITHUB_ENV"
 fi

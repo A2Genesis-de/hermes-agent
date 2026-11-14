@@ -404,7 +404,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--out", type=Path)
     parser.add_argument("--tag", default=os.environ.get("RELEASE_TAG"))
-    parser.add_argument("--archive", default=os.environ.get("HERMES_ARCHIVE_TAG"),
+    parser.add_argument("--archive", default=os.environ.get("A2ASSISTANT_ARCHIVE_TAG"),
                         help="Attempt ref the release archive is keyed under when the payload tag is plain vX.Y.Z")
     # A stable run dispatches from the default branch, so GITHUB_SHA is not the admitted claim commit.
     parser.add_argument("--commit", default=os.environ.get("RELEASE_COMMIT") or os.environ.get("GITHUB_SHA"))

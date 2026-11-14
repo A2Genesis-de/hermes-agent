@@ -48,7 +48,7 @@ async def stage_user_content(content, home=None):
     at admission. A remote image URL that cannot be fetched is kept as text so the model
     still sees it. Only a remote image awaits (its download); every other part stages inline.
 
-    ``home`` is the owner's profile home: a per-task overlay ``HERMES_HOME`` does not share
+    ``home`` is the owner's profile home: a per-task overlay ``A2ASSISTANT_HOME`` does not share
     ``cache/images``, and admission accepts only the owner's cache (never relaxed here)."""
     if isinstance(content, str):
         return content, []

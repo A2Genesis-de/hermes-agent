@@ -2,7 +2,7 @@
 
 Main's TUI owned its own sidecar and never depended on an external daemon, so an open TUI must come
 back on its own after ANY end of the shared gateway: a crash, its idle exit, or a planned
-`hermes gateway stop` while the TUI is open. The bounded recovery slot (`@hermes/shared/gateway-client`
+`a2assistant gateway stop` while the TUI is open. The bounded recovery slot (`@hermes/shared/gateway-client`
 OWNER_RECOVERY_LIMIT) is what keeps a crash-looping owner from being respawned forever."""
 
 from __future__ import annotations
@@ -103,18 +103,18 @@ def test_failure_names_the_reason_and_its_remedy(monkeypatch, tmp_path):
 
 
 def test_started_daemon_does_not_inherit_the_launch_time_kanban_board(monkeypatch, tmp_path):
-    """`hermes --tui` pins HERMES_KANBAN_BOARD for its own launch; the shared daemon this bootstrap
+    """`a2assistant --tui` pins A2ASSISTANT_KANBAN_BOARD for its own launch; the shared daemon this bootstrap
     starts (spawn_unmanaged_gateway copies os.environ) must keep the profile's current board."""
     module = _load_bootstrap()
     home = (tmp_path / "home").resolve()
     home.mkdir()
     monkeypatch.setattr(hermes_constants, "get_hermes_home", lambda: home)
-    monkeypatch.setenv("HERMES_KANBAN_BOARD", "launch-board")
+    monkeypatch.setenv("A2ASSISTANT_KANBAN_BOARD", "launch-board")
     seen = []
 
     def ensure(h, timeout=30, idle_exit=False):
         import os
-        seen.append(os.environ.get("HERMES_KANBAN_BOARD"))
+        seen.append(os.environ.get("A2ASSISTANT_KANBAN_BOARD"))
         return SimpleNamespace(state="starting", endpoint=None, reason_code="deadline", detail=None)
 
     monkeypatch.setattr(gateway_runtime, "ensure_gateway_runtime", ensure)

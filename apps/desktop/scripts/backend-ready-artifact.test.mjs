@@ -12,10 +12,10 @@ import {
   resolvePackagedAsarPath
 } from './backend-ready-artifact.mjs'
 
-const CURRENT_SOURCE = 'const re = /HERMES_(?:BACKEND|DASHBOARD)_READY[^\\n]*port=(\\d+)/m\n'
+const CURRENT_SOURCE = 'const re = /A2ASSISTANT_(?:BACKEND|DASHBOARD)_READY[^\\n]*port=(\\d+)/m\n'
 // The pre-#55923 matcher: only the legacy token. A packaged bundle carrying
 // this kills a current backend after the port-announcement timeout (#60772).
-const STALE_SOURCE = 'const re = /HERMES_DASHBOARD_READY port=(\\d+)/m\n'
+const STALE_SOURCE = 'const re = /A2ASSISTANT_DASHBOARD_READY port=(\\d+)/m\n'
 
 async function packedAppRoot() {
   const root = await mkdtemp(path.join(os.tmpdir(), 'hermes-ready-artifact-'))
@@ -66,7 +66,7 @@ it('rejects the stale dashboard-only matcher — the #60772 artifact skew', asyn
   try {
     const asar = await writeAsar(resources, STALE_SOURCE)
     expect(() => assertPackagedBackendReadyArtifact(asar)).toThrow(
-      'does not contain a packaged readiness matcher accepting HERMES_BACKEND_READY and HERMES_DASHBOARD_READY'
+      'does not contain a packaged readiness matcher accepting A2ASSISTANT_BACKEND_READY and A2ASSISTANT_DASHBOARD_READY'
     )
   } finally {
     await rm(resources, { recursive: true, force: true })

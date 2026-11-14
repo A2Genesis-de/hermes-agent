@@ -1,7 +1,7 @@
-"""hermes desktop forwards an explicit profile into the packaged Electron launch.
+"""a2assistant desktop forwards an explicit profile into the packaged Electron launch.
 
-Electron boots from active-profile.json. ``hermes -p <name> desktop`` used to
-set only the CLI HERMES_HOME, so the packaged app still started the stored
+Electron boots from active-profile.json. ``a2assistant -p <name> desktop`` used to
+set only the CLI A2ASSISTANT_HOME, so the packaged app still started the stored
 profile. A launch with no ``-p`` / ``--profile`` must not invent a flag.
 """
 
@@ -84,14 +84,14 @@ def _launch_command(tmp_path, monkeypatch, argv: list[str], *, active_profile: s
     exe = _packaged_exe(project)
 
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
-    monkeypatch.delenv("HERMES_HOME", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_HOME", raising=False)
     monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "xdg"))
     monkeypatch.setenv("GNOME_KEYRING_CONTROL", "/run/user/1000/keyring")
     for var in (
-        "HERMES_SUPERVISED_CHILD",
-        "HERMES_S6_SUPERVISED_CHILD",
+        "A2ASSISTANT_SUPERVISED_CHILD",
+        "A2ASSISTANT_S6_SUPERVISED_CHILD",
         "INVOCATION_ID",
-        "HERMES_GATEWAY_EXTERNAL_SUPERVISOR",
+        "A2ASSISTANT_GATEWAY_EXTERNAL_SUPERVISOR",
         "KDE_SESSION_VERSION",
         "KDE_FULL_SESSION",
     ):
@@ -137,4 +137,4 @@ def test_missing_flag_does_not_forward_sticky_profile(tmp_path, monkeypatch):
     )
 
     assert "--profile" not in launched
-    assert os.environ.get("HERMES_HOME", "").endswith(f"{os.sep}profiles{os.sep}coder")
+    assert os.environ.get("A2ASSISTANT_HOME", "").endswith(f"{os.sep}profiles{os.sep}coder")

@@ -86,7 +86,7 @@ def mint_launch_ticket(state) -> str:
 def mint_printed_launch_ticket(state) -> str:
     """Ticket for a launch link the user opens by hand where nothing identifies the redeeming
     connection's owner (macOS, the BSDs, WSL): it spends without that check, as a window ticket does, so
-    ``hermes webapp`` prints it and never passes it to a browser launcher."""
+    ``a2assistant webapp`` prints it and never passes it to a browser launcher."""
     return _mint_handoff_ticket(state, LAUNCH_TICKET_TTL_SECONDS, launch=False)
 
 
@@ -138,7 +138,7 @@ def _peer_is_server_user(request: Request, platform: str = sys.platform) -> bool
     launcher's command line, which only its own user, SYSTEM and elevated administrators can read.
     Elsewhere (macOS, the BSDs) every local user can read the launcher's argv and nothing here
     identifies the connection's owner, so an argv-carried launch ticket cannot be redeemed; WSL
-    never mints one. Authenticated child-window tickets and the launch tickets ``hermes webapp``
+    never mints one. Authenticated child-window tickets and the launch tickets ``a2assistant webapp``
     prints for the user to open by hand (``mint_printed_launch_ticket``) do not use this launcher
     channel.
     """
@@ -293,7 +293,7 @@ const params = new URLSearchParams(location.hash.slice(1));
 history.replaceState(null, '', location.pathname);
 const ticket = params.get('ticket') || '';
 const show = message => { document.getElementById('status').textContent = message; };
-const fail = () => show('This launch link was already used or has expired. Run hermes webapp again for a new one.');
+const fail = () => show('This launch link was already used or has expired. Run a2assistant webapp again for a new one.');
 if (!/^[A-Za-z0-9_-]{43}$/.test(ticket)) {
   fail();
 } else {
@@ -305,7 +305,7 @@ if (!/^[A-Za-z0-9_-]{43}$/.test(ticket)) {
       sessionStorage.setItem(`hermes.webapp.session.v1:${JSON.stringify([location.origin, basePath])}`, token);
     } catch {
       show('This browser does not let the Webapp keep its sign-in in this tab. Allow site data for this '
-        + 'address, then run hermes webapp again.');
+        + 'address, then run a2assistant webapp again.');
       return;
     }
     const target = new URL(`${basePath}/`, location.origin);

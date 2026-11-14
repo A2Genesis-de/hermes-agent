@@ -24,7 +24,7 @@ def _skill(root, rel, desc):
 
 
 def test_index_rows_carry_each_name_once_and_never_a_half_word(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     skills = tmp_path / "skills"
     _skill(skills, "creative/ascii-art", "ASCII art banners.")
     _skill(skills, "creative/pixel-art", "Pixel art sprites.")

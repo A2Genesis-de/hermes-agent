@@ -19,7 +19,7 @@ def test_status_warns_and_uninstall_removes_pre_suffix_launchers(tmp_path, monke
     # The shared isolation fixture uses tmp_path / "hermes" as the Windows native default.
     home = tmp_path / "custom-hermes"
     (home / "gateway-service").mkdir(parents=True)
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     appdata = tmp_path / "AppData" / "Roaming"
     startup = appdata / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
     startup.mkdir(parents=True)
@@ -49,7 +49,7 @@ def test_status_warns_and_uninstall_removes_pre_suffix_launchers(tmp_path, monke
         assert "legacy pre-suffix Scheduled Task still installed: Hermes_Gateway" in out
         assert f"legacy pre-suffix Windows login item still installed: {legacy_vbs}" in out
         assert f"legacy pre-suffix task launcher still installed: {legacy_pair}" in out
-        assert "hermes gateway uninstall" in out
+        assert "a2assistant gateway uninstall" in out
 
         gateway_windows.uninstall()
         out = capsys.readouterr().out

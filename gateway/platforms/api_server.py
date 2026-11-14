@@ -2939,7 +2939,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
     async def _answer_through_live_bot_chat(self, ctx: dict[str, Any]) -> Optional[web.Response]:
         """Hand a turn aimed at a canonical Bot Chat that a Desktop holds live to that owner.
 
-        This is the ``hermes peer dm`` transport. Running the turn here would make this process a
+        This is the ``a2assistant peer dm`` transport. Running the turn here would make this process a
         second writer beside the lease holder: the open chat never shows the message or the reply,
         its live context never learns of them, and the two transcripts interleave in state.db.
         Local and relayed DMs already hand such a message to the owner's mailbox
@@ -3024,7 +3024,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
     @_admit_api_agent_request
     async def _handle_session_chat(self, request: web.Request) -> web.Response:
         """POST /api/sessions/{session_id}/chat — one synchronous agent turn (plus the delivery lanes'
-        one bounded re-run of a transient failure; ``hermes peer dm`` is the client)."""
+        one bounded re-run of a transient failure; ``a2assistant peer dm`` is the client)."""
         from tools.bot_failure_reasons import RETRY_NONE, result_retry_action
         # This turn runs through _run_agent, so it already COUNTS toward the cap (#7483).
         # Spending the budget without checking it refused every other caller while never
@@ -3476,7 +3476,7 @@ class APIServerAdapter(OpenAICompatRoutesMixin, BasePlatformAdapter):
         declaration or fingerprint-derived identity keeps delegation synchronous.
 
         ``profile`` is the ``/p/<profile>/`` prefix serving the request (``""`` = default). It must
-        reach ``HERMES_SESSION_PROFILE``: the persistent-Docker container key is derived from it, so an
+        reach ``A2ASSISTANT_SESSION_PROFILE``: the persistent-Docker container key is derived from it, so an
         unbound profile collapses every profile's turns onto the default sandbox (#96370)."""
         from gateway.session_context import set_session_vars
         return set_session_vars(

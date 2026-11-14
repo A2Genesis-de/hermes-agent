@@ -1,6 +1,6 @@
 """Tests for git self-heal: atomic worktree-add failure cleanup + pack maintenance.
 
-Regression for the Aug 2026 `hermes -w` timeout incident: 39 accumulated packs
+Regression for the Aug 2026 `a2assistant -w` timeout incident: 39 accumulated packs
 slowed object lookups until `git worktree add` blew its 30s timeout, and the
 timed-out add left a partially-materialized worktree plus a LOCKED admin entry
 (lock pid = the live hermes process), poisoning every retry.
@@ -191,7 +191,7 @@ class TestMaintainPackHealth:
 
 
 class TestRepackStampede:
-    """Regression for the Sep 2026 shared-clone incident: every ``hermes -w`` launch started its
+    """Regression for the Sep 2026 shared-clone incident: every ``a2assistant -w`` launch started its
     own full repack, and a timed-out repack left ``pack-objects`` running for days."""
 
     def test_one_repack_per_clone_per_interval(self, repo, monkeypatch):

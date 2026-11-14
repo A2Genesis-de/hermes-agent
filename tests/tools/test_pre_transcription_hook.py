@@ -415,7 +415,7 @@ def test_real_fixture_plugins_thread_prompt_in_registration_order(
 
     import hermes_yaml as yaml
 
-    hermes_home = Path(os.environ["HERMES_HOME"])
+    hermes_home = Path(os.environ["A2ASSISTANT_HOME"])
     plugin_dir = hermes_home / "plugins" / "stt_vocab"
     plugin_dir.mkdir(parents=True)
     (plugin_dir / "plugin.yaml").write_text("name: stt_vocab\n", encoding="utf-8")

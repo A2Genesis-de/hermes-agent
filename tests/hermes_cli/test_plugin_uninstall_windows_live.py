@@ -1,6 +1,6 @@
-"""LIVE Windows E2E: ``hermes plugins uninstall`` while a real gateway has the plugin loaded.
+"""LIVE Windows E2E: ``a2assistant plugins uninstall`` while a real gateway has the plugin loaded.
 
-A real ``hermes gateway run`` child (temp HOME / HERMES_HOME) loads three enabled user plugins:
+A real ``a2assistant gateway run`` child (temp HOME / A2ASSISTANT_HOME) loads three enabled user plugins:
 pure Python, one that keeps a file in its own directory open, and one that imports a native
 ``.pyd`` shipped inside its directory. Windows refuses to delete a file another process holds
 (WinError 32) or a mapped DLL (WinError 5), so removing those trees under the live gateway is the
@@ -55,10 +55,10 @@ def _native_extension() -> Path:
 
 def _child_env(home: Path) -> dict:
     env = {k: v for k, v in os.environ.items()
-           if not k.startswith(("HERMES_", "PYTEST_")) and not k.endswith(("_API_KEY", "_TOKEN"))}
-    env.update(HOME=str(home.parent), USERPROFILE=str(home.parent), HERMES_HOME=str(home),
-               HERMES_GATEWAY_LOCK_DIR=str(home.parent / "locks"), PYTHONPATH=str(PROJECT_ROOT),
-               PYTHONUTF8="1", NO_COLOR="1", HERMES_ACCEPT_HOOKS="1")
+           if not k.startswith(("A2ASSISTANT_", "PYTEST_")) and not k.endswith(("_API_KEY", "_TOKEN"))}
+    env.update(HOME=str(home.parent), USERPROFILE=str(home.parent), A2ASSISTANT_HOME=str(home),
+               A2ASSISTANT_GATEWAY_LOCK_DIR=str(home.parent / "locks"), PYTHONPATH=str(PROJECT_ROOT),
+               PYTHONUTF8="1", NO_COLOR="1", A2ASSISTANT_ACCEPT_HOOKS="1")
     return env
 
 

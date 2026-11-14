@@ -25,7 +25,7 @@ What is virtual and what stays real:
 
 ``SchedulerHost`` runs the real ticker loop in a thread with a stepping ``stop_event``; running
 this file as a script runs the same loop in a separate OS process (``ChildHost``), stepped via
-files, so two processes can share one ``HERMES_HOME`` and one can be SIGKILLed mid-run. Two
+files, so two processes can share one ``A2ASSISTANT_HOME`` and one can be SIGKILLed mid-run. Two
 tickers never contend for a FIRE: the tick lock admits one per instant and the winner advances
 ``next_run_at`` before it releases. Fire-claim contention is the external-provider path
 (``InProcessCronScheduler.fire_due``, "exactly one of N replicas runs a job"): ``ReplicaHost`` runs a
@@ -409,7 +409,7 @@ class _FileGate:
 
 
 class ChildHost:
-    """Same real ticker loop in a separate OS process sharing the scenario's HERMES_HOME."""
+    """Same real ticker loop in a separate OS process sharing the scenario's A2ASSISTANT_HOME."""
 
     label = "child"
 

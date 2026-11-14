@@ -26,7 +26,7 @@ KEY = "recursive delete"
 
 
 def _snapshot(home, monkeypatch):
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     from gateway.run import _load_gateway_config
     from gateway.session_managed_worker import _worker_config
     from gateway.session_policy import build_policy
@@ -35,7 +35,7 @@ def _snapshot(home, monkeypatch):
 
 
 def _bypass_snapshot(home, monkeypatch, *, safe_mode):
-    monkeypatch.setenv("HERMES_HOME", str(home))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(home))
     from gateway.session_local import _bypass_policy
     from gateway.session_managed_worker import _worker_config
     params = {"source": "cli", "cwd": str(home), "model": "m"}
@@ -94,10 +94,10 @@ def _always_in_worker(tmp_path, monkeypatch, live_yaml, bind=True, *, safe_mode=
     from tests.gateway.fixtures.local_recovery_probe import child_env
     env = child_env()
     env.update(
-        HOME=str(home), USERPROFILE=str(home), HERMES_HOME=str(home), GRANT_KEY=KEY,
+        HOME=str(home), USERPROFILE=str(home), A2ASSISTANT_HOME=str(home), GRANT_KEY=KEY,
         GRANT_SNAPSHOT=json.dumps(snapshot), GRANT_BIND=bind_mode,
         GRANT_SAFE="1" if safe_mode else "0", GRANT_ACTION=action,
-        HERMES_DISABLE_LAZY_INSTALLS="1",
+        A2ASSISTANT_DISABLE_LAZY_INSTALLS="1",
     )
     proc = subprocess.run(
         [sys.executable, str(script)], cwd=ROOT, env=env, stdin=subprocess.DEVNULL,

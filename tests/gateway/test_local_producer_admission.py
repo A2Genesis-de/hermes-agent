@@ -42,7 +42,7 @@ class _Gateway:
                 'default': f'{name}-model', 'provider': 'custom', 'base_url': 'http://127.0.0.1:9/v1',
                 'api_key': 'loopback-only'}}))
         monkeypatch.setattr(Path, 'home', lambda: tmp_path)
-        monkeypatch.setenv('HERMES_HOME', str(root))
+        monkeypatch.setenv('A2ASSISTANT_HOME', str(root))
         import hermes_state
         monkeypatch.setattr(hermes_state, 'DEFAULT_DB_PATH', hermes_state._IMPORT_DEFAULT_DB_PATH)
         self.turns, self.gate = [], None
@@ -218,7 +218,7 @@ async def messaging(tmp_path, monkeypatch):
     from gateway.session_ingress_context import native_callback, register_transport_home
     from hermes_state import SessionDB
     from plugins.platforms.telegram.adapter import TelegramAdapter
-    monkeypatch.setenv('HERMES_HOME', str(tmp_path))
+    monkeypatch.setenv('A2ASSISTANT_HOME', str(tmp_path))
     monkeypatch.setenv('TELEGRAM_ALLOWED_USERS', '42')
     monkeypatch.setattr(SessionAuthority, '_schedule', lambda self, ref: None)
     runner = GatewayRunner(GatewayConfig(sessions_dir=tmp_path / 'sessions'))

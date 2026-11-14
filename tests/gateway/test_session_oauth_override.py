@@ -12,7 +12,7 @@ from hermes_cli.model_switch import ModelSwitchResult
 
 
 def _runner(monkeypatch, tmp_path):
-    monkeypatch.setenv("HERMES_HOME", str(tmp_path))
+    monkeypatch.setenv("A2ASSISTANT_HOME", str(tmp_path))
     monkeypatch.setattr(Path, "home", lambda: tmp_path)
     # Default-route fallback is an external dependency of this invariant, not its subject.
     monkeypatch.setattr("gateway.run._resolve_gateway_model", lambda *_: "default-model")
@@ -194,10 +194,10 @@ def test_managed_session_route_bypasses_channel_resolution(tmp_path, monkeypatch
 
 
 def test_managed_session_override_on_env_overridden_codex_host_follows_auth_store(tmp_path, monkeypatch):
-    """HERMES_CODEX_BASE_URL moves the managed host; the auth store still owns its bearer."""
+    """A2ASSISTANT_CODEX_BASE_URL moves the managed host; the auth store still owns its bearer."""
     runner = _runner(monkeypatch, tmp_path)
     host = "http://127.0.0.1:9/v1"
-    monkeypatch.setenv("HERMES_CODEX_BASE_URL", host)
+    monkeypatch.setenv("A2ASSISTANT_CODEX_BASE_URL", host)
     (tmp_path / "config.yaml").write_text("model:\n  provider: openrouter\n  default: default-model\n")
     runner._session_model_overrides["session"] = {
         "model": "selected-model", "provider": "openai-codex", "api_key": "account-A",
@@ -210,19 +210,19 @@ def test_managed_session_override_on_env_overridden_codex_host_follows_auth_stor
 
 
 def test_secondary_profile_scoped_codex_host_follows_its_auth_store(tmp_path, monkeypatch):
-    """A profile whose HERMES_CODEX_BASE_URL lives only in its secret scope (the launch profile's
+    """A profile whose A2ASSISTANT_CODEX_BASE_URL lives only in its secret scope (the launch profile's
     process env names another host) still re-resolves its managed bearer each turn."""
     from agent.secret_scope import reset_secret_scope, set_secret_scope
 
     runner = _runner(monkeypatch, tmp_path)
     secondary_host = "http://127.0.0.1:9/secondary/v1"
-    monkeypatch.setenv("HERMES_CODEX_BASE_URL", "http://127.0.0.1:9/launch-profile/v1")
+    monkeypatch.setenv("A2ASSISTANT_CODEX_BASE_URL", "http://127.0.0.1:9/launch-profile/v1")
     (tmp_path / "config.yaml").write_text("model:\n  provider: openrouter\n  default: default-model\n")
     runner._session_model_overrides["session"] = {
         "model": "selected-model", "provider": "openai-codex", "api_key": "account-A",
         "base_url": secondary_host, "api_mode": "codex_responses", "credential_pool": None,
     }
-    token = set_secret_scope({"HERMES_CODEX_BASE_URL": secondary_host})
+    token = set_secret_scope({"A2ASSISTANT_CODEX_BASE_URL": secondary_host})
     try:
         for account in ("account-A", "account-B"):
             _write_auth(tmp_path, "openai-codex", account)

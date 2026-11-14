@@ -37,16 +37,16 @@ def local_gateway(tmp_path, monkeypatch):
     for key, value in {"OPENAI_API_KEY": "loopback-only", "OPENAI_BASE_URL": url}.items():
         monkeypatch.setenv(key, value)
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: user))
-    monkeypatch.delenv("HERMES_TUI_GATEWAY_URL", raising=False)
+    monkeypatch.delenv("A2ASSISTANT_TUI_GATEWAY_URL", raising=False)
     root = Path(__file__).resolve().parents[2]
     children, logs = [], []
 
     def spawn(home, *, deadline, idle_exit=False):
         env = child_env()
-        env.update(HOME=str(user), USERPROFILE=str(user), HERMES_HOME=str(home),
+        env.update(HOME=str(user), USERPROFILE=str(user), A2ASSISTANT_HOME=str(home),
                    PYTHONPATH=str(root), OPENAI_API_KEY="loopback-only", OPENAI_BASE_URL=url,
                    # This child owns a disposable default root; it is reaped below.
-                   HERMES_STATE_DB_GUARD_BYPASS="1")
+                   A2ASSISTANT_STATE_DB_GUARD_BYPASS="1")
         log = (home / f"fixture-gateway-{len(children)}.log").open("w+", encoding="utf-8")
         logs.append(log)
         process = subprocess.Popen([sys.executable, "-m", "gateway.run"], cwd=root, env=env,
@@ -68,7 +68,7 @@ def local_gateway(tmp_path, monkeypatch):
             target.mkdir(parents=True, mode=0o700)
             (target / "config.yaml").write_text(json.dumps(config), encoding="utf-8")
             (target / ".env").write_text("OPENAI_API_KEY=loopback-only\n", encoding="utf-8")
-        monkeypatch.setenv("HERMES_HOME", str(homes[-1]))
+        monkeypatch.setenv("A2ASSISTANT_HOME", str(homes[-1]))
         return homes[-1]
 
     try:

@@ -1,4 +1,4 @@
-"""Tests for hermes -z --usage-file (per-run JSON usage report)."""
+"""Tests for a2assistant -z --usage-file (per-run JSON usage report)."""
 
 import json
 
